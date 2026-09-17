@@ -1,0 +1,6 @@
+# BIO116 — AI-assisted bioinformatics exercise
+# Install with:  pip install -r requirements.txt
+biopython>=1.80
+matplotlib>=3.6
+jupyter>=1.0
+notebook>=6.5

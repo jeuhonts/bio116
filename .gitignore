@@ -1,0 +1,9 @@
+# Jupyter
+.ipynb_checkpoints/
+# NCBI download cache created at runtime
+data/cache/
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
