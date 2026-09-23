@@ -13,7 +13,7 @@ GenBank or FASTA file.
 Python, run from the repository root:
 
 - `find_candidate_genes.py` is the minimal goal students build: ORFs on both strands (with
-  overlaps), a length cutoff, and translation, in about 20 commented lines with no functions.
+  overlaps), a length cutoff, and translation, with a written-out codon table and about 20 commented lines of code, no functions.
 - `orf_finder.py` is the full reference solution: alternative start codons, start choice by
   ribosome binding site, and comparison with the GenBank annotation.
 

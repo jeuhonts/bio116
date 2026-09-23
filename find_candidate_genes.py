@@ -10,10 +10,30 @@ MIN_CODONS = 100   # shorter ORFs are mostly chance
 # The (?= ) lookahead lets matches overlap, so no ORF hides inside another.
 ORF = re.compile(r"(?=(ATG(?:(?!TAA|TAG|TGA)[ACGT]{3}){%d,}(?:TAA|TAG|TGA)))" % MIN_CODONS)
 
-# Genetic code: the 64 codons in TCAG order, paired with their amino acids in the same order
-B = "TCAG"
-CODE = dict(zip([a + b + c for a in B for b in B for c in B],
-                "FFLLSSSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG"))
+# Genetic code: codon -> amino acid (one-letter code, * = stop).
+# Laid out like the textbook table: each row varies the second base (T, C, A, G).
+CODE = {
+    # first base T
+    "TTT": "F",  "TCT": "S",  "TAT": "Y",  "TGT": "C",
+    "TTC": "F",  "TCC": "S",  "TAC": "Y",  "TGC": "C",
+    "TTA": "L",  "TCA": "S",  "TAA": "*",  "TGA": "*",
+    "TTG": "L",  "TCG": "S",  "TAG": "*",  "TGG": "W",
+    # first base C
+    "CTT": "L",  "CCT": "P",  "CAT": "H",  "CGT": "R",
+    "CTC": "L",  "CCC": "P",  "CAC": "H",  "CGC": "R",
+    "CTA": "L",  "CCA": "P",  "CAA": "Q",  "CGA": "R",
+    "CTG": "L",  "CCG": "P",  "CAG": "Q",  "CGG": "R",
+    # first base A
+    "ATT": "I",  "ACT": "T",  "AAT": "N",  "AGT": "S",
+    "ATC": "I",  "ACC": "T",  "AAC": "N",  "AGC": "S",
+    "ATA": "I",  "ACA": "T",  "AAA": "K",  "AGA": "R",
+    "ATG": "M",  "ACG": "T",  "AAG": "K",  "AGG": "R",
+    # first base G
+    "GTT": "V",  "GCT": "A",  "GAT": "D",  "GGT": "G",
+    "GTC": "V",  "GCC": "A",  "GAC": "D",  "GGC": "G",
+    "GTA": "V",  "GCA": "A",  "GAA": "E",  "GGA": "G",
+    "GTG": "V",  "GCG": "A",  "GAG": "E",  "GGG": "G",
+}
 
 # DNA from the GenBank file: the lines after ORIGIN, keeping only the bases
 text = open("data/J01636_lac_operon.gb").read()
