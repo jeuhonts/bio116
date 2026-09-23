@@ -1,0 +1,1022 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>HRAS Gene Finding Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@112,700;112,800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+:root{
+  --ground:#F1F4F3; --panel:#FFFFFF; --panel-2:#E6ECEA; --ink:#15211F; --muted:#51615D;
+  --line:#D3DDDA; --line-2:#AFBEBA;
+  --accent:#0D6A5B; --accent-ink:#FFFFFF; --accent-soft:#DDEFEB;
+  --nA:#23904A; --nC:#2E68B8; --nG:#C47508; --nT:#C63A33;
+  --f1:#2E68B8; --f2:#C47508; --f3:#9A3E86;
+  --ok:#1F7F41; --bad:#B8332C; --warn:#B7700A;
+  --neg:#B8332C; --intron:#8A9894;
+  --display:'Archivo','Arial Narrow','Segoe UI',system-ui,sans-serif;
+  --body:'Atkinson Hyperlegible','Segoe UI',system-ui,-apple-system,sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --ground:#0F1716; --panel:#162120; --panel-2:#1F2D2B; --ink:#E3ECEA; --muted:#9DB0AB;
+    --line:#293936; --line-2:#415550;
+    --accent:#6ED3BF; --accent-ink:#082621; --accent-soft:#193B35;
+    --nA:#5CC77E; --nC:#6FA3EA; --nG:#E9A646; --nT:#EE7068;
+    --f1:#6FA3EA; --f2:#E9A646; --f3:#D58CC4;
+    --ok:#5CC77E; --bad:#EE7068; --warn:#E9A646;
+    --neg:#EE7068; --intron:#6F827D;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --ground:#0F1716; --panel:#162120; --panel-2:#1F2D2B; --ink:#E3ECEA; --muted:#9DB0AB;
+  --line:#293936; --line-2:#415550;
+  --accent:#6ED3BF; --accent-ink:#082621; --accent-soft:#193B35;
+  --nA:#5CC77E; --nC:#6FA3EA; --nG:#E9A646; --nT:#EE7068;
+  --f1:#6FA3EA; --f2:#E9A646; --f3:#D58CC4;
+  --ok:#5CC77E; --bad:#EE7068; --warn:#E9A646;
+  --neg:#EE7068; --intron:#6F827D;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--ground);color:var(--ink);font:16px/1.58 var(--body);padding-inline:clamp(16px,3vw,40px);padding-block:0 72px}
+.page{max-width:1240px;margin:0 auto}
+a{color:var(--accent);text-underline-offset:2px}
+code,.mono{font-family:var(--mono);font-size:.86em}
+code{background:var(--panel-2);padding:.08em .35em;border-radius:4px}
+h1,h2,h3{font-family:var(--display);font-stretch:112%;text-wrap:balance;margin:0;line-height:1.1}
+h2{font-size:clamp(1.45rem,2.6vw,1.95rem);font-weight:800;letter-spacing:-.01em}
+h3{font-size:1.05rem;font-weight:700}
+p{margin:0}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.eyebrow{font:600 .74rem/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.A{color:var(--nA)}.C{color:var(--nC)}.G{color:var(--nG)}.T{color:var(--nT)}
+
+header.top{display:grid;gap:16px;padding-block:44px 24px}
+header.top h1{font-size:clamp(2.2rem,5.4vw,3.7rem);font-weight:800;letter-spacing:-.02em;max-width:17ch}
+header.top .lead{font-size:1.1rem;color:var(--muted);max-width:68ch}
+.hero-strip{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:grid;gap:6px}
+.pipeline{list-style:none;margin:8px 0 0;padding:0;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));border:1px solid var(--line);border-radius:10px;background:var(--panel);overflow:hidden}
+@media (max-width:860px){.pipeline{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:480px){.pipeline{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.pipeline li{border-right:1px solid var(--line)}
+.pipeline li:last-child{border-right:0}
+@media (max-width:860px){.pipeline li{border-bottom:1px solid var(--line)}}
+.pipeline a{display:grid;gap:4px;padding:12px 14px;text-decoration:none;color:var(--ink);height:100%}
+.pipeline a:hover{background:var(--accent-soft)}
+.pipeline .n{font:600 .72rem var(--mono);color:var(--muted);display:flex;justify-content:space-between;gap:6px}
+.pipeline .t{font-weight:700;font-size:.95rem;line-height:1.25}
+.pipeline .bar{height:4px;border-radius:99px;background:var(--panel-2);overflow:hidden}
+.pipeline .bar > i{display:block;height:100%;width:0;background:var(--ok);transition:width .4s}
+.prog-row{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;font:.85rem var(--mono);color:var(--muted)}
+.linkbtn{background:none;border:0;padding:0;color:var(--muted);text-decoration:underline;cursor:pointer;font-size:.85rem}
+
+.station{margin-top:64px;display:grid;gap:20px;scroll-margin-top:16px}
+.st-head{display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:end;border-bottom:2px solid var(--ink);padding-bottom:12px}
+.st-num{font:800 clamp(2.6rem,6vw,4rem)/.8 var(--display);font-stretch:112%;color:var(--accent)}
+.st-head .eyebrow{margin-bottom:6px}
+.st-grid{display:grid;grid-template-columns:minmax(0,34ch) minmax(0,1fr);gap:28px;align-items:start}
+@media (max-width:980px){.st-grid{grid-template-columns:minmax(0,1fr)}}
+.prose{display:grid;gap:12px;max-width:66ch}
+.prose ul,.prose ol{margin:0;padding-left:1.2em;display:grid;gap:4px}
+.formula{font-family:var(--mono);font-size:.9rem;background:var(--panel-2);padding:8px 10px;border-radius:6px}
+.instrument{background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden;min-width:0}
+.inst-head{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;padding:10px 14px;background:var(--panel-2);border-bottom:1px solid var(--line)}
+.inst-head .eyebrow{margin-right:auto}
+.inst-body{padding:14px;display:grid;gap:14px;min-width:0}
+.inst-body + .inst-head{border-top:1px solid var(--line)}
+.btn{border:1px solid var(--line-2);background:var(--panel);border-radius:6px;padding:6px 11px;cursor:pointer;line-height:1.2;font-size:.9rem;white-space:nowrap}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:700}
+.btn.primary:hover{filter:brightness(1.08);color:var(--accent-ink)}
+.ctl{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;font-size:.9rem}
+.ctl label{display:flex;gap:8px;align-items:center}
+.ctl input[type=range]{width:140px;accent-color:var(--accent)}
+.ctl output{font:600 .85rem var(--mono);min-width:5ch;font-variant-numeric:tabular-nums}
+.ctl input[type=text]{padding:5px 8px;border:1px solid var(--line-2);border-radius:6px;background:var(--panel);font-family:var(--mono);font-size:.88rem;min-width:0;width:16ch}
+.scroll{overflow-x:auto}
+svg{display:block}
+svg text{font-family:var(--mono)}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:8px;overflow:hidden;margin:0}
+.stats > div{background:var(--panel);padding:8px 10px;display:grid;gap:2px}
+.stats dt{font-size:.75rem;color:var(--muted)}
+.stats dd{margin:0;font:600 1.05rem var(--mono);font-variant-numeric:tabular-nums}
+.note{font-size:.86rem;color:var(--muted)}
+.status{font-size:.92rem;padding:8px 10px;border-radius:6px;background:var(--panel-2)}
+.status.ok{color:var(--ok)}.status.bad{color:var(--bad)}.status.warn{color:var(--warn)}
+.legend{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:.8rem;color:var(--muted);align-items:center}
+.sw{display:inline-block;width:10px;height:10px;border-radius:2px;vertical-align:-1px;margin-right:5px}
+.presets{display:flex;flex-wrap:wrap;gap:6px}
+
+/* checks */
+.checks{display:grid;gap:10px;margin-top:6px}
+.chk{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 12px;display:grid;gap:8px;font-size:.93rem}
+.chk .q{font-weight:700;display:grid;grid-template-columns:18px 1fr;gap:8px;align-items:start}
+.chk .box{width:16px;height:16px;border-radius:4px;border:2px solid var(--line-2);margin-top:3px;display:grid;place-items:center}
+.chk.done .box{background:var(--ok);border-color:var(--ok)}
+.chk.done .box::after{content:"";width:4px;height:8px;border:solid #fff;border-width:0 2px 2px 0;transform:translateY(-1px) rotate(45deg)}
+.chk.task .q{font-weight:400}
+.chk.task:not(.done) .q{color:var(--muted)}
+.chk label{display:flex;gap:8px;align-items:baseline;cursor:pointer;padding-left:26px}
+.chk .row{display:flex;gap:6px;flex-wrap:wrap;padding-left:26px}
+.chk input[type=text]{flex:1;min-width:0;padding:5px 8px;border:1px solid var(--line-2);border-radius:6px;background:var(--panel);font-family:var(--mono);font-size:.88rem}
+.fb{font-size:.88rem;padding-left:26px}
+.fb:empty{display:none}
+.fb.ok{color:var(--ok)}.fb.bad{color:var(--bad)}
+.chk .btn{justify-self:start;margin-left:26px}
+.chk .row .btn{margin-left:0}
+
+/* shared track drawing */
+.axis-t{font-size:10px;fill:var(--muted)}
+.axis-l{stroke:var(--line-2)}
+.trk-lbl{font:600 10px var(--body);fill:var(--muted)}
+.cds{fill:var(--ink)}
+.utr{fill:var(--ink);opacity:.45}
+.intron-l{stroke:var(--intron);stroke-width:1}
+.hit{fill:transparent;cursor:pointer}
+
+/* station 1 */
+.stopt{stroke:var(--muted);stroke-width:1;opacity:.35}
+.orf{fill:var(--accent);cursor:pointer}
+.orf.sel{fill:var(--warn)}
+.orf.hras{fill:var(--ok)}
+.rowbg{fill:var(--panel-2)}
+table.orfs{border-collapse:collapse;width:100%;font-size:.85rem}
+table.orfs th{font:600 .7rem var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);text-align:left;padding:4px 6px;border-bottom:1px solid var(--line)}
+table.orfs td{padding:4px 6px;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums;font-family:var(--mono);font-size:.82rem}
+table.orfs tr{cursor:pointer}
+table.orfs tr:hover td{background:var(--accent-soft)}
+table.orfs tr.sel td{background:var(--accent-soft);font-weight:600}
+
+/* station 2 */
+.anat .ex{fill:var(--ink)}
+.anat .in{fill:none;stroke:var(--intron);stroke-width:2}
+.anat .lbl{font-size:11px;fill:var(--ink);text-anchor:middle}
+.anat .sub{font-size:10px;fill:var(--muted);text-anchor:middle}
+.anat .mot{font:600 13px var(--mono);fill:var(--accent);text-anchor:middle}
+.logo-col text{font-weight:600}
+.logo-ax{font-size:10px;fill:var(--muted);text-anchor:middle}
+.strip{font:600 .95rem/1.9 var(--mono);letter-spacing:.04em;overflow-wrap:anywhere;background:var(--panel-2);padding:8px 10px;border-radius:6px}
+.strip .ex{color:var(--ink)}
+.strip .in{color:var(--muted);font-weight:400}
+.strip .pos{color:var(--muted);font-weight:400;font-size:.75rem;margin-right:4px}
+.gt{font:inherit;letter-spacing:inherit;border:1px solid var(--line-2);background:var(--panel);border-radius:4px;padding:0 1px;cursor:pointer;color:var(--accent)}
+.gt:hover{border-color:var(--accent)}
+.gt.sel{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.bits{display:grid;grid-template-columns:repeat(9,minmax(0,1fr));gap:2px;max-width:420px}
+.bits > div{display:grid;gap:2px;text-align:center;font:600 .82rem var(--mono)}
+.bits small{font:400 .66rem var(--mono);color:var(--muted)}
+.bits .b{height:34px;display:flex;align-items:flex-end;justify-content:center;border-bottom:1px solid var(--line-2)}
+.bits .b i{display:block;width:70%;background:var(--accent);border-radius:2px 2px 0 0}
+.bits .b i.neg{background:var(--neg)}
+.hbar{fill:var(--line-2)}
+.hbar.pass{fill:var(--accent);opacity:.55}
+.realmk{fill:var(--ok)}
+.realtx{font-size:10px;fill:var(--ok);text-anchor:middle}
+.thr{stroke:var(--bad);stroke-width:1.5;stroke-dasharray:4 3}
+
+/* station 3 */
+.cgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:2px;font:600 .74rem var(--mono);max-width:560px}
+.cgrid > div{padding:3px 5px;border-radius:3px;display:flex;justify-content:space-between;gap:4px;font-variant-numeric:tabular-nums}
+.cgrid small{font-weight:400;opacity:.85}
+.fr1{stroke:var(--f1)}.fr2{stroke:var(--f2)}.fr3{stroke:var(--f3)}
+.trace{fill:none;stroke-width:1.6}
+.zero{stroke:var(--line-2);stroke-dasharray:3 3}
+.exbox1{fill:var(--f1)}.exbox2{fill:var(--f2)}.exbox3{fill:var(--f3)}
+.exlab{font:600 10px var(--mono);fill:var(--ink);text-anchor:middle}
+table.fr{border-collapse:collapse;font:.8rem var(--mono);font-variant-numeric:tabular-nums}
+table.fr th,table.fr td{padding:3px 8px;border:1px solid var(--line);text-align:right}
+table.fr th{color:var(--muted);font-weight:600;text-align:left}
+table.fr td.best{background:var(--accent-soft);font-weight:700}
+
+/* station 4 */
+.cand{cursor:pointer}
+.cand rect.body{fill:var(--panel);stroke:var(--line-2);stroke-width:1.2}
+.cand.on rect.body{fill:var(--accent);stroke:var(--accent)}
+.cand text{font:600 11px var(--mono);fill:var(--ink);text-anchor:middle;pointer-events:none}
+.cand.on text{fill:var(--accent-ink)}
+.cand:hover rect.body{stroke:var(--accent);stroke-width:2}
+.cand:focus-visible{outline:none}
+.cand:focus-visible rect.body{stroke:var(--warn);stroke-width:2.5}
+.model{display:grid;gap:6px;font-size:.88rem}
+.model .ex{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline;font-family:var(--mono);font-size:.82rem}
+.model .ph{color:var(--muted);font-size:.78rem;padding-left:14px}
+.prot{font:600 .84rem/1.6 var(--mono);letter-spacing:.06em;overflow-wrap:anywhere;background:var(--panel-2);padding:8px 10px;border-radius:6px}
+.prot .stop{background:var(--bad);color:#fff;border-radius:2px;padding:0 1px}
+.prot .mm{color:var(--bad);text-decoration:underline}
+
+/* station 5 */
+.hmm .st{fill:var(--panel);stroke:var(--ink);stroke-width:1.3}
+.hmm .st.exon{fill:var(--accent-soft);stroke:var(--accent)}
+.hmm .lb{font:600 11px var(--body);fill:var(--ink);text-anchor:middle}
+.hmm .sm{font-size:9px;fill:var(--muted);text-anchor:middle}
+.hmm .ed{fill:none;stroke:var(--line-2);stroke-width:1.4}
+.hmm .ah{fill:var(--line-2)}
+.tp{fill:var(--ok)}.fp{fill:var(--bad)}.fn{fill:var(--warn);opacity:.55}
+
+/* station 6 */
+.covA{fill:var(--accent);opacity:.3}
+.covL{fill:none;stroke:var(--accent);stroke-width:1.2}
+.arc{fill:none;stroke:var(--ink);stroke-width:1.6;cursor:pointer}
+.arc:hover,.arc.sel{stroke:var(--warn);stroke-width:3}
+.arc-hit{fill:none;stroke:transparent;stroke-width:12;cursor:pointer}
+.arcn{font:600 10px var(--mono);fill:var(--ink);text-anchor:middle}
+.pred{fill:var(--accent)}
+
+/* reference */
+.ref{margin-top:80px;display:grid;gap:18px}
+.tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--panel)}
+table.cmp{border-collapse:collapse;width:100%;min-width:720px;font-size:.9rem}
+table.cmp th,table.cmp td{padding:9px 12px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line)}
+table.cmp thead th{font:600 .72rem var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);background:var(--panel-2)}
+table.cmp tbody th{font-family:var(--display);font-stretch:112%;font-size:.98rem}
+table.cmp tr:last-child > *{border-bottom:0}
+dl.gloss{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px 28px;margin:0}
+dl.gloss dt{font-weight:700}
+dl.gloss dd{margin:2px 0 0;color:var(--muted);font-size:.93rem}
+footer.src{margin-top:64px;padding-top:16px;border-top:1px solid var(--line);font-size:.85rem;color:var(--muted);display:grid;gap:6px;max-width:80ch}
+footer.src ul{margin:0;padding-left:1.2em;display:grid;gap:4px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="page">
+<header class="top">
+  <p class="eyebrow">BIO 116 · Bioinformatics lab</p>
+  <h1>Finding a gene in 10,309 bases of human DNA</h1>
+  <p class="lead">You have assembled the HRAS region and looked at it in a genome browser. Now take the annotation away. Where is the gene? A bacterial gene is usually one long open reading frame. A human gene is broken into short exons, separated by introns that can be many times longer. Work through the six stations to find HRAS the way a gene-prediction program does: look for signals, score coding potential, put the exons together, and then check the result against RNA evidence.</p>
+  <div class="hero-strip" aria-label="Summary of the HRAS gene in this entry">
+    <p class="eyebrow">The answer key, hidden from the programs</p>
+    <div class="scroll"><svg id="heroSvg" viewBox="0 0 1000 64" style="min-width:560px;width:100%" role="img" aria-label="HRAS spans positions 4,975 to 8,309 of the entry: six exons, of which four carry the 570 coding bases"></svg></div>
+    <p class="note">HRAS spans 3,335 bp of this entry, but only <b>570 bp (17%)</b> code for protein. Those 570 bp are split across four exons.</p>
+  </div>
+  <ol class="pipeline" id="pipeline"></ol>
+  <div class="prog-row"><span id="progText">0 of 0 checks complete</span><button class="linkbtn" id="resetAll" type="button">Clear my progress</button><span id="resetConfirm" hidden>Clear all answers? <button class="linkbtn" id="resetYes" type="button">Yes, clear</button> · <button class="linkbtn" id="resetNo" type="button">Keep</button></span></div>
+</header>
+
+<!-- ================= STATION 1 ================= -->
+<section class="station" id="orfs">
+  <div class="st-head"><span class="st-num">1</span><div><p class="eyebrow">Station 1 · The prokaryote approach</p><h2>Open reading frames: why "find the longest ORF" fails</h2></div></div>
+  <div class="st-grid">
+    <div class="prose">
+      <p>An <b>open reading frame</b> (ORF) is a stretch that starts with ATG and runs, codon by codon, to the first stop codon (TAA, TAG or TGA). DNA can be read in <b>six frames</b>: three offsets on each strand.</p>
+      <p>In random sequence, 3 of the 64 codons are stops. So a stop turns up about every 21 codons, and an ORF of 100+ codons is rare by chance. In bacteria, where ~88% of the genome is coding and genes have no introns, "long ORF = gene" works well.</p>
+      <p>Try it on the HRAS entry. The chart marks every stop codon in all six frames and highlights ATG-initiated ORFs above your length cut-off. HRAS coding exons are drawn in the bottom track.</p>
+      <div class="checks" data-station="orfs"></div>
+    </div>
+    <div class="instrument">
+      <div class="inst-head"><span class="eyebrow">Six-frame ORF scan · whole entry, 10,309 bp</span>
+        <label class="ctl" for="minOrf">Minimum ORF <input type="range" id="minOrf" min="30" max="300" step="10" value="100"><output id="minOrfO">100 codons</output></label></div>
+      <div class="inst-body">
+        <div class="scroll"><svg id="orfSvg" viewBox="0 0 1000 250" style="min-width:640px;width:100%" role="img" aria-label="Stop codons and open reading frames in six frames along the HRAS entry, with the HRAS gene and the minus-strand LRRC56 exons below"></svg></div>
+        <div class="legend"><span><i class="sw" style="background:var(--muted);opacity:.5"></i>stop codon</span><span><i class="sw" style="background:var(--accent)"></i>ORF ≥ cut-off</span><span><i class="sw" style="background:var(--ok)"></i>ORF overlapping HRAS coding sequence</span><span><i class="sw" style="background:var(--warn)"></i>selected</span></div>
+        <dl class="stats" id="orfStats"></dl>
+        <div class="status" id="orfInfo">Click an ORF in the chart or the table to inspect it.</div>
+        <div class="scroll"><table class="orfs"><thead><tr><th>#</th><th>Strand · frame</th><th>Position</th><th>Codons</th><th>Overlaps HRAS CDS?</th></tr></thead><tbody id="orfRows"></tbody></table></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= STATION 2 ================= -->
+<section class="station" id="signals">
+  <div class="st-head"><span class="st-num">2</span><div><p class="eyebrow">Station 2 · Signal sensors</p><h2>Splice sites: GT…AG and weight matrices</h2></div></div>
+  <div class="st-grid">
+    <div class="prose">
+      <p>The spliceosome recognises short sequence <b>signals</b> at intron boundaries. Almost every human intron starts with <b>GT</b> (the 5′ or donor site) and ends with <b>AG</b> (the 3′ or acceptor site). A branch-point A and a pyrimidine-rich tract sit just upstream of the AG.</p>
+      <p>Beyond the GT, the flanking bases are only preferences. A <b>position weight matrix</b> (PWM) scores a candidate site by adding up, position by position, how much more often each base appears at real sites than by chance:</p>
+      <p class="formula">score = Σ log₂( f<sub>pos,base</sub> / 0.25 )   bits</p>
+      <p>The sequence logos on the right show how much each position tells you. Tall stacks carry more information.</p>
+      <div class="checks" data-station="signals"></div>
+    </div>
+    <div class="instrument">
+      <div class="inst-head"><span class="eyebrow">Intron anatomy</span></div>
+      <div class="inst-body">
+        <div class="scroll"><svg class="anat" viewBox="0 0 1000 104" style="min-width:600px;width:100%" role="img" aria-label="Intron anatomy: exon, donor site MAG|GTRAGT, branch point A, polypyrimidine tract, acceptor site YAG|G, exon">
+          <rect class="ex" x="10" y="40" width="150" height="24" rx="2"/><rect class="ex" x="840" y="40" width="150" height="24" rx="2"/>
+          <path class="in" d="M160 52 L840 52"/>
+          <text class="mot" x="170" y="28">MAG|GTRAGT</text><text class="lbl" x="170" y="84">5′ splice site (donor)</text><text class="sub" x="170" y="98">intron starts GT</text>
+          <text class="mot" x="560" y="28">YTNAY</text><text class="lbl" x="560" y="84">branch point A</text><text class="sub" x="560" y="98">~20–50 nt upstream of the AG</text>
+          <text class="mot" x="720" y="28">(Y)₁₀₋₂₀</text><text class="lbl" x="720" y="84">polypyrimidine tract</text><text class="sub" x="720" y="98">C/T-rich</text>
+          <text class="mot" x="840" y="28">YAG|G</text><text class="lbl" x="850" y="84">3′ splice site</text><text class="sub" x="850" y="98">(acceptor)</text>
+          <text class="lbl" x="85" y="30" style="fill:var(--muted)">exon</text><text class="lbl" x="930" y="30" style="fill:var(--muted)">exon</text>
+          <text class="lbl" x="400" y="46" style="fill:var(--muted)">intron (removed)</text>
+        </svg></div>
+      </div>
+      <div class="inst-head"><span class="eyebrow">Sequence logos · approximate human consensus</span></div>
+      <div class="inst-body">
+        <div class="scroll"><svg id="logos" viewBox="0 0 980 150" style="min-width:640px;width:100%" role="img" aria-label="Sequence logos for the human 5′ donor site, positions −3 to +6, and 3′ acceptor site, positions −15 to +1"></svg></div>
+      </div>
+      <div class="inst-head"><span class="eyebrow">Donor scanner · end of HRAS exon 2, positions 6,300–6,419</span><span class="note">Exon bases in capitals</span></div>
+      <div class="inst-body">
+        <p class="note">Every <b>GT</b> is a button. Click one to score it as a donor site. One of them is the real exon 2 donor.</p>
+        <div class="strip" id="strip"></div>
+        <div id="gtInfo" class="status">No GT selected.</div>
+        <div class="bits" id="gtBits" aria-hidden="true"></div>
+        <div class="ctl"><label for="myDonor">Score your own 9-mer</label><input type="text" id="myDonor" maxlength="9" spellcheck="false" value="CAGGTAAGT" aria-label="Nine bases: three exon bases, then GT and four more intron bases"><span class="mono" id="myDonorO"></span></div>
+      </div>
+      <div class="inst-head"><span class="eyebrow">Every GT in the 2.3-kb coding window (6,100–8,400)</span>
+        <label class="ctl" for="thr">Threshold <input type="range" id="thr" min="-10" max="12" step="0.1" value="0"><output id="thrO">0.0 bits</output></label></div>
+      <div class="inst-body">
+        <div class="scroll"><svg id="hist" viewBox="0 0 1000 220" style="min-width:600px;width:100%" role="img" aria-label="Histogram of donor PWM scores for every GT in the window; the four real HRAS donors are marked; a dashed line shows the threshold"></svg></div>
+        <dl class="stats" id="thrStats"></dl>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= STATION 3 ================= -->
+<section class="station" id="content">
+  <div class="st-head"><span class="st-num">3</span><div><p class="eyebrow">Station 3 · Content sensors</p><h2>Coding potential: codons are not used at random</h2></div></div>
+  <div class="st-grid">
+    <div class="prose">
+      <p>Signals are short and noisy. <b>Content sensors</b> use the statistics of long stretches instead. Protein-coding DNA is read in triplets, and organisms prefer some codons for the same amino acid. Human genes use CTG for leucine 40% of the time and CTA only 7%.</p>
+      <p>Score each codon by how much more common it is in human genes than in this stretch of DNA overall:</p>
+      <p class="formula">LLR(codon) = log₂( P<sub>human genes</sub> / P<sub>this entry</sub> )</p>
+      <p>Then slide a window along the sequence and average the codon scores in each of the three frames. In an exon, the frame that is actually translated should stand out. The same idea, with longer words and Markov chains, drives GeneMark and GENSCAN.</p>
+      <p class="note">Frames are named by position: <b>frame 1</b> reads codons starting at 1, 4, 7 … of the entry, frame 2 at 2, 5, 8 …, frame 3 at 3, 6, 9 ….</p>
+      <div class="checks" data-station="content"></div>
+    </div>
+    <div class="instrument">
+      <div class="inst-head"><span class="eyebrow">Codon log-likelihood table (bits)</span></div>
+      <div class="inst-body">
+        <div class="scroll"><div class="cgrid" id="cgrid" role="table" aria-label="Log-likelihood score of each codon"></div></div>
+        <p class="note">Teal codons are enriched in human genes and red ones depleted. The three stop codons score lowest. CpG-containing codons like CCG and GCG score low: CpG is rare in human genes but common in this GC-rich entry.</p>
+      </div>
+      <div class="inst-head"><span class="eyebrow">Three-frame coding score · 6,100–8,400</span>
+        <label class="ctl" for="win">Window <input type="range" id="win" min="60" max="600" step="30" value="150"><output id="winO">150 bp</output></label></div>
+      <div class="inst-body">
+        <div class="scroll"><svg id="frameSvg" viewBox="0 0 1000 250" style="min-width:640px;width:100%" role="img" aria-label="Average codon log-likelihood in frames 1, 2 and 3 along the window, with the four HRAS coding exons coloured by their reading frame"></svg></div>
+        <div class="legend"><span><i class="sw" style="background:var(--f1)"></i>frame 1</span><span><i class="sw" style="background:var(--f2)"></i>frame 2</span><span><i class="sw" style="background:var(--f3)"></i>frame 3</span><span>Exon boxes are coloured by the frame they are actually read in.</span></div>
+        <div class="scroll"><table class="fr" id="frTable"></table></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= STATION 4 ================= -->
+<section class="station" id="assemble">
+  <div class="st-head"><span class="st-num">4</span><div><p class="eyebrow">Station 4 · Gene structure</p><h2>Build the gene model yourself</h2></div></div>
+  <div class="st-grid">
+    <div class="prose">
+      <p>A gene finder generates <b>candidate exons</b>: stretches bounded by good signals at both ends. There are four kinds:</p>
+      <ul>
+        <li><b>initial</b>: ATG … GT</li>
+        <li><b>internal</b>: AG … GT</li>
+        <li><b>terminal</b>: AG … stop codon</li>
+        <li><b>single</b>: ATG … stop, with no introns</li>
+      </ul>
+      <p>Then it has to choose a chain of non-overlapping exons that stays <b>in frame</b> across every splice junction. An intron can fall between codons (<b>phase 0</b>), after the first base of a codon (<b>phase 1</b>) or after the second (<b>phase 2</b>). Leftover bases at the end of one exon join the start of the next exon to make a codon.</p>
+      <p>Thirteen candidates from the coding window are drawn on the right. Pick exons to assemble a gene. The panel translates your model and compares it with the HRAS protein in UniProt (P01112, 189 amino acids).</p>
+      <div class="checks" data-station="assemble"></div>
+    </div>
+    <div class="instrument">
+      <div class="inst-head"><span class="eyebrow">Candidate exons · 6,150–8,400</span><button class="btn" id="candReset" type="button">Clear model</button></div>
+      <div class="inst-body">
+        <div class="scroll"><svg id="candSvg" viewBox="0 0 1000 190" style="min-width:640px;width:100%" role="group" aria-label="Candidate exons. Each is a button: press to add it to or remove it from your model"></svg></div>
+        <p class="note">Click an exon (or focus it and press Enter) to add it. Picking an exon removes any candidate it overlaps. Exon <b>a</b> is selected to get you started.</p>
+        <div class="model" id="model"></div>
+        <div class="status" id="modelMsg"></div>
+        <div class="prot" id="prot" aria-live="polite"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= STATION 5 ================= -->
+<section class="station" id="parser">
+  <div class="st-head"><span class="st-num">5</span><div><p class="eyebrow">Station 5 · Ab initio prediction</p><h2>Let the algorithm choose: GENSCAN-style parsing</h2></div></div>
+  <div class="st-grid">
+    <div class="prose">
+      <p>Programs like <b>GENSCAN</b> and <b>AUGUSTUS</b> describe a gene as a path through a hidden Markov model. Each state is intergenic, exon or intron, and the three intron states keep track of phase. The <b>Viterbi</b> algorithm (dynamic programming) finds the highest-scoring path, meaning the best gene structure, out of the huge number of possible exon combinations.</p>
+      <div class="scroll"><svg class="hmm" viewBox="0 0 440 172" style="min-width:360px;width:100%" role="img" aria-label="Simplified gene-finder state diagram: intergenic, then initial exon, intron states for phase 0, 1 and 2 that loop through internal exons, then terminal exon and back to intergenic; a single-exon path goes straight across">
+        <defs><marker id="ah" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path class="ah" d="M0 0L8 4L0 8z"/></marker></defs>
+        <path class="ed" d="M50 70 L80 46" marker-end="url(#ah)"/>
+        <path class="ed" d="M144 35 L178 35" marker-end="url(#ah)"/>
+        <path class="ed" d="M218 50 L218 78" marker-end="url(#ah)"/>
+        <path class="ed" d="M242 80 L242 52" marker-end="url(#ah)"/>
+        <path class="ed" d="M280 35 L308 35" marker-end="url(#ah)"/>
+        <path class="ed" d="M360 50 L392 70" marker-end="url(#ah)"/>
+        <path class="ed" d="M44 106 L188 146" marker-end="url(#ah)"/>
+        <path class="ed" d="M272 146 L396 106" marker-end="url(#ah)"/>
+        <circle class="st" cx="34" cy="88" r="22"/><text class="lb" x="34" y="92">N</text><text class="sm" x="34" y="124">intergenic</text>
+        <rect class="st exon" x="80" y="20" width="64" height="30" rx="6"/><text class="lb" x="112" y="39">E init</text>
+        <rect class="st" x="180" y="20" width="100" height="30" rx="15"/><text class="lb" x="230" y="39">I₀  I₁  I₂</text><text class="sm" x="230" y="12">intron, by phase</text>
+        <rect class="st exon" x="200" y="80" width="60" height="26" rx="6"/><text class="lb" x="230" y="97">E int</text>
+        <rect class="st exon" x="310" y="20" width="64" height="30" rx="6"/><text class="lb" x="342" y="39">E term</text>
+        <circle class="st" cx="408" cy="88" r="22"/><text class="lb" x="408" y="92">N</text>
+        <rect class="st exon" x="190" y="136" width="80" height="26" rx="6"/><text class="lb" x="230" y="153">E single</text>
+      </svg></div>
+      <p>Our parser does the same search over candidate exons. Each exon's score is:</p>
+      <p class="formula">w<sub>signal</sub>·(splice-site bits) + w<sub>content</sub>·(codon LLR) + exon penalty</p>
+      <p>Change the weights and watch the predicted structure change. Accuracy is measured two ways. <b>Sensitivity</b> (Sn) is the fraction of real coding bases or exons that were found. <b>Specificity</b> (Sp; in gene finding, the fraction of predictions that are right) tells you how much of the prediction is correct.</p>
+      <p class="formula">Sn = TP / (TP + FN)    Sp = TP / (TP + FP)</p>
+      <div class="checks" data-station="parser"></div>
+    </div>
+    <div class="instrument">
+      <div class="inst-head"><span class="eyebrow">Gene parser · 6,100–8,400, forward strand</span>
+        <div class="presets"><button class="btn" type="button" data-preset="sig">Signals only</button><button class="btn" type="button" data-preset="con">Codon usage only</button><button class="btn" type="button" data-preset="both">Both</button></div></div>
+      <div class="inst-body">
+        <div class="ctl">
+          <label for="wS">Signal weight <input type="range" id="wS" min="0" max="2" step="0.5" value="1"><output id="wSO">1.0</output></label>
+          <label for="wC">Content weight <input type="range" id="wC" min="0" max="2" step="0.5" value="0"><output id="wCO">0.0</output></label>
+          <label for="exK">Exon penalty <input type="range" id="exK" min="-20" max="-2" step="2" value="-6"><output id="exKO">−6</output></label>
+          <label for="sTh">Min site score <input type="range" id="sTh" min="0" max="6" step="1" value="0"><output id="sThO">0 bits</output></label>
+        </div>
+        <div class="scroll"><svg id="predSvg" viewBox="0 0 1000 150" style="min-width:640px;width:100%" role="img" aria-label="Annotated HRAS coding exons compared with the predicted exons: correct bases green, false positives red, missed bases amber"></svg></div>
+        <div class="legend"><span><i class="sw" style="background:var(--ok)"></i>correct coding base</span><span><i class="sw" style="background:var(--bad)"></i>false positive</span><span><i class="sw" style="background:var(--warn);opacity:.55"></i>missed (false negative)</span></div>
+        <dl class="stats" id="predStats"></dl>
+        <div class="status" id="predMsg"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= STATION 6 ================= -->
+<section class="station" id="evidence">
+  <div class="st-head"><span class="st-num">6</span><div><p class="eyebrow">Station 6 · Extrinsic evidence</p><h2>RNA-seq: letting the cell show you the exons</h2></div></div>
+  <div class="st-grid">
+    <div class="prose">
+      <p>Ab initio predictors only see the genomic sequence. Modern annotation pipelines (Ensembl, RefSeq, <b>BRAKER</b>, <b>MAKER</b>) also use <b>evidence</b>:</p>
+      <ul>
+        <li><b>RNA-seq reads</b>: a read that spans a splice junction maps in two pieces and marks the exact intron coordinates.</li>
+        <li><b>Protein homology</b>: similar proteins from other species.</li>
+        <li><b>Conservation</b>: exons change more slowly than introns.</li>
+      </ul>
+      <p>Here, RNA-seq reads are simulated from the real HRAS transcript (NM_005343), with some intronic reads from unspliced pre-mRNA added. Arcs join the ends of spliced reads, and the number on each arc is how many reads cross that junction. Compare the evidence with the ab initio prediction from Station 5 (best settings).</p>
+      <p class="note">RNA-seq also reveals <b>alternative splicing</b>. HRAS makes a second protein, p19, by including an extra exon (IDX). Typical expression data would show that as an extra, weaker set of junctions.</p>
+      <div class="checks" data-station="evidence"></div>
+    </div>
+    <div class="instrument">
+      <div class="inst-head"><span class="eyebrow">Simulated RNA-seq · 4,900–8,400</span><button class="btn primary" id="reseq" type="button">Sequence again</button></div>
+      <div class="inst-body">
+        <div class="ctl">
+          <label for="nReads">Reads <input type="range" id="nReads" min="40" max="800" step="20" value="240"><output id="nReadsO">240</output></label>
+          <label for="rLen">Read length <input type="range" id="rLen" min="36" max="150" step="2" value="76"><output id="rLenO">76 nt</output></label>
+        </div>
+        <div class="scroll"><svg id="rnaSvg" viewBox="0 0 1000 256" style="min-width:640px;width:100%" role="img" aria-label="RNA-seq coverage and splice-junction arcs across HRAS, with the RefSeq transcript and the ab initio prediction below"></svg></div>
+        <div class="legend"><span><i class="sw" style="background:var(--accent);opacity:.4"></i>read coverage</span><span>arcs = spliced reads (click one)</span><span><i class="sw" style="background:var(--ink)"></i>RefSeq CDS</span><span><i class="sw" style="background:var(--ink);opacity:.45"></i>RefSeq UTR</span><span><i class="sw" style="background:var(--accent)"></i>ab initio prediction</span></div>
+        <div class="status" id="arcInfo">Click a junction arc to read off its intron.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= REFERENCE ================= -->
+<section class="ref" id="tools">
+  <div class="prose"><p class="eyebrow">Reference</p><h2>Gene-finding tools</h2><p>Real annotation pipelines combine several of these. Ab initio predictors propose models, evidence confirms or corrects them, and curators review the difficult cases.</p></div>
+  <div class="tbl-wrap"><table class="cmp">
+    <thead><tr><th scope="col">Tool</th><th scope="col">Approach</th><th scope="col">Uses evidence?</th><th scope="col">Notes</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">GENSCAN (1997)</th><td>Generalised HMM with splice PWMs and 5th-order Markov coding model</td><td>No</td><td>The classic ab initio predictor for vertebrate genomes; predicts both strands and multiple genes</td></tr>
+      <tr><th scope="row">AUGUSTUS</th><td>Generalised HMM, trained per species</td><td>Optional “hints” from RNA-seq and proteins</td><td>Widely used for new genomes; the engine inside BRAKER</td></tr>
+      <tr><th scope="row">GeneMark-ES / ET / EP</th><td>HMM that trains itself on the unannotated genome</td><td>ET: RNA-seq introns; EP: proteins</td><td>No curated training set needed, useful for newly sequenced species</td></tr>
+      <tr><th scope="row">BRAKER / MAKER</th><td>Pipelines: align evidence, train predictors, merge models</td><td>Yes</td><td>Standard route from a new assembly to a first annotation</td></tr>
+      <tr><th scope="row">Helixer, Tiberius</th><td>Deep neural networks (with an HMM layer) that label every base</td><td>No (trained on many annotated genomes)</td><td>Recent; competitive ab initio accuracy across species without per-species training</td></tr>
+      <tr><th scope="row">Ensembl / RefSeq</th><td>Evidence-driven pipelines plus manual curation (HAVANA, RefSeqGene)</td><td>Yes</td><td>Source of the reference HRAS annotation used as the answer key here</td></tr>
+    </tbody></table></div>
+
+  <div class="prose" style="margin-top:28px"><p class="eyebrow">Reference</p><h2>Key terms</h2></div>
+  <dl class="gloss">
+    <div><dt>ORF</dt><dd>A run of codons from ATG to the first in-frame stop.</dd></div>
+    <div><dt>CDS</dt><dd>Coding sequence: the exon bases translated into protein, from start codon to stop codon.</dd></div>
+    <div><dt>UTR</dt><dd>Untranslated region: exon sequence before the start codon (5′) or after the stop (3′). It is in the mRNA but not the protein.</dd></div>
+    <div><dt>Donor / acceptor</dt><dd>The 5′ (GT) and 3′ (AG) ends of an intron.</dd></div>
+    <div><dt>PWM</dt><dd>Position weight matrix: base preferences at each position of a signal, used to score candidate sites.</dd></div>
+    <div><dt>Intron phase</dt><dd>Where an intron interrupts the reading frame: 0 between codons, 1 or 2 inside a codon.</dd></div>
+    <div><dt>Content sensor</dt><dd>A statistic, such as codon usage or hexamer frequency, that separates coding from non-coding DNA.</dd></div>
+    <div><dt>Viterbi algorithm</dt><dd>Dynamic programming that finds the single most probable path of hidden states, here the most likely gene structure.</dd></div>
+    <div><dt>Sn / Sp</dt><dd>Sensitivity TP/(TP+FN) and specificity TP/(TP+FP), measured per base or per exact exon.</dd></div>
+    <div><dt>Spliced alignment</dt><dd>Aligning an RNA read or protein to the genome while allowing large gaps at introns.</dd></div>
+  </dl>
+</section>
+
+<footer class="src">
+  <p><b>About the data</b></p>
+  <ul>
+    <li>All sequence is the 10,309-bp human HRAS RefSeqGene entry (NG_007666.1) in this course's <code>triplets.txt</code>. It has the same numbering as the genome browser and sequencing labs. The answer key is the RefSeq annotation: transcript NM_005343.4, CDS NP_005334.1 (UniProt P01112).</li>
+    <li>Codon frequencies are the human codon-usage table from the Kazusa Codon Usage Database. Splice-site matrices use rounded, approximate frequencies from published human splice-site compilations. They are good enough to teach with, not to publish with.</li>
+    <li>The parser in Station 5 is a teaching simplification. It handles one gene on the forward strand, has no promoter, UTR or length models, and uses bit-scores, not trained HMM probabilities. GENSCAN and AUGUSTUS model all of these.</li>
+    <li>Station 6 reads are <b>simulated</b> without errors from the RefSeq exon coordinates. About 1 in 10 reads is drawn from unspliced pre-mRNA.</li>
+  </ul>
+</footer>
+</div>
+
+<script>
+const SEQ='CCACCCCGAGCCTAGAGAAGGCTCCTAGCTTGGCTGGGCCTCATGGGGCCCTTGTCTGCTTAGTTCCAGCCTGGAGGGCCTCACGCTCCCCTCCCCCAGCCTTGGCTCGACCCCCTCTGCTTCGTAGGACACCCTCCCTGTGTTTCTGCCCATCCTCAGGGTCCATGCAGGGAGTGCTGGCTTCAGGCCTCCCCACCTGAGGCCCACAGGGGCTGTGAGCCTGGGGTGCCGGGCCAGCTGCCGGTGGCTGTGGGGCTCCCGGCACTGCCTCAAGCTGTGGGCTATGGGTCCTTCTCCACCTGATGGTCTCTGAGCCTGGGGTCCAGGATCAAGTCCCAGGCCTTCCCCTACCCCAGCCCTGTGCCAGCCGAGCCCCTTCACCTGCAGGCAGCTGCCCTCTCCTGCTGTGGGTCAAACATCCAGGCAAGGAGGTGGCATGTACCCTCAGGCAGTACCTGCAAGAGTCAGAGTGGCTTCCTGGCCAGGTTACTGTGCCCATGGGAGCCTGGAATGGGCCAGGCTGAGGTCACAGCACCTAGAGGTGAGCAGATCAGCCCAGGACCTGACTATCCACGGACCCAGCTGGCGAGGAGGAAGAGAGTCAGGTGTGTGACCGATGCTGGGGTACCTCTGGGTCCCCCAACACAATGCCTGCTGCTCATCCAAATCCCACTTCCCTCCTTCTCCACAGGGGTCCTCTCTTGCACCCTGTTCTTCCTGAGCCCCTCCCCAGGCCTCTGAGGGTATTGGCCCAGTGTGTCCCTCTCTTGCATCCCATTCTTCCTAAGCCCAGTGTGTCCCTCGACTACGTGCATCAGGCTTACCTGGTGTTGCCCCTTAAAGATGCAGACGTCTGGCGGGGCGCAGTGGCTCACGCCTGTAATCCCAGCACTTTGGGAGGCCGCGGCGGGCAGATCACGAGGTCAGGAGATTGAGACCATCCTGGCTAACACGGTGAAACCCTGTCTCTACTAAAAATACAAAAAAAAAAAAAAAAAAATTAGCTGGCGTGGTGGCAGGTGCCTGTAGTCCCAGCTACTTGGGAGGCTGAGGCAGGAGAATGCCATGAACCCGCGAGGCGGAGCTTGCAGTGAGACAAGATCGCGCCACTGTCCTCCAGCCTGGGCAACAGAGCAAGACTCTGTCTCAAAAAAAAAAAAAAAAAAGGCTGGGTGCGGTGGCTCACACCTGTAATCCCAGCACTTTGGGAGGCTGAGGCGGGCAGATCACAAGATCAGGAGATCAAGACCATCCTGGCTAACGAGGTGAAACCCCATCTCTACTAAAGATACAAAAAACATAGTTAGCCAGGCGTGGTGGCGGACGCCTGTAGTCCCAGCTACTTGGGAGGCTGAGGCTGGGGAATGGCATGAACCCAGGAGGTGGAGCTTGCAGTGAGCCAAGATGGCACCACTGCACTCCAGCCTGGGCGACAGAGAGAGACTCCATCTCAAAAAACAAACAAACAAACAAAGATGCAGACATCTGCCTCGGCCCCAGGCCCTGGAATCATGAGCTCCAGGCGTGGAGTGACAAGTGTGCTCGGAGCGTCCAGTGTCCTCCTCCCTGACCACCTTCATGTGTCTTCAGTCTGGACCTGGACTGATCCCCTGACTGCACTCCCCACCCAGCCTTCCCAGATTTATCTTCCTGATGAGACGAGTTCCCTTCGGAGCCCTGTGTGTCTTACTACGTGTTCGGTTGAGGGCCTGCCTCGCCCCAGAGCTGTGGGCTGCACGTGGCCTGCACGTGGCCTGCGTGCTCCTCTGCTGTCCACAGTCGCAGGAGGGGATGCTCAAATATTTGTCGAAGGAATCCGTGAACAGGCAGATGCACATGTAGCCACTTAGAACGTTCTGGCCATGGCTTTTATCTGTTGACCACGTGTGGACACTGAAGATGCATCCTCTCCATCCCGTCTAGAGCTGCCCCTGTGCCAGGCGAGTTGGCCGGCTGTTGACAGAGGTGGTGGGTGGGAGTGTTGGAGCGGGGCAGTGGCTCAGGCTCTGGGTGCCTCACTGGCCTGGTCTGGAAGGTGACCATGCACCAAGGATCAAAGAAGTGAAGCCCAAAGCAGAATCTCATGGAGTTTCCAGCCCAAATCTCCCCCACTGCCTGCCTTTCTCCAGCCAGTGCAAGGCCCCAGGCCTCACAGCAGGACCCCAACACTGCATCCCCCCAAAGACTCTGGCCACCTCCATCCCAGGCCTGCCAGCCTCGAGCCTCATGGAGGGCGTGAGCTGGCGGGGTCACGGGCAGCCCCTGGACACCTATGGGTGACACTAAGGGCTGAGTCAGCTACCCTTGTCTCCTCTGTGCCCAAGAGCCCCAAGCATCAGACTGGTCTGAGCCCCAAGGCCTGGGGGTGCAAGGGGTTGGAGGCTGTGGGATCCAAAGACCCCATTGAACTCCCACCTCAGACACTGCACCTAGTGTTCTCACCCAGGCCTGAACCCATCCACACACTTCACGGCCCTGCTCCCACCCTGTGTCCCCTCTGCAAGCCCCCATGCTCCCCAAATTGGTAACTGGGGGGCCTGTCTCCACACCCCTGCTAGTGCCATTCCCTGGTGGGTAGCCATCACCTCTGGGTCCCCTGCTGCCCTCGCCCCTTCACCATGGGGGCTCGGAAGGCAGAGCCCGCTCCCCTCCTGAGCCCCACCCTGGAACCCTGAGCACCCTGGGTCATTGCCTCTGAGTCTCCCTCAGGGGCAGGGCTTGGGGCCCCTCCTGTCTCCTGACAGGGAGCCCTTTCAGTGCAGGGCCAGGGGGTGGTGGAGGCAAGGGTCCTCAGGGGACCAGATCTGACATGCGGGGCCATCACTGGGTCCCCGATGGCTGTGCTGCTTCGTCCCCGCGCCCACGCCTCGGCGCAGGTTCCCTCCTGGCACCGGTCATAGGGCGAGGCTTGCGGCTCCCACCCCAAGGGTGCGCTCGGCTCTCACCTGAGGGCTCAGCCTAGGTGTCCGGCCCTGGCAGCTCGGCCCTGGGCGCCCTCCACCTCCAGGCGCTGTCTCCTACTCCAGGCTGTTCTTCCGGCCGCCGCGGGGTTGCGGCCTGGGCGCCATAGCAACGGGAGCCAGGCCTCATTTGAATACGCAAATATTTATAAGTCGCCGGGGGCTCGGGTTCCGTGCGGCTGAGCCACGCCCCTTAGCAACGGTCGCTAGGGCGGGGCCACGTGGACTGGCACGTGCGTGGGCGCCCCTGCTGCGGGCGATCCCAGGGGAAGGTGACGCGCCACCAACTCGAGTTGGGTGGGCGCAGGCGCGTCAGGTGCCAGCTTCCTGCGGCTCCGTGCCTGGGCCGTCGCGATGCACGTGTCGCGTTTCCTCGCGATCCTGGCGCTTCCCACGCGGGGCGGGTAAAGGCGGTCTCTGCTGGAGGCTCGCGCCCACCTTTCCCAGGTGGAAGGGTCGCCCCTGGGGCCGAGGCCTGCCGTCCTGACCTTCGGTTGGAAGTGAGGCCGACGGCAAAAGGAAGCACCGGGGGAAGCGCCCCCGAGGACCAGGAAACACACACCGGACGCCGGAGCGCACCCGAGTGCCCGGCCCGCGGGACACGCTGCCGCCCGCCGTCCAGTCGCCGCTTCTCACTCGCGTTCATGCGTGTCCGCCCCGAGCCGAGCTCTGACTGCGACCGCGCGGTGGACGGACGGCAGGCGGGACCCCCGGGACCGCACGTGGGTGGAGCCCCGGGTCAGCAGCGACCGGCGCAGGAGGGCGAGGCGGGCGCTGGACTGGGCAGAGGCAGGGTTTGCCTGACTGTAAAACGCCTTTTTTGTTTTGAGACGAAGTAGCGCTCTGTTGCCCAGTGCAGTGGCGCGATTTCGGCTCACCGCAACATCCGCCTCCCGGGTTCCAGCGATTCTCCTGCCTCAGCCTCCCGAGTAGCTGGGACTACAGGCGCGCGCCACTGCAGCCGACTAATTTTTTGTGTTTTTAGTAGAGACAGGGTTTCATCATGTTGGCCAGGCTGGTCTTGAACTCCTGACCTCAAGTAATCCACCCGCTTAGGCCTCCCGAAGTGCTGGGATTATAGGCGTGAGCCACCGCGCCCGGCCCTTTTTGTTTTTTAATGAGGATGTATTTCTGATTCCTTTGCAATTTTAAAAAATGTTAAAAACATGTCTTTTTGGGTTTGAAAGAGCTAGGATGTGCGTCTATGTGCTTGGGGTGAGCCCTGGGCACTTCGCTCCCCTGTGGCAACTTGTGGGTACGGTTTAACTGGACCACGCTGAGCTTCTGCAGCGTTGGAACCTCAAGTTTGGGGGGACTGGGCGGGCAGGGTCGCCTGCCACGCAGGCCCGAGAAAGAGGAGAGTGGTGGAGGGGGCGTTCTCACGCCTGGCCCCAGGGCACACGGCTGCGCCCGCCGCCCGGAACCCCACCGGGGCTGCAAGCGTCCTCGGGGTGGGTTGCGGTGGGAGTAGGGGAGCTGGGGTGCGTGGTGGTAGGTGGGGTGCGCGGCCGCTCCACCTGCGCGGAAGGGCAGCCGGGCAACCGGACCCCGCGGCCACCCGGGGGCCCCCAGCTCCGAGCATCCCGCCTTGGTCCCGGCGGATCCCAGCCTTTCCCCAGCCCGTAGCCCCGGGACCTCCGCGGTGGGCGGCGCCGCGCTGCCGGCGCAGGGAGGGCCTCTGGTGCACCGGCACCGCTGAGTCGGGTTCTCTCGCCGGCCTGTTCCCGGGAGAGCCCGGGGCCCTGCTCGGAGATGCCGCCCCGGGCCCCCAGACACCGGCTCCCTGGCCTTCCTCGAGCAACCCCGAGCTCGGCTCCGGTCTCCAGCCAAGCCCAACCCCGAGAGGCCGCGGCCCTACTGGCTCCGCCTCCCGCGTTGCTCCCGGAAGCCCCGCCCGACCGCGGCTCCTGACAGACGGGCCGCTCAGCCAACCGGGGTGGGGCGGGGCCCGATGGCGCGCAGCCAATGGTAGGCCGCGCCTGGCAGACGGACGGGCGCGGGGCGGGGCGTGCGCAGGCCCGCCCGAGTCTCCGCCGCCCGTGCCCTGCGCCCGCAACCCGAGCCGCACCCGCCGCGGACGGAGCCCATGCGCGGGGCGAACCGCGCGCCCCCGCCCCCGCCCCGCCCCGGCCTCGGCCCCGGCCCTGGCCCCGGGGGCAGTCGCGCCTGTGAACGGTGAGTGCGGGCAGGGATCGGCCGGGCCGCGCGCCCTCCTCGCCCCCAGGCGGCAGCAATACGCGCGGCGCGGGCCGGGGGCGCGGGGCCGGCGGGCGTAAGCGGCGGCGGCGGCGGCGGCGGCGGGTGGGTGGGGCCGGGCGGGGCCCGCGGGCACAGGTGAGCGGGCGTCGGGGGCTGCGGCGGGCGGGGGCCCCTTCCTCCCTGGGGCCTGCGGGAATCCGGGCCCCACCCGTGGCCTCGCGCTGGGCACGGTCCCCACGCCGGCGTACCCGGGAGCCTCGGGCCCGGCGCCCTCACACCCGGGGGCGTCTGGGAGGAGGCGGCCGCGGCCACGGCACGCCCGGGCACCCCCGATTCAGCATCACAGGTCGCGGACCAGGCCGGGGGCCTCAGCCCCAGTGCCTTTTCCCTCTCCGGGTCTCCCGCGCCGCTTCTCGGCCCCTTCCTGTCGCTCAGTCCCTGCTTCCCAGGAGCTCCTCTGTCTTCTCCAGCTTTCTGTGGCTGAAAGATGCCCCCGGTTCCCCGCCGGGGGTGCGGGGCGCTGCCCGGGTCTGCCCTCCCCTCGGCGGCGCCTAGTACGCAGTAGGCGCTCAGCAAATACTTGTCGGAGGCACCAGCGCCGCGGGGCCTGCAGGCTGGCACTAGCCTGCCCGGGCACGCCGTGGCGCGCTCCGCCGTGGCCAGACCTGTTCTGGAGGACGGTAACCTCAGCCCTCGGGCGCCTCCCTTTAGCCTTTCTGCCGACCCAGCAGCTTCTAATTTGGGTGCGTGGTTGAGAGCGCTCAGCTGTCAGCCCTGCCTTTGAGGGCTGGGTCCCTTTTCCCATCACTGGGTCATTAAGAGCAAGTGGGGGCGAGGCGACAGCCCTCCCGCACGCTGGGTTGCAGCTGCACAGGTAGGCACGCTGCAGTCCTTGCTGCCTGGCGTTGGGGCCCAGGGACCGCTGTGGGTTTGCCCTTCAGATGGCCCTGCCAGCAGCTGCCCTGTGGGGCCTGGGGCTGGGCCTGGGCCTGGCTGAGCAGGGCCCTCCTTGGCAGGTGGGGCAGGAGACCCTGTAGGAGGACCCCGGGCCGCAGGCCCCTGAGGAGCGATGACGGAATATAAGCTGGTGGTGGTGGGCGCCGGCGGTGTGGGCAAGAGTGCGCTGACCATCCAGCTGATCCAGAACCATTTTGTGGACGAATACGACCCCACTATAGAGGTGAGCCTGGCGCCGCCGTCCAGGTGCCAGCAGCTGCTGCGGGCGAGCCCAGGACACAGCCAGGATAGGGCTGGCTGCAGCCCCTGGTCCCCTGCATGGTGCTGTGGCCCTGTCTCCTGCTTCCTCTAGAGGAGGGGAGTCCCTCGTCTCAGCACCCCAGGAGAGGAGGGGGCATGAGGGGCATGAGAGGTACCAGGGAGAGGCTGGCTGTGTGAACTCCCCCCACGGAAGGTCCTGAGGGGGTCCCTGAGCCCTGTCCTCCTGCAGGATTCCTACCGGAAGCAGGTGGTCATTGATGGGGAGACGTGCCTGTTGGACATCCTGGATACCGCCGGCCAGGAGGAGTACAGCGCCATGCGGGACCAGTACATGCGCACCGGGGAGGGCTTCCTGTGTGTGTTTGCCATCAACAACACCAAGTCTTTTGAGGACATCCACCAGTACAGGTGAACCCCGTGAGGCTGGCCCGGGAGCCCACGCCGCACAGGTGGGGCCAGGCCGGCTGCGTCCAGGCAGGGGCCTCCTGTCCTCTCTGCGCATGTCCTGGATGCCGCTGCGCCTGCAGCCCCCGTAGCCAGCTCTCGCTTTCCACCTCTCAGGGAGCAGATCAAACGGGTGAAGGACTCGGATGACGTGCCCATGGTGCTGGTGGGGAACAAGTGTGACCTGGCTGCACGCACTGTGGAATCTCGGCAGGCTCAGGACCTCGCCCGAAGCTACGGCATCCCCTACATCGAGACCTCGGCCAAGACCCGGCAGGTGAGGCAGCTCTCCACCCCACAGCTAGCCAGGGACCCGCCCCGCCCCGCCCCAGCCAGGGAGCAGCACTCACTGACCCTCTCCCTTGACACAGGGCAGCCGCTCTGGCTCTAGCTCCAGCTCCGGGACCCTCTGGGACCCCCCGGGACCCATGTGACCCAGCGGCCCCTCGCGCTGTAAGTCTCCCGGGACGGCAGGGCAGTGAGGGAGGCGAGGGCCGGGGTCTGGGCTCACGCCCTGCAGTCCTGGGCCGACACAGCTCCGGGGAAGGCGGAGGTCCTTGGGGAGAGCTGCCCTGAGCCAGGCCGGAGCGGTGACCCTGGGGCCCGGCCCCTCTTGTCCCCAGAGTGTCCCACGGGCACCTGTTGGTTCTGAGTCTTAGTGGGGCTACTGGGGACACGGGCCGTAGCTGAGTCGAGAGCTGGGTGCAGGGTGGTCAAACCCTGGCCAGACCTGGAGTTCAGGAGGGCCCCGGGCCACCCTGACCTTTGAGGGGCTGCTGTAGCATGATGCGGGTGGCCCTGGGCACTTCGAGATGGCCAGAGTCCAGCTTCCCGTGTGTGTGGTGGGCCTGGGGAAGTGGCTGGTGGAGTCGGGAGCTTCGGGCCAGGCAAGGCTTGATCCCACAGCAGGGAGCCCCTCACCCAGGCAGGCGGCCACAGGCCGGTCCCTCCTGATCCCATCCCTCCTTTCCCAGGGAGTGGAGGATGCCTTCTACACGTTGGTGCGTGAGATCCGGCAGCACAAGCTGCGGAAGCTGAACCCTCCTGATGAGAGTGGCCCCGGCTGCATGAGCTGCAAGTGTGTGCTCTCCTGACGCAGGTGAGGGGGACTCCCAGGGCGGCCGCCACGCCCACCGGATGACCCCGGCTCCCCGCCCCTGCCGGTCTCCTGGCCTGCGGTCAGCAGCCTCCCTTGTGCCCCGCCCAGCACAAGCTCAGGACATGGAGGTGCCGGATGCAGGAAGGAGGTGCAGACGGAAGGAGGAGGAAGGAAGGACGGAAGCAAGGAAGGAAGGAAGGGCTGCTGGAGCCCAGTCACCCCGGGACCGTGGGCCGAGGTGACTGCAGACCCTCCCAGGGAGGCTGTGCACAGACTGTCTTGAACATCCCAAATGCCACCGGAACCCCAGCCCTTAGCTCCCCTCCCAGGCCTCTGTGGGCCCTTGTCGGGCACAGATGGGATCACAGTAAATTATTGGATGGTCTTGATCTTGGTTTTCGGCTGAGGGTGGGACACGGTGCGCGTGTGGCCTGGCATGAGGTATGTCGGAACCTCAGGCCTGTCCAGCCCTGGGCTCTCCATAGCCTTTGGGAGGGGGAGGTTGGGAGAGGCCGGTCAGGGGTCTGGGCTGTGGTGCTCTCTCCTCCCGCCTGCCCCAGTGTCCACGGCTTCTGGCAGAGAGCTCTGGACAAGCAGGCAGATCATAAGGACAGAGAGCTTACTGTGCTTCTACCAACTAGGAGGGCGTCCTGGTCCTCCAGAGGGAGGTGGTTTCAGGGGTTGGGGATCTGTGCCGGTGGCTCTGGTCTCTGCTGGGAGCCTTCTTGGCGGTGAGAGGCATCACCTTTCCTGACTTGCTCCCAGCGTGAAATGCACCTGCCAAGAATGGCAGACATAGGGACCCCGCCTCCTGGGCCTTCACATGCCCAGTTTTCTTCGGCTCTGTGGCCTGAAGCGGTCTGTGGACCTTGGAAGTAGGGCTCCAGCACCGACTGGCCTCAGGCCTCTGCCTCATTGGTGGTCGGGTAGCGGCCAGTAGGGCGTGGGAGCCTGGCCATCCCTGCCTCCTGGAGTGGACGAGGTTGGCAGCTGGTCCGTCTGCTCCTGCCCCACTCTCCCCCGCCCCTGCCCTCACCCTACCCTTGCCCCACGCCTGCCTCATGGCTGGTTGCTCTTGGAGCCTGGTAGTGTCACTGGCTCAGCCTTGCTGGGTATACACAGGCTCTGCCACCCACTCTGCTCCAAGGGGCTTGCCCTGCCTTGGGCCAAGTTCTAGGTCTGGCCACAGCCACAGACAGCTCAGTCCCCTGTGTGGTCATCCTGGCTTCTGCTGGGGGCCCACAGCGCCCCTGGTGCCCCTCCCCTCCCAGGGCCCGGGTTGAGGCTGGGCCAGGCCCCTCTGGGACGGGGACTTGTGCCCTGTCAGGGTTCCCTATCCCTGAGGTTGGGGGAGAGCTAGCAGGGCATGCCGCTGGCTGGCCAGGGCTGCAGGGACACTCCCCCTTTTGTCCAGGGAATACCACACTCGCCCTTCTCTCCAGCGAACACCACACTCGCCCTTCTCTCCAGGGGACGCCACACTCCCCCTTCTGTCCAGGGGACGCCACACTCCCCCTTCTCTCCAGGGGACGCCACACTCGCCCTTCTCTCCAGGGGACGCCACACTCGCCCTTCTCTCCAGGGGACGCCACACTCCCCCTTCTGTCCAGGGGACGCCACACTCGCCCTTCTCTCCAGGGGACGCCACACTGGCCCTTCTCTCCAGGGGACGCCACACTCCCCCTTCTGTCCAGGGGACGCCACACTCCCCCTTCTCTCCAGGGGACGCCACACTCCCCCTTCTCTCCAGGGGACGCCACACTGGCCCTTCTCTCCAGGGGACGCCACACTCCCCCTTCTGTCCAGGGGACGCCACACTCGCCCTTCTCTCCAGGGGACGCCACACTCGCCCTTCTCTCCAGGGGACGCCACACTCCCCCTTCTCTCCAGGGGACGCCACACTCCCCCTTCTCTCCAGGGGACGCCACACTCCCCCTTCTCTCCAGGGGACGCCACACTCCCCCTTCTGTCCAGGGGACGCCACACTCGCCCTTCTCTCCAGGGGACGCCACACTCCCCCTTCTCTCCAGGGGACGCCACACTCCCCCTTCTCTCCAGGGGACGCCACACTCCCCCTTCTGTCCAGGGGACGCCACACTCGCCCTTCTCTCCAGGGGACGCCACACTCGCCCTTCTCTCCAGGGGACGCCACACTCGCCCTTCTCTCCAGGGGACGCCACACTTGCCCTTCTGTCCAGGGAATGCCACACTCCCCCTTCTCCCCAGCAGCCTCCGAGTGACCAGCTTCCCCATCGATAGACTTCCCGAGGCCAGGAGCCCTCTAGGGCTGCCGGGTGCCACCCTGGCTCCTTCCACACCGTGCTGGTCACTGCCTGCTGGGGGCGTCAGATGCAGGTGACCCTGTGCAGGAGGTATCTCTGGACCTGCC';
+</script>
+<script>
+// ================= shared genetics =================
+const $ = id => document.getElementById(id);
+const fmt = n => Math.round(n).toLocaleString('en-US');
+const LEN = SEQ.length;
+const CODE = {}; { const b='TCAG', a='FFLLSSSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG'; let i=0; for (const x of b) for (const y of b) for (const z of b) CODE[x+y+z]=a[i++]; }
+const STOPS = new Set(['TAA','TAG','TGA']);
+const sub = (a,b) => SEQ.slice(a-1,b);            // 1-based, inclusive
+const translate = s => { let p=''; for (let i=0;i+3<=s.length;i+=3) p+=CODE[s.slice(i,i+3)]||'X'; return p; };
+const revcomp = s => { let o=''; for (let i=s.length-1;i>=0;i--) o+=({A:'T',C:'G',G:'C',T:'A'})[s[i]]; return o; };
+const frameOf = p => ((p-1)%3)+1;                  // genomic frame of a codon starting at p
+
+// RefSeq answer key (NG_007666.1)
+const MRNA = [[4975,5135],[6176,6339],[6607,6785],[6939,7098],[7796,7920],[8029,8309]];
+const CDS  = [[6229,6339],[6607,6785],[6939,7098],[7796,7915]];
+const LRRC56 = [[825,971],[1691,1953],[2946,3024]];
+const P01112 = 'MTEYKLVVVGAGGVGKSALTIQLIQNHFVDEYDPTIEDSYRKQVVIDGETCLLDILDTAGQEEYSAMRDQYMRTGEGFLCVFAINNTKSFEDIHQYREQIKRVKDSDDVPMVLVGNKCDLAARTVESRQAQDLARSYGIPYIETSAKTRQGVEDAFYTLVREIRQHKLRKLNPPDESGPGCMSCKCVLS';
+const TRUE_DONORS = [6340,6786,7099,7921];
+const W0 = 6100, W1 = 8400;                        // coding window used in stations 2–5
+const inCDS = p => CDS.some(([a,b]) => p>=a && p<=b);
+const cdsFrames = (() => { let done=0; return CDS.map(([a,b]) => { const off=(3-done%3)%3; done+=b-a+1; return frameOf(a+off); }); })();
+const intronPhases = (() => { let done=0; return CDS.slice(0,-1).map(([a,b]) => { done+=b-a+1; return done%3; }); })();
+
+// human codon usage (Kazusa), per thousand
+const USAGE = 'TTT 17.6 TTC 20.3 TTA 7.7 TTG 12.9 CTT 13.2 CTC 19.6 CTA 7.2 CTG 39.6 ATT 16.0 ATC 20.8 ATA 7.5 ATG 22.0 GTT 11.0 GTC 14.5 GTA 7.1 GTG 28.1 TCT 15.2 TCC 17.7 TCA 12.2 TCG 4.4 CCT 17.5 CCC 19.8 CCA 16.9 CCG 6.9 ACT 13.1 ACC 18.9 ACA 15.1 ACG 6.1 GCT 18.4 GCC 27.7 GCA 15.8 GCG 7.4 TAT 12.2 TAC 15.3 TAA 1.0 TAG 0.8 CAT 10.9 CAC 15.1 CAA 12.3 CAG 34.2 AAT 17.0 AAC 19.1 AAA 24.4 AAG 31.9 GAT 21.8 GAC 25.1 GAA 29.0 GAG 39.6 TGT 10.6 TGC 12.6 TGA 1.6 TGG 13.2 CGT 4.5 CGC 10.4 CGA 6.2 CGG 11.4 AGT 12.1 AGC 19.5 AGA 12.2 AGG 12.0 GGT 10.8 GGC 22.2 GGA 16.5 GGG 16.5'.split(' ');
+const LLR = {};
+{ const u={}; let t=0; for (let i=0;i<USAGE.length;i+=2){ u[USAGE[i]]=+USAGE[i+1]; t+=+USAGE[i+1]; }
+  const bg={}; let n=0; for (let i=0;i+3<=LEN;i++){ const k=SEQ.substr(i,3); bg[k]=(bg[k]||0)+1; n++; }
+  for (const k in u) LLR[k]=Math.log2((u[k]/t)/(bg[k]/n)); }
+
+// splice-site weight matrices (approximate human frequencies)
+const PWM_D = [{A:.33,C:.36,G:.19,T:.12},{A:.60,C:.13,G:.14,T:.13},{A:.09,C:.04,G:.79,T:.08},{A:0,C:0,G:1,T:0},{A:0,C:0,G:0,T:1},{A:.60,C:.03,G:.34,T:.03},{A:.70,C:.08,G:.12,T:.10},{A:.07,C:.05,G:.81,T:.07},{A:.16,C:.16,G:.20,T:.48}];
+const PY = {A:.10,C:.33,G:.12,T:.45};
+const PWM_A = Array.from({length:11},()=>PY).concat([{A:.23,C:.31,G:.22,T:.24},{A:.06,C:.70,G:.01,T:.23},{A:1,C:0,G:0,T:0},{A:0,C:0,G:1,T:0},{A:.26,C:.14,G:.48,T:.12}]);
+const pwmScore = (M,s) => { if (s.length!==M.length) return null; let t=0; for (let i=0;i<M.length;i++){ const q=M[i][s[i]]; if(!q) return null; t+=Math.log2(q/.25); } return t; };
+const donorScore = g => pwmScore(PWM_D, sub(g-3,g+5));     // g = first intron base (the G of GT)
+const acceptorScore = e => pwmScore(PWM_A, sub(e-15,e));   // e = first exon base after AG
+
+// generic horizontal scale + ruler
+const scale = (a,b,x0,x1) => p => x0 + (p-a)/(b-a)*(x1-x0);
+function ruler(x, a, b, y, step){
+  let o=`<line class="axis-l" x1="${x(a)}" x2="${x(b)}" y1="${y}" y2="${y}"/>`;
+  for (let p=Math.ceil(a/step)*step; p<=b; p+=step) o+=`<line class="axis-l" x1="${x(p)}" x2="${x(p)}" y1="${y}" y2="${y+4}"/><text class="axis-t" x="${x(p)}" y="${y+15}" text-anchor="middle">${fmt(p)}</text>`;
+  return o;
+}
+function geneModel(x, y, h, mrna, cds){
+  let o='';
+  for (let i=0;i<mrna.length-1;i++) o+=`<line class="intron-l" x1="${x(mrna[i][1])}" x2="${x(mrna[i+1][0])}" y1="${y+h/2}" y2="${y+h/2}"/>`;
+  for (const [a,b] of mrna) o+=`<rect class="utr" x="${x(a)}" y="${y+h*.2}" width="${Math.max(1,x(b+1)-x(a))}" height="${h*.6}"/>`;
+  for (const [a,b] of cds) o+=`<rect class="cds" x="${x(a)}" y="${y}" width="${Math.max(1,x(b+1)-x(a))}" height="${h}"/>`;
+  return o;
+}
+
+// ================= progress & checks =================
+const STATIONS = [
+  {id:'orfs', t:'Open reading frames'},
+  {id:'signals', t:'Splice signals'},
+  {id:'content', t:'Coding potential'},
+  {id:'assemble', t:'Build the model'},
+  {id:'parser', t:'Ab initio parser'},
+  {id:'evidence', t:'RNA-seq evidence'},
+];
+let ORFS, DONORS; // filled below, used by checks
+const CHECKS = {
+  orfs:[
+    {id:'o1sel', task:true, q:'Select the longest ORF in the entry and read off where it is.'},
+    {id:'o1len', q:'How long is the longest ATG-to-stop ORF in the entry, in codons (not counting the stop)?', num:()=>ORFS[0].aa, tol:0, unit:'codons', why:'It is far longer than any HRAS coding exon, and it is not HRAS.'},
+    {id:'o1rand', q:'In random sequence with equal base frequencies, about how many codons apart are stop codons on average?', opts:['~21 (64 ÷ 3)','~3','~64','~100'], a:0, why:'Each codon has a 3/64 chance of being a stop, so the average gap is 64/3 ≈ 21 codons.'},
+    {id:'o1why', q:'Why does "report the longest ORF" miss HRAS?', opts:['HRAS coding sequence is split into four exons of 37–60 codons; introns interrupt the frame, so no single long ORF spans the gene','HRAS is on the minus strand','HRAS uses a non-ATG start codon','The HRAS ORF is longer than the entry'], a:0, why:'The longest HRAS coding exon is 179 bp (≈60 codons). Once the frame runs into an intron it soon hits a stop, while chance ORFs in non-coding DNA can be much longer.'},
+  ],
+  signals:[
+    {id:'s2find', task:true, q:'In the donor scanner, click the GT that is the real exon 2 donor (the exon ends at 6,339).'},
+    {id:'s2count', q:'How many GT dinucleotides are in the 2.3-kb window 6,100–8,400 (the histogram total)?', num:()=>DONORS.length, tol:0, why:'Only 4 of them are real HRAS donors. That is roughly one real site for every 30 candidates.'},
+    {id:'s2thr', q:'Raise the threshold as high as it will go while all four real donors are still kept. How many decoy GTs still pass?', num:()=>{ const m=Math.floor(10*Math.min(...DONORS.filter(d=>d.real).map(d=>d.s)))/10; return DONORS.filter(d=>!d.real && d.s>=m-1e-9).length; }, tol:0, why:'There is no threshold that keeps every real donor and rejects all decoys. Signals alone cannot find exons.'},
+    {id:'s2inv', q:'Which positions of the donor logo carry the full 2 bits of information?', opts:['+1 and +2: the invariant GT','−3 and −2','+5 and +6','None: every position is variable'], a:0, why:'Nearly every intron starts with GT, so those two positions are fixed. The rest are preferences. (A rare ~1% of introns use GC or AT–AC, and our simple matrix ignores them.)'},
+  ],
+  content:[
+    {id:'c3frame', q:'In which genomic frame (1, 2 or 3) is the last HRAS coding exon (7,796–7,915) read?', num:()=>cdsFrames[3], tol:0, why:'The first three coding exons are read in frame 1, but the intron before the last exon shifts the frame. Gene finders have to let the frame change at every intron.'},
+    {id:'c3intron', q:'The introns score below zero in all three frames. Why?', opts:['Intron sequence has no codon structure, so its trinucleotides look like the background and include many stop and rare codons','Introns are removed before scoring','Introns are on the other strand','The window is too small to see introns'], a:0, why:'Only a translated frame is shaped by selection on codon use. Intron trinucleotides follow no frame and include stops, so every frame averages below zero.'},
+    {id:'c3win', q:'What happens when you shrink the window to 60 bp?', opts:['The traces get noisier: short windows can call short exons but give more false peaks','The traces get smoother','Exons disappear because 60 bp is shorter than all exons','Nothing: window size does not matter'], a:0, why:'This is the content sensor\'s basic trade-off. Averaging over more codons lowers noise but blurs short exons and exact boundaries. That is why content sensors are combined with signal sensors.'},
+  ],
+  assemble:[
+    {id:'a4build', task:true, q:'Assemble exons that translate to the complete 189-amino-acid HRAS protein.'},
+    {id:'a4phase', q:'What is the phase of the intron just before the third coding exon (6,939–7,098)?', num:()=>intronPhases[1], tol:0, why:'The first two coding exons contain 111 + 179 = 290 bases. 290 = 96 × 3 + 2, so the intron falls after the second base of codon 97.'},
+    {id:'a4shift', q:'Adding candidate exon h (7,193–7,251, 59 bp) between the true exons ruins the protein. Why?', opts:['59 is not a multiple of 3, so every codon after it is read in the wrong frame','Exon h is on the minus strand','Exon h has no GT at its end','Exons shorter than 60 bp cannot be spliced'], a:0, why:'An inserted exon must keep the downstream exons in their frame. A 59-bp insert moves them two bases along, so everything after exon h is translated in the wrong frame. Try it: the protein matches HRAS only up to residue 150.'},
+  ],
+  parser:[
+    {id:'p5exact', task:true, q:'Find settings where the parser predicts all four coding exons exactly (exon Sn = Sp = 100%).'},
+    {id:'p5sig', q:'With signals only, what does the parser do?', opts:['It predicts many short false exons: decoy GT/AG pairs score as well as real sites','It predicts nothing','It finds the exact gene','It predicts one long ORF'], a:0, why:'Splice-site PWMs are not specific enough on their own. Without a coding score, any pair of good-looking sites with an open frame between them becomes an exon.'},
+    {id:'p5end', q:'With a low site threshold, the parser most often gets the gene\'s 3′ end wrong. What does it do there?', opts:['It splices out just before the real stop codon and continues into the 3′ UTR','It misses the start codon','It skips exon 3','It predicts the minus strand'], a:0, why:'A weak GT sits just before the TGA stop. Splicing there lets the parser read on into the 3′ UTR and beyond, where it finds more open frame and a later stop. The 3′ end of a gene is a classic source of prediction errors.'},
+    {id:'p5sn', q:'A prediction covers 600 coding bases, of which 500 are real. The true CDS is 570 bases. What is the nucleotide sensitivity, in %?', num:87.7, tol:0.01, unit:'%', why:'Sn = TP/(TP+FN) = 500/570 = 87.7%. (Sp = 500/600 = 83.3%.)'},
+  ],
+  evidence:[
+    {id:'e6click', task:true, q:'Click the junction arc that connects exon 1 (5′ UTR) to exon 2.'},
+    {id:'e6len', q:'How long is intron 1 (from the GT after exon 1 to the AG before exon 2), in bp?', num:6175-5136+1, tol:0, unit:'bp', why:'Exon 1 ends at 5,135 and exon 2 begins at 6,176, so the intron is 5,136–6,175 = 1,040 bp.'},
+    {id:'e6utr', q:'Why did no ab initio prediction include exon 1?', opts:['It is entirely 5′ UTR: no codons are translated, so neither the coding score nor an ATG start marks it','It has no GT donor','It is too long','It is on the minus strand'], a:0, why:'Ab initio predictors mostly find coding exons. Non-coding exons, UTRs and transcript ends usually need transcript evidence.'},
+    {id:'e6cds', q:'What can RNA-seq alone NOT tell you?', opts:['Which ORF in the mature mRNA is translated, i.e. where the CDS starts and stops','Where the introns are','Which exons are expressed','How the exons are joined'], a:0, why:'Junction reads mark introns and exons. To find the protein you still need the ORF in the spliced transcript, plus protein homology or proteomics to confirm it.'},
+  ],
+};
+const ALL = Object.values(CHECKS).flat();
+let state = {};
+try { state = JSON.parse(localStorage.getItem('bio116-genefind')||'{}') || {}; } catch(e){ state = {}; }
+const save = () => { try { localStorage.setItem('bio116-genefind', JSON.stringify(state)); } catch(e){} };
+
+function renderPipeline(){
+  const ol=$('pipeline'); ol.innerHTML='';
+  STATIONS.forEach((s,i) => {
+    const cs=CHECKS[s.id], d=cs.filter(c=>state[c.id]).length;
+    const li=document.createElement('li');
+    li.innerHTML=`<a href="#${s.id}"><span class="n"><span>${i+1}</span><span>${d}/${cs.length}</span></span><span class="t">${s.t}</span><span class="bar"><i style="width:${100*d/cs.length}%"></i></span></a>`;
+    ol.appendChild(li);
+  });
+  const done=ALL.filter(c=>state[c.id]).length;
+  $('progText').textContent=`${done} of ${ALL.length} checks complete`+(done===ALL.length?' · lab finished':'');
+}
+function markDone(id){
+  if (state[id]) return; state[id]=true; save();
+  const box=document.querySelector(`.chk[data-id="${id}"]`); if (box) box.classList.add('done');
+  renderPipeline();
+}
+function renderChecks(){
+  for (const sid in CHECKS){
+    const wrap=document.querySelector(`.checks[data-station="${sid}"]`); wrap.innerHTML='';
+    CHECKS[sid].forEach(c => {
+      const d=document.createElement('div'); d.className='chk'+(c.task?' task':'')+(state[c.id]?' done':''); d.dataset.id=c.id;
+      d.innerHTML=`<div class="q"><span class="box" aria-hidden="true"></span><span>${c.q}</span></div>`;
+      if (!c.task){
+        const fb=document.createElement('div'); fb.className='fb';
+        if (c.opts){
+          c.opts.forEach((o,i) => { const lb=document.createElement('label'); lb.innerHTML=`<input type="radio" name="${c.id}" id="${c.id}-${i}" value="${i}"> <span>${o}</span>`; d.appendChild(lb); });
+          const b=document.createElement('button'); b.className='btn'; b.type='button'; b.textContent='Check'; d.appendChild(b); d.appendChild(fb);
+          b.onclick=()=>{ const s=d.querySelector('input:checked'); if(!s){ fb.className='fb bad'; fb.textContent='Choose an answer first.'; return; }
+            if (+s.value===c.a){ fb.className='fb ok'; fb.textContent='Correct. '+c.why; markDone(c.id); } else { fb.className='fb bad'; fb.textContent='Not quite. Re-read the station text and try the instrument again.'; } };
+          if (state[c.id]){ d.querySelector(`#${c.id}-${c.a}`).checked=true; fb.className='fb ok'; fb.textContent=c.why; }
+        } else {
+          const ans=()=>typeof c.num==='function'?c.num():c.num;
+          const row=document.createElement('div'); row.className='row';
+          row.innerHTML=`<input type="text" id="${c.id}-in" inputmode="decimal" aria-label="Your answer${c.unit?' in '+c.unit:''}" placeholder="${c.unit||'number'}"><button class="btn" type="button">Check</button>`;
+          d.appendChild(row); d.appendChild(fb);
+          const go=()=>{ const v=parseFloat(row.querySelector('input').value.replace(/,/g,'')); const A=ans();
+            if (isNaN(v)){ fb.className='fb bad'; fb.textContent='Enter a number.'; return; }
+            const ok=c.tol?Math.abs(v-A)/A<=c.tol:v===A;
+            if (ok){ fb.className='fb ok'; fb.textContent='Correct. '+c.why; markDone(c.id); } else { fb.className='fb bad'; fb.textContent='Not quite. Use the instrument to read the value off and try again.'; } };
+          row.querySelector('button').onclick=go; row.querySelector('input').onkeydown=e=>{ if(e.key==='Enter') go(); };
+          if (state[c.id]){ row.querySelector('input').value=ans(); fb.className='fb ok'; fb.textContent=c.why; }
+        }
+      }
+      wrap.appendChild(d);
+    });
+  }
+}
+$('resetAll').onclick=()=>{ $('resetConfirm').hidden=false; $('resetAll').hidden=true; };
+$('resetNo').onclick=()=>{ $('resetConfirm').hidden=true; $('resetAll').hidden=false; };
+$('resetYes').onclick=()=>{ state={}; save(); renderChecks(); renderPipeline(); $('resetConfirm').hidden=true; $('resetAll').hidden=false; };
+
+// ================= hero =================
+{ const x=scale(1,LEN,30,990); let o=ruler(x,1,LEN,44,1000);
+  o+=`<text class="trk-lbl" x="${x(4975)}" y="12">HRAS →</text>`;
+  o+=geneModel(x,18,18,MRNA,CDS);
+  $('heroSvg').innerHTML=o; }
+
+// ================= station 1: ORFs =================
+ORFS = (() => {
+  const out=[];
+  for (const strand of ['+','-']){
+    const s=strand==='+'?SEQ:revcomp(SEQ);
+    for (let f=0;f<3;f++){
+      let start=-1;
+      for (let i=f;i+3<=s.length;i+=3){
+        const c=s.substr(i,3);
+        if (start<0 && c==='ATG') start=i;
+        if (STOPS.has(c)){
+          if (start>=0){ let a=start+1, b=i+3; if (strand==='-'){ const na=LEN-b+1; b=LEN-a+1; a=na; }
+            const hras=strand==='+' && CDS.some(([p,q])=>a<=q && b>=p);
+            out.push({strand, frame:f+1, a, b, aa:(i-start)/3, hras}); }
+          start=-1;
+        }
+      }
+    }
+  }
+  return out.sort((x,y)=>y.aa-x.aa);
+})();
+const STOPPOS = {}; // row key -> genomic positions of stop codons
+for (const strand of ['+','-']){ const s=strand==='+'?SEQ:revcomp(SEQ);
+  for (let f=0;f<3;f++){ const k=strand+(f+1), arr=[]; for (let i=f;i+3<=s.length;i+=3) if (STOPS.has(s.substr(i,3))) arr.push(strand==='+'?i+1:LEN-i-1); STOPPOS[k]=arr; } }
+let orfSel=null;
+function drawOrfs(){
+  const min=+$('minOrf').value; $('minOrfO').textContent=min+' codons';
+  const x=scale(1,LEN,50,990); const rows=['+1','+2','+3','-1','-2','-3'];
+  let o='';
+  const shown=ORFS.filter(r=>r.aa>=min);
+  rows.forEach((k,ri)=>{
+    const y=8+ri*24;
+    o+=`<rect class="rowbg" x="50" y="${y}" width="940" height="18" rx="2"/><text class="trk-lbl" x="44" y="${y+13}" text-anchor="end">${k[0]==='+'?'+':'−'}${k[1]}</text>`;
+    for (const p of STOPPOS[k]) o+=`<line class="stopt" x1="${x(p).toFixed(1)}" x2="${x(p).toFixed(1)}" y1="${y+1}" y2="${y+17}"/>`;
+    for (const r of shown.filter(r=>r.strand+r.frame===k)){
+      const i=ORFS.indexOf(r);
+      o+=`<rect class="orf${r.hras?' hras':''}${orfSel===i?' sel':''}" data-i="${i}" x="${x(r.a).toFixed(1)}" y="${y+3}" width="${Math.max(2,x(r.b)-x(r.a)).toFixed(1)}" height="12"><title>${r.strand} strand frame ${r.frame}: ${fmt(r.a)}–${fmt(r.b)}, ${r.aa} codons</title></rect>`;
+    }
+  });
+  o+=`<text class="trk-lbl" x="44" y="170" text-anchor="end">HRAS</text>`+geneModel(x,160,14,MRNA,CDS);
+  o+=`<text class="trk-lbl" x="44" y="196" text-anchor="end">LRRC56</text>`+geneModel(x,186,14,LRRC56,[]);
+  o+=`<text class="trk-lbl" x="${x(3100)}" y="197">← minus strand</text>`;
+  o+=ruler(x,1,LEN,216,1000);
+  $('orfSvg').innerHTML=o;
+  const hrasShown=shown.filter(r=>r.hras);
+  $('orfStats').innerHTML=`<div><dt>ORFs ≥ ${min} codons</dt><dd>${shown.length}</dd></div><div><dt>Longest ORF</dt><dd>${ORFS[0].aa} codons</dd></div><div><dt>Longest HRAS coding exon</dt><dd>${Math.floor(179/3)} codons</dd></div><div><dt>Shown ORFs touching HRAS CDS</dt><dd>${hrasShown.length}</dd></div>`;
+  const tb=$('orfRows'); tb.innerHTML='';
+  shown.slice(0,8).forEach(r=>{ const i=ORFS.indexOf(r); const tr=document.createElement('tr'); if(orfSel===i) tr.className='sel'; tr.tabIndex=0;
+    tr.innerHTML=`<td>${i+1}</td><td>${r.strand==='+'?'+':'−'} · ${r.frame}</td><td>${fmt(r.a)}–${fmt(r.b)}</td><td>${r.aa}</td><td>${r.hras?'yes':'no'}</td>`;
+    tr.onclick=()=>selectOrf(i); tr.onkeydown=e=>{ if(e.key==='Enter') selectOrf(i); }; tb.appendChild(tr); });
+  if (!shown.length) tb.innerHTML='<tr><td colspan="5">No ORF is this long. Lower the cut-off.</td></tr>';
+}
+function selectOrf(i){
+  orfSel=i; const r=ORFS[i];
+  const where = r.hras ? 'It overlaps HRAS coding sequence, but it runs into an intron and does not cover the whole gene.'
+    : (r.a>8300 && r.a<10309 && r.strand==='+' ? 'It lies in the HRAS1 minisatellite downstream of the gene: a tandem repeat that happens to lack stops in this frame.'
+    : (r.a<3100 ? 'It lies at the left end of the entry, in the LRRC56 and Alu-repeat region, not in HRAS.' : 'It is not part of any annotated coding sequence: a chance ORF.'));
+  $('orfInfo').innerHTML=`<b>ORF ${i+1}</b>: ${r.strand==='+'?'plus':'minus'} strand, frame ${r.frame}, ${fmt(r.a)}–${fmt(r.b)}, ${r.aa} codons. ${where}`;
+  if (i===0) markDone('o1sel');
+  drawOrfs();
+}
+$('minOrf').oninput=drawOrfs;
+$('orfSvg').addEventListener('click',e=>{ const t=e.target.closest('.orf'); if(t) selectOrf(+t.dataset.i); });
+
+// ================= station 2: splice signals =================
+function drawLogos(){
+  const col=(M,x0,w,labels,title)=>{
+    let o=`<text class="trk-lbl" x="${x0}" y="12">${title}</text>`;
+    const H=100, y0=118;
+    o+=`<line class="axis-l" x1="${x0-6}" x2="${x0-6}" y1="${y0-H}" y2="${y0}"/><text class="logo-ax" x="${x0-14}" y="${y0-H+4}">2</text><text class="logo-ax" x="${x0-14}" y="${y0}">0</text>`;
+    M.forEach((p,i)=>{
+      const ent=Object.values(p).reduce((s,q)=>s-(q>0?q*Math.log2(q):0),0), ic=2-ent;
+      let y=y0; const x=x0+i*w;
+      Object.entries(p).filter(([,q])=>q>0).sort((a,b)=>a[1]-b[1]).forEach(([b,q])=>{
+        const h=q*ic*H/2; if (h<0.5) return;
+        o+=`<text class="${b}" style="fill:var(--n${b})" font-size="100" transform="translate(${x+1},${y.toFixed(1)}) scale(${(w-2)/60},${(h/72).toFixed(3)})">${b}</text>`;
+        y-=h;
+      });
+      o+=`<text class="logo-ax" x="${x+w/2}" y="${y0+14}">${labels[i]}</text>`;
+    });
+    return o;
+  };
+  const dl=['−3','−2','−1','+1','+2','+3','+4','+5','+6'];
+  const al=[...Array(15)].map((_,i)=>'−'+(15-i)).concat(['+1']);
+  $('logos').innerHTML=col(PWM_D,30,40,dl,'5′ donor site (exon | intron)')+`<line class="thr" x1="150" x2="150" y1="18" y2="122" style="stroke:var(--muted)"/>`
+    +col(PWM_A,470,31,al,'3′ acceptor site (intron | exon)')+`<line class="thr" x1="${470+15*31}" x2="${470+15*31}" y1="18" y2="122" style="stroke:var(--muted)"/>`;
+}
+DONORS = []; for (let p=W0;p<W1;p++) if (SEQ.substr(p-1,2)==='GT'){ const s=donorScore(p); if (s!==null) DONORS.push({g:p,s,real:TRUE_DONORS.includes(p)}); }
+const DRANK = [...DONORS].sort((a,b)=>b.s-a.s);
+let gtSel=null;
+function drawStrip(){
+  const a=6300, b=6419; let o=`<span class="pos">${fmt(a)}</span>`;
+  for (let p=a;p<=b;p++){
+    const inEx = p<=6339; const ch=SEQ[p-1];
+    if (SEQ.substr(p-1,2)==='GT' && p<b){ o+=`<button type="button" class="gt${gtSel===p?' sel':''}" data-g="${p}" aria-label="GT at ${p}">${inEx?'GT':'gt'}</button>`; p++; continue; }
+    o+=`<span class="${inEx?'ex':'in'}">${inEx?ch:ch.toLowerCase()}</span>`;
+  }
+  $('strip').innerHTML=o;
+}
+function showGT(g){
+  gtSel=g; drawStrip();
+  const s=donorScore(g), w=sub(g-3,g+5), rank=DRANK.findIndex(d=>d.g===g)+1;
+  const real=TRUE_DONORS.includes(g);
+  $('gtInfo').className='status'+(real?' ok':'');
+  $('gtInfo').innerHTML=`GT at <b>${fmt(g)}</b>: <span class="mono">${w.slice(0,3)}|${w.slice(3)}</span> scores <b>${s.toFixed(1)} bits</b>, rank ${rank} of ${DONORS.length} GTs in the window. `+(real?'This is the real exon 2 donor.':(g<6339?'This GT is inside the exon.':'This is a decoy inside the intron.'));
+  $('gtBits').innerHTML=[...w].map((c,i)=>{ const v=Math.log2(PWM_D[i][c]/.25); const h=Math.min(34,Math.abs(v)*8.5);
+    return `<div><span class="b"><i class="${v<0?'neg':''}" style="height:${h}px"></i></span><span class="${c}">${c}</span><small>${v>=0?'+':''}${v.toFixed(1)}</small></div>`; }).join('');
+  if (real) markDone('s2find');
+}
+$('strip').addEventListener('click',e=>{ const t=e.target.closest('.gt'); if(t) showGT(+t.dataset.g); });
+function scoreMine(){
+  const v=$('myDonor').value.toUpperCase().replace(/[^ACGT]/g,'');
+  let out;
+  if (v.length!==9) out='Enter exactly 9 bases (A, C, G, T).';
+  else if (v.slice(3,5)!=='GT') out='Positions +1 and +2 are not GT, so this cannot be a donor.';
+  else out=`${pwmScore(PWM_D,v).toFixed(1)} bits (maximum 13.6)`;
+  $('myDonorO').textContent=out;
+}
+$('myDonor').oninput=scoreMine;
+function drawHist(){
+  const t=+$('thr').value; $('thrO').textContent=t.toFixed(1)+' bits';
+  const lo=Math.floor(Math.min(...DONORS.map(d=>d.s))), hi=Math.ceil(Math.max(...DONORS.map(d=>d.s)));
+  const bins=[]; for (let b=lo;b<hi;b++) bins.push({b, n:DONORS.filter(d=>!d.real && d.s>=b && d.s<b+1).length});
+  const maxN=Math.max(...bins.map(b=>b.n));
+  const x=scale(lo,hi,50,980), yb=170, H=130;
+  let o=`<line class="axis-l" x1="50" x2="980" y1="${yb}" y2="${yb}"/>`;
+  for (let b=lo;b<=hi;b+=2) o+=`<text class="axis-t" x="${x(b)}" y="${yb+15}" text-anchor="middle">${b}</text>`;
+  o+=`<text class="axis-t" x="515" y="${yb+32}" text-anchor="middle">donor PWM score (bits)</text>`;
+  for (let n=0;n<=maxN;n+=5){ const y=yb-n/maxN*H; o+=`<text class="axis-t" x="42" y="${y+3}" text-anchor="end">${n}</text>`; }
+  o+=`<text class="axis-t" x="10" y="${yb-H-8}">decoy GTs</text>`;
+  for (const {b,n} of bins){ if(!n) continue; const h=n/maxN*H; o+=`<rect class="hbar${b>=t?' pass':''}" x="${x(b)+1}" y="${yb-h}" width="${x(b+1)-x(b)-2}" height="${h}"/>`; }
+  DONORS.filter(d=>d.real).forEach((d,i)=>{ const X=x(d.s); o+=`<path class="realmk" d="M${X} ${yb-4} l-5 -9 h10z"/><text class="realtx" x="${X}" y="${yb-18-(i%2)*11}">${fmt(d.g)}</text>`; });
+  const X=x(Math.max(lo,Math.min(hi,t))); o+=`<line class="thr" x1="${X}" x2="${X}" y1="${yb-H-4}" y2="${yb}"/>`;
+  $('hist').innerHTML=o;
+  const pass=DONORS.filter(d=>d.s>=t), realPass=pass.filter(d=>d.real).length;
+  $('thrStats').innerHTML=`<div><dt>GTs in window</dt><dd>${DONORS.length}</dd></div><div><dt>Pass threshold</dt><dd>${pass.length}</dd></div><div><dt>Real donors kept</dt><dd>${realPass} / 4</dd></div><div><dt>Decoys kept</dt><dd>${pass.length-realPass}</dd></div>`;
+}
+$('thr').oninput=drawHist;
+
+// ================= station 3: coding potential =================
+function drawCodonGrid(){
+  const B='TCAG'; let o='';
+  for (const f of B) for (const t of B) for (const s of B){
+    const c=f+s+t, v=LLR[c], pct=Math.min(85,Math.abs(v)/2.8*85);
+    const bg=`color-mix(in srgb, ${v>=0?'var(--accent)':'var(--neg)'} ${pct.toFixed(0)}%, var(--panel))`;
+    const fg=pct>50?(v>=0?'var(--accent-ink)':'#fff'):'var(--ink)';
+    o+=`<div role="cell" style="background:${bg};color:${fg}"><span>${c} ${CODE[c]==='*'?'stop':CODE[c]}</span><small>${v>=0?'+':''}${v.toFixed(1)}</small></div>`;
+  }
+  $('cgrid').innerHTML=o;
+}
+const meanLLR = (a,b,f) => { let t=0,n=0; for (let p=a;p+2<=b;p++) if (frameOf(p)===f){ t+=LLR[sub(p,p+2)]; n++; } return n?t/n:0; };
+function drawFrames(){
+  const W=+$('win').value; $('winO').textContent=W+' bp';
+  const x=scale(W0,W1,50,990), yT=10, H=150, lo=-2, hi=1.5, y=v=>yT+(hi-Math.max(lo,Math.min(hi,v)))/(hi-lo)*H;
+  let o='';
+  for (const v of [-2,-1,0,1]) o+=`<text class="axis-t" x="44" y="${y(v)+3}" text-anchor="end">${v}</text>`;
+  for (const [a,b] of CDS) o+=`<rect x="${x(a)}" y="${yT}" width="${x(b)-x(a)}" height="${H}" style="fill:var(--accent-soft)"/>`;
+  o+=`<line class="zero" x1="50" x2="990" y1="${y(0)}" y2="${y(0)}"/>`;
+  for (let f=1;f<=3;f++){
+    const pts=[];
+    for (let c=W0+W/2;c<=W1-W/2;c+=9){ pts.push(`${x(c).toFixed(1)},${y(meanLLR(c-W/2,c+W/2,f)).toFixed(1)}`); }
+    o+=`<polyline class="trace fr${f}" points="${pts.join(' ')}"/>`;
+  }
+  const yE=yT+H+12;
+  o+=`<line class="intron-l" x1="${x(CDS[0][0])}" x2="${x(CDS[3][1])}" y1="${yE+9}" y2="${yE+9}"/>`;
+  CDS.forEach(([a,b],i)=>{ o+=`<rect class="exbox${cdsFrames[i]}" x="${x(a)}" y="${yE}" width="${x(b)-x(a)}" height="18"/><text class="exlab" x="${(x(a)+x(b))/2}" y="${yE+32}">F${cdsFrames[i]}</text>`; });
+  o+=ruler(x,W0,W1,yE+40,250);
+  $('frameSvg').innerHTML=o;
+}
+function drawFrameTable(){
+  const rows=CDS.map(([a,b],i)=>({n:`CDS exon ${i+1}`,a,b})).concat([[6340,6606],[6786,6938],[7099,7795]].map(([a,b],i)=>({n:`intron ${i+2}`,a,b})));
+  let o='<tr><th>Segment</th><th>Position</th><th>Frame 1</th><th>Frame 2</th><th>Frame 3</th></tr>';
+  for (const r of rows){ const v=[1,2,3].map(f=>meanLLR(r.a,r.b,f)); const m=Math.max(...v);
+    o+=`<tr><th>${r.n}</th><td>${fmt(r.a)}–${fmt(r.b)}</td>${v.map(q=>`<td class="${q===m&&m>0?'best':''}">${q>=0?'+':''}${q.toFixed(2)}</td>`).join('')}</tr>`; }
+  $('frTable').innerHTML=`<caption class="note" style="text-align:left;padding-bottom:4px">Mean codon LLR (bits per codon) in each frame</caption>`+o;
+}
+$('win').oninput=drawFrames;
+
+// ================= station 4: build the model =================
+const CANDS = [[6229,6339],[6304,6362],[6469,6528],[6607,6785],[6607,6704],[6905,6954],[6939,7098],[7193,7251],[7445,7479],[7796,7899],[7796,7915],[8029,8158],[8277,8326]]
+  .map(([a,b],i)=>{ const atg=sub(a,a+2)==='ATG' && sub(a-2,a-1)!=='AG', stop=STOPS.has(sub(b-2,b)) && sub(b+1,b+2)!=='GT';
+    return {id:'abcdefghijklm'[i], a, b, left: atg?'ATG':`AG ${acceptorScore(a).toFixed(1)}`, right: stop?'stop':`GT ${donorScore(b+1).toFixed(1)}`}; });
+{ // lanes
+  const lanes=[]; for (const c of CANDS){ let l=0; while (lanes[l]!==undefined && lanes[l]>=c.a-40) l++; lanes[l]=c.b; c.lane=l; } }
+const CAND_RULER = 8+(Math.max(...CANDS.map(c=>c.lane))+1)*34+8;
+$('candSvg').setAttribute('viewBox',`0 0 1000 ${CAND_RULER+24}`);
+let chosen=new Set(['a']);
+function drawCands(){
+  const x=scale(6150,W1,20,980); let o='';
+  for (const c of CANDS){
+    const y=8+c.lane*34, on=chosen.has(c.id);
+    o+=`<g class="cand${on?' on':''}" data-id="${c.id}" tabindex="0" role="button" aria-pressed="${on}" aria-label="Exon ${c.id}, ${c.a} to ${c.b}, ${c.b-c.a+1} bp, starts ${c.left}, ends ${c.right}"><rect class="body" x="${x(c.a)}" y="${y}" width="${Math.max(18,x(c.b)-x(c.a))}" height="24" rx="3"/><text x="${x(c.a)+Math.max(18,x(c.b)-x(c.a))/2}" y="${y+16}">${c.id}</text><title>${c.id}: ${fmt(c.a)}–${fmt(c.b)} (${c.b-c.a+1} bp) · ${c.left} … ${c.right}</title></g>`;
+  }
+  o+=ruler(x,6150,W1,CAND_RULER,250);
+  $('candSvg').innerHTML=o;
+}
+function toggleCand(id){
+  const c=CANDS.find(q=>q.id===id);
+  if (chosen.has(id)) chosen.delete(id);
+  else { for (const q of CANDS) if (chosen.has(q.id) && q.a<=c.b && q.b>=c.a) chosen.delete(q.id); chosen.add(id); }
+  drawCands(); evalModel();
+}
+$('candSvg').addEventListener('click',e=>{ const g=e.target.closest('.cand'); if(g) toggleCand(g.dataset.id); });
+$('candSvg').addEventListener('keydown',e=>{ const g=e.target.closest('.cand'); if(g && (e.key==='Enter'||e.key===' ')){ e.preventDefault(); toggleCand(g.dataset.id); const n=$('candSvg').querySelector(`.cand[data-id="${g.dataset.id}"]`); if(n) n.focus(); } });
+$('candReset').onclick=()=>{ chosen.clear(); drawCands(); evalModel(); };
+function evalModel(){
+  const ex=CANDS.filter(c=>chosen.has(c.id)).sort((p,q)=>p.a-q.a);
+  const msg=$('modelMsg'), prot=$('prot');
+  if (!ex.length){ $('model').innerHTML=''; msg.className='status'; msg.textContent='Your model is empty. Pick an exon that starts with ATG.'; prot.textContent='—'; return; }
+  let seq='', html='';
+  ex.forEach((c,i)=>{ seq+=sub(c.a,c.b);
+    html+=`<div class="ex"><b>${c.id}</b><span>${fmt(c.a)}–${fmt(c.b)}</span><span>${c.b-c.a+1} bp</span><span>${c.left} … ${c.right}</span></div>`;
+    if (i<ex.length-1) html+=`<div class="ph">intron ${fmt(c.b+1)}–${fmt(ex[i+1].a-1)} (${ex[i+1].a-c.b-1} bp), phase ${seq.length%3}</div>`; });
+  $('model').innerHTML=html;
+  const p=translate(seq), firstStop=p.indexOf('*');
+  const problems=[];
+  if (sub(ex[0].a,ex[0].a+2)!=='ATG') problems.push('the first exon does not start with ATG');
+  if (firstStop>=0 && firstStop<p.length-1) problems.push(`an in-frame stop at codon ${firstStop+1} (premature)`);
+  if (!p.endsWith('*')) problems.push(seq.length%3 ? `the CDS is ${seq.length} bp, not a multiple of 3` : 'the last exon does not end in a stop codon');
+  for (let i=0;i<ex.length-1;i++) if (ex[i+1].a-ex[i].b-1<60) problems.push(`the intron after exon ${ex[i].id} is too short to splice`);
+  // protein display
+  let ph=''; for (let i=0;i<p.length;i++){ const ch=p[i]; ph+= ch==='*' ? `<span class="stop">*</span>` : (ch!==P01112[i] ? `<span class="mm">${ch}</span>` : ch); }
+  prot.innerHTML=ph||'—';
+  const aa=p.replace(/\*$/,'');
+  if (!problems.length && aa===P01112){ msg.className='status ok'; msg.textContent=`Complete gene: ${seq.length} bp CDS → ${aa.length} amino acids, identical to HRAS (P01112).`; markDone('a4build'); return; }
+  let same=0; for (let i=0;i<Math.min(aa.length,P01112.length);i++){ if (aa[i]===P01112[i]) same++; else break; }
+  msg.className='status '+(problems.length?'bad':'warn');
+  msg.textContent=(problems.length?'Problems: '+problems.join('; ')+'. ':'A valid gene, but not HRAS. ')+`Your protein matches HRAS for its first ${same} of 189 residues.`+(same<189&&same>0?' Mismatches are underlined.':'');
+}
+
+// ================= station 5: parser =================
+function lowerBound(a,x){ let l=0,h=a.length; while(l<h){ const m=(l+h)>>1; if (a[m]<x) l=m+1; else h=m; } return l; }
+function parseGene(R0,R1,o){
+  const {wS=1,wC=1,exonK=-6,minIntron=60,minExon=30,th=0}=o||{};
+  const donors=[],accs=[],atgs=[];
+  for (let p=R0;p<=R1-1;p++){ const d=SEQ.substr(p-1,2);
+    if (d==='GT'){ const s=donorScore(p); if (s!==null && s>=th) donors.push({g:p,s}); }
+    if (d==='AG'){ const s=acceptorScore(p+2); if (s!==null && s>=th) accs.push({e:p+2,s}); }
+    if (SEQ.substr(p-1,3)==='ATG') atgs.push(p); }
+  const states=new Map();
+  const put=(g,carry,score,exon,prev)=>{ let m=states.get(g); if(!m){ m={}; states.set(g,m); } if(!m[carry]||m[carry].score<score) m[carry]={score,exon,prev}; };
+  let best={score:0,exon:null,prev:null};
+  const finish=(score,exon,prev)=>{ if (score>best.score) best={score,exon,prev}; };
+  const dIdx=donors.map(d=>d.g);
+  function walk(a,c,onDonor,onStop){
+    const k=c.length, need=(3-k)%3; let score=0, pos=a;
+    if (need){ const cod=c+sub(a,a+need-1); if (STOPS.has(cod)){ onStop(a+need-1,score); return; } score+=LLR[cod]; pos=a+need; }
+    let di=lowerBound(dIdx,a+minExon);
+    for(;;){
+      while (di<donors.length && donors[di].g<=pos+2){ const d=donors[di]; if (d.g>=pos) onDonor(d,score,sub(pos,d.g-1)); di++; }
+      if (pos+2>R1) return;
+      const cod=sub(pos,pos+2);
+      if (STOPS.has(cod)){ onStop(pos+2,score); return; }
+      score+=LLR[cod]; pos+=3;
+    }
+  }
+  for (const s of atgs) walk(s,'',(d,sc,carry)=>put(d.g,carry,wC*sc+wS*d.s+exonK,{a:s,b:d.g-1},null),(t,sc)=>finish(wC*sc+exonK,{a:s,b:t},null));
+  const bestIn={}; let dj=0;
+  for (const ac of accs){
+    while (dj<dIdx.length && dIdx[dj]<=ac.e-minIntron){ const m=states.get(dIdx[dj]); if (m) for (const c in m) if (!bestIn[c]||bestIn[c].score<m[c].score) bestIn[c]={score:m[c].score,g:dIdx[dj]}; dj++; }
+    for (const c in bestIn){ const inc=bestIn[c], prev={g:inc.g,c};
+      walk(ac.e,c,(d,sc,carry)=>put(d.g,carry,inc.score+wC*sc+wS*(ac.s+d.s)+exonK,{a:ac.e,b:d.g-1},prev),
+        (t,sc)=>finish(inc.score+wC*sc+wS*ac.s+exonK,{a:ac.e,b:t},prev)); }
+  }
+  if (!best.exon) return {score:0,exons:[]};
+  const ex=[best.exon]; let p=best.prev;
+  while (p){ const st=states.get(p.g)[p.c]; ex.unshift(st.exon); p=st.prev; }
+  return {score:best.score,exons:ex};
+}
+const PRESETS={sig:{wS:1,wC:0,exK:-6,sTh:0}, con:{wS:0,wC:1,exK:-6,sTh:0}, both:{wS:1,wC:1,exK:-6,sTh:0}};
+document.querySelectorAll('[data-preset]').forEach(b=>b.onclick=()=>{ const p=PRESETS[b.dataset.preset]; for (const k in p) $(k).value=p[k]; runParser(); });
+function runParser(){
+  const wS=+$('wS').value, wC=+$('wC').value, K=+$('exK').value, th=+$('sTh').value;
+  $('wSO').textContent=wS.toFixed(1); $('wCO').textContent=wC.toFixed(1); $('exKO').textContent='−'+Math.abs(K); $('sThO').textContent=th+' bits';
+  const r=parseGene(W0,W1,{wS,wC,exonK:K,th});
+  const x=scale(W0,W1,70,990);
+  let o=`<text class="trk-lbl" x="62" y="26" text-anchor="end">RefSeq</text><text class="trk-lbl" x="62" y="66" text-anchor="end">predicted</text><text class="trk-lbl" x="62" y="104" text-anchor="end">errors</text>`;
+  o+=`<line class="intron-l" x1="${x(CDS[0][0])}" x2="${x(CDS[3][1])}" y1="22" y2="22"/>`;
+  for (const [a,b] of CDS) o+=`<rect class="cds" x="${x(a)}" y="14" width="${x(b+1)-x(a)}" height="16"/>`;
+  if (r.exons.length) o+=`<line class="intron-l" x1="${x(r.exons[0].a)}" x2="${x(r.exons[r.exons.length-1].b)}" y1="62" y2="62"/>`;
+  for (const e of r.exons) o+=`<rect class="pred" x="${x(e.a)}" y="54" width="${Math.max(1,x(e.b+1)-x(e.a))}" height="16"><title>${fmt(e.a)}–${fmt(e.b)}</title></rect>`;
+  // per-base comparison
+  const inPred=p=>r.exons.some(e=>p>=e.a&&p<=e.b);
+  let tp=0,fp=0,fn=0, runs=[], cur=null;
+  for (let p=W0;p<=W1;p++){ const t=inCDS(p), q=inPred(p), k=t&&q?'tp':(q?'fp':(t?'fn':null));
+    if (k==='tp') tp++; else if (k==='fp') fp++; else if (k==='fn') fn++;
+    if (cur && cur.k===k) cur.b=p; else { if (cur&&cur.k) runs.push(cur); cur={k,a:p,b:p}; } }
+  if (cur&&cur.k) runs.push(cur);
+  for (const u of runs) o+=`<rect class="${u.k}" x="${x(u.a)}" y="94" width="${Math.max(1.5,x(u.b+1)-x(u.a))}" height="16"/>`;
+  o+=ruler(x,W0,W1,122,250);
+  $('predSvg').innerHTML=o;
+  const trueSet=new Set(CDS.map(([a,b])=>a+'-'+b)), exact=r.exons.filter(e=>trueSet.has(e.a+'-'+e.b)).length;
+  const pc=v=>isFinite(v)?(100*v).toFixed(0)+'%':'—';
+  const snE=exact/4, spE=r.exons.length?exact/r.exons.length:NaN;
+  $('predStats').innerHTML=`<div><dt>Exons predicted</dt><dd>${r.exons.length}</dd></div><div><dt>Nucleotide Sn</dt><dd>${pc(tp/(tp+fn))}</dd></div><div><dt>Nucleotide Sp</dt><dd>${pc(tp+fp?tp/(tp+fp):NaN)}</dd></div><div><dt>Exon Sn</dt><dd>${pc(snE)}</dd></div><div><dt>Exon Sp</dt><dd>${pc(spE)}</dd></div>`;
+  let seq=''; for (const e of r.exons) seq+=sub(e.a,e.b);
+  const aa=translate(seq).replace(/\*$/,'');
+  const m=$('predMsg');
+  if (snE===1 && spE===1){ m.className='status ok'; m.textContent=`Exact prediction: four exons, ${aa.length} amino acids, identical to HRAS.`; markDone('p5exact'); }
+  else if (!r.exons.length){ m.className='status bad'; m.textContent='No gene scores above zero with these settings.'; }
+  else { m.className='status warn'; m.textContent=`Predicted protein: ${aa.length} amino acids (HRAS has 189). ${exact} of 4 real coding exons predicted exactly.`; }
+}
+['wS','wC','exK','sTh'].forEach(k=>$(k).oninput=runParser);
+
+// ================= station 6: RNA-seq =================
+function mulberry32(a){ return ()=>{ a|=0; a=a+0x6D2B79F5|0; let t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
+let seed=7, arcSel=null, JUNC=[];
+const E0=4900, E1=8400;
+const BEST = parseGene(W0,W1,{wS:1,wC:1,exonK:-16,th:3}).exons;
+function drawRNA(){
+  const N=+$('nReads').value, L=+$('rLen').value; $('nReadsO').textContent=N; $('rLenO').textContent=L+' nt';
+  const rnd=mulberry32(seed); const mlen=MRNA.reduce((s,[a,b])=>s+b-a+1,0);
+  const cov=new Float32Array(E1-E0+1); const jc={};
+  const t2g=t=>{ for (const [a,b] of MRNA){ const n=b-a+1; if (t<n) return a+t; t-=n; } return null; };
+  for (let r=0;r<N;r++){
+    if (rnd()<0.1){ const s=4975+Math.floor(rnd()*(8309-4975-L)); for (let p=s;p<s+L;p++) cov[p-E0]++; continue; }
+    const t0=Math.floor(rnd()*(mlen-L+1)); let prev=null;
+    for (let t=t0;t<t0+L;t++){ const g=t2g(t); cov[g-E0]++; if (prev!==null && g!==prev+1){ const k=(prev+1)+'-'+(g-1); jc[k]=(jc[k]||0)+1; } prev=g; }
+  }
+  JUNC=Object.entries(jc).map(([k,n])=>{ const [a,b]=k.split('-').map(Number); return {a,b,n}; });
+  const x=scale(E0,E1,60,990), maxC=Math.max(...cov), yB=150, H=80;
+  let o=`<text class="trk-lbl" x="52" y="${yB-H+8}" text-anchor="end">${Math.round(maxC)}</text><text class="trk-lbl" x="52" y="${yB}" text-anchor="end">0</text><text class="trk-lbl" x="52" y="${yB-H/2}" text-anchor="end">depth</text>`;
+  let path=`M${x(E0)} ${yB}`; for (let p=E0;p<=E1;p+=5){ let m=0; for (let q=p;q<p+5&&q<=E1;q++) m=Math.max(m,cov[q-E0]); path+=` L${x(p).toFixed(1)} ${(yB-m/maxC*H).toFixed(1)}`; }
+  path+=` L${x(E1)} ${yB} Z`;
+  o+=`<path class="covA" d="${path}"/><path class="covL" d="${path}"/>`;
+  const maxJ=Math.max(1,...JUNC.map(j=>j.n));
+  JUNC.forEach((j,i)=>{ const x1=x(j.a-1), x2=x(j.b+1), mid=(x1+x2)/2, h=16+44*Math.sqrt(j.n/maxJ);
+    const d=`M${x1} ${yB-2} Q${mid} ${yB-2-2*h} ${x2} ${yB-2}`;
+    o+=`<path class="arc${arcSel===j.a?' sel':''}" d="${d}" style="stroke-width:${1+2.5*j.n/maxJ}"/><path class="arc-hit" data-i="${i}" d="${d}"><title>${j.n} spliced reads: intron ${fmt(j.a)}–${fmt(j.b)}</title></path><text class="arcn" x="${mid}" y="${yB-2-h-4}">${j.n}</text>`; });
+  o+=`<text class="trk-lbl" x="52" y="${yB+30}" text-anchor="end">RefSeq</text>`+geneModel(x,yB+18,16,MRNA,CDS);
+  o+=`<text class="trk-lbl" x="52" y="${yB+62}" text-anchor="end">ab initio</text>`;
+  if (BEST.length) o+=`<line class="intron-l" x1="${x(BEST[0].a)}" x2="${x(BEST[BEST.length-1].b)}" y1="${yB+58}" y2="${yB+58}"/>`;
+  for (const e of BEST) o+=`<rect class="pred" x="${x(e.a)}" y="${yB+51}" width="${Math.max(1,x(e.b+1)-x(e.a))}" height="14"/>`;
+  o+=ruler(x,E0,E1,yB+80,500);
+  $('rnaSvg').innerHTML=o;
+}
+$('rnaSvg').addEventListener('click',e=>{ const t=e.target.closest('.arc-hit'); if(!t) return; const j=JUNC[+t.dataset.i]; arcSel=j.a;
+  const gt=sub(j.a,j.a+1), ag=sub(j.b-1,j.b);
+  const k=MRNA.findIndex(([,b])=>b===j.a-1);
+  $('arcInfo').innerHTML=`<b>${j.n} reads</b> join exon ${k+1} (ends ${fmt(j.a-1)}) to exon ${k+2} (starts ${fmt(j.b+1)}). Intron ${fmt(j.a)}–${fmt(j.b)}: <b>${fmt(j.b-j.a+1)} bp</b>, starts <span class="mono">${gt}</span>, ends <span class="mono">${ag}</span>.`+(k===0?' Exon 1 is entirely 5′ UTR.':'');
+  if (j.a===5136) markDone('e6click');
+  drawRNA(); });
+$('nReads').oninput=drawRNA; $('rLen').oninput=drawRNA;
+$('reseq').onclick=()=>{ seed=(seed*16807)%2147483647; drawRNA(); };
+
+// ================= boot =================
+drawOrfs(); drawLogos(); drawStrip(); scoreMine(); drawHist();
+drawCodonGrid(); drawFrames(); drawFrameTable();
+drawCands(); evalModel(); runParser(); drawRNA();
+renderChecks(); renderPipeline();
+
+</script>
