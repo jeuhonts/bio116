@@ -87,7 +87,7 @@ input.ws{width:4.5em;padding:4px 6px;border:1px solid var(--line-2);border-radiu
   <header style="display:grid;gap:10px">
     <span class="eyebrow">BIO 116 · Genome Browser Lab · instructor only</span>
     <h1>Exercise grader</h1>
-    <p class="lead">Drop the students' <code>BIO116-genome-browser-*.json</code> files here. The grader rebuilds each student's questions from their ID, scores the auto-graded parts, and flags files that were edited after saving or where the student tried to paste. Files are read in this browser only and are not uploaded anywhere. Don't share this page with students: it shows the answer keys.</p>
+    <p class="lead">Drop the students' <code>BIO116-genome-browser-*.json</code> files here. The grader rebuilds each student's questions from the question-set code in their file, scores the auto-graded parts, and flags files that were edited after saving, where the student tried to paste, or where two students submitted the same question set. Files are read in this browser only and are not uploaded anywhere. Don't share this page with students: it shows the answer keys.</p>
   </header>
 
   <label class="drop" id="drop" for="files">
@@ -104,13 +104,13 @@ input.ws{width:4.5em;padding:4px 6px;border:1px solid var(--line-2);border-radiu
     <div class="stats" id="stats"></div>
     <p class="muted">Click a row to see each answer against the key and to read the written answer. Enter the written score (0–4) in the table; it is included in the CSV.</p>
   </div>
-  <div class="tablewrap" id="tablewrap" hidden><table><thead><tr><th>Student</th><th>ID</th><th>Submitted</th><th>Auto</th><th>Written /4</th><th>Total</th><th>Flags</th></tr></thead><tbody id="rows"></tbody></table></div>
+  <div class="tablewrap" id="tablewrap" hidden><table><thead><tr><th>Student</th><th>Set code</th><th>Submitted</th><th>Auto</th><th>Written /4</th><th>Total</th><th>Flags</th></tr></thead><tbody id="rows"></tbody></table></div>
   <div id="msg" class="muted" role="status" aria-live="polite"></div>
 
   <div class="card key">
     <h2>Look up an answer key</h2>
-    <p class="muted">Type any student ID to see that student's questions and answers, for example to check a regrade request.</p>
-    <form class="row" id="keyform" autocomplete="off"><input id="keyid" type="text" aria-label="Student ID" spellcheck="false"><button class="btn" type="submit">Show key</button></form>
+    <p class="muted">Type a question-set code (shown in the table and in each file) to see those questions and answers, for example to check a regrade request.</p>
+    <form class="row" id="keyform" autocomplete="off"><input id="keyid" type="text" aria-label="Question-set code" spellcheck="false"><button class="btn" type="submit">Show key</button></form>
     <div id="keyout"></div>
   </div>
 </div>
@@ -122,17 +122,19 @@ input.ws{width:4.5em;padding:4px 6px;border:1px solid var(--line-2);border-radiu
 'use strict';
 const EX = window.GBExercise, $ = id => document.getElementById(id);
 const esc = t => String(t ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
-const subs = new Map();   // studentId -> {sub, result, written, file}
+const subs = new Map();   // question-set code + name -> {sub, result, written, file}
 let open = null;
 
 function ingest(file){
   return file.text().then(txt => {
     let sub;
     try { sub = JSON.parse(txt); } catch(e){ return `${file.name}: not a valid submission file.`; }
-    if (!sub || sub.app !== 'bio116-genome-browser-exercise' || !sub.studentId) return `${file.name}: not a BIO 116 genome browser submission.`;
-    const result = EX.score(sub), prev = subs.get(sub.studentId);
-    if (prev && new Date(prev.sub.submittedAt) > new Date(sub.submittedAt)) return `${file.name}: older than the file already loaded for ${sub.studentId}; kept the newer one.`;
-    subs.set(sub.studentId, {sub, result, written: prev?.written ?? '', file:file.name});
+    if (!sub || sub.app !== 'bio116-genome-browser-exercise' || !EX.codeOf(sub)) return `${file.name}: not a BIO 116 genome browser submission.`;
+    sub.setCode = EX.codeOf(sub);
+    const key = sub.setCode + '|' + String(sub.name||'').trim().toLowerCase();
+    const result = EX.score(sub), prev = subs.get(key);
+    if (prev && new Date(prev.sub.submittedAt) > new Date(sub.submittedAt)) return `${file.name}: older than the file already loaded for ${sub.name}; kept the newer one.`;
+    subs.set(key, {key, sub, result, written: prev?.written ?? '', file:file.name});
     return null;
   });
 }
@@ -152,6 +154,8 @@ function flags(s){
   if (!s.result.sealOk) f.push('<span class="flag bad" title="The file content does not match its submission code">edited after saving</span>');
   if (!s.result.versionOk) f.push('<span class="flag warn">different exercise version</span>');
   if (s.sub.pasteAttempts > 0) f.push(`<span class="flag warn" title="Paste or drop attempts blocked in the answer boxes">${s.sub.pasteAttempts} paste attempt${s.sub.pasteAttempts>1?'s':''}</span>`);
+  const twins = [...subs.values()].filter(o => o !== s && o.sub.setCode === s.sub.setCode).map(o => o.sub.name);
+  if (twins.length) f.push(`<span class="flag bad" title="Two different names submitted the same question set">same questions as ${esc(twins.join(', '))}</span>`);
   const mins = (new Date(s.sub.submittedAt) - new Date(s.sub.startedAt)) / 60000;
   if (mins >= 0 && mins < 10) f.push(`<span class="flag" title="Time from getting the questions to submitting">${Math.round(mins)} min</span>`);
   return f.join('') || '<span class="na">none</span>';
@@ -160,7 +164,7 @@ const total = s => s.result.got + (Number(s.written) || 0);
 function detail(s){
   const rows = s.result.rows.map(r => `<tr><td>${esc(r.title)}</td><td>${esc(r.label)}</td><td><code>${esc(r.given) || '<span class=na>blank</span>'}</code></td><td><code>${esc(r.key)}</code></td><td>${r.ok===true?'<span class=ok>✓</span>':r.ok===false?'<span class=no>✗</span>':'<span class=na>—</span>'}</td></tr>`).join('');
   const w = s.sub.answers?.q7?.text || '';
-  const q7 = EX.generate(s.sub.studentId).questions.find(q => q.id==='q7');
+  const q7 = EX.generate(s.sub.setCode).questions.find(q => q.id==='q7');
   return `<div style="display:grid;gap:10px"><div class="tablewrap"><table><thead><tr><th>Question</th><th>Part</th><th>Answer</th><th>Key</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>
     <div><b>Written question:</b> ${esc(q7.prompt)}</div><div class="written">${esc(w) || '<span class=na>blank</span>'}</div>
     <p class="muted">File: ${esc(s.file)} · started ${esc(new Date(s.sub.startedAt).toLocaleString())} · submission code <code>${esc(s.sub.seal)}</code></p></div>`;
@@ -173,8 +177,8 @@ function render(){
   const mean = list.reduce((t,s) => t + s.result.got, 0) / list.length;
   $('stats').innerHTML = `<span><b>${list.length}</b> submissions</span><span>mean auto score <b>${mean.toFixed(1)} / ${max}</b></span><span><b>${list.filter(s => !s.result.sealOk).length}</b> edited files</span><span><b>${list.filter(s => s.sub.pasteAttempts>0).length}</b> with paste attempts</span>`;
   $('rows').innerHTML = list.map(s => {
-    const id = s.sub.studentId;
-    return `<tr class="stu" data-id="${esc(id)}" tabindex="0" aria-expanded="${open===id}"><td>${esc(s.sub.name)}</td><td class="num">${esc(id)}</td><td>${esc(new Date(s.sub.submittedAt).toLocaleString())}</td><td class="num">${s.result.got} / ${s.result.max}</td>
+    const id = s.key;
+    return `<tr class="stu" data-id="${esc(id)}" tabindex="0" aria-expanded="${open===id}"><td>${esc(s.sub.name)}</td><td class="num">${esc(s.sub.setCode)}</td><td>${esc(new Date(s.sub.submittedAt).toLocaleString())}</td><td class="num">${s.result.got} / ${s.result.max}</td>
       <td><input class="ws" type="number" min="0" max="4" step="0.5" value="${esc(s.written)}" data-id="${esc(id)}" aria-label="Written score for ${esc(s.sub.name)}" id="ws-${esc(id)}"></td><td class="num">${total(s)} / ${s.result.max + 4}</td><td>${flags(s)}</td></tr>`
       + (open===id ? `<tr class="detail"><td colspan="7">${detail(s)}</td></tr>` : '');
   }).join('');
@@ -198,8 +202,8 @@ $('csv').addEventListener('click', async () => {
   const q = v => `"${String(v ?? '').replace(/"/g,'""')}"`;
   const list = [...subs.values()].sort((a,b) => String(a.sub.name).localeCompare(String(b.sub.name)));
   const partCols = list[0].result.rows.filter(r => r.ok !== null).map(r => `${r.q}.${r.part}`);
-  const head = ['name','student_id','submitted_at','auto_score','auto_max','written_score','total','edited_after_saving','paste_attempts', ...partCols];
-  const lines = [head.join(',')].concat(list.map(s => [q(s.sub.name), q(s.sub.studentId), q(s.sub.submittedAt), s.result.got, s.result.max, s.written, total(s), s.result.sealOk?'no':'yes', s.sub.pasteAttempts,
+  const head = ['name','question_set_code','submitted_at','auto_score','auto_max','written_score','total','edited_after_saving','paste_attempts', ...partCols];
+  const lines = [head.join(',')].concat(list.map(s => [q(s.sub.name), q(s.sub.setCode), q(s.sub.submittedAt), s.result.got, s.result.max, s.written, total(s), s.result.sealOk?'no':'yes', s.sub.pasteAttempts,
     ...s.result.rows.filter(r => r.ok !== null).map(r => r.ok ? 1 : 0)].join(',')));
   const text = lines.join('\n'), filename = 'BIO116-genome-browser-grades.csv';
   try {
@@ -212,7 +216,7 @@ $('csv').addEventListener('click', async () => {
 $('keyform').addEventListener('submit', e => {
   e.preventDefault();
   const id = $('keyid').value; if (!EX.normId(id)) return;
-  const res = EX.score({studentId:id, answers:{}});
+  const res = EX.score({setCode:id, answers:{}});
   $('keyout').innerHTML = `<div class="tablewrap"><table><thead><tr><th>Question</th><th>Part</th><th>Key</th></tr></thead><tbody>${res.rows.map(r => `<tr><td>${esc(r.title)}</td><td>${esc(r.label)}</td><td><code>${esc(r.key)}</code></td></tr>`).join('')}</tbody></table></div>`;
 });
 })();

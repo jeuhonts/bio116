@@ -1,6 +1,7 @@
 /* BIO 116 genome browser lab: graded exercise engine, shared by index.html and grader.html.
-   generate(studentId) builds a student's personal question set from the sequences in loci.js;
-   the same ID always gives the same questions, so the grader can rebuild them from a submission file.
+   generate(code) builds a student's personal question set from the sequences in loci.js. The code is a
+   random question-set code the student page makes up for each student; the same code always gives the
+   same questions, so the grader can rebuild them from a submission file.
    score(submission) grades the auto-scored parts. The student page never calls score(). */
 window.GBExercise = (() => {
 'use strict';
@@ -41,13 +42,21 @@ const WRITTEN = [
 ];
 
 function normId(id){ return String(id||'').trim().toUpperCase().replace(/\s+/g,''); }
+// Question-set codes: 6 characters, no look-alikes (0/O, 1/I/L).
+const CODE_ABC = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+function newCode(){
+  const a = new Uint32Array(6);
+  if (window.crypto?.getRandomValues) crypto.getRandomValues(a); else for (let i=0;i<6;i++) a[i] = Math.floor(Math.random()*2**32);
+  return [...a].map(n => CODE_ABC[n % CODE_ABC.length]).join('');
+}
+const codeOf = sub => sub.setCode ?? sub.studentId;
 function hash32(str){ let h = 0x811c9dc5; for (let i=0;i<str.length;i++){ h ^= str.charCodeAt(i); h = Math.imul(h, 0x01000193); } return h >>> 0; }
 function rng(seed){ let a = seed|0; return () => { a=a+0x6D2B79F5|0; let t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
 const pick = (r, arr) => arr[Math.floor(r()*arr.length)];
 const between = (r, lo, hi) => lo + Math.floor(r()*(hi-lo+1));
 
-function generate(studentId){
-  const id = normId(studentId);
+function generate(code){
+  const id = normId(code);
   const r = rng(hash32('bio116-gb-v' + VERSION + ':' + id));
   const Q = [];
 
@@ -124,7 +133,7 @@ function generate(studentId){
   Q.push({id:'q7', title:'Explain it', locus:null, prompt: pick(r, WRITTEN),
     parts:[{id:'text', label:'Your answer (3–5 sentences)', kind:'long', key:null}]});
 
-  return {version:VERSION, studentId:id, questions:Q};
+  return {version:VERSION, setCode:id, questions:Q};
 }
 
 /* ---------- grading ---------- */
@@ -153,11 +162,11 @@ function keyText(part){
 }
 // A light integrity check: flags files edited by hand after they were saved.
 function seal(sub){
-  const body = JSON.stringify([sub.version, sub.studentId, sub.name, sub.answers, sub.startedAt, sub.submittedAt, sub.pasteAttempts]);
+  const body = JSON.stringify([sub.version, codeOf(sub), sub.name, sub.answers, sub.startedAt, sub.submittedAt, sub.pasteAttempts]);
   return hash32('bio116-seal:' + body).toString(36) + hash32(body + ':bio116').toString(36);
 }
 function score(sub){
-  const set = generate(sub.studentId), rows = [];
+  const set = generate(codeOf(sub)), rows = [];
   let got = 0, max = 0;
   for (const q of set.questions) for (const part of q.parts){
     const given = (sub.answers?.[q.id] || {})[part.id];
@@ -167,5 +176,5 @@ function score(sub){
   }
   return {got, max, rows, sealOk: sub.seal === seal(sub), versionOk: sub.version === VERSION};
 }
-return {VERSION, generate, score, seal, normId};
+return {VERSION, generate, score, seal, normId, newCode, codeOf};
 })();

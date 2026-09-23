@@ -253,6 +253,10 @@ dl.gloss dd{margin:0;color:var(--muted);font-size:.94rem}
 .ex-fields input{width:16em;max-width:100%;padding:7px 9px;border:1px solid var(--line-2);border-radius:6px;background:var(--panel);font-size:.95rem}
 .ex-start .row,.ex-submit .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
 .ex-hint{font-size:.85rem;color:var(--muted)}
+.ex-more summary{cursor:pointer;font-size:.88rem;color:var(--muted)}
+.ex-more[open]{display:grid;gap:6px}
+.ex-more label{display:grid;gap:4px;font-size:.88rem;color:var(--muted);margin-top:6px}
+.ex-more input{width:10em;padding:6px 8px;border:1px solid var(--line-2);border-radius:6px;background:var(--panel);font-family:var(--mono);text-transform:uppercase}
 .ex-who{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;justify-content:space-between;max-width:900px}
 .ex-list{list-style:none;margin:0;padding:0;display:grid;gap:14px;max-width:900px;counter-reset:exq}
 .ex-q{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;display:grid;gap:12px}
@@ -492,17 +496,20 @@ footer{margin-top:64px;color:var(--muted);font-size:.85rem;border-top:1px solid 
   <header>
     <span class="eyebrow">Assignment</span>
     <h2>Graded exercise</h2>
-    <p>Your student ID gives you your own set of questions: different positions, codons, exons and genes from your classmates. Answer them using the browser above and UCSC. Type your answers (pasting is turned off). Nothing is marked on this page. <b>Submit</b> saves one file for you to upload to the course site.</p>
+    <p>You get your own set of questions: different positions, codons, exons and genes from your classmates. Answer them using the browser above and UCSC. Type your answers (pasting is turned off). Nothing is marked on this page. <b>Submit</b> saves one file for you to upload to the course site.</p>
   </header>
   <form class="card ex-start" id="ex-start" autocomplete="off">
     <div class="ex-fields">
       <label for="ex-name">Your name<input id="ex-name" type="text" required></label>
-      <label for="ex-id">Student ID<input id="ex-id" type="text" required spellcheck="false"></label>
     </div>
-    <div class="row"><button class="btn primary" type="submit">Get my questions</button><span class="ex-hint">Use the ID your instructor will recognise. The same ID always gives the same questions.</span></div>
+    <div class="row"><button class="btn primary" type="submit">Get my questions</button><span class="ex-hint">Use the name your instructor will recognise. This browser remembers your questions and answers until you submit.</span></div>
+    <details class="ex-more"><summary>Continuing on another computer?</summary>
+      <label for="ex-code">Question-set code from your first computer<input id="ex-code" type="text" spellcheck="false" autocomplete="off" maxlength="12"></label>
+      <span class="ex-hint">Your code is shown above your questions. Leave this blank to get a new set.</span>
+    </details>
   </form>
   <div id="ex-body" hidden>
-    <div class="ex-who card"><span id="ex-who"></span><button class="linkbtn" type="button" id="ex-change">Use a different ID</button></div>
+    <div class="ex-who card"><span id="ex-who"></span><button class="linkbtn" type="button" id="ex-change">Change name</button></div>
     <ol class="ex-list" id="ex-list"></ol>
     <div class="card ex-submit">
       <p>Check your answers, then save your submission. You can come back and submit again; your instructor will grade the file you upload.</p>
@@ -1305,8 +1312,8 @@ $('loci').addEventListener('keydown', e => {
 {
 const EX = window.GBExercise, exBody = $('ex-body'), exList = $('ex-list'), exStatus = $('ex-status');
 let exSet = null, exState = null, confirmBlank = false;
-const draftKey = id => 'bio116-ex-draft:' + id;
-const saveDraft = () => { try { localStorage.setItem(draftKey(exSet.studentId), JSON.stringify(exState)); } catch(e){} };
+const draftKey = code => 'bio116-ex-draft:' + code, CUR = 'bio116-ex-current';
+const saveDraft = () => { try { localStorage.setItem(draftKey(exSet.setCode), JSON.stringify(exState)); localStorage.setItem(CUR, JSON.stringify({code:exSet.setCode, name:exState.name})); } catch(e){} };
 const esc = t => String(t).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
 function partHtml(q, p){
   const pid = `ex-${q.id}-${p.id}`, val = exState.answers[q.id]?.[p.id] ?? '';
@@ -1314,23 +1321,26 @@ function partHtml(q, p){
   if (p.kind==='long') return `<div class="ex-part wide"><label class="lbl" for="${pid}">${p.label}<textarea id="${pid}" data-q="${q.id}" data-p="${p.id}" spellcheck="true">${esc(val)}</textarea></label><span class="warn" aria-live="polite"></span></div>`;
   return `<div class="ex-part${p.kind==='free'?' wide':''}"><label class="lbl" for="${pid}">${p.label}<input type="text" id="${pid}" data-q="${q.id}" data-p="${p.id}" value="${esc(val)}" autocomplete="off" spellcheck="false"></label><span class="warn" aria-live="polite"></span></div>`;
 }
-function startExercise(name, id){
-  exSet = EX.generate(id);
+function startExercise(name, code){
+  exSet = EX.generate(code);
   exState = {name, answers:{}, startedAt:new Date().toISOString(), pasteAttempts:0};
-  try { const d = JSON.parse(localStorage.getItem(draftKey(exSet.studentId))); if (d && d.answers) exState = {...exState, ...d, name}; } catch(e){}
-  $('ex-who').innerHTML = `<b>${esc(name)}</b> · ID <code>${esc(exSet.studentId)}</code> · ${exSet.questions.length} questions`;
+  try { const d = JSON.parse(localStorage.getItem(draftKey(exSet.setCode))); if (d && d.answers) exState = {...exState, ...d, name}; } catch(e){}
+  $('ex-who').innerHTML = `<span><b>${esc(name)}</b> · ${exSet.questions.length} questions · question-set code <code>${esc(exSet.setCode)}</code></span>`;
   exList.innerHTML = exSet.questions.map((q,i) => `<li class="ex-q" id="exq-${q.id}"><h3><span class="num">Q${i+1}</span>${q.title}</h3><p class="prompt">${q.prompt}</p><div class="ex-parts">${q.parts.map(p => partHtml(q,p)).join('')}</div></li>`).join('');
   $('ex-start').hidden = true; exBody.hidden = false; exStatus.innerHTML = ''; confirmBlank = false;
   saveDraft();
 }
 $('ex-start').addEventListener('submit', e => {
   e.preventDefault();
-  const name = $('ex-name').value.trim(), id = $('ex-id').value.trim();
-  if (!name || !EX.normId(id)) return;
-  startExercise(name, id);
+  const name = $('ex-name').value.trim(); if (!name) return;
+  // Reuse the code this browser already has, or one typed in from another computer; otherwise make a new one.
+  let code = EX.normId($('ex-code').value);
+  if (!code){ try { code = JSON.parse(localStorage.getItem(CUR))?.code || ''; } catch(e){} }
+  startExercise(name, code || EX.newCode());
   $('exq-q1').scrollIntoView({block:'start', behavior:'smooth'});
 });
-$('ex-change').addEventListener('click', () => { exBody.hidden = true; $('ex-start').hidden = false; $('ex-id').focus(); });
+$('ex-change').addEventListener('click', () => { exBody.hidden = true; $('ex-start').hidden = false; $('ex-name').focus(); });
+try { const c = JSON.parse(localStorage.getItem(CUR)); if (c?.name) $('ex-name').value = c.name; } catch(e){}
 const record = t => { const q = t.dataset.q, p = t.dataset.p; if (!q) return; (exState.answers[q] ||= {})[p] = t.value; confirmBlank = false; saveDraft(); };
 exList.addEventListener('input', e => record(e.target));
 exList.addEventListener('change', e => record(e.target));
@@ -1361,11 +1371,12 @@ $('ex-submit').addEventListener('click', async () => {
     exStatus.innerHTML = `<span class="bad">Some answers are blank (${uniq.join(', ')}).</span> Fill them in, or press <b>Submit and save file</b> again to submit anyway.`;
     return;
   }
-  const sub = {app:'bio116-genome-browser-exercise', version:exSet.version, studentId:exSet.studentId, name:exState.name,
+  const sub = {app:'bio116-genome-browser-exercise', version:exSet.version, setCode:exSet.setCode, name:exState.name,
     answers:exState.answers, startedAt:exState.startedAt, submittedAt:new Date().toISOString(), pasteAttempts:exState.pasteAttempts,
     questions: exSet.questions.map(q => ({id:q.id, title:q.title, prompt:q.prompt.replace(/<[^>]+>/g,''), parts:q.parts.map(p => ({id:p.id, label:p.label}))}))};
   sub.seal = EX.seal(sub);
-  const filename = `BIO116-genome-browser-${exSet.studentId.replace(/[^A-Z0-9_-]/g,'')}.json`;
+  const safeName = exState.name.normalize('NFKD').replace(/[^\w-]+/g,'-').replace(/^-+|-+$/g,'').slice(0,40) || 'student';
+  const filename = `BIO116-genome-browser-${safeName}-${exSet.setCode}.json`;
   exStatus.textContent = 'Preparing your file…';
   try {
     await saveFile(filename, JSON.stringify(sub, null, 2));
