@@ -1,3 +1,11 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>HRAS Sequencing &amp; Assembly Lab</title>
@@ -242,7 +250,7 @@ footer.src ul{margin:0;padding-left:1.2em;display:grid;gap:4px}
 </style>
 
 <div class="page">
-<nav class="course" aria-label="BIO 116 labs, in order"><span>BIO 116 · Lab 1 of 4</span><ol><li><span aria-current="page"><b>1</b>Sequencing &amp; assembly</span></li><li><a href="https://claude.ai/artifact/RGsb5xH3MCuj8K2kJZqeNf" target="_blank" rel="noopener"><b>2</b>Gene finding</a></li><li><a href="https://claude.ai/artifact/DHRSyrq2TGRQYbbcTcGwme" target="_blank" rel="noopener"><b>3</b>Genome browser</a></li><li><a href="https://claude.ai/artifact/VrX2jD4KLeGQdBzE3vBPzr" target="_blank" rel="noopener"><b>4</b>Genome annotation</a></li></ol></nav>
+<nav class="course" aria-label="BIO 116 labs, in order"><span>BIO 116 · Lab 1 of 4</span><ol><li><span aria-current="page"><b>1</b>Sequencing &amp; assembly</span></li><li><a href="2-gene-finding.html"><b>2</b>Gene finding</a></li><li><a href="3-genome-browser.html"><b>3</b>Genome browser</a></li><li><a href="4-genome-annotation.html"><b>4</b>Genome annotation</a></li></ol></nav>
 <header class="top">
   <p class="eyebrow">BIO 116 · Bioinformatics lab 1</p>
   <h1>From DNA molecules to a finished genome</h1>
@@ -461,7 +469,7 @@ footer.src ul{margin:0;padding-left:1.2em;display:grid;gap:4px}
     <li>Reads in Sections 3 and 6 start at random positions and have no errors. The entry sits inside chromosome 11, so reads can hang off either end; only the part on the entry is drawn and counted. Real reads also carry errors, which assemblers have to correct.</li>
   </ul>
 </footer>
-<nav class="course-next" aria-label="Previous and next lab"><a class="cn-next" href="https://claude.ai/artifact/RGsb5xH3MCuj8K2kJZqeNf" target="_blank" rel="noopener"><span class="cn-d">Next · lab 2 →</span><span class="cn-t">Gene finding</span><span class="cn-s">ORFs, splice signals, coding potential and ab initio prediction</span></a></nav>
+<nav class="course-next" aria-label="Previous and next lab"><a class="cn-next" href="2-gene-finding.html"><span class="cn-d">Next · lab 2 →</span><span class="cn-t">Gene finding</span><span class="cn-s">ORFs, splice signals, coding potential and ab initio prediction</span></a></nav>
 </div>
 
 <script>
@@ -922,3 +930,6 @@ setKmax(); drawDBG(); drawRepeats();
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>drawTile());
 new MutationObserver(()=>drawTile()).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
 </script>
+
+</body>
+</html>
