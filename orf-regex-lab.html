@@ -1,5 +1,5 @@
 <title>Regex ORF Lab</title>
-<meta name="description" content="Bio116 workshop: build Python regular expressions that find bacterial open reading frames, then translate them.">
+<meta name="description" content="Bio116 workshop: build Python regular expressions that find bacterial open reading frames in the E. coli lac operon, translate them, and check them against GenBank.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,750&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
@@ -245,8 +245,36 @@ textarea.dna {
   width: 100%; min-height: 64px; resize: vertical; font: 400 0.85rem/1.5 var(--mono);
   color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px;
 }
+.btn { text-decoration: none; display: inline-block; }
+input.boxin {
+  width: 7.5em; font: 500 0.95rem/1 var(--mono); letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--ink); background: var(--bg); border: 1.5px solid var(--line); border-radius: 8px; padding: 8px 10px;
+}
+input.boxin:focus { border-color: var(--primary); outline: none; }
+pre.genre { white-space: pre-wrap; word-break: break-all; max-height: 120px; overflow-y: auto; font-size: 0.76rem; }
+section.step > h3 { margin-top: 12px; font-size: 1.3rem; }
 footer { margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--line); font-size: 0.85rem; color: var(--muted); display: grid; gap: 6px; }
 @media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+</style>
+
+<style>
+.btn { text-decoration: none; display: inline-block; }
+.tag.gb { background: var(--minus-soft); color: var(--minus); }
+.tag.warn { background: var(--accent-soft); color: var(--accent); }
+input.boxin {
+  width: 7.5em; font: 500 0.95rem/1 var(--mono); letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--ink); background: var(--bg); border: 1.5px solid var(--line); border-radius: 8px; padding: 8px 10px;
+}
+input.boxin:focus { border-color: var(--primary); outline: none; }
+pre.genre { white-space: pre-wrap; word-break: break-all; max-height: 120px; overflow-y: auto; font-size: 0.76rem; }
+section.step > h3 { margin-top: 12px; font-size: 1.3rem; }
+.record { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: baseline; font-size: 0.92rem; }
+.record b { font-family: var(--mono); font-weight: 500; }
+.genes { display: flex; flex-wrap: wrap; gap: 6px; }
+.gene-chip { font: 500 0.8rem/1 var(--mono); padding: 6px 9px; border-radius: 6px; background: var(--minus-soft); color: var(--ink); }
+.gene-chip i { font-style: italic; font-family: var(--body); font-weight: 600; margin-right: 6px; }
+.check { display: inline-flex; gap: 6px; align-items: center; }
+.check input { accent-color: var(--primary); width: 16px; height: 16px; }
 </style>
 
 <div class="bar">
@@ -258,14 +286,15 @@ footer { margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--line);
       <a href="#s4" data-step="4"><span class="n">4</span>No early stops</a>
       <a href="#s5" data-step="5"><span class="n">5</span>Overlaps &amp; strands</a>
       <a href="#s6" data-step="6"><span class="n">6</span>Translate</a>
-      <a href="#s7" data-step="7"><span class="n">7</span>Script</a>
+      <a href="#s7" data-step="7"><span class="n">7</span>Upstream</a>
+      <a href="#s8" data-step="8"><span class="n">8</span>Script</a>
     </nav>
     <div class="seqpick">
       <span class="eyebrow">Sequence</span>
       <div class="seg" role="group" aria-label="Choose sequence" id="seqSeg">
-        <button type="button" id="seq-teach" data-seq="teach" aria-pressed="true">Teaching<span class="sz" id="sz-teach"></span></button>
+        <button type="button" id="seq-lac" data-seq="lac" aria-pressed="true"><i>lac</i> operon<span class="sz" id="sz-lac"></span></button>
         <button type="button" id="seq-course" data-seq="course" aria-pressed="false">triplets.txt<span class="sz" id="sz-course"></span></button>
-        <button type="button" id="seq-custom" data-seq="custom" aria-pressed="false">Paste</button>
+        <button type="button" id="seq-custom" data-seq="custom" aria-pressed="false">Your own</button>
       </div>
     </div>
   </div>
@@ -275,21 +304,23 @@ footer { margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--line);
   <header class="hero">
     <div class="eyebrow">Bio116 · Bioinformatics workshop</div>
     <h1>Regex ORF Lab</h1>
-    <p class="lede">A bacterial gene is easy to spot on paper: a start codon, a run of codons, then a stop. In this lab you teach Python to see the same thing, one regular expression at a time, and then translate what it finds into protein.</p>
-    <div class="strand-art" aria-label="Annotated example: ribosome binding site, start codon, codons, stop codon"><span class="aa">5'</span> …AAAA<span class="rbs">AGGAGG</span>TTAACG<span class="st">ATG</span> AAG ATT GCT GTC CTC GGG … GGT GAA <span class="sp">TAA</span>CATAAAC… <span class="aa">3'</span>
-<span class="aa">                            M   K   I   A   V   L   G  …  G   E   *</span>
-<span class="aa">       Shine-Dalgarno ↑     ↑ start                               ↑ stop</span></div>
+    <p class="lede">A bacterial gene is easy to spot on paper: a start codon, a run of codons, then a stop. In this lab you teach Python to see the same thing, one regular expression at a time. You then translate what it finds and check every call against the GenBank annotation of the <i>E. coli</i> lac operon.</p>
+    <div class="strand-art" aria-label="Start and end of lacZ with its ribosome binding site"><span class="aa">5'</span> …TTTCACAC<span class="rbs">AGGA</span>AACAGCT <span class="st">ATG</span> ACC ATG ATT ACG GAT TCA CTG … TGT CAA AAA <span class="sp">TAA</span> … <span class="aa">3'</span>
+<span class="aa">                         M   T   M   I   T   D   S   L  …  C   Q   K   *</span>
+<span class="aa">            ↑ RBS       ↑ start of <i>lacZ</i> (1284)                        ↑ stop (4358)</span></div>
+    <div class="record" id="recordInfo"></div>
+    <div class="genes" id="geneChips"></div>
     <p class="muted">Every box marked <b>Regex bench</b> runs your pattern live on the sequence chosen in the top bar. JavaScript runs the patterns in the browser, but the syntax you need here is the same as Python's <code>re</code> module. Named groups written <code>(?P&lt;name&gt;…)</code> are converted for you.</p>
     <div class="facts">
-      <div class="fact"><b>ATG</b><span>Usual start codon. Bacteria also start at GTG and TTG, which you will add in the extensions.</span></div>
+      <div class="fact"><b>ATG</b><span>The usual start codon. In this record, <i>lacI</i> starts at GTG and <i>lacA</i> at TTG.</span></div>
       <div class="fact"><b>TAA · TAG · TGA</b><span>The three stop codons. The first one in frame ends the ORF.</span></div>
       <div class="fact"><b>6 frames</b><span>Three reading frames on each strand. Bacterial genes sit on both.</span></div>
-      <div class="fact"><b>≥ 100 codons</b><span>A common cutoff for calling an ORF a candidate gene. The short teaching sequence uses 30.</span></div>
+      <div class="fact"><b>≥ 100 codons</b><span>A common cutoff for calling an ORF a candidate gene.</span></div>
     </div>
     <div class="custom-seq" id="customBox" hidden>
-      <label for="customSeq"><b>Paste a DNA sequence.</b> <span class="muted">FASTA headers, spaces, numbers and line breaks are removed. Only A, C, G, T are kept.</span></label>
-      <textarea id="customSeq" class="dna" rows="4" placeholder=">my_contig&#10;ATGAAACGC..."></textarea>
-      <div><button type="button" class="btn" id="useCustom">Use this sequence</button> <span class="muted" id="customInfo"></span></div>
+      <label for="customSeq"><b>Paste a GenBank record, FASTA or plain DNA</b>, or choose a file. <span class="muted">GenBank CDS features become the answer key. For plain DNA only A, C, G, T are kept.</span></label>
+      <textarea id="customSeq" class="dna" rows="4" placeholder="LOCUS ...   or   >my_contig&#10;ATGAAACGC..."></textarea>
+      <div class="controls"><button type="button" class="btn" id="useCustom">Use this sequence</button><input type="file" id="customFile" accept=".gb,.gbk,.genbank,.fa,.fasta,.fna,.txt"><span class="muted" id="customInfo"></span></div>
     </div>
   </header>
 
@@ -303,7 +334,7 @@ footer { margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--line);
     <div class="step-grid">
       <div class="prose">
         <p>The simplest regular expression is a literal string. <code>ATG</code> matches the three letters A, T, G wherever they occur.</p>
-        <p><b>Challenge:</b> write a pattern that finds every start codon on the + strand. The checker turns green when your matches equal the true set.</p>
+        <p><b>Challenge:</b> write a pattern that finds every ATG on the + strand. The checker turns green when your matches equal the true set.</p>
         <pre class="code" data-copy><span class="c"># Python</span>
 import re
 for m in re.finditer(r<span class="s">"ATG"</span>, seq):
@@ -311,14 +342,14 @@ for m in re.finditer(r<span class="s">"ATG"</span>, seq):
         <div class="think">
           <div class="eyebrow">Predict, then check</div>
           <ol>
-            <li>An ATG turns up by chance about once every 64 bases. How many would you expect in the teaching sequence? Compare with the bench.</li>
+            <li>An ATG turns up by chance about once every 64 bases. How many would you expect in 7,477 bases? Compare with the bench.</li>
             <li>What does <code>m.start() % 3</code> tell you, and why will it matter later?</li>
-            <li>Is every ATG the start of a gene? What else has to be true?</li>
+            <li>The record has four genes. Is every ATG the start of one? Does every gene start with ATG?</li>
           </ol>
           <label class="eyebrow" for="note1">Your notes</label>
           <textarea id="note1" data-note="1" placeholder="Write your prediction before you run anything."></textarea>
           <details><summary>Discussion</summary><div>
-            <p>The teaching sequence is 469 nt, so chance alone predicts about 7 ATGs per strand. It has 3 on the + strand and 6 on the − strand (switch the bench to ±), because its spacer DNA was designed with few ATGs. The value of <code>m.start() % 3</code> is the reading frame (0, 1 or 2). A start and a stop only belong to the same ORF when they share a frame. Most ATGs are not gene starts: they sit inside other genes, in the wrong frame, or are followed by a stop a few codons later.</p>
+            <p>Chance predicts about 117 ATGs per strand. The lac record has 135 on the + strand and 113 on the −. Only two of them, the starts of <i>lacZ</i> and <i>lacY</i>, begin a gene. The rest sit inside genes, in the wrong frame, or before a nearby stop. <i>lacI</i> starts at GTG and <i>lacA</i> at TTG, so no ATG search can ever find their real starts. The value of <code>m.start() % 3</code> is the reading frame. A start and a stop only belong to the same ORF when they share a frame.</p>
           </div></details>
         </div>
       </div>
@@ -337,20 +368,20 @@ for m in re.finditer(r<span class="s">"ATG"</span>, seq):
       <div class="prose">
         <p>The pipe <code>|</code> means "or". Parentheses group alternatives, but in Python they also <em>capture</em>, which changes what <code>re.findall</code> returns.</p>
         <p><b>Challenge:</b> match TAA, TAG and TGA with a single pattern.</p>
-        <pre class="code" data-copy>re.findall(r<span class="s">"TAA|TAG|TGA"</span>, seq)      <span class="c"># ['TAA', 'TGA', ...]</span>
-re.findall(r<span class="s">"T(AA|AG|GA)"</span>, seq)     <span class="c"># ['AA', 'GA', ...]  surprise!</span>
-re.findall(r<span class="s">"T(?:AA|AG|GA)"</span>, seq)   <span class="c"># ['TAA', 'TGA', ...]</span></pre>
+        <pre class="code" data-copy>re.findall(r<span class="s">"TAA|TAG|TGA"</span>, seq)      <span class="c"># ['TGA', 'TAA', ...]</span>
+re.findall(r<span class="s">"T(AA|AG|GA)"</span>, seq)     <span class="c"># ['GA', 'AA', ...]  surprise!</span>
+re.findall(r<span class="s">"T(?:AA|AG|GA)"</span>, seq)   <span class="c"># ['TGA', 'TAA', ...]</span></pre>
         <div class="think">
           <div class="eyebrow">Predict, then check</div>
           <ol>
             <li>Why does the second line return only two letters per hit? What does <code>(?:…)</code> change?</li>
             <li>Can two stop codons overlap each other, like TAAG? Try it on paper.</li>
-            <li>The bench shows many stops. Why doesn't each one end a gene?</li>
+            <li>There are about 250 stops on the + strand, yet <i>lacZ</i> runs for over 3,000 bases. How?</li>
           </ol>
           <label class="eyebrow" for="note2">Your notes</label>
           <textarea id="note2" data-note="2"></textarea>
           <details><summary>Discussion</summary><div>
-            <p>When a pattern has a capturing group, <code>findall</code> returns the group, not the whole match. <code>(?:…)</code> groups without capturing. Stops cannot overlap: every stop starts with T, and no stop ends in T. A stop only ends an ORF when it is in the same frame as the start. The other two frames are full of stops that the ribosome never reads.</p>
+            <p>When a pattern has a capturing group, <code>findall</code> returns the group, not the whole match. <code>(?:…)</code> groups without capturing. Stops cannot overlap: every stop starts with T, and no stop ends in T. A stop only ends an ORF when it is in the same frame as the start. The stops scattered through <i>lacZ</i> are all in the other two frames, which the ribosome never reads.</p>
           </div></details>
         </div>
       </div>
@@ -367,7 +398,7 @@ re.findall(r<span class="s">"T(?:AA|AG|GA)"</span>, seq)   <span class="c"># ['T
     </div>
     <div class="step-grid">
       <div class="prose">
-        <p>Now join the pieces: a start, some codons, a stop. Use the preset buttons to try the three attempts in order and watch the <b>ORF check</b> column. It tests each match for length divisible by 3, ATG at the front, a stop at the end, and no stop in between.</p>
+        <p>Now join the pieces: a start, some codons, a stop. Use the preset buttons to try the three attempts in order and watch the <b>ORF check</b> column. It tests each match for length divisible by 3, ATG at the front, a stop at the end, and no stop in between. The <b>GenBank</b> column says whether a match is an annotated gene.</p>
         <ul>
           <li><code>.*</code> is <em>greedy</em>: it grabs as much as it can.</li>
           <li><code>.*?</code> is <em>lazy</em>: it stops at the first chance.</li>
@@ -404,22 +435,22 @@ for m in orf_re.finditer(seq):
     </div>
     <div class="step-grid">
       <div class="prose">
-        <p>Random DNA is full of short ORFs, so gene finders set a minimum length. Adding a count looks easy: change <code>*?</code> to <code>{30,}?</code>. Load <b>The obvious fix</b> and look for a red row.</p>
+        <p>Random DNA is full of short ORFs, so gene finders set a minimum length. Adding a count looks easy: change <code>*?</code> to <code>{100,}?</code>. Load <b>The obvious fix</b> and look for red rows.</p>
         <p>A safer building block is a codon that is <em>not</em> a stop. The negative lookahead <code>(?!TAA|TAG|TGA)</code> checks the next three bases without consuming them.</p>
-        <p><b>Challenge:</b> find ORFs with at least 30 codons between the ATG and the stop, with no internal stops.</p>
+        <p><b>Challenge:</b> find ORFs with at least 100 codons between the ATG and the stop, with no internal stops.</p>
         <pre class="code" data-copy>CODON = r<span class="s">"(?:(?!TAA|TAG|TGA)[ACGT]{3})"</span>   <span class="c"># any codon except a stop</span>
-orf_re = re.compile(r<span class="s">"ATG"</span> + CODON + r<span class="s">"{30,}(?:TAA|TAG|TGA)"</span>)</pre>
+orf_re = re.compile(r<span class="s">"ATG"</span> + CODON + r<span class="s">"{100,}(?:TAA|TAG|TGA)"</span>)</pre>
         <div class="think">
           <div class="eyebrow">Predict, then check</div>
           <ol>
-            <li>Why does <code>ATG(?:[ACGT]{3}){30,}?(?:TAA|TAG|TGA)</code> run straight through a stop codon?</li>
+            <li>Why does <code>ATG(?:[ACGT]{3}){100,}?(?:TAA|TAG|TGA)</code> run straight through stop codons?</li>
             <li>Once stops are forbidden inside, does it matter whether the quantifier is greedy or lazy?</li>
-            <li>Would you rather filter length with the regex or with <code>len(orf) // 3</code> in Python? Why?</li>
+            <li>Look at the GenBank column. Which lac genes did you find, and are their coordinates right?</li>
           </ol>
           <label class="eyebrow" for="note4">Your notes</label>
           <textarea id="note4" data-note="4"></textarea>
           <details><summary>Discussion</summary><div>
-            <p><code>{30,}?</code> is lazy only <em>after</em> the first 30 codons. Those 30 can be anything, stops included. With stops forbidden inside, only one stop can end the match, so greedy and lazy give the same answer. Filtering in Python is easier to read and lets you change the cutoff without touching the pattern. Both approaches are fine.</p>
+            <p><code>{100,}?</code> is lazy only <em>after</em> the first 100 codons. Those 100 can be anything, stops included. With stops forbidden inside, only one stop can end the match, so greedy and lazy give the same answer. On the + strand this pattern finds <i>lacZ</i> and <i>lacY</i> exactly, finds <i>lacA</i> with a start 6 bases too late (its real TTG start is invisible to an ATG pattern), and misses <i>lacI</i> entirely. Step 5 explains why.</p>
           </div></details>
         </div>
       </div>
@@ -437,26 +468,26 @@ orf_re = re.compile(r<span class="s">"ATG"</span> + CODON + r<span class="s">"{3
     <div class="step-grid">
       <div class="prose">
         <p><code>re.finditer</code> never returns overlapping matches. After a match it continues from the end, so an ORF that begins inside another one is skipped. Wrapping the pattern in a lookahead <code>(?=( … ))</code> makes every match zero-width, and the ORF is captured in group 1.</p>
-        <p>Genes on the other strand read in the opposite direction on the complementary bases. Set the bench to <b>±</b> to search the reverse complement too. Coordinates in the table are always on the + strand.</p>
-        <p><b>Challenge:</b> on both strands, find every ORF of any length, including ones that overlap or nest inside another. The starter is the step 3 pattern, which misses some.</p>
+        <p>Genes on the other strand read in the opposite direction on the complementary bases. Set the bench to <b>±</b> to search the reverse complement too. Coordinates in the table are always on the + strand, like GenBank's.</p>
+        <p><b>Challenge:</b> on both strands, find every ORF of at least 100 codons, including ones that overlap or nest inside another.</p>
         <pre class="code" data-copy>def reverse_complement(seq):
     return seq.translate(str.maketrans(<span class="s">"ACGT"</span>, <span class="s">"TGCA"</span>))[::-1]
 
-orf_re = re.compile(r<span class="s">"(?=(ATG(?:(?!TAA|TAG|TGA)[ACGT]{3})*(?:TAA|TAG|TGA)))"</span>)
+orf_re = re.compile(r<span class="s">"(?=(ATG(?:(?!TAA|TAG|TGA)[ACGT]{3}){100,}(?:TAA|TAG|TGA)))"</span>)
 for strand, s in ((<span class="s">"+"</span>, seq), (<span class="s">"-"</span>, reverse_complement(seq))):
     for m in orf_re.finditer(s):
         orf = m.group(1)   <span class="c"># m.group(0) is empty</span></pre>
         <div class="think">
           <div class="eyebrow">Predict, then check</div>
           <ol>
-            <li>Run the step 3 pattern on the − strand of the teaching sequence. Which ORF does the lookahead version find that it missed?</li>
-            <li>Several matches end at the same stop codon. How are they related, and which one would you report as the gene?</li>
-            <li>An ORF sits at position 32 on the − strand of a 469 nt sequence. Where is it on the + strand?</li>
+            <li>The step 4 pattern missed <i>lacI</i>. Which ORF was in the way, and why does the lookahead fix it?</li>
+            <li>Several matches end at the same stop codon. How are they related, and which one would you report?</li>
+            <li>All four lac genes are on the + strand. What are the long ORFs on the − strand?</li>
           </ol>
           <label class="eyebrow" for="note5">Your notes</label>
           <textarea id="note5" data-note="5"></textarea>
           <details><summary>Discussion</summary><div>
-            <p>ORFs that share a stop are nested: each inner ATG gives a shorter version of the same reading frame. Gene finders usually keep the longest (most upstream start), then check for a Shine-Dalgarno sequence to choose the real start. For a match at <code>start</code>–<code>end</code> on the reverse complement of a sequence of length L, the + strand coordinates are <code>L - end</code> to <code>L - start</code>.</p>
+            <p>An ORF at 12–329 overlaps the start of the <i>lacI</i> ORF (ATG at 202). <code>finditer</code> resumes at 330, past that ATG, so <i>lacI</i> disappears. ORFs that share a stop are nested: each inner ATG gives a shorter version of the same frame. Gene finders usually keep the longest, then check for an RBS (step 7). The − strand ORFs are antisense to real genes. A long gene often hides long ORFs on its opposite strand, and they are not genes.</p>
           </div></details>
         </div>
       </div>
@@ -473,7 +504,7 @@ for strand, s in ((<span class="s">"+"</span>, seq), (<span class="s">"-"</span>
     </div>
     <div class="step-grid">
       <div class="prose">
-        <p>Translation is a lookup: split the ORF into codons, look each one up in the genetic code, join the letters. A regex can do the splitting too.</p>
+        <p>Translation is a lookup: split the ORF into codons, look each one up in the genetic code, join the letters. A regex can do the splitting too. Bacteria use translation table 11, which has the same codon meanings as the standard code.</p>
         <pre class="code" data-copy>BASES = <span class="s">"TCAG"</span>
 AMINO = <span class="s">"FFLLSSSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG"</span>
 CODON_TABLE = {a + b + c: AMINO[16*i + 4*j + k]
@@ -482,42 +513,43 @@ CODON_TABLE = {a + b + c: AMINO[16*i + 4*j + k]
                for k, c in enumerate(BASES)}
 
 codons = re.findall(r<span class="s">"[ACGT]{3}"</span>, orf)
-protein = <span class="s">""</span>.join(CODON_TABLE[c] for c in codons)</pre>
+protein = <span class="s">"M"</span> + <span class="s">""</span>.join(CODON_TABLE[c] for c in codons[1:])</pre>
         <div class="think">
           <div class="eyebrow">Predict, then check</div>
           <ol>
             <li>Check the table: why does <code>AMINO[16*i + 4*j + k]</code> give the right amino acid? Look up TGG by hand.</li>
+            <li>Tick <b>Allow GTG and TTG starts</b>. What happens to <i>lacI</i> and <i>lacA</i>? Why is the first residue still M?</li>
+            <li>With alternative starts, the longest ORF for <i>lacI</i> begins 9 bases before the annotated start. How could you tell which start is real?</li>
             <li>Every protein here ends in <code>*</code>. Should you keep it?</li>
-            <li>Bacteria sometimes start at GTG. GTG normally codes for valine. What should the first residue be?</li>
-            <li>What happens to <code>CODON_TABLE[c]</code> if the sequence contains an N?</li>
           </ol>
           <label class="eyebrow" for="note6">Your notes</label>
           <textarea id="note6" data-note="6"></textarea>
           <details><summary>Discussion</summary><div>
-            <p>The string lists codons in TCAG order, with the first base changing slowest, so the index is a base-4 number. <code>*</code> marks the stop and is not a residue, so strip it before comparing with protein databases. A start codon is always read by the initiator tRNA, so GTG and TTG starts become fMet (M). An N raises <code>KeyError</code>. Use <code>CODON_TABLE.get(c, "X")</code> instead.</p>
+            <p>The string lists codons in TCAG order, with the first base changing slowest, so the index is a base-4 number. A start codon is always read by the initiator tRNA, so GTG and TTG starts become fMet (M), which is why the code above writes <code>"M"</code> first. Allowing alternative starts recovers <i>lacI</i> and <i>lacA</i>, but "longest ORF" now picks an upstream GTG, 9 bases too early, for both. Sequence alone cannot settle it. The RBS in step 7 helps, and in the lab, protein sequencing does. <code>*</code> marks the stop and is not a residue. Use <b>BLASTp this protein</b> to confirm what you found.</p>
           </div></details>
         </div>
       </div>
       <div class="bench" id="translator">
         <div class="controls">
-          <label for="minCodons">Minimum codons <b class="mono" id="minOut">30</b></label>
-          <input type="range" id="minCodons" min="10" max="300" step="5" value="30">
+          <label for="minCodons">Minimum codons <b class="mono" id="minOut">100</b></label>
+          <input type="range" id="minCodons" min="10" max="400" step="5" value="100">
+          <label class="check" for="altStarts"><input type="checkbox" id="altStarts">Allow GTG and TTG starts</label>
           <span class="muted" id="orfCount"></span>
         </div>
         <p class="muted" style="font-size:.85rem">Longest ORF per stop codon, both strands. Select a row to translate it.</p>
         <div class="tbl"><table class="orf-list">
-          <thead><tr><th>Strand</th><th>Start–end</th><th>aa</th><th>Protein begins</th></tr></thead>
+          <thead><tr><th>Strand</th><th>Start–end</th><th>aa</th><th>GenBank</th><th>Protein begins</th></tr></thead>
           <tbody id="orfRows"></tbody>
         </table></div>
-        <div class="status"><span class="pill" id="selLabel">No ORF selected</span><button type="button" class="btn" id="copyProt">Copy protein</button></div>
+        <div class="status"><span class="pill" id="selLabel">No ORF selected</span><button type="button" class="btn" id="copyProt">Copy protein</button><a class="btn" id="blastLink" href="https://blast.ncbi.nlm.nih.gov/Blast.cgi?PROGRAM=blastp&amp;PAGE_TYPE=BlastSearch" target="_blank" rel="noopener">BLASTp this protein</a></div>
         <div class="codons" id="codonGrid"></div>
         <div class="protein" id="protOut"></div>
       </div>
     </div>
     <div class="bench">
       <h3>Translate anything, three frames</h3>
-      <label class="muted" for="freeDna" style="font-size:.9rem">Paste or type DNA. Each frame is translated from its first full codon.</label>
-      <textarea id="freeDna" class="dna">ATGAAGATTGCTGTCCTCGGGGCCACAGGGGGGATAGGTCAGGCTCTTGCACTCTTACTAAAAACGCAG</textarea>
+      <label class="muted" for="freeDna" style="font-size:.9rem">Paste or type DNA. Each frame is translated from its first full codon. The example is the start of <i>lacZ</i>.</label>
+      <textarea id="freeDna" class="dna">ATGACCATGATTACGGATTCACTGGCCGTCGTTTTACAACGTCGTGACTGGGAAAACCCTGGCGTTACCCAACTTAATCGCC</textarea>
       <div class="frames" id="freeOut"></div>
     </div>
   </section>
@@ -526,107 +558,251 @@ protein = <span class="s">""</span>.join(CODON_TABLE[c] for c in codons)</pre>
   <section class="step" id="s7">
     <div class="step-head">
       <div class="step-num">7</div>
-      <div class="eyebrow">Put it together and push further</div>
-      <h2>Your ORF finder</h2>
+      <div class="eyebrow">Promoters and ribosome binding sites</div>
+      <h2>Look upstream for evidence</h2>
     </div>
+    <p>An ORF is only a candidate. Real bacterial genes usually have a ribosome binding site (RBS) a few bases before the start codon, and a promoter somewhere upstream that RNA polymerase binds. Both are short sequences you can search for with regular expressions. This step asks how much each search tells you, using the lac record's annotation as the answer key.</p>
+
+    <h3>A · The Shine-Dalgarno sequence</h3>
     <div class="step-grid">
       <div class="prose">
-        <p>Write a script that reads frame 1 of <code>triplets.txt</code>, finds candidate genes of at least 100 codons on both strands, keeps the longest ORF per stop codon, and prints each with its translation. Try it yourself first. The reference answer is in the drawer below.</p>
-        <h3>Extensions</h3>
-        <ul>
-          <li><b>Alternative starts.</b> Change the start to <code>(?:ATG|GTG|TTG)</code>. How many more ORFs appear?</li>
-          <li><b>Ribosome binding site.</b> Use the bench to find a Shine-Dalgarno motif (AGGAGG) 4 to 12 bases upstream of an ATG. The checker is looking for both genes in the teaching sequence.</li>
-          <li><b>GC content.</b> <code>triplets.txt</code> is about 66% GC. Stop codons are AT-rich. Predict whether long ORFs appear by chance more or less often in GC-rich DNA, then compare the ORF counts of the two sequences in step 6.</li>
-          <li><b>Named groups.</b> Rewrite the ORF pattern with <code>(?P&lt;start&gt;…)</code>, <code>(?P&lt;body&gt;…)</code> and <code>(?P&lt;stop&gt;…)</code> and print each part.</li>
-        </ul>
+        <p>The 3' end of 16S rRNA pairs with a purine-rich motif, consensus <code>AGGAGG</code>, about 5 to 10 bases before the start codon. The spacing matters as much as the motif, so the pattern has to include the gap and the start codon.</p>
+        <p><b>Challenge:</b> write a pattern that ends exactly at the annotated start codon of every lac gene that has a recognisable RBS. Start with the textbook consensus and see how far it gets you.</p>
+        <pre class="code" data-copy>RBS_RE = re.compile(r<span class="s">"(?:GGAG|GAGG|AGGA)[ACGT]{4,12}(?:ATG|GTG|TTG)$"</span>)
+
+def has_rbs(s, start):   <span class="c"># s = the strand the ORF is on</span>
+    <span class="c"># the $ forces the match to end exactly at this ORF's start codon</span>
+    return bool(RBS_RE.search(s[max(0, start - 30): start + 3]))</pre>
         <div class="think">
-          <div class="eyebrow">Reflect</div>
+          <div class="eyebrow">Predict, then check</div>
           <ol>
-            <li>Which ORFs in the teaching sequence would you call genes, and what evidence would you want next?</li>
-            <li>What can an ORF finder never tell you on its own?</li>
+            <li>How many lac genes does <code>AGGAGG[ACGT]{4,12}ATG</code> find? What do their real RBSs look like?</li>
+            <li>Why must the pattern end at the start codon instead of looking for the motif anywhere?</li>
+            <li>In the picker below, what fraction of <em>random</em> start codons have an "RBS" by chance? Is an RBS proof of a gene?</li>
           </ol>
           <label class="eyebrow" for="note7">Your notes</label>
           <textarea id="note7" data-note="7"></textarea>
+          <details><summary>Discussion</summary><div>
+            <p>None of the lac genes has the full <code>AGGAGG</code>. <i>lacZ</i> and <i>lacY</i> have <code>AGGA</code> and <i>lacA</i> has <code>GGAG</code>, each 7 or 8 bases before the start. <i>lacI</i> has no recognisable RBS; it is translated poorly, which suits a repressor needed in only a few copies. A motif only works at the right distance from the start, so the regex anchors on the start codon. A loose core turns up before a few percent of random start codons, so an RBS raises confidence but proves nothing.</p>
+          </div></details>
         </div>
       </div>
       <div class="bench" data-bench="7"></div>
     </div>
+
+    <div class="bench" id="rbsPicker">
+      <div class="bench-top">
+        <label class="lbl" for="rbsPat">RBS start picker</label>
+        <span class="muted" style="font-size:.85rem">Your pattern must end in the start codon. It is tested on the 30 bases before each candidate start.</span>
+      </div>
+      <div class="pat"><span>r"</span><input id="rbsPat" spellcheck="false" autocomplete="off" autocapitalize="off" aria-label="RBS regular expression"><span style="padding-right:10px">$"</span></div>
+      <div class="presets" id="rbsPresets"></div>
+      <div class="controls">
+        <label for="rbsMin">Minimum codons <b class="mono" id="rbsMinOut">100</b></label>
+        <input type="range" id="rbsMin" min="10" max="400" step="5" value="100">
+        <label class="check" for="rbsAlt"><input type="checkbox" id="rbsAlt" checked>Allow GTG and TTG starts</label>
+      </div>
+      <div class="status" id="rbsStatus"></div>
+      <div class="tbl"><table>
+        <thead><tr><th>Strand</th><th>Stop at</th><th>Candidate starts</th><th>Chosen start</th><th>aa</th><th>RBS match</th><th>GenBank</th></tr></thead>
+        <tbody id="rbsRows"></tbody>
+      </table></div>
+      <p class="muted" style="font-size:.82rem">Rule: choose the most upstream start codon with an RBS match. If none has one, choose the most upstream start. The chance rate is measured on 100,000 bases of random DNA with 50% GC.</p>
+    </div>
+
+    <h3>B · The σ70 promoter</h3>
+    <div class="step-grid">
+      <div class="prose">
+        <p>Most <i>E. coli</i> housekeeping promoters have two boxes: <code>TTGACA</code> around −35 and <code>TATAAT</code> around −10, separated by 15 to 19 bases. As a regex:</p>
+        <pre class="code" data-copy>r<span class="s">"TTGACA[ACGT]{15,19}TATAAT"</span></pre>
+        <p>The lac promoter in this record has <code>TTTACA</code> at 1210 and <code>TATGTT</code> at 1234. The record also notes the UV5 mutant, where bases 1237–1238 change GT to AA and turn the −10 box into <code>TATAAT</code>. Use the slider to allow mismatches and watch two numbers: whether you catch the lac promoter, and how many chance hits appear.</p>
+        <pre class="code" data-copy>from itertools import combinations
+
+def fuzzy(box, k):
+    <span class="c">"""Regex for box with up to k mismatches: every way to put k wildcards in it."""</span>
+    options = [<span class="s">""</span>.join(<span class="s">"[ACGT]"</span> if i in pos else b for i, b in enumerate(box))
+               for pos in combinations(range(len(box)), k)]
+    return <span class="s">"(?:"</span> + <span class="s">"|"</span>.join(options) + <span class="s">")"</span>
+
+promoter_re = re.compile(<span class="s">"(?=("</span> + fuzzy(<span class="s">"TTGACA"</span>, 2) + <span class="s">"[ACGT]{15,19}"</span> + fuzzy(<span class="s">"TATAAT"</span>, 2) + <span class="s">"))"</span>)</pre>
+        <div class="think">
+          <div class="eyebrow">Predict, then check</div>
+          <ol>
+            <li>How many mismatches per box do you need to catch the wild-type lac promoter? And the UV5 mutant?</li>
+            <li>At that setting, how many other hits are there in the 7.5 kb record? In random DNA per 10 kb?</li>
+            <li><i>lacY</i> and <i>lacA</i> have no promoter in front of them. How are they transcribed?</li>
+          </ol>
+          <label class="eyebrow" for="note7b">Your notes</label>
+          <textarea id="note7b" data-note="7b"></textarea>
+          <details><summary>Discussion</summary><div>
+            <p>The wild-type lac promoter differs from the consensus by 1 base at −35 and 2 at −10, so it needs 2 mismatches per box. It is deliberately weak and depends on CAP, whose binding site the record annotates at 1162–1199; the repressor binds the operator at 1246–1266. The UV5 mutant needs only 1 mismatch and is strong without CAP. At 2 mismatches the regex returns many other hits, so a regex cannot tell a real promoter from a random one. <i>lacZ</i>, <i>lacY</i> and <i>lacA</i> share one mRNA made from the lac promoter: that is what an operon is. Real tools score promoters with weight matrices and combine the score with other evidence.</p>
+          </div></details>
+        </div>
+      </div>
+      <div class="bench" id="promoter">
+        <div class="controls">
+          <label for="box35">−35 box</label><input id="box35" class="boxin" value="TTGACA" maxlength="8" spellcheck="false" autocomplete="off">
+          <label for="box10">−10 box</label><input id="box10" class="boxin" value="TATAAT" maxlength="8" spellcheck="false" autocomplete="off">
+        </div>
+        <div class="controls">
+          <label for="mmSlider">Mismatches allowed per box <b class="mono" id="mmOut">0</b></label>
+          <input type="range" id="mmSlider" min="0" max="3" step="1" value="0">
+        </div>
+        <div class="status" id="promStatus"></div>
+        <pre class="code genre" id="promRegex"></pre>
+        <div class="tbl"><table>
+          <thead><tr><th>Promoter</th><th>−35</th><th>−10</th><th>Mismatches</th><th>Caught?</th></tr></thead>
+          <tbody id="knownRows"></tbody>
+        </table></div>
+        <div class="tbl"><table>
+          <thead><tr><th>Mismatches per box</th><th>Regex length</th><th>Hits per 10 kb, random</th><th>Hits in this sequence</th></tr></thead>
+          <tbody id="mmRows"></tbody>
+        </table></div>
+        <p class="muted" style="font-size:.82rem">Spacer 15 to 19 bases. Hits are counted on both strands.</p>
+      </div>
+    </div>
+
+    <h3>C · Weighing the evidence</h3>
+    <div class="facts">
+      <div class="fact"><b>Length</b><span>Long ORFs rarely occur by chance. But antisense ORFs inside real genes can be long too.</span></div>
+      <div class="fact"><b>RBS</b><span>Supports a start codon and helps pick among nested starts. Occurs by chance at a low rate, and some real genes lack one.</span></div>
+      <div class="fact"><b>Promoter</b><span>Weak evidence alone. Fuzzy matches are everywhere, and genes inside an operon have none.</span></div>
+      <div class="fact"><b>Similarity</b><span>A BLASTp hit to a known protein is the strongest single check. Use the BLAST link in step 6.</span></div>
+    </div>
+  </section>
+
+  <!-- STEP 8 -->
+  <section class="step" id="s8">
+    <div class="step-head">
+      <div class="step-num">8</div>
+      <div class="eyebrow">Put it together and push further</div>
+      <h2>Your ORF finder</h2>
+    </div>
+    <div class="prose">
+      <p>Write a script that reads the GenBank file <code>data/J01636_lac_operon.gb</code>, finds candidate genes of at least 100 codons on both strands, picks a start for each using the RBS, translates it, and compares every call with the annotated CDS features. Try it yourself first. The reference answer is in the drawer below.</p>
+      <h3>Extensions</h3>
+      <ul>
+        <li><b>Score your finder.</b> Count true positives, false positives and missed genes against the annotation. Change <code>MIN_CODONS</code> and <code>STARTS</code> and see how the counts move.</li>
+        <li><b>Another genome.</b> Download a GenBank record for another bacterial region from NCBI and load it with <b>Your own</b> in the top bar.</li>
+        <li><b>GC content.</b> <code>triplets.txt</code> is about 66% GC and the lac record 53%. Stop codons are AT-rich. Predict which has more long ORFs by chance, then compare them in step 6.</li>
+        <li><b>Named groups.</b> Rewrite the ORF pattern with <code>(?P&lt;start&gt;…)</code>, <code>(?P&lt;body&gt;…)</code> and <code>(?P&lt;stop&gt;…)</code> and print each part.</li>
+      </ul>
+      <div class="think">
+        <div class="eyebrow">Reflect</div>
+        <ol>
+          <li>Your finder and GenBank disagree about <i>lacI</i>. List the evidence each side has.</li>
+          <li>What can an ORF finder never tell you on its own?</li>
+        </ol>
+        <label class="eyebrow" for="note8">Your notes</label>
+        <textarea id="note8" data-note="8"></textarea>
+      </div>
+    </div>
     <details>
       <summary>Reference script (open after you have tried)</summary>
       <div>
-        <pre class="code" data-copy id="fullScript"><span class="c">"""Find candidate bacterial genes (ORFs) with regular expressions and translate them."""</span>
+        <pre class="code" data-copy id="fullScript">"""Find candidate bacterial genes (ORFs) with regular expressions, translate them,
+and compare each call with the CDS features of a GenBank record."""
 import re
 
+GENBANK_FILE = "data/J01636_lac_operon.gb"
 MIN_CODONS = 100
-BASES = <span class="s">"TCAG"</span>
-AMINO = <span class="s">"FFLLSSSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG"</span>
+STARTS = "ATG|GTG|TTG"   # try "ATG" to see which lac genes you lose
+
+BASES = "TCAG"
+AMINO = "FFLLSSSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG"
 CODON_TABLE = {a + b + c: AMINO[16*i + 4*j + k]
                for i, a in enumerate(BASES)
                for j, b in enumerate(BASES)
                for k, c in enumerate(BASES)}
 
-<span class="c"># start, then MIN_CODONS or more non-stop codons, then a stop; the lookahead allows overlaps</span>
-ORF_RE = re.compile(r<span class="s">"(?=(ATG(?:(?!TAA|TAG|TGA)[ACGT]{3}){%d,}(?:TAA|TAG|TGA)))"</span> % MIN_CODONS)
+# start, then MIN_CODONS or more non-stop codons, then a stop; the lookahead allows overlaps
+ORF_RE = re.compile(r"(?=((?:%s)(?:(?!TAA|TAG|TGA)[ACGT]{3}){%d,}(?:TAA|TAG|TGA)))" % (STARTS, MIN_CODONS))
+# Shine-Dalgarno core, a 4-12 base spacer, then the start codon at the very end
+RBS_RE = re.compile(r"(?:GGAG|GAGG|AGGA)[ACGT]{4,12}(?:%s)$" % STARTS)
+CDS_RE = re.compile(r"^ {5}CDS +(complement\()?&lt;?(\d+)\.\.&gt;?(\d+)\)?(.*?)(?=^ {5}\S|^ORIGIN)", re.M | re.S)
 
 
-def read_frame1(path):
-    <span class="c">"""Join the codons listed under 'start 1' in triplets.txt."""</span>
-    parts, in_block = [], False
+def read_genbank(path):
+    """Return the sequence and a dict of CDS features {(strand, start, end): gene}."""
     with open(path) as fh:
-        for line in fh:
-            if line.startswith(<span class="s">"start"</span>):
-                if in_block:
-                    break
-                in_block = True
-                continue
-            parts.append(re.sub(r<span class="s">"[^ACGT]"</span>, <span class="s">""</span>, line.upper()))
-    return <span class="s">""</span>.join(parts)
+        text = fh.read()
+    origin = text.split("\nORIGIN", 1)[1].split("\n", 1)[1]   # skip the ORIGIN line itself
+    seq = re.sub(r"[^ACGT]", "", origin.split("//")[0].upper())
+    cds = {}
+    for m in CDS_RE.finditer(text):
+        gene = re.search(r'/gene="([^"]+)"', m.group(4))
+        strand = "-" if m.group(1) else "+"
+        cds[(strand, int(m.group(2)), int(m.group(3)))] = gene.group(1) if gene else "CDS"
+    return seq, cds
 
 
 def reverse_complement(seq):
-    return seq.translate(str.maketrans(<span class="s">"ACGT"</span>, <span class="s">"TGCA"</span>))[::-1]
+    return seq.translate(str.maketrans("ACGT", "TGCA"))[::-1]
 
 
 def translate(orf):
-    return <span class="s">""</span>.join(CODON_TABLE.get(c, <span class="s">"X"</span>) for c in re.findall(r<span class="s">"[ACGT]{3}"</span>, orf))
+    codons = re.findall(r"[ACGT]{3}", orf)
+    return "M" + "".join(CODON_TABLE.get(c, "X") for c in codons[1:])   # any start codon reads as fMet
+
+
+def has_rbs(s, start):
+    return bool(RBS_RE.search(s[max(0, start - 30): start + 3]))
 
 
 def find_orfs(seq):
+    """One ORF per stop codon: the most upstream start with an RBS, else the most upstream start."""
     length = len(seq)
-    best = {}
-    for strand, s in ((<span class="s">"+"</span>, seq), (<span class="s">"-"</span>, reverse_complement(seq))):
-        for m in ORF_RE.finditer(s):
-            orf = m.group(1)
-            start, end = m.start(1), m.start(1) + len(orf)
-            <span class="c"># matches come left to right, so the first ORF seen for a stop is the longest</span>
-            best.setdefault((strand, end), (strand, start, end, orf))
     orfs = []
-    for strand, start, end, orf in best.values():
-        if strand == <span class="s">"-"</span>:
-            start, end = length - end, length - start
-        orfs.append((start + 1, end, strand, orf))   <span class="c"># 1-based, + strand coordinates</span>
+    for strand, s in (("+", seq), ("-", reverse_complement(seq))):
+        starts_by_stop = {}
+        for m in ORF_RE.finditer(s):
+            starts_by_stop.setdefault(m.start(1) + len(m.group(1)), []).append(m.start(1))
+        for end, starts in starts_by_stop.items():
+            with_rbs = [p for p in starts if has_rbs(s, p)]
+            start = with_rbs[0] if with_rbs else starts[0]
+            orf = s[start:end]
+            if strand == "+":
+                a, b = start + 1, end                    # 1-based, like GenBank
+            else:
+                a, b = length - end + 1, length - start
+            orfs.append((a, b, strand, orf, bool(with_rbs)))
     return sorted(orfs)
 
 
-if __name__ == <span class="s">"__main__"</span>:
-    seq = read_frame1(<span class="s">"triplets.txt"</span>)
-    for start, end, strand, orf in find_orfs(seq):
-        protein = translate(orf).rstrip(<span class="s">"*"</span>)
-        print(f<span class="s">"{start}-{end} ({strand})  {len(protein)} aa  {protein}"</span>)</pre>
+def compare(orf_call, cds):
+    a, b, strand = orf_call[:3]
+    if (strand, a, b) in cds:
+        return "= " + cds[(strand, a, b)]
+    for (cs, ca, cb), gene in cds.items():
+        same_stop = cb == b if strand == "+" else ca == a
+        if cs == strand and same_stop:
+            return "~ %s (annotated %d..%d)" % (gene, ca, cb)
+    return "not annotated"
+
+
+if __name__ == "__main__":
+    seq, cds = read_genbank(GENBANK_FILE)
+    print("%d bp, %d annotated CDS" % (len(seq), len(cds)))
+    for orf_call in find_orfs(seq):
+        a, b, strand, orf, rbs = orf_call
+        protein = translate(orf).rstrip("*")
+        print("%5d..%-5d %s  %4d aa  RBS:%-3s  %-32s %s..." % (
+            a, b, strand, len(protein), "yes" if rbs else "no", compare(orf_call, cds), protein[:20]))
+</pre>
       </div>
     </details>
   </section>
 
   <footer>
     <div>Bio116 Bioinformatics · Regex ORF Lab (draft)</div>
-    <div>The teaching sequence is synthetic: two designed genes with Shine-Dalgarno sites (one per strand) in AT-rich spacer. <code>triplets.txt</code> is the course file, frame 1. To test patterns with full Python syntax, use <a href="https://regex101.com/?flavor=python" target="_blank" rel="noopener">regex101 (Python flavor)</a>.</div>
+    <div>Sequence and annotation: GenBank <a href="https://www.ncbi.nlm.nih.gov/nuccore/J01636.1" target="_blank" rel="noopener">J01636.1</a>, <i>E. coli</i> lactose operon (7,477 bp), also in the course repository as <code>data/J01636_lac_operon.gb</code>. <code>triplets.txt</code> is the course file, frame 1. To test patterns with full Python syntax, use <a href="https://regex101.com/?flavor=python" target="_blank" rel="noopener">regex101 (Python flavor)</a>.</div>
   </footer>
 </main>
 
 <script>
 (() => {
   "use strict";
-  const TEACH = "TCTTATCTCGGAGTGACAAAAGGAGGTTAACGATGAAGATTGCTGTCCTCGGGGCCACAGGGGGGATAGGTCAGGCTCTTGCACTCTTACTAAAAACGCAGTTGCCATCCGGGAGTGAACTATCGCTATATGACATAGCACCAGTGACTCCGGGTGTGGCCGTAGATTTAAGCCACATCCCAACCGCAGTGAAGATTAAGGGTTTCTCGGGTGAATAACATAAACAAAACGCCAACCTCTTACGATGCTTTGGATTAGTACTAAGGAGACAGCTTTATTTAAACTTAGGTAGTGCAAATAAATTTTAAAGTAAGCTTCCCATAGGTTGCGTCTCCCTCTCCTTCTCCTGATACGGAAAATTTGTGTCCGTTCACGTCCCCGTCCAACTCGACTAGTATAGGCACTACGCCAGTGAATAACTCCTCGCCTTTTGACATAGTAAACCTCCTAAATAGTACAAAATTTTAAC";
+  const LAC_GB = "LOCUS       ECOLAC                  7477 bp    DNA     linear   BCT 15-NOV-2023\nDEFINITION  E.coli lactose operon with lacI, lacZ, lacY and lacA genes.\nACCESSION   J01636 J01637 K01483 K01793\nVERSION     J01636.1\nKEYWORDS    acetyltransferase; beta-D-galactosidase; galactosidase; lac operon;\n            lac repressor protein; lacA gene; lacI gene; lacY gene; lacZ gene;\n            lactose permease; mutagenesis; palindrome; promoter region;\n            thiogalactoside acetyltransferase.\nSOURCE      Escherichia coli\n  ORGANISM  Escherichia coli\n            Bacteria; Pseudomonadati; Pseudomonadota; Gammaproteobacteria;\n            Enterobacterales; Enterobacteriaceae; Escherichia.\nREFERENCE   1  (bases 1243 to 1266)\n  AUTHORS   Gilbert,W. and Maxam,A.\n  TITLE     The nucleotide sequence of the lac operator\n  JOURNAL   Proc. Natl. Acad. Sci. U.S.A. 70 (12), 3581-3584 (1973)\n   PUBMED   4587255\nREFERENCE   2  (bases 1246 to 1308)\n  AUTHORS   Maizels,N.M.\n  TITLE     The nucleotide sequence of the lactose messenger ribonucleic acid\n            transcribed from the UV5 promoter mutant of Escherichia coli\n  JOURNAL   Proc. Natl. Acad. Sci. U.S.A. 70 (12), 3585-3589 (1973)\n   PUBMED   4587256\nREFERENCE   3  (sites)\n  AUTHORS   Gilbert,W., Maizels,N. and Maxam,A.\n  TITLE     Sequences of controlling regions of the lactose operon\n  JOURNAL   Cold Spring Harb. Symp. Quant. Biol. 38, 845-855 (1974)\n   PUBMED   4598642\nREFERENCE   4  (sites)\n  AUTHORS   Gilbert,W., Gralla,J., Majors,A.J. and Maxam,A.\n  TITLE     Lactose operator sequences and the action of lac repressor\n  JOURNAL   (in) Sund,H. and Blauer,G. (Eds.);\n            PROTEIN-LIGAND INTERACTIONS: 193-207;\n            Walter de Gruyter, New York (1975)\nREFERENCE   5  (bases 1146 to 1282)\n  AUTHORS   Dickson,R.C., Abelson,J., Barnes,W.M. and Reznikoff,W.S.\n  TITLE     Genetic regulation: the Lac control region\n  JOURNAL   Science 187 (4171), 27-35 (1975)\n   PUBMED   1088926\nREFERENCE   6  (bases 1227 to 1271)\n  AUTHORS   Gilbert,W., Maxam,A. and Mirzabekov,A.\n  TITLE     Contacts between the lac repressor and DNA revealed by methylation\n  JOURNAL   (in) Kjeldgaard,N.C. and Maaloe,O. (Eds.);\n            CONTROL OF RIBOSOME SYNTHESIS: 138-143;\n            Academic Press, New York (1976)\nREFERENCE   7  (sites)\n  AUTHORS   Marians,K.J. and Brooker,J.D.\n  TITLE     Structure of the lactose operator\n  JOURNAL   Nature 260 (5549), 360-363 (1976)\n   PUBMED   768781\nREFERENCE   8  (bases 1242 to 1268)\n  AUTHORS   Heyneker,H.L., Shine,J., Goodman,H.M., Boyer,H.W., Rosenberg,J.,\n            Dickerson,R.E., Narang,S.A., Itakura,K., Lin,S. and Riggs,A.D.\n  TITLE     Synthetic lac operator DNA is functional in vivo\n  JOURNAL   Nature 263 (5580), 748-752 (1976)\n   PUBMED   1069185\nREFERENCE   9  (sites)\n  AUTHORS   Dickson,R.C., Abelson,J. and Johnson,P.\n  TITLE     Nucleotide sequence changes produced by mutations in the lac\n            promoter of Escherichia coli\n  JOURNAL   J. Mol. Biol. 111 (1), 65-75 (1977)\n   PUBMED   323498\nREFERENCE   10 (bases 51 to 264)\n  AUTHORS   Steege,D.A.\n  TITLE     5'-Terminal nucleotide sequence of Escherichia coli lactose\n            repressor mRNA: features of translational initiation and\n            reinitiation sites\n  JOURNAL   Proc. Natl. Acad. Sci. U.S.A. 74 (10), 4163-4167 (1977)\n   PUBMED   337294\nREFERENCE   11 (bases 1 to 81)\n  AUTHORS   Calos,M.P.\n  TITLE     DNA sequence for a low-level promoter of the lac repressor gene and\n            an 'up' promoter mutation\n  JOURNAL   Nature 274 (5673), 762-765 (1978)\n   PUBMED   355890\nREFERENCE   12 (bases 49 to 1161)\n  AUTHORS   Farabaugh,P.J.\n  TITLE     Sequence of the lacI gene\n  JOURNAL   Nature 274 (5673), 765-769 (1978)\n   PUBMED   355891\nREFERENCE   13 (sites)\n  AUTHORS   Miller,J.H., Coulondre,C. and Farabaugh,P.J.\n  TITLE     Correlation of nonsense sites in the lacI gene with specific codons\n            in the nucleotide sequence\n  JOURNAL   Nature 274 (5673), 770-775 (1978)\n   PUBMED   355892\nREFERENCE   14 (sites)\n  AUTHORS   Calos,M.P. and Miller,J.H.\n  TITLE     DNA sequence alteration resulting from a mutation impairing\n            promoter function in the lac repressor gene\n  JOURNAL   Mol. Gen. Genet. 178 (1), 225-227 (1980)\n   PUBMED   6770231\nREFERENCE   15 (bases 4306 to 5804)\n  AUTHORS   Buchel,D.E., Gronenborn,B. and Muller-Hill,B.\n  TITLE     Sequence of the lactose permease gene\n  JOURNAL   Nature 283 (5747), 541-545 (1980)\n   PUBMED   6444453\nREFERENCE   16 (sites)\n  AUTHORS   Miller,J.H., Calos,M.P. and Galas,D.J.\n  TITLE     Genetic and sequencing studies of the specificity of transposition\n            into the lac region of E. coli\n  JOURNAL   Cold Spring Harb. Symp. Quant. Biol. 45 (PT 1), 243-257 (1981)\n   PUBMED   6271472\nREFERENCE   17 (sites)\n  AUTHORS   Chenchick,A., Beabealashvilli,R. and Mirzabekov,A.\n  TITLE     Topography of interaction of Escherichia coli RNA polymerase\n            subunits with lac UV5 promoter\n  JOURNAL   FEBS Lett. 128 (1), 46-50 (1981)\n   PUBMED   7023981\nREFERENCE   18 (sites)\n  AUTHORS   Betz,J.L. and Sadler,J.R.\n  TITLE     Variants of a cloned synthetic lactose operator. I. A palindromic\n            dimer lactose operator derived from one stand of the cloned 40-base\n            pair operator\n  JOURNAL   Gene 13 (1), 1-12 (1981)\n   PUBMED   7016667\nREFERENCE   19 (sites)\n  AUTHORS   Sadler,J.R. and Tecklenburg,M.\n  TITLE     Cloning and characterization of the natural lactose operator\n  JOURNAL   Gene 13 (1), 13-23 (1981)\n   PUBMED   6263752\nREFERENCE   20 (sites)\n  AUTHORS   Betz,J.L. and Sadler,J.R.\n  TITLE     Variants of a cloned synthetic lactose operator. II.\n            Chloramphenicol-resistant revertants retaining a lactose operator\n            in the CAT gene of plasmid pBR325\n  JOURNAL   Gene 15 (2-3), 187-200 (1981)\n   PUBMED   6271642\nREFERENCE   21 (sites)\n  AUTHORS   Calos,M.P. and Miller,J.H.\n  TITLE     The DNA sequence change resulting from the IQ1 mutation, which\n            greatly increases promoter strength\n  JOURNAL   Mol. Gen. Genet. 183 (3), 559-560 (1981)\n   PUBMED   7038381\nREFERENCE   22 (sites)\n  AUTHORS   Mieschendahl,M., Buchel,D., Bocklage,H. and Muller-Hill,B.\n  TITLE     Mutations in the lacY gene of Escherichia coli define functional\n            organization of lactose permease\n  JOURNAL   Proc. Natl. Acad. Sci. U.S.A. 78 (12), 7652-7656 (1981)\n   PUBMED   6278484\nREFERENCE   23 (sites)\n  AUTHORS   Russell,D.R. and Bennett,G.N.\n  TITLE     Construction and analysis of in vivo activity of E. coli promoter\n            hybrids and promoter mutants that alter the -35 to -10 spacing\n  JOURNAL   Gene 20 (2), 231-243 (1982)\n   PUBMED   6299890\nREFERENCE   24 (sites)\n  AUTHORS   Horowitz,H. and Platt,T.\n  TITLE     A termination site for LacI transcription is between the CAP site\n            and the lac promoter\n  JOURNAL   J. Biol. Chem. 257 (19), 11740-11746 (1982)\n   PUBMED   6288696\nREFERENCE   25 (sites)\n  AUTHORS   Klein,R.D. and Wells,R.D.\n  TITLE     Effects of neighboring DNA homopolymers on the biochemical and\n            physical properties of the Escherichia coli lactose promoter. I.\n            Cloning and characterization studies\n  JOURNAL   J. Biol. Chem. 257 (21), 12954-12961 (1982)\n   PUBMED   6290487\nREFERENCE   26 (bases 1183 to 1291)\n  AUTHORS   Weiher,H. and Schaller,H.\n  TITLE     Segment-specific mutagenesis: extensive mutagenesis of a lac\n            promoter/operator element\n  JOURNAL   Proc. Natl. Acad. Sci. U.S.A. 79 (5), 1408-1412 (1982)\n   PUBMED   7041119\nREFERENCE   27 (sites)\n  AUTHORS   Van Dyke,M.W. and Dervan,P.B.\n  TITLE     Footprinting with MPE.Fe(II). Complementary-strand analyses of\n            distamycin- and actinomycin-binding sites on heterogeneous DNA\n  JOURNAL   Cold Spring Harb. Symp. Quant. Biol. 47 (PT 1), 347-353 (1983)\n   PUBMED   6305557\nREFERENCE   28 (bases 1287 to 4364)\n  AUTHORS   Kalnins,A., Otto,K., Ruther,U. and Muller-Hill,B.\n  TITLE     Sequence of the lacZ gene of Escherichia coli\n  JOURNAL   EMBO J. 2 (4), 593-597 (1983)\n   PUBMED   6313347\nREFERENCE   29 (sites)\n  AUTHORS   Cone,K.C., Sellitti,M.A. and Steege,D.A.\n  TITLE     Lac repressor mRNA transcription terminates in vivo in the lac\n            control region\n  JOURNAL   J. Biol. Chem. 258 (18), 11296-11304 (1983)\n   PUBMED   6309841\nREFERENCE   30 (sites)\n  AUTHORS   Sadler,J.R., Sasmor,H. and Betz,J.L.\n  TITLE     A perfectly symmetric lac operator binds the lac repressor very\n            tightly\n  JOURNAL   Proc. Natl. Acad. Sci. U.S.A. 80 (22), 6785-6789 (1983)\n   PUBMED   6316325\nREFERENCE   31 (sites)\n  AUTHORS   Glickman,B.W. and Ripley,L.S.\n  TITLE     Structural intermediates of deletion mutagenesis: a role for\n            palindromic DNA\n  JOURNAL   Proc. Natl. Acad. Sci. U.S.A. 81 (2), 512-516 (1984)\n   PUBMED   6582506\nREFERENCE   32 (sites)\n  AUTHORS   Spassky,A., Kirkegaard,K. and Buc,H.\n  TITLE     Changes in the DNA structure of the lac UV5 promoter during\n            formation of an open complex with Escherichia coli RNA polymerase\n  JOURNAL   Biochemistry 24 (11), 2723-2731 (1985)\n   PUBMED   3896305\nREFERENCE   33 (sites)\n  AUTHORS   Straney,D.C. and Crothers,D.M.\n  TITLE     Intermediates in transcription initiation from the E. coli lac UV5\n            promoter\n  JOURNAL   Cell 43 (2 PT 1), 449-459 (1985)\n   PUBMED   2416465\nREFERENCE   34 (sites)\n  AUTHORS   Looman,A.C., de Gruyter,M., Vogelaar,A. and van Knippenberg,P.H.\n  TITLE     Effects of heterologous ribosomal binding sites on the\n            transcription and translation of the lacZ gene of Escherichia coli\n  JOURNAL   Gene 37 (1-3), 145-154 (1985)\n   PUBMED   3932130\nREFERENCE   35 (sites)\n  AUTHORS   Mandecki,W., Goldman,R.A., Powell,B.S. and Caruthers,M.H.\n  TITLE     lac Up-promoter mutants with increased homology to the consensus\n            promoter sequence\n  JOURNAL   J. Bacteriol. 164 (3), 1353-1355 (1985)\n   PUBMED   2999082\nREFERENCE   36 (sites)\n  AUTHORS   Malamy,M.H., Rahaim,P.T., Hoffman,C.S., Baghdoyan,D., O'Connor,M.B.\n            and Miller,J.F.\n  TITLE     A frameshift mutation at the junction of an IS1 insertion within\n            lacZ restores beta-galactosidase activity via formation of an\n            active lacZ-IS1 fusion protein\n  JOURNAL   J. Mol. Biol. 181 (4), 551-555 (1985)\n   PUBMED   2987506\nREFERENCE   37 (bases 5646 to 7477)\n  AUTHORS   Hediger,M.A., Johnson,D.F., Nierlich,D.P. and Zabin,I.\n  TITLE     DNA sequence of the lactose operon: the lacA gene and the\n            transcriptional termination region\n  JOURNAL   Proc. Natl. Acad. Sci. U.S.A. 82 (19), 6414-6418 (1985)\n   PUBMED   3901000\nCOMMENT     Original source text: Escherichia coli DNA; mRNA; clone\n            lambda-h80dlac DNA; clone puk217; pgm8 (see comment).\n            [3]  sites; UV5 mRNA transcripts and operator mutants. [(in)\n            Sund,H. and Blauer,G. (eds.);Protein-Ligand Interactions:\n            193-207;Walter de]  sites; operator mutational analysis. [7]\n            sites; S1 and mung bean nuclease action on operator DNA. [9]\n            sites; class I, II and III promoter mutant analysis. [13]  sites;\n            lacI mutant analysis.\n            [16]  sites; Tn5, Tn9 and Tn10 insertion sites in lac region. [14]\n            sites; lacI promoter mutation UJ177.\n            [18]  sites; palindromic dimer operator;.\n            [19]  sites; natural operator sequence.\n            [20]  sites; operator mutational analysis.\n            [21]  sites; lacI-Q deletion.\n            [17]  sites; RNA polymerase UV5 promoter interaction. [22]  sites;\n            lacY mutational analysis.\n            [24]  sites; lacI-promoted transcription termination. [25]  sites;\n            wt and UV5 promoter sequence studies. [23]  sites; UV5 promoter\n            mutational analysis.\n            [30]  sites; perfectly symmetric operator sequence. [29]  sites;\n            lacI mRNA termination site.\n            [27]  sites; distamycin and actinomycin binding to promoter. [31]\n            sites; lacI deletion studies.\n            [35]  sites; promoter mutational studies.\n            [33]  sites; DNAase I studies with promoter sequence. [34]  sites;\n            ribosomal binding and translation initiation for lacZ. [36]  sites;\n            insertion sequence IS1 integration in lacZ;. [32]  sites; DNAase I\n            studies with promoter.\n            [1] first reports a 27 bp operator(sites 1240-1266) with two-fold\n            symmetries; the operator has also been defined to be bases\n            1246-1266 or bases 1239-1273 [8]. [(in) Kjeldgaard,N.C. and Maaloe,\n            O.(eds);Control of ribosome synthesis: 138-143;A] explores the\n            ability of lac\n            repressor protein to affect methylation of operator DNA.  [8]\n            argues that DNA on both sides of the 21 bp operator (bases\n            1246-1266) affects repressor binding but that the sequences of this\n            DNA are probably not critical. [5] gives a larger sequence known as\n            the promoter-operator region for the wild-type, whereas [2] and\n            [26] give portions of this region for the mutant strain UV5. Within\n            the promoter region, bases 1162-1199 are identified as the\n            catabolite gene activator protein binding site (cap) and bases\n            1200-1245 are the RNA polymerase interaction site. [10] reports a\n            sequence for the 5'end of the lacI (repressor) gene and discusses\n            restart in mutant strains. [11] presents a sequence for the lacI\n            promoter region and identifies an I-Q mutation which enhances lacI\n            transcription approximately ten-fold. [12] gives a complete\n            sequence\n            for lacI which agrees with the known lac repressor sequence. [26]\n            examines the promoter-operator region in the UV5 strain (lac109)\n            and studies 23 mutant derivatives of this sequence. This sequence\n            agrees with known protein sequences for the lacZ, lacY and lacA\n            enzymes. [15] notes that the fMet codon is not present\n            for lacA and suggests that the 'ttg' codon (5727-5729), which\n            immediately precedes the mature N-terminal asparagine codon, is the\n            start codon. The cds for lacZ, lacY and lacA are included on a\n            single mRNA transcript.\n            Complete source information:\n            Escherichia coli DNA [1],[(in) Kjeldgaard,N.C. and Maaloe,O.(eds);\n            Control of ribosome synthesis: 138-143;A],[8],[12],[26]; mRNA [2],\n            [5],[10]; clone\n            lambda-h80dlac DNA [11],[15]; clone puk217 [28]; pgm8 [37].\nFEATURES             Location/Qualifiers\n     source          1..7477\n                     /organism=\"Escherichia coli\"\n                     /mol_type=\"genomic DNA\"\n                     /db_xref=\"taxon:562\"\n     variation       16\n                     /note=\"c in wild-type; t in 'up' promoter mutant I-Q [11]\"\n     gene            79..1161\n                     /gene=\"lacI\"\n     CDS             79..1161\n                     /gene=\"lacI\"\n                     /note=\"lac repressor protein (gtg start codon)\"\n                     /codon_start=1\n                     /transl_table=11\n                     /protein_id=\"AAA24052.1\"\n                     /translation=\"MKPVTLYDVAEYAGVSYQTVSRVVNQASHVSAKTREKVEAAMAE\n                     LNYIPNRVAQQLAGKQSLLIGVATSSLALHAPSQIVAAIKSRADQLGASVVVSMVERS\n                     GVEACKAAVHNLLAQRVSGLIINYPLDDQDAIAVEAACTNVPALFLDVSDQTPINSII\n                     FSHEDGTRLGVEHLVALGHQQIALLAGPLSSVSARLRLAGWHKYLTRNQIQPIAEREG\n                     DWSAMSGFQQTMQMLNEGIVPTAMLVANDQMALGAMRAITESGLRVGADISVVGYDDT\n                     EDSSCYIPPSTTIKQDFRLLGQTSVDRLLQLSQGQAVKGNQLLPVSLVKRKTTLAPNT\n                     QTASPRALADSLMQLARQVSRLESGQ\"\n     regulatory      1162..1199\n                     /regulatory_class=\"other\"\n                     /note=\"cap protein binding site\"\n     variation       1183..1186\n                     /note=\"ttag in wild-type; aatt in strain UV5 [26]\"\n     variation       1209..1211\n                     /note=\"gct in wild-type; gt in mutant l305 [5]\"\n     variation       1212\n                     /note=\"t in wild-type; a in mutant l241 [5]\"\n     variation       1230\n                     /note=\"c in wild-type; a in mutant p-r-1a [5]\"\n     variation       1237..1238\n                     /note=\"gt in wild-type; aa in strain UV5 [26]\"\n     variation       1242..1245\n                     /note=\"gtgg in wild-type; ttca in synthetic operator [8]\"\n     regulatory      1246..1266\n                     /regulatory_class=\"other\"\n                     /note=\"lac repressor protein binding site\"\n     variation       1267..1268\n                     /note=\"tc in wild-type; tg in synthetic operator [8]\"\n     variation       1282..1291\n                     /note=\"ctatgaccat in wild-type; gatccggcca in strain UV5\n                     [26]\"\n     gene            1284..4358\n                     /gene=\"lacZ\"\n     CDS             1284..4358\n                     /gene=\"lacZ\"\n                     /note=\"beta-d-galactosidase\"\n                     /codon_start=1\n                     /transl_table=11\n                     /protein_id=\"AAA24053.1\"\n                     /translation=\"MTMITDSLAVVLQRRDWENPGVTQLNRLAAHPPFASWRNSEEAR\n                     TDRPSQQLRSLNGEWRFAWFPAPEAVPESWLECDLPEADTVVVPSNWQMHGYDAPIYT\n                     NVTYPITVNPPFVPTENPTGCYSLTFNVDESWLQEGQTRIIFDGVNSAFHLWCNGRWV\n                     GYGQDSRLPSEFDLSAFLRAGENRLAVMVLRWSDGSYLEDQDMWRMSGIFRDVSLLHK\n                     PTTQISDFHVATRFNDDFSRAVLEAEVQMCGELRDYLRVTVSLWQGETQVASGTAPFG\n                     GEIIDERGGYADRVTLRLNVENPKLWSAEIPNLYRAVVELHTADGTLIEAEACDVGFR\n                     EVRIENGLLLLNGKPLLIRGVNRHEHHPLHGQVMDEQTMVQDILLMKQNNFNAVRCSH\n                     YPNHPLWYTLCDRYGLYVVDEANIETHGMVPMNRLTDDPRWLPAMSERVTRMVQRDRN\n                     HPSVIIWSLGNESGHGANHDALYRWIKSVDPSRPVQYEGGGADTTATDIICPMYARVD\n                     EDQPFPAVPKWSIKKWLSLPGETRPLILCEYAHAMGNSLGGFAKYWQAFRQYPRLQGG\n                     FVWDWVDQSLIKYDENGNPWSAYGGDFGDTPNDRQFCMNGLVFADRTPHPALTEAKHQ\n                     QQFFQFRLSGQTIEVTSEYLFRHSDNELLHWMVALDGKPLASGEVPLDVAPQGKQLIE\n                     LPELPQPESAGQLWLTVRVVQPNATAWSEAGHISAWQQWRLAENLSVTLPAASHAIPH\n                     LTTSEMDFCIELGNKRWQFNRQSGFLSQMWIGDKKQLLTPLRDQFTRAPLDNDIGVSE\n                     ATRIDPNAWVERWKAAGHYQAEAALLQCTADTLADAVLITTAHAWQHQGKTLFISRKT\n                     YRIDGSGQMAITVDVEVASDTPHPARIGLNCQLAQVAERVNWLGLGPQENYPDRLTAA\n                     CFDRWDLPLSDMYTPYVFPSENGLRCGTRELNYGPHQWRGDFQFNISRYSQQQLMETS\n                     HRHLLHAEEGTWLNIDGFHMGIGGDDSWSPSVSAEFQLSAGRYHYQLVWCQK\"\n     gene            4410..5663\n                     /gene=\"lacY\"\n     CDS             4410..5663\n                     /gene=\"lacY\"\n                     /note=\"lactose permease\"\n                     /codon_start=1\n                     /transl_table=11\n                     /protein_id=\"AAA24054.1\"\n                     /translation=\"MYYLKNTNFWMFGLFFFFYFFIMGAYFPFFPIWLHDINHISKSD\n                     TGIIFAAISLFSLLFQPLFGLLSDKLGLRKYLLWIITGMLVMFAPFFIFIFGPLLQYN\n                     ILVGSIVGGIYLGFCFNAGAPAVEAFIEKVSRRSNFEFGRARMFGCVGWALCASIVGI\n                     MFTINNQFVFWLGSGCALILAVLLFFAKTDAPSSATVANAVGANHSAFSLKLALELFR\n                     QPKLWFLSLYVIGVSCTYDVFDQQFANFFTSFFATGEQGTRVFGYVTTMGELLNASIM\n                     FFAPLIINRIGGKNALLLAGTIMSVRIIGSSFATSALEVVILKTLHMFEVPFLLVGCF\n                     KYITSQFEVRFSATIYLVCFCFFKQLAMIFMSVLAGNMYESIGFQGAYLVLGLVALGF\n                     TLISVFTLSGPGPLSLLRRQVNEVA\"\n     gene            5727..6338\n                     /gene=\"lacA\"\n     CDS             5727..6338\n                     /gene=\"lacA\"\n                     /note=\"thiogalactoside acetyltransferase (ttg start\n                     codon)\"\n                     /codon_start=1\n                     /transl_table=11\n                     /protein_id=\"AAA24055.1\"\n                     /translation=\"MNMPMTERIRAGKLFTDMCEGLPEKRLRGKTLMYEFNHSHPSEV\n                     EKRESLIKEMFATVGENAWVEPPVYFSYGSNIHIGRNFYANFNLTIVDDYTVTIGDNV\n                     LIAPNVTLSVTGHPVHHELRKNGEMYSFPITIGNNVWIGSHVVINPGVTIGDNSVIGA\n                     GSIVTKDIPPNVVAAGVPCRVIREINDRDKHYYFKDYKVESSV\"\nORIGIN      HindII site [Nature 274, 762-765 (1978)].\n        1 gacaccatcg aatggcgcaa aacctttcgc ggtatggcat gatagcgccc ggaagagagt\n       61 caattcaggg tggtgaatgt gaaaccagta acgttatacg atgtcgcaga gtatgccggt\n      121 gtctcttatc agaccgtttc ccgcgtggtg aaccaggcca gccacgtttc tgcgaaaacg\n      181 cgggaaaaag tggaagcggc gatggcggag ctgaattaca ttcccaaccg cgtggcacaa\n      241 caactggcgg gcaaacagtc gttgctgatt ggcgttgcca cctccagtct ggccctgcac\n      301 gcgccgtcgc aaattgtcgc ggcgattaaa tctcgcgccg atcaactggg tgccagcgtg\n      361 gtggtgtcga tggtagaacg aagcggcgtc gaagcctgta aagcggcggt gcacaatctt\n      421 ctcgcgcaac gcgtcagtgg gctgatcatt aactatccgc tggatgacca ggatgccatt\n      481 gctgtggaag ctgcctgcac taatgttccg gcgttatttc ttgatgtctc tgaccagaca\n      541 cccatcaaca gtattatttt ctcccatgaa gacggtacgc gactgggcgt ggagcatctg\n      601 gtcgcattgg gtcaccagca aatcgcgctg ttagcgggcc cattaagttc tgtctcggcg\n      661 cgtctgcgtc tggctggctg gcataaatat ctcactcgca atcaaattca gccgatagcg\n      721 gaacgggaag gcgactggag tgccatgtcc ggttttcaac aaaccatgca aatgctgaat\n      781 gagggcatcg ttcccactgc gatgctggtt gccaacgatc agatggcgct gggcgcaatg\n      841 cgcgccatta ccgagtccgg gctgcgcgtt ggtgcggata tctcggtagt gggatacgac\n      901 gataccgaag acagctcatg ttatatcccg ccgtcaacca ccatcaaaca ggattttcgc\n      961 ctgctggggc aaaccagcgt ggaccgcttg ctgcaactct ctcagggcca ggcggtgaag\n     1021 ggcaatcagc tgttgcccgt ctcactggtg aaaagaaaaa ccaccctggc gcccaatacg\n     1081 caaaccgcct ctccccgcgc gttggccgat tcattaatgc agctggcacg acaggtttcc\n     1141 cgactggaaa gcgggcagtg agcgcaacgc aattaatgtg agttagctca ctcattaggc\n     1201 accccaggct ttacacttta tgcttccggc tcgtatgttg tgtggaattg tgagcggata\n     1261 acaatttcac acaggaaaca gctatgacca tgattacgga ttcactggcc gtcgttttac\n     1321 aacgtcgtga ctgggaaaac cctggcgtta cccaacttaa tcgccttgca gcacatcccc\n     1381 ctttcgccag ctggcgtaat agcgaagagg cccgcaccga tcgcccttcc caacagttgc\n     1441 gcagcctgaa tggcgaatgg cgctttgcct ggtttccggc accagaagcg gtgccggaaa\n     1501 gctggctgga gtgcgatctt cctgaggccg atactgtcgt cgtcccctca aactggcaga\n     1561 tgcacggtta cgatgcgccc atctacacca acgtaaccta tcccattacg gtcaatccgc\n     1621 cgtttgttcc cacggagaat ccgacgggtt gttactcgct cacatttaat gttgatgaaa\n     1681 gctggctaca ggaaggccag acgcgaatta tttttgatgg cgttaactcg gcgtttcatc\n     1741 tgtggtgcaa cgggcgctgg gtcggttacg gccaggacag tcgtttgccg tctgaatttg\n     1801 acctgagcgc atttttacgc gccggagaaa accgcctcgc ggtgatggtg ctgcgttgga\n     1861 gtgacggcag ttatctggaa gatcaggata tgtggcggat gagcggcatt ttccgtgacg\n     1921 tctcgttgct gcataaaccg actacacaaa tcagcgattt ccatgttgcc actcgcttta\n     1981 atgatgattt cagccgcgct gtactggagg ctgaagttca gatgtgcggc gagttgcgtg\n     2041 actacctacg ggtaacagtt tctttatggc agggtgaaac gcaggtcgcc agcggcaccg\n     2101 cgcctttcgg cggtgaaatt atcgatgagc gtggtggtta tgccgatcgc gtcacactac\n     2161 gtctgaacgt cgaaaacccg aaactgtgga gcgccgaaat cccgaatctc tatcgtgcgg\n     2221 tggttgaact gcacaccgcc gacggcacgc tgattgaagc agaagcctgc gatgtcggtt\n     2281 tccgcgaggt gcggattgaa aatggtctgc tgctgctgaa cggcaagccg ttgctgattc\n     2341 gaggcgttaa ccgtcacgag catcatcctc tgcatggtca ggtcatggat gagcagacga\n     2401 tggtgcagga tatcctgctg atgaagcaga acaactttaa cgccgtgcgc tgttcgcatt\n     2461 atccgaacca tccgctgtgg tacacgctgt gcgaccgcta cggcctgtat gtggtggatg\n     2521 aagccaatat tgaaacccac ggcatggtgc caatgaatcg tctgaccgat gatccgcgct\n     2581 ggctaccggc gatgagcgaa cgcgtaacgc gaatggtgca gcgcgatcgt aatcacccga\n     2641 gtgtgatcat ctggtcgctg gggaatgaat caggccacgg cgctaatcac gacgcgctgt\n     2701 atcgctggat caaatctgtc gatccttccc gcccggtgca gtatgaaggc ggcggagccg\n     2761 acaccacggc caccgatatt atttgcccga tgtacgcgcg cgtggatgaa gaccagccct\n     2821 tcccggctgt gccgaaatgg tccatcaaaa aatggctttc gctacctgga gagacgcgcc\n     2881 cgctgatcct ttgcgaatac gcccacgcga tgggtaacag tcttggcggt ttcgctaaat\n     2941 actggcaggc gtttcgtcag tatccccgtt tacagggcgg cttcgtctgg gactgggtgg\n     3001 atcagtcgct gattaaatat gatgaaaacg gcaacccgtg gtcggcttac ggcggtgatt\n     3061 ttggcgatac gccgaacgat cgccagttct gtatgaacgg tctggtcttt gccgaccgca\n     3121 cgccgcatcc agcgctgacg gaagcaaaac accagcagca gtttttccag ttccgtttat\n     3181 ccgggcaaac catcgaagtg accagcgaat acctgttccg tcatagcgat aacgagctcc\n     3241 tgcactggat ggtggcgctg gatggtaagc cgctggcaag cggtgaagtg cctctggatg\n     3301 tcgctccaca aggtaaacag ttgattgaac tgcctgaact accgcagccg gagagcgccg\n     3361 ggcaactctg gctcacagta cgcgtagtgc aaccgaacgc gaccgcatgg tcagaagccg\n     3421 ggcacatcag cgcctggcag cagtggcgtc tggcggaaaa cctcagtgtg acgctccccg\n     3481 ccgcgtccca cgccatcccg catctgacca ccagcgaaat ggatttttgc atcgagctgg\n     3541 gtaataagcg ttggcaattt aaccgccagt caggctttct ttcacagatg tggattggcg\n     3601 ataaaaaaca actgctgacg ccgctgcgcg atcagttcac ccgtgcaccg ctggataacg\n     3661 acattggcgt aagtgaagcg acccgcattg accctaacgc ctgggtcgaa cgctggaagg\n     3721 cggcgggcca ttaccaggcc gaagcagcgt tgttgcagtg cacggcagat acacttgctg\n     3781 atgcggtgct gattacgacc gctcacgcgt ggcagcatca ggggaaaacc ttatttatca\n     3841 gccggaaaac ctaccggatt gatggtagtg gtcaaatggc gattaccgtt gatgttgaag\n     3901 tggcgagcga tacaccgcat ccggcgcgga ttggcctgaa ctgccagctg gcgcaggtag\n     3961 cagagcgggt aaactggctc ggattagggc cgcaagaaaa ctatcccgac cgccttactg\n     4021 ccgcctgttt tgaccgctgg gatctgccat tgtcagacat gtataccccg tacgtcttcc\n     4081 cgagcgaaaa cggtctgcgc tgcgggacgc gcgaattgaa ttatggccca caccagtggc\n     4141 gcggcgactt ccagttcaac atcagccgct acagtcaaca gcaactgatg gaaaccagcc\n     4201 atcgccatct gctgcacgcg gaagaaggca catggctgaa tatcgacggt ttccatatgg\n     4261 ggattggtgg cgacgactcc tggagcccgt cagtatcggc ggaattccag ctgagcgccg\n     4321 gtcgctacca ttaccagttg gtctggtgtc aaaaataata ataaccgggc aggccatgtc\n     4381 tgcccgtatt tcgcgtaagg aaatccatta tgtactattt aaaaaacaca aacttttgga\n     4441 tgttcggttt attctttttc ttttactttt ttatcatggg agcctacttc ccgtttttcc\n     4501 cgatttggct acatgacatc aaccatatca gcaaaagtga tacgggtatt atttttgccg\n     4561 ctatttctct gttctcgcta ttattccaac cgctgtttgg tctgctttct gacaaactcg\n     4621 ggctgcgcaa atacctgctg tggattatta ccggcatgtt agtgatgttt gcgccgttct\n     4681 ttatttttat cttcgggcca ctgttacaat acaacatttt agtaggatcg attgttggtg\n     4741 gtatttatct aggcttttgt tttaacgccg gtgcgccagc agtagaggca tttattgaga\n     4801 aagtcagccg tcgcagtaat ttcgaatttg gtcgcgcgcg gatgtttggc tgtgttggct\n     4861 gggcgctgtg tgcctcgatt gtcggcatca tgttcaccat caataatcag tttgttttct\n     4921 ggctgggctc tggctgtgca ctcatcctcg ccgttttact ctttttcgcc aaaacggatg\n     4981 cgccctcttc tgccacggtt gccaatgcgg taggtgccaa ccattcggca tttagcctta\n     5041 agctggcact ggaactgttc agacagccaa aactgtggtt tttgtcactg tatgttattg\n     5101 gcgtttcctg cacctacgat gtttttgacc aacagtttgc taatttcttt acttcgttct\n     5161 ttgctaccgg tgaacagggt acgcgggtat ttggctacgt aacgacaatg ggcgaattac\n     5221 ttaacgcctc gattatgttc tttgcgccac tgatcattaa tcgcatcggt gggaaaaacg\n     5281 ccctgctgct ggctggcact attatgtctg tacgtattat tggctcatcg ttcgccacct\n     5341 cagcgctgga agtggttatt ctgaaaacgc tgcatatgtt tgaagtaccg ttcctgctgg\n     5401 tgggctgctt taaatatatt accagccagt ttgaagtgcg tttttcagcg acgatttatc\n     5461 tggtctgttt ctgcttcttt aagcaactgg cgatgatttt tatgtctgta ctggcgggca\n     5521 atatgtatga aagcatcggt ttccagggcg cttatctggt gctgggtctg gtggcgctgg\n     5581 gcttcacctt aatttccgtg ttcacgctta gcggccccgg cccgctttcc ctgctgcgtc\n     5641 gtcaggtgaa tgaagtcgct taagcaatca atgtcggatg cggcgcgacg cttatccgac\n     5701 caacatatca taacggagtg atcgcattga acatgccaat gaccgaaaga ataagagcag\n     5761 gcaagctatt taccgatatg tgcgaaggct taccggaaaa aagacttcgt gggaaaacgt\n     5821 taatgtatga gtttaatcac tcgcatccat cagaagttga aaaaagagaa agcctgatta\n     5881 aagaaatgtt tgccacggta ggggaaaacg cctgggtaga accgcctgtc tatttctctt\n     5941 acggttccaa catccatata ggccgcaatt tttatgcaaa tttcaattta accattgtcg\n     6001 atgactacac ggtaacaatc ggtgataacg tactgattgc acccaacgtt actctttccg\n     6061 ttacgggaca ccctgtacac catgaattga gaaaaaacgg cgagatgtac tcttttccga\n     6121 taacgattgg caataacgtc tggatcggaa gtcatgtggt tattaatcca ggcgtcacca\n     6181 tcggggataa ttctgttatt ggcgcgggta gtatcgtcac aaaagacatt ccaccaaacg\n     6241 tcgtggcggc tggcgttcct tgtcgggtta ttcgcgaaat aaacgaccgg gataagcact\n     6301 attatttcaa agattataaa gttgaatcgt cagtttaaat tataaaaatt gcctgatacg\n     6361 ctgcgcttat caggcctaca agttcagcga tctacattag ccgcatccgg catgaacaaa\n     6421 gcgcaggaac aagcgtcgca tcatgcctct ttgacccaca gctgcggaaa acgtactggt\n     6481 gcaaaacgca gggttatgat catcagccca acgacgcaca gcgcatgaaa tgcccagtcc\n     6541 atcaggtaat tgccgctgat actacgcagc acgccagaaa accacggggc aagcccggcg\n     6601 atgataaaac cgattccctg cataaacgcc accagcttgc cagcaatagc cggttgcaca\n     6661 gagtgatcga gcgccagcag caaacagagc ggaaacgcgc cgcccagacc taacccacac\n     6721 accatcgccc acaataccgg caattgcatc ggcagccaga taaagccgca gaaccccacc\n     6781 agttgtaaca ccagcgccag cattaacagt ttgcgccgat cctgatggcg agccatagca\n     6841 ggcatcagca aagctcctgc ggcttgccca agcgtcatca atgccagtaa ggaaccgctg\n     6901 tactgcgcgc tggcaccaat ctcaatatag aaagcgggta accaggcaat caggctggcg\n     6961 taaccgccgt taatcagacc gaagtaaaca cccagcgtcc acgcgcgggg agtgaatacc\n     7021 acgcgaaccg gagtggttgt tgtcttgtgg gaagaggcga cctcgcgggc gctttgccac\n     7081 caccaggcaa agagcgcaac aacggcaggc agcgccacca ggcgagtgtt tgataccagg\n     7141 tttcgctatg ttgaactaac cagggcgtta tggcggcacc aagcccaccg ccgcccatca\n     7201 gagccgcgga ccacagcccc atcaccagtg gcgtgcgctg ctgaaaccgc cgtttaatca\n     7261 ccgaagcatc accgcctgaa tgatgccgat ccccacccca ccaagcagtg cgctgctaag\n     7321 cagcagcgca ctttgcgggt aaagctcacg catcaatgca ccgacggcaa tcagcaacag\n     7381 actgatggcg acactgcgac gttcgctgac atgctgatga agccagcttc cggccagcgc\n     7441 cagcccgccc atggtaacca ccggcagagc ggtcgac\n//\n\n";
   const COURSE = "CCACCCCGAGCCTAGAGAAGGCTCCTAGCTTGGCTGGGCCTCATGGGGCCCTTGTCTGCTTAGTTCCAGCCTGGAGGGCCTCACGCTCCCCTCCCCCAGCCTTGGCTCGACCCCCTCTGCTTCGTAGGACACCCTCCCTGTGTTTCTGCCCATCCTCAGGGTCCATGCAGGGAGTGCTGGCTTCAGGCCTCCCCACCTGAGGCCCACAGGGGCTGTGAGCCTGGGGTGCCGGGCCAGCTGCCGGTGGCTGTGGGGCTCCCGGCACTGCCTCAAGCTGTGGGCTATGGGTCCTTCTCCACCTGATGGTCTCTGAGCCTGGGGTCCAGGATCAAGTCCCAGGCCTTCCCCTACCCCAGCCCTGTGCCAGCCGAGCCCCTTCACCTGCAGGCAGCTGCCCTCTCCTGCTGTGGGTCAAACATCCAGGCAAGGAGGTGGCATGTACCCTCAGGCAGTACCTGCAAGAGTCAGAGTGGCTTCCTGGCCAGGTTACTGTGCCCATGGGAGCCTGGAATGGGCCAGGCTGAGGTCACAGCACCTAGAGGTGAGCAGATCAGCCCAGGACCTGACTATCCACGGACCCAGCTGGCGAGGAGGAAGAGAGTCAGGTGTGTGACCGATGCTGGGGTACCTCTGGGTCCCCCAACACAATGCCTGCTGCTCATCCAAATCCCACTTCCCTCCTTCTCCACAGGGGTCCTCTCTTGCACCCTGTTCTTCCTGAGCCCCTCCCCAGGCCTCTGAGGGTATTGGCCCAGTGTGTCCCTCTCTTGCATCCCATTCTTCCTAAGCCCAGTGTGTCCCTCGACTACGTGCATCAGGCTTACCTGGTGTTGCCCCTTAAAGATGCAGACGTCTGGCGGGGCGCAGTGGCTCACGCCTGTAATCCCAGCACTTTGGGAGGCCGCGGCGGGCAGATCACGAGGTCAGGAGATTGAGACCATCCTGGCTAACACGGTGAAACCCTGTCTCTACTAAAAATACAAAAAAAAAAAAAAAAAAATTAGCTGGCGTGGTGGCAGGTGCCTGTAGTCCCAGCTACTTGGGAGGCTGAGGCAGGAGAATGCCATGAACCCGCGAGGCGGAGCTTGCAGTGAGACAAGATCGCGCCACTGTCCTCCAGCCTGGGCAACAGAGCAAGACTCTGTCTCAAAAAAAAAAAAAAAAAAGGCTGGGTGCGGTGGCTCACACCTGTAATCCCAGCACTTTGGGAGGCTGAGGCGGGCAGATCACAAGATCAGGAGATCAAGACCATCCTGGCTAACGAGGTGAAACCCCATCTCTACTAAAGATACAAAAAACATAGTTAGCCAGGCGTGGTGGCGGACGCCTGTAGTCCCAGCTACTTGGGAGGCTGAGGCTGGGGAATGGCATGAACCCAGGAGGTGGAGCTTGCAGTGAGCCAAGATGGCACCACTGCACTCCAGCCTGGGCGACAGAGAGAGACTCCATCTCAAAAAACAAACAAACAAACAAAGATGCAGACATCTGCCTCGGCCCCAGGCCCTGGAATCATGAGCTCCAGGCGTGGAGTGACAAGTGTGCTCGGAGCGTCCAGTGTCCTCCTCCCTGACCACCTTCATGTGTCTTCAGTCTGGACCTGGACTGATCCCCTGACTGCACTCCCCACCCAGCCTTCCCAGATTTATCTTCCTGATGAGACGAGTTCCCTTCGGAGCCCTGTGTGTCTTACTACGTGTTCGGTTGAGGGCCTGCCTCGCCCCAGAGCTGTGGGCTGCACGTGGCCTGCACGTGGCCTGCGTGCTCCTCTGCTGTCCACAGTCGCAGGAGGGGATGCTCAAATATTTGTCGAAGGAATCCGTGAACAGGCAGATGCACATGTAGCCACTTAGAACGTTCTGGCCATGGCTTTTATCTGTTGACCACGTGTGGACACTGAAGATGCATCCTCTCCATCCCGTCTAGAGCTGCCCCTGTGCCAGGCGAGTTGGCCGGCTGTTGACAGAGGTGGTGGGTGGGAGTGTTGGAGCGGGGCAGTGGCTCAGGCTCTGGGTGCCTCACTGGCCTGGTCTGGAAGGTGACCATGCACCAAGGATCAAAGAAGTGAAGCCCAAAGCAGAATCTCATGGAGTTTCCAGCCCAAATCTCCCCCACTGCCTGCCTTTCTCCAGCCAGTGCAAGGCCCCAGGCCTCACAGCAGGACCCCAACACTGCATCCCCCCAAAGACTCTGGCCACCTCCATCCCAGGCCTGCCAGCCTCGAGCCTCATGGAGGGCGTGAGCTGGCGGGGTCACGGGCAGCCCCTGGACACCTATGGGTGACACTAAGGGCTGAGTCAGCTACCCTTGTCTCCTCTGTGCCCAAGAGCCCCAAGCATCAGACTGGTCTGAGCCCCAAGGCCTGGGGGTGCAAGGGGTTGGAGGCTGTGGGATCCAAAGACCCCATTGAACTCCCACCTCAGACACTGCACCTAGTGTTCTCACCCAGGCCTGAACCCATCCACACACTTCACGGCCCTGCTCCCACCCTGTGTCCCCTCTGCAAGCCCCCATGCTCCCCAAATTGGTAACTGGGGGGCCTGTCTCCACACCCCTGCTAGTGCCATTCCCTGGTGGGTAGCCATCACCTCTGGGTCCCCTGCTGCCCTCGCCCCTTCACCATGGGGGCTCGGAAGGCAGAGCCCGCTCCCCTCCTGAGCCCCACCCTGGAACCCTGAGCACCCTGGGTCATTGCCTCTGAGTCTCCCTCAGGGGCAGGGCTTGGGGCCCCTCCTGTCTCCTGACAGGGAGCCCTTTCAGTGCAGGGCCAGGGGGTGGTGGAGGCAAGGGTCCTCAGGGGACCAGATCTGACATGCGGGGCCATCACTGGGTCCCCGATGGCTGTGCTGCTTCGTCCCCGCGCCCACGCCTCGGCGCAGGTTCCCTCCTGGCACCGGTCATAGGGCGAGGCTTGCGGCTCCCACCCCAAGGGTGCGCTCGGCTCTCACCTGAGGGCTCAGCCTAGGTGTCCGGCCCTGGCAGCTCGGCCCTGGGCGCCCTCCACCTCCAGGCGCTGTCTCCTACTCCAGGCTGTTCTTCCGGCCGCCGCGGGGTTGCGGCCTGGGCGCCATAGCAACGGGAGCCAGGCCTCATTTGAATACGCAAATATTTATAAGTCGCCGGGGGCTCGGGTTCCGTGCGGCTGAGCCACGCCCCTTAGCAACGGTCGCTAGGGCGGGGCCACGTGGACTGGCACGTGCGTGGGCGCCCCTGCTGCGGGCGATCCCAGGGGAAGGTGACGCGCCACCAACTCGAGTTGGGTGGGCGCAGGCGCGTCAGGTGCCAGCTTCCTGCGGCTCCGTGCCTGGGCCGTCGCGATGCACGTGTCGCGTTTCCTCGCGATCCTGGCGCTTCCCACGCGGGGCGGGTAAAGGCGGTCTCTGCTGGAGGCTCGCGCCCACCTTTCCCAGGTGGAAGGGTCGCCCCTGGGGCCGAGGCCTGCCGTCCTGACCTTCGGTTGGAAGTGAGGCCGACGGCAAAAGGAAGCACCGGGGGAAGCGCCCCCGAGGACCAGGAAACACACACCGGACGCCGGAGCGCACCCGAGTGCCCGGCCCGCGGGACACGCTGCCGCCCGCCGTCCAGTCGCCGCTTCTCACTCGCGTTCATGCGTGTCCGCCCCGAGCCGAGCTCTGACTGCGACCGCGCGGTGGACGGACGGCAGGCGGGACCCCCGGGACCGCACGTGGGTGGAGCCCCGGGTCAGCAGCGACCGGCGCAGGAGGGCGAGGCGGGCGCTGGACTGGGCAGAGGCAGGGTTTGCCTGACTGTAAAACGCCTTTTTTGTTTTGAGACGAAGTAGCGCTCTGTTGCCCAGTGCAGTGGCGCGATTTCGGCTCACCGCAACATCCGCCTCCCGGGTTCCAGCGATTCTCCTGCCTCAGCCTCCCGAGTAGCTGGGACTACAGGCGCGCGCCACTGCAGCCGACTAATTTTTTGTGTTTTTAGTAGAGACAGGGTTTCATCATGTTGGCCAGGCTGGTCTTGAACTCCTGACCTCAAGTAATCCACCCGCTTAGGCCTCCCGAAGTGCTGGGATTATAGGCGTGAGCCACCGCGCCCGGCCCTTTTTGTTTTTTAATGAGGATGTATTTCTGATTCCTTTGCAATTTTAAAAAATGTTAAAAACATGTCTTTTTGGGTTTGAAAGAGCTAGGATGTGCGTCTATGTGCTTGGGGTGAGCCCTGGGCACTTCGCTCCCCTGTGGCAACTTGTGGGTACGGTTTAACTGGACCACGCTGAGCTTCTGCAGCGTTGGAACCTCAAGTTTGGGGGGACTGGGCGGGCAGGGTCGCCTGCCACGCAGGCCCGAGAAAGAGGAGAGTGGTGGAGGGGGCGTTCTCACGCCTGGCCCCAGGGCACACGGCTGCGCCCGCCGCCCGGAACCCCACCGGGGCTGCAAGCGTCCTCGGGGTGGGTTGCGGTGGGAGTAGGGGAGCTGGGGTGCGTGGTGGTAGGTGGGGTGCGCGGCCGCTCCACCTGCGCGGAAGGGCAGCCGGGCAACCGGACCCCGCGGCCACCCGGGGGCCCCCAGCTCCGAGCATCCCGCCTTGGTCCCGGCGGATCCCAGCCTTTCCCCAGCCCGTAGCCCCGGGACCTCCGCGGTGGGCGGCGCCGCGCTGCCGGCGCAGGGAGGGCCTCTGGTGCACCGGCACCGCTGAGTCGGGTTCTCTCGCCGGCCTGTTCCCGGGAGAGCCCGGGGCCCTGCTCGGAGATGCCGCCCCGGGCCCCCAGACACCGGCTCCCTGGCCTTCCTCGAGCAACCCCGAGCTCGGCTCCGGTCTCCAGCCAAGCCCAACCCCGAGAGGCCGCGGCCCTACTGGCTCCGCCTCCCGCGTTGCTCCCGGAAGCCCCGCCCGACCGCGGCTCCTGACAGACGGGCCGCTCAGCCAACCGGGGTGGGGCGGGGCCCGATGGCGCGCAGCCAATGGTAGGCCGCGCCTGGCAGACGGACGGGCGCGGGGCGGGGCGTGCGCAGGCCCGCCCGAGTCTCCGCCGCCCGTGCCCTGCGCCCGCAACCCGAGCCGCACCCGCCGCGGACGGAGCCCATGCGCGGGGCGAACCGCGCGCCCCCGCCCCCGCCCCGCCCCGGCCTCGGCCCCGGCCCTGGCCCCGGGGGCAGTCGCGCCTGTGAACGGTGAGTGCGGGCAGGGATCGGCCGGGCCGCGCGCCCTCCTCGCCCCCAGGCGGCAGCAATACGCGCGGCGCGGGCCGGGGGCGCGGGGCCGGCGGGCGTAAGCGGCGGCGGCGGCGGCGGCGGCGGGTGGGTGGGGCCGGGCGGGGCCCGCGGGCACAGGTGAGCGGGCGTCGGGGGCTGCGGCGGGCGGGGGCCCCTTCCTCCCTGGGGCCTGCGGGAATCCGGGCCCCACCCGTGGCCTCGCGCTGGGCACGGTCCCCACGCCGGCGTACCCGGGAGCCTCGGGCCCGGCGCCCTCACACCCGGGGGCGTCTGGGAGGAGGCGGCCGCGGCCACGGCACGCCCGGGCACCCCCGATTCAGCATCACAGGTCGCGGACCAGGCCGGGGGCCTCAGCCCCAGTGCCTTTTCCCTCTCCGGGTCTCCCGCGCCGCTTCTCGGCCCCTTCCTGTCGCTCAGTCCCTGCTTCCCAGGAGCTCCTCTGTCTTCTCCAGCTTTCTGTGGCTGAAAGATGCCCCCGGTTCCCCGCCGGGGGTGCGGGGCGCTGCCCGGGTCTGCCCTCCCCTCGGCGGCGCCTAGTACGCAGTAGGCGCTCAGCAAATACTTGTCGGAGGCACCAGCGCCGCGGGGCCTGCAGGCTGGCACTAGCCTGCCCGGGCACGCCGTGGCGCGCTCCGCCGTGGCCAGACCTGTTCTGGAGGACGGTAACCTCAGCCCTCGGGCGCCTCCCTTTAGCCTTTCTGCCGACCCAGCAGCTTCTAATTTGGGTGCGTGGTTGAGAGCGCTCAGCTGTCAGCCCTGCCTTTGAGGGCTGGGTCCCTTTTCCCATCACTGGGTCATTAAGAGCAAGTGGGGGCGAGGCGACAGCCCTCCCGCACGCTGGGTTGCAGCTGCACAGGTAGGCACGCTGCAGTCCTTGCTGCCTGGCGTTGGGGCCCAGGGACCGCTGTGGGTTTGCCCTTCAGATGGCCCTGCCAGCAGCTGCCCTGTGGGGCCTGGGGCTGGGCCTGGGCCTGGCTGAGCAGGGCCCTCCTTGGCAGGTGGGGCAGGAGACCCTGTAGGAGGACCCCGGGCCGCAGGCCCCTGAGGAGCGATGACGGAATATAAGCTGGTGGTGGTGGGCGCCGGCGGTGTGGGCAAGAGTGCGCTGACCATCCAGCTGATCCAGAACCATTTTGTGGACGAATACGACCCCACTATAGAGGTGAGCCTGGCGCCGCCGTCCAGGTGCCAGCAGCTGCTGCGGGCGAGCCCAGGACACAGCCAGGATAGGGCTGGCTGCAGCCCCTGGTCCCCTGCATGGTGCTGTGGCCCTGTCTCCTGCTTCCTCTAGAGGAGGGGAGTCCCTCGTCTCAGCACCCCAGGAGAGGAGGGGGCATGAGGGGCATGAGAGGTACCAGGGAGAGGCTGGCTGTGTGAACTCCCCCCACGGAAGGTCCTGAGGGGGTCCCTGAGCCCTGTCCTCCTGCAGGATTCCTACCGGAAGCAGGTGGTCATTGATGGGGAGACGTGCCTGTTGGACATCCTGGATACCGCCGGCCAGGAGGAGTACAGCGCCATGCGGGACCAGTACATGCGCACCGGGGAGGGCTTCCTGTGTGTGTTTGCCATCAACAACACCAAGTCTTTTGAGGACATCCACCAGTACAGGTGAACCCCGTGAGGCTGGCCCGGGAGCCCACGCCGCACAGGTGGGGCCAGGCCGGCTGCGTCCAGGCAGGGGCCTCCTGTCCTCTCTGCGCATGTCCTGGATGCCGCTGCGCCTGCAGCCCCCGTAGCCAGCTCTCGCTTTCCACCTCTCAGGGAGCAGATCAAACGGGTGAAGGACTCGGATGACGTGCCCATGGTGCTGGTGGGGAACAAGTGTGACCTGGCTGCACGCACTGTGGAATCTCGGCAGGCTCAGGACCTCGCCCGAAGCTACGGCATCCCCTACATCGAGACCTCGGCCAAGACCCGGCAGGTGAGGCAGCTCTCCACCCCACAGCTAGCCAGGGACCCGCCCCGCCCCGCCCCAGCCAGGGAGCAGCACTCACTGACCCTCTCCCTTGACACAGGGCAGCCGCTCTGGCTCTAGCTCCAGCTCCGGGACCCTCTGGGACCCCCCGGGACCCATGTGACCCAGCGGCCCCTCGCGCTGTAAGTCTCCCGGGACGGCAGGGCAGTGAGGGAGGCGAGGGCCGGGGTCTGGGCTCACGCCCTGCAGTCCTGGGCCGACACAGCTCCGGGGAAGGCGGAGGTCCTTGGGGAGAGCTGCCCTGAGCCAGGCCGGAGCGGTGACCCTGGGGCCCGGCCCCTCTTGTCCCCAGAGTGTCCCACGGGCACCTGTTGGTTCTGAGTCTTAGTGGGGCTACTGGGGACACGGGCCGTAGCTGAGTCGAGAGCTGGGTGCAGGGTGGTCAAACCCTGGCCAGACCTGGAGTTCAGGAGGGCCCCGGGCCACCCTGACCTTTGAGGGGCTGCTGTAGCATGATGCGGGTGGCCCTGGGCACTTCGAGATGGCCAGAGTCCAGCTTCCCGTGTGTGTGGTGGGCCTGGGGAAGTGGCTGGTGGAGTCGGGAGCTTCGGGCCAGGCAAGGCTTGATCCCACAGCAGGGAGCCCCTCACCCAGGCAGGCGGCCACAGGCCGGTCCCTCCTGATCCCATCCCTCCTTTCCCAGGGAGTGGAGGATGCCTTCTACACGTTGGTGCGTGAGATCCGGCAGCACAAGCTGCGGAAGCTGAACCCTCCTGATGAGAGTGGCCCCGGCTGCATGAGCTGCAAGTGTGTGCTCTCCTGACGCAGGTGAGGGGGACTCCCAGGGCGGCCGCCACGCCCACCGGATGACCCCGGCTCCCCGCCCCTGCCGGTCTCCTGGCCTGCGGTCAGCAGCCTCCCTTGTGCCCCGCCCAGCACAAGCTCAGGACATGGAGGTGCCGGATGCAGGAAGGAGGTGCAGACGGAAGGAGGAGGAAGGAAGGACGGAAGCAAGGAAGGAAGGAAGGGCTGCTGGAGCCCAGTCACCCCGGGACCGTGGGCCGAGGTGACTGCAGACCCTCCCAGGGAGGCTGTGCACAGACTGTCTTGAACATCCCAAATGCCACCGGAACCCCAGCCCTTAGCTCCCCTCCCAGGCCTCTGTGGGCCCTTGTCGGGCACAGATGGGATCACAGTAAATTATTGGATGGTCTTGATCTTGGTTTTCGGCTGAGGGTGGGACACGGTGCGCGTGTGGCCTGGCATGAGGTATGTCGGAACCTCAGGCCTGTCCAGCCCTGGGCTCTCCATAGCCTTTGGGAGGGGGAGGTTGGGAGAGGCCGGTCAGGGGTCTGGGCTGTGGTGCTCTCTCCTCCCGCCTGCCCCAGTGTCCACGGCTTCTGGCAGAGAGCTCTGGACAAGCAGGCAGATCATAAGGACAGAGAGCTTACTGTGCTTCTACCAACTAGGAGGGCGTCCTGGTCCTCCAGAGGGAGGTGGTTTCAGGGGTTGGGGATCTGTGCCGGTGGCTCTGGTCTCTGCTGGGAGCCTTCTTGGCGGTGAGAGGCATCACCTTTCCTGACTTGCTCCCAGCGTGAAATGCACCTGCCAAGAATGGCAGACATAGGGACCCCGCCTCCTGGGCCTTCACATGCCCAGTTTTCTTCGGCTCTGTGGCCTGAAGCGGTCTGTGGACCTTGGAAGTAGGGCTCCAGCACCGACTGGCCTCAGGCCTCTGCCTCATTGGTGGTCGGGTAGCGGCCAGTAGGGCGTGGGAGCCTGGCCATCCCTGCCTCCTGGAGTGGACGAGGTTGGCAGCTGGTCCGTCTGCTCCTGCCCCACTCTCCCCCGCCCCTGCCCTCACCCTACCCTTGCCCCACGCCTGCCTCATGGCTGGTTGCTCTTGGAGCCTGGTAGTGTCACTGGCTCAGCCTTGCTGGGTATACACAGGCTCTGCCACCCACTCTGCTCCAAGGGGCTTGCCCTGCCTTGGGCCAAGTTCTAGGTCTGGCCACAGCCACAGACAGCTCAGTCCCCTGTGTGGTCATCCTGGCTTCTGCTGGGGGCCCACAGCGCCCCTGGTGCCCCTCCCCTCCCAGGGCCCGGGTTGAGGCTGGGCCAGGCCCCTCTGGGACGGGGACTTGTGCCCTGTCAGGGTTCCCTATCCCTGAGGTTGGGGGAGAGCTAGCAGGGCATGCCGCTGGCTGGCCAGGGCTGCAGGGACACTCCCCCTTTTGTCCAGGGAATACCACACTCGCCCTTCTCTCCAGCGAACACCACACTCGCCCTTCTCTCCAGGGGACGCCACACTCCCCCTTCTGTCCAGGGGACGCCACACTCCCCCTTCTCTCCAGGGGACGCCACACTCGCCCTTCTCTCCAGGGGACGCCACACTCGCCCTTCTCTCCAGGGGACGCCACACTCCCCCTTCTGTCCAGGGGACGCCACACTCGCCCTTCTCTCCAGGGGACGCCACACTGGCCCTTCTCTCCAGGGGACGCCACACTCCCCCTTCTGTCCAGGGGACGCCACACTCCCCCTTCTCTCCAGGGGACGCCACACTCCCCCTTCTCTCCAGGGGACGCCACACTGGCCCTTCTCTCCAGGGGACGCCACACTCCCCCTTCTGTCCAGGGGACGCCACACTCGCCCTTCTCTCCAGGGGACGCCACACTCGCCCTTCTCTCCAGGGGACGCCACACTCCCCCTTCTCTCCAGGGGACGCCACACTCCCCCTTCTCTCCAGGGGACGCCACACTCCCCCTTCTCTCCAGGGGACGCCACACTCCCCCTTCTGTCCAGGGGACGCCACACTCGCCCTTCTCTCCAGGGGACGCCACACTCCCCCTTCTCTCCAGGGGACGCCACACTCCCCCTTCTCTCCAGGGGACGCCACACTCCCCCTTCTGTCCAGGGGACGCCACACTCGCCCTTCTCTCCAGGGGACGCCACACTCGCCCTTCTCTCCAGGGGACGCCACACTCGCCCTTCTCTCCAGGGGACGCCACACTTGCCCTTCTGTCCAGGGAATGCCACACTCCCCCTTCTCCCCAGCAGCCTCCGAGTGACCAGCTTCCCCATCGATAGACTTCCCGAGGCCAGGAGCCCTCTAGGGCTGCCGGGTGCCACCCTGGCTCCTTCCACACCGTGCTGGTCACTGCCTGCTGGGGGCGTCAGATGCAGGTGACCCTGTGCAGGAGGTATCTCTGGACCTGCC";
 
   const BASES = "TCAG";
@@ -638,37 +814,101 @@ if __name__ == <span class="s">"__main__"</span>:
   const COMP = { A: "T", T: "A", G: "C", C: "G" };
   const rc = s => { let o = ""; for (let i = s.length - 1; i >= 0; i--) o += COMP[s[i]] || "N"; return o; };
   const translate = s => { let p = ""; for (let i = 0; i + 3 <= s.length; i += 3) p += CODE[s.slice(i, i + 3)] || "X"; return p; };
-  const esc = s => s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const translateOrf = s => "M" + translate(s.slice(3));
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
   const fmt = n => n.toLocaleString("en-US");
+  const NOSTOP = "(?:(?!TAA|TAG|TGA)[ACGT]{3})";
 
   const store = {
     get(k) { try { return localStorage.getItem("orflab:" + k); } catch (e) { return null; } },
     set(k, v) { try { localStorage.setItem("orflab:" + k, v); } catch (e) {} }
   };
 
-  const state = { key: "teach", seq: TEACH, custom: "" };
-  const SEQS = { teach: () => TEACH, course: () => COURSE, custom: () => state.custom };
-  document.getElementById("sz-teach").textContent = fmt(TEACH.length) + " nt";
+  /* ---------- sequence parsing ---------- */
+  function parseGenBank(text) {
+    const lines = text.split(/\r?\n/);
+    const oi = lines.findIndex(l => /^ORIGIN/.test(l));
+    if (oi < 0) return null;
+    const seq = lines.slice(oi + 1).join("").split("//")[0].toUpperCase().replace(/[^ACGT]/g, "");
+    const locus = (text.match(/^LOCUS\s+(\S+)/m) || [])[1] || "record";
+    const def = ((text.match(/^DEFINITION\s+([\s\S]*?)\n(?=\S)/m) || [])[1] || "").replace(/\s+/g, " ").trim();
+    const acc = ((text.match(/^VERSION\s+(\S+)/m) || text.match(/^ACCESSION\s+(\S+)/m) || [])[1]) || "";
+    const cds = [];
+    const fi = lines.findIndex(l => /^FEATURES/.test(l));
+    if (fi >= 0) {
+      for (let i = fi + 1; i < oi; i++) {
+        const m = lines[i].match(/^ {5}CDS\s+(.+)$/);
+        if (!m) continue;
+        let loc = m[1].trim(), q = [];
+        let j = i + 1;
+        while (j < oi && /^ {21}/.test(lines[j])) { q.push(lines[j].trim()); j++; }
+        while (loc.endsWith(",") && q.length && !q[0].startsWith("/")) loc += q.shift();
+        const qs = q.join(" ");
+        if (/join|order/.test(loc)) continue;
+        const r = loc.match(/<?(\d+)\.\.>?(\d+)/);
+        if (!r) continue;
+        const name = (qs.match(/\/gene="([^"]+)"/) || qs.match(/\/locus_tag="([^"]+)"/) || qs.match(/\/product="([^"]+)"/) || [])[1] || "CDS";
+        const note = (qs.match(/\/(?:product|note)="([^"]+)"/) || [])[1] || "";
+        cds.push({ name, note: note.replace(/\s+/g, " "), strand: /complement/.test(loc) ? "-" : "+", start: +r[1], end: +r[2] });
+      }
+    }
+    cds.forEach(c => { const s = c.strand === "+" ? seq.slice(c.start - 1, c.start + 2) : rc(seq.slice(c.end - 3, c.end)); c.codon = s; });
+    return { seq, cds, locus, def, acc };
+  }
+  function parseAny(raw) {
+    if (/^LOCUS/m.test(raw) && /^ORIGIN/m.test(raw)) { const g = parseGenBank(raw); if (g) return g; }
+    const seq = raw.split(/\r?\n/).filter(l => !l.startsWith(">")).join("").toUpperCase().replace(/U/g, "T").replace(/[^ACGT]/g, "");
+    return { seq, cds: [], locus: "", def: "", acc: "" };
+  }
+
+  const LAC = parseGenBank(LAC_GB);
+  const RECORDS = {
+    lac: LAC,
+    course: { seq: COURSE, cds: [], locus: "triplets.txt", def: "Course file triplets.txt, frame 1. No annotation.", acc: "" },
+    custom: { seq: "", cds: [], locus: "", def: "", acc: "" }
+  };
+  const state = { key: "lac", rec: LAC, seq: LAC.seq };
+  document.getElementById("sz-lac").textContent = fmt(LAC.seq.length) + " nt";
   document.getElementById("sz-course").textContent = fmt(COURSE.length) + " nt";
 
+  /* ---------- annotation lookup ---------- */
+  // o: {strand, fs, fe} with 0-based forward coords, fe exclusive (so fs+1..fe is the GenBank range)
+  function annot(o) {
+    for (const c of state.rec.cds) {
+      if (c.strand !== o.strand) continue;
+      const sameStop = o.strand === "+" ? c.end === o.fe : c.start === o.fs + 1;
+      if (!sameStop) continue;
+      const diff = o.strand === "+" ? c.start - (o.fs + 1) : o.fe - c.end;
+      return { c, diff };
+    }
+    return null;
+  }
+  function annotTag(o) {
+    if (!state.rec.cds.length) return '<span class="muted">no annotation</span>';
+    const a = annot(o);
+    if (!a) return '<span class="tag warn">not annotated</span>';
+    if (a.diff === 0) return `<span class="tag ok"><i>${esc(a.c.name)}</i> exact</span>`;
+    const where = a.diff > 0 ? `${a.diff} nt too long` : `${-a.diff} nt too short`;
+    return `<span class="tag gb"><i>${esc(a.c.name)}</i>, start ${where}</span>`;
+  }
+
   /* ---------- regex engine ---------- */
-  function compile(pattern) {
+  function compile(pattern, flags) {
     const js = pattern.replace(/\(\?P</g, "(?<").replace(/\(\?P=(\w+)\)/g, "\\k<$1>");
-    try { return { re: new RegExp(js, "gd") }; }
+    try { return { re: new RegExp(js, flags || "gd") }; }
     catch (e) {
-      try { return { re: new RegExp(js, "g") }; }
+      try { return { re: new RegExp(js, (flags || "gd").replace("d", "")) }; }
       catch (e2) { return { error: e2.message.replace(/^Invalid regular expression: /, "") }; }
     }
   }
   function run(pattern, seq, strands) {
-    if (!pattern) return { matches: [], error: null, empty: true };
+    if (!pattern) return { matches: [], error: null };
     const c = compile(pattern);
     if (c.error) return { matches: [], error: c.error };
     const L = seq.length, matches = [];
     let truncated = false;
     for (const strand of strands) {
       const s = strand === "+" ? seq : rc(seq);
-      c.re.lastIndex = 0;
       for (const m of s.matchAll(c.re)) {
         let text = m[0], start = m.index;
         if (m.length > 1 && m[1] !== undefined) {
@@ -679,7 +919,7 @@ if __name__ == <span class="s">"__main__"</span>:
         const end = start + text.length;
         const f = strand === "+" ? [start, end] : [L - end, L - start];
         matches.push({ strand, start, end, fs: f[0], fe: f[1], text });
-        if (matches.length >= 3000) { truncated = true; break; }
+        if (matches.length >= 5000) { truncated = true; break; }
       }
       if (truncated) break;
     }
@@ -695,23 +935,32 @@ if __name__ == <span class="s">"__main__"</span>:
   const keyOf = m => m.strand + ":" + m.fs + ":" + m.fe;
 
   /* ---------- bench definitions ---------- */
-  const NOSTOP = "(?:(?!TAA|TAG|TGA)[ACGT]{3})";
+  const LOOSE_RBS = "(?:GGAG|GAGG|AGGA)[ACGT]{4,12}(?:ATG|GTG|TTG)";
   const BENCHES = {
     1: { starter: "ATG", strand: "+", ref: "ATG", presets: [["ATG", "ATG"]], orf: false },
     2: { starter: "", strand: "+", ref: "TAA|TAG|TGA", orf: false,
          presets: [["Just TAA", "TAA"], ["With a group", "T(AA|AG|GA)"]] },
     3: { starter: "ATG.*(TAA|TAG|TGA)", strand: "+", ref: "ATG(?:[ACGT]{3})*?(?:TAA|TAG|TGA)", orf: true, requireValid: true,
          presets: [["1 · Greedy", "ATG.*(TAA|TAG|TGA)"], ["2 · Lazy", "ATG.*?(?:TAA|TAG|TGA)"], ["3 · Codon steps", "ATG(?:[ACGT]{3})*?(?:TAA|TAG|TGA)"]] },
-    4: { starter: "ATG(?:[ACGT]{3})*?(?:TAA|TAG|TGA)", strand: "+", ref: "ATG" + NOSTOP + "{30,}(?:TAA|TAG|TGA)", orf: true, requireValid: true,
-         presets: [["The obvious fix", "ATG(?:[ACGT]{3}){30,}?(?:TAA|TAG|TGA)", true], ["Not-a-stop codon", "ATG(?:(?!TAA|TAG|TGA)[ACGT]{3})*(?:TAA|TAG|TGA)"]] },
-    5: { starter: "ATG(?:[ACGT]{3})*?(?:TAA|TAG|TGA)", strand: "±", ref: "(?=(ATG" + NOSTOP + "*(?:TAA|TAG|TGA)))", orf: true, requireValid: true,
-         presets: [["Step 3 pattern", "ATG(?:[ACGT]{3})*?(?:TAA|TAG|TGA)"], ["Wrap in a lookahead", "(?=(ATG(?:[ACGT]{3})*?(?:TAA|TAG|TGA)))"], ["Add a 30-codon minimum", "(?=(ATG(?:(?!TAA|TAG|TGA)[ACGT]{3}){30,}(?:TAA|TAG|TGA)))"]] },
-    7: { starter: "AGGAGG", strand: "±", ref: "AGGAGG[ACGT]{4,12}ATG", orf: false, matchEnds: true,
-         presets: [["Motif only", "AGGAGG"], ["Named groups", "(?P<rbs>AGGAGG)(?P<spacer>[ACGT]{4,12})(?P<start>ATG)"]] }
+    4: { starter: "ATG(?:[ACGT]{3})*?(?:TAA|TAG|TGA)", strand: "+", ref: "ATG" + NOSTOP + "{100,}(?:TAA|TAG|TGA)", orf: true, requireValid: true,
+         presets: [["The obvious fix", "ATG(?:[ACGT]{3}){100,}?(?:TAA|TAG|TGA)", true], ["Not-a-stop codon", "ATG(?:(?!TAA|TAG|TGA)[ACGT]{3})*(?:TAA|TAG|TGA)"]] },
+    5: { starter: "ATG" + NOSTOP + "{100,}(?:TAA|TAG|TGA)", strand: "±", ref: "(?=(ATG" + NOSTOP + "{100,}(?:TAA|TAG|TGA)))", orf: true, requireValid: true,
+         presets: [["Step 4 pattern", "ATG(?:(?!TAA|TAG|TGA)[ACGT]{3}){100,}(?:TAA|TAG|TGA)"], ["Wrap in a lookahead", "(?=(ATG(?:(?!TAA|TAG|TGA)[ACGT]{3}){100,}(?:TAA|TAG|TGA)))"]] },
+    7: { starter: "AGGAGG[ACGT]{4,12}ATG", strand: "±", orf: false, rbs: true,
+         presets: [["Textbook consensus", "AGGAGG[ACGT]{4,12}ATG"], ["Loose core, any start", LOOSE_RBS], ["Named groups", "(?P<rbs>GGAG|GAGG|AGGA)(?P<spacer>[ACGT]{4,12})(?P<start>ATG|GTG|TTG)"]] }
   };
   const done = {};
+  const strandList = v => v === "+" ? ["+"] : v === "−" ? ["-"] : ["+", "-"];
 
-  function strandList(v) { return v === "+" ? ["+"] : v === "−" ? ["-"] : ["+", "-"]; }
+  // strand-coordinate position (0-based) of a CDS start codon
+  const cdsStrandStart = c => c.strand === "+" ? c.start - 1 : state.seq.length - c.end;
+  function rbsTargets() {
+    const re = new RegExp("(?:" + LOOSE_RBS + ")$");
+    return state.rec.cds.filter(c => {
+      const s = c.strand === "+" ? state.seq : rc(state.seq), p = cdsStrandStart(c);
+      return re.test(s.slice(Math.max(0, p - 30), p + 3));
+    });
+  }
 
   function buildBench(el, id) {
     const cfg = BENCHES[id];
@@ -728,7 +977,7 @@ if __name__ == <span class="s">"__main__"</span>:
       <div class="status"><span class="pill" data-count></span><span class="pill" data-check></span><span class="checkmsg" data-msg></span></div>
       <div class="seqview" data-view aria-label="Sequence with matches highlighted"></div>
       <div class="legend"><span><i style="background:var(--primary-soft)"></i>match, + strand</span><span><i style="background:var(--primary)"></i>overlapping matches</span><span><i style="background:var(--minus-soft);box-shadow:inset 0 -3px 0 var(--minus)"></i>match, − strand</span></div>
-      <div class="tbl"><table><thead><tr><th>#</th><th>Strand</th><th>Start–end</th><th>nt</th>${cfg.orf ? "<th>Codons</th><th>ORF check</th>" : "<th>Match</th>"}</tr></thead><tbody data-rows></tbody></table></div>`;
+      <div class="tbl"><table><thead><tr><th>#</th><th>Strand</th><th>Start–end</th><th>nt</th>${cfg.orf ? "<th>Codons</th><th>ORF check</th><th>GenBank</th>" : "<th>Match</th>"}</tr></thead><tbody data-rows></tbody></table></div>`;
     const input = el.querySelector("input");
     input.value = saved !== null ? saved : cfg.starter;
     let strand = cfg.strand;
@@ -742,7 +991,7 @@ if __name__ == <span class="s">"__main__"</span>:
       input.value = cfg.presets[+b.dataset.i][1]; update(); input.focus();
     }));
     let t;
-    input.addEventListener("input", () => { clearTimeout(t); t = setTimeout(update, 120); });
+    input.addEventListener("input", () => { clearTimeout(t); t = setTimeout(update, 150); });
 
     function update() {
       store.set("pat" + id, input.value);
@@ -757,28 +1006,30 @@ if __name__ == <span class="s">"__main__"</span>:
       count.className = "pill";
       count.textContent = fmt(res.matches.length) + (res.truncated ? "+" : "") + (res.matches.length === 1 ? " match" : " matches");
       render(res.matches, seq);
-      // checker
       chk.hidden = false;
-      const ref = run(cfg.ref, seq, strands).matches;
       let ok, text;
       if (!seq.length) { ok = false; text = "Choose a sequence first."; }
-      else if (cfg.matchEnds) {
-        const want = new Set(ref.map(m => m.strand + ":" + (m.strand === "+" ? m.fe : m.fs)));
-        const got = new Set(res.matches.filter(m => m.text.endsWith("ATG")).map(m => m.strand + ":" + (m.strand === "+" ? m.fe : m.fs)));
-        const hit = [...want].filter(k => got.has(k)).length;
-        ok = want.size > 0 && hit === want.size;
-        text = ok ? `Found the start codon behind all ${want.size} Shine-Dalgarno sites.` :
-          `${hit} of ${want.size} RBS + start pairs found. Your match should end at the ATG.`;
+      else if (cfg.rbs) {
+        const targets = rbsTargets();
+        if (!state.rec.cds.length) { ok = false; text = "This sequence has no GenBank annotation to check against."; }
+        else {
+          const ends = new Set(res.matches.map(m => m.strand + ":" + m.end));
+          const hit = targets.filter(c => ends.has(c.strand + ":" + (cdsStrandStart(c) + 3)));
+          const other = res.matches.length - hit.length;
+          ok = targets.length > 0 && hit.length === targets.length;
+          text = `Ends at the start codon of ${hit.length} of ${targets.length} annotated genes with a recognisable RBS (${targets.map(c => c.name).join(", ")}). ${fmt(Math.max(0, other))} other hits.`;
+        }
       } else {
+        const ref = run(cfg.ref, seq, strands).matches;
         const want = new Set(ref.map(keyOf)), got = new Set(res.matches.map(keyOf));
         const missing = [...want].filter(k => !got.has(k)).length;
         const extra = [...got].filter(k => !want.has(k)).length;
         const invalid = cfg.requireValid ? res.matches.filter(m => orfCheck(m.text)).length : 0;
         ok = !missing && !extra && !invalid && want.size > 0;
-        if (ok) text = `All ${want.size} expected matches, nothing extra.`;
-        else if (invalid) text = `${invalid} match${invalid > 1 ? "es fail" : " fails"} the ORF check.`;
+        if (ok) text = `All ${fmt(want.size)} expected matches, nothing extra.`;
+        else if (invalid) text = `${fmt(invalid)} match${invalid > 1 ? "es fail" : " fails"} the ORF check.`;
         else if (!want.size) text = "The reference finds nothing on this sequence and strand.";
-        else text = `${want.size - missing} of ${want.size} expected` + (missing ? `, ${missing} missing` : "") + (extra ? `, ${extra} extra` : "") + ".";
+        else text = `${fmt(want.size - missing)} of ${fmt(want.size)} expected` + (missing ? `, ${fmt(missing)} missing` : "") + (extra ? `, ${fmt(extra)} extra` : "") + ".";
       }
       chk.className = "pill " + (ok ? "ok" : "bad");
       chk.textContent = ok ? "Challenge met" : "Not yet";
@@ -805,52 +1056,54 @@ if __name__ == <span class="s">"__main__"</span>:
         if (cfg.orf) {
           const bad = orfCheck(x.text);
           const cod = x.text.length % 3 ? (x.text.length / 3).toFixed(1) : String(x.text.length / 3);
-          tail = `<td class="num">${cod}</td><td>${bad ? `<span class="tag bad">${esc(bad)}</span>` : '<span class="tag ok">valid ORF</span>'}</td>`;
+          tail = `<td class="num">${cod}</td><td>${bad ? `<span class="tag bad">${esc(bad)}</span>` : '<span class="tag ok">valid ORF</span>'}</td><td>${bad ? "" : annotTag(x)}</td>`;
         } else {
           const snip = x.text.length > 24 ? x.text.slice(0, 12) + "…" + x.text.slice(-9) : x.text;
           tail = `<td><span class="snip">${snip}</span></td>`;
         }
         return `<tr><td class="num">${i + 1}</td><td>${sm}</td><td class="num">${fmt(x.fs + 1)}–${fmt(x.fe)}</td><td class="num">${fmt(x.text.length)}</td>${tail}</tr>`;
       });
-      if (matches.length > 400) rows.push(`<tr><td colspan="6" class="muted">Showing the first 400 of ${fmt(matches.length)} matches.</td></tr>`);
-      el.querySelector("[data-rows]").innerHTML = rows.join("") || `<tr><td colspan="6" class="muted">No matches.</td></tr>`;
+      if (matches.length > 400) rows.push(`<tr><td colspan="7" class="muted">Showing the first 400 of ${fmt(matches.length)} matches.</td></tr>`);
+      el.querySelector("[data-rows]").innerHTML = rows.join("") || `<tr><td colspan="7" class="muted">No matches.</td></tr>`;
     }
     return update;
   }
 
   const updaters = [];
   document.querySelectorAll("[data-bench]").forEach(el => updaters.push(buildBench(el, el.dataset.bench)));
-
   function paintNav() {
     document.querySelectorAll("#stepsNav a").forEach(a => a.classList.toggle("done", !!done[a.dataset.step]));
   }
 
-  /* ---------- translator ---------- */
-  const minEl = document.getElementById("minCodons");
-  let selected = null, orfs = [];
-  function findOrfs(seq, min) {
-    const re = new RegExp("(?=(ATG" + NOSTOP + "{" + min + ",}(?:TAA|TAG|TGA)))", "g");
-    const L = seq.length, best = new Map();
+  /* ---------- ORF grouping shared by translator and RBS picker ---------- */
+  // returns one entry per stop codon, with all in-frame candidate starts (most upstream first)
+  function orfGroups(seq, min, alt) {
+    const start = alt ? "(?:ATG|GTG|TTG)" : "ATG";
+    const re = new RegExp("(?=(" + start + NOSTOP + "{" + min + ",}(?:TAA|TAG|TGA)))", "g");
+    const L = seq.length, groups = new Map();
     for (const strand of ["+", "-"]) {
       const s = strand === "+" ? seq : rc(seq);
       for (const m of s.matchAll(re)) {
-        const k = strand + (m.index + m[1].length);
-        if (!best.has(k)) {
-          const start = m.index, end = start + m[1].length;
-          best.set(k, { strand, text: m[1], fs: strand === "+" ? start : L - end, fe: strand === "+" ? end : L - start });
-        }
+        const end = m.index + m[1].length, k = strand + end;
+        if (!groups.has(k)) groups.set(k, { strand, s, end, starts: [] });
+        groups.get(k).starts.push(m.index);
       }
     }
-    return [...best.values()].sort((a, b) => a.fs - b.fs);
+    const toOrf = (g, st) => ({ strand: g.strand, text: g.s.slice(st, g.end), fs: g.strand === "+" ? st : L - g.end, fe: g.strand === "+" ? g.end : L - st, sStart: st });
+    return [...groups.values()].map(g => ({ g, toOrf: st => toOrf(g, st) }));
   }
+
+  /* ---------- translator ---------- */
+  const minEl = document.getElementById("minCodons"), altEl = document.getElementById("altStarts");
+  let selected = null, orfs = [];
   function refreshOrfs() {
     const min = +minEl.value;
     document.getElementById("minOut").textContent = min;
-    orfs = findOrfs(state.seq, min);
+    orfs = orfGroups(state.seq, min, altEl.checked).map(x => x.toOrf(x.g.starts[0])).sort((a, b) => a.fs - b.fs);
     document.getElementById("orfCount").textContent = fmt(orfs.length) + (orfs.length === 1 ? " ORF" : " ORFs");
     const tb = document.getElementById("orfRows");
-    tb.innerHTML = orfs.map((o, i) => `<tr tabindex="0" data-i="${i}" aria-selected="false"><td><span class="strandmark ${o.strand === "+" ? "p" : "m"}">${o.strand === "+" ? "+" : "−"}</span></td><td class="num">${fmt(o.fs + 1)}–${fmt(o.fe)}</td><td class="num">${fmt(o.text.length / 3 - 1)}</td><td class="mono">${translate(o.text).slice(0, 14)}…</td></tr>`).join("")
-      || `<tr><td colspan="4" class="muted">No ORFs this long. Lower the minimum.</td></tr>`;
+    tb.innerHTML = orfs.map((o, i) => `<tr tabindex="0" data-i="${i}" aria-selected="false"><td><span class="strandmark ${o.strand === "+" ? "p" : "m"}">${o.strand === "+" ? "+" : "−"}</span></td><td class="num">${fmt(o.fs + 1)}–${fmt(o.fe)}</td><td class="num">${fmt(o.text.length / 3 - 1)}</td><td>${annotTag(o)}</td><td class="mono">${translateOrf(o.text).slice(0, 12)}…</td></tr>`).join("")
+      || `<tr><td colspan="5" class="muted">No ORFs this long. Lower the minimum.</td></tr>`;
     tb.querySelectorAll("tr[data-i]").forEach(tr => {
       const pick = () => select(+tr.dataset.i);
       tr.addEventListener("click", pick);
@@ -859,23 +1112,29 @@ if __name__ == <span class="s">"__main__"</span>:
     const again = selected ? orfs.findIndex(o => o.strand === selected.strand && o.fe === selected.fe && o.fs === selected.fs) : -1;
     select(again >= 0 ? again : orfs.length ? orfs.reduce((bi, o, i) => o.text.length > orfs[bi].text.length ? i : bi, 0) : -1);
   }
+  const blast = document.getElementById("blastLink");
+  const BLAST_BASE = "https://blast.ncbi.nlm.nih.gov/Blast.cgi?PROGRAM=blastp&PAGE_TYPE=BlastSearch";
   function select(i) {
     document.querySelectorAll("#orfRows tr[data-i]").forEach(tr => tr.setAttribute("aria-selected", String(+tr.dataset.i === i)));
     const grid = document.getElementById("codonGrid"), out = document.getElementById("protOut"), lab = document.getElementById("selLabel");
-    if (i < 0) { selected = null; grid.innerHTML = ""; out.textContent = ""; lab.textContent = "No ORF selected"; lab.className = "pill"; return; }
+    if (i < 0) { selected = null; grid.innerHTML = ""; out.textContent = ""; lab.textContent = "No ORF selected"; lab.className = "pill"; blast.href = BLAST_BASE; return; }
     selected = orfs[i];
     const t = selected.text, n = t.length / 3;
+    const a = state.rec.cds.length ? annot(selected) : null;
     lab.className = "pill ok";
-    lab.textContent = `${selected.strand === "+" ? "+" : "−"} strand, ${fmt(selected.fs + 1)}–${fmt(selected.fe)}, ${n - 1} aa`;
+    lab.textContent = `${selected.strand === "+" ? "+" : "−"} strand, ${fmt(selected.fs + 1)}–${fmt(selected.fe)}, ${n - 1} aa` + (a ? ` · ${a.c.name}` : "");
     let h = "";
     for (let k = 0; k < n; k++) {
-      const c = t.slice(k * 3, k * 3 + 3), a = CODE[c] || "X";
-      h += `<div class="cod${k === 0 ? " start" : k === n - 1 ? " stop" : ""}" title="codon ${k + 1}"><span class="n">${c}</span><span class="a">${a}</span></div>`;
+      const c = t.slice(k * 3, k * 3 + 3), aa = k === 0 ? "M" : CODE[c] || "X";
+      h += `<div class="cod${k === 0 ? " start" : k === n - 1 ? " stop" : ""}" title="codon ${k + 1}${k === 0 && c !== "ATG" ? ": " + c + " start, read as fMet" : ""}"><span class="n">${c}</span><span class="a">${aa}</span></div>`;
     }
     grid.innerHTML = h;
-    out.textContent = translate(t);
+    const prot = translateOrf(t);
+    out.textContent = prot;
+    blast.href = BLAST_BASE + "&QUERY=" + encodeURIComponent(prot.replace(/\*$/, ""));
   }
   minEl.addEventListener("input", refreshOrfs);
+  altEl.addEventListener("change", refreshOrfs);
   document.getElementById("copyProt").addEventListener("click", e => {
     const txt = document.getElementById("protOut").textContent.replace(/\*$/, "");
     copyText(txt, e.currentTarget, document.getElementById("protOut"));
@@ -884,33 +1143,155 @@ if __name__ == <span class="s">"__main__"</span>:
   const freeDna = document.getElementById("freeDna");
   function freeTranslate() {
     const s = freeDna.value.toUpperCase().replace(/U/g, "T").replace(/[^ACGT]/g, "");
-    const out = [0, 1, 2].map(f => {
+    document.getElementById("freeOut").innerHTML = [0, 1, 2].map(f => {
       const p = translate(s.slice(f));
       return `<div><b>Frame ${f + 1}</b>${p.split("").map(a => a === "*" ? '<span class="stop">*</span>' : a === "M" ? '<span class="met">M</span>' : a).join("") || '<span class="muted">(too short)</span>'}</div>`;
-    });
-    document.getElementById("freeOut").innerHTML = out.join("");
+    }).join("");
   }
   freeDna.addEventListener("input", freeTranslate);
 
+  /* ---------- random DNA for chance rates ---------- */
+  const RANDOM = (() => {
+    let a = 116; const rnd = () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+    let s = ""; for (let i = 0; i < 100000; i++) s += "ACGT"[Math.floor(rnd() * 4)]; return s;
+  })();
+
+  /* ---------- RBS start picker ---------- */
+  const rbsPat = document.getElementById("rbsPat"), rbsMin = document.getElementById("rbsMin"), rbsAlt = document.getElementById("rbsAlt");
+  const RBS_PRESETS = [["Textbook consensus", "AGGAGG[ACGT]{4,12}(?:ATG|GTG|TTG)"], ["Loose core", LOOSE_RBS], ["Loose core, 5–10 spacer", "(?:GGAG|GAGG|AGGA)[ACGT]{5,10}(?:ATG|GTG|TTG)"]];
+  document.getElementById("rbsPresets").innerHTML = RBS_PRESETS.map((p, i) => `<button type="button" data-i="${i}">${esc(p[0])}</button>`).join("");
+  document.querySelectorAll("#rbsPresets button").forEach(b => b.addEventListener("click", () => { rbsPat.value = RBS_PRESETS[+b.dataset.i][1]; refreshRbs(); }));
+  rbsPat.value = store.get("rbsPat") ?? LOOSE_RBS;
+  let chanceCache = {};
+  function refreshRbs() {
+    store.set("rbsPat", rbsPat.value);
+    document.getElementById("rbsMinOut").textContent = rbsMin.value;
+    const st = document.getElementById("rbsStatus"), tb = document.getElementById("rbsRows");
+    const c = compile("(?:" + rbsPat.value + ")$", "");
+    if (c.error || !rbsPat.value) {
+      st.innerHTML = `<span class="pill err">Pattern error</span><span class="checkmsg">${esc(c.error || "Enter a pattern.")}</span>`;
+      tb.innerHTML = ""; return;
+    }
+    const re = c.re;
+    const win = (s, p) => s.slice(Math.max(0, p - 30), p + 3);
+    const groups = orfGroups(state.seq, +rbsMin.value, rbsAlt.checked);
+    let agree = 0, annotated = 0;
+    const rows = groups.map(({ g, toOrf }) => {
+      let chosen = null, hit = null;
+      for (const p of g.starts) { const m = win(g.s, p).match(re); if (m) { chosen = p; hit = m[0]; break; } }
+      if (chosen === null) chosen = g.starts[0];
+      const o = toOrf(chosen);
+      const a = state.rec.cds.length ? annot(o) : null;
+      if (a) { annotated++; if (a.diff === 0) agree++; }
+      return { o, n: g.starts.length, hit, fs: o.fs };
+    }).sort((x, y) => x.fs - y.fs);
+    tb.innerHTML = rows.map(r => `<tr><td><span class="strandmark ${r.o.strand === "+" ? "p" : "m"}">${r.o.strand === "+" ? "+" : "−"}</span></td><td class="num">${fmt(r.o.strand === "+" ? r.o.fe : r.o.fs + 1)}</td><td class="num">${r.n}</td><td class="num">${fmt(r.o.strand === "+" ? r.o.fs + 1 : r.o.fe)} <span class="snip mono">${r.o.text.slice(0, 3)}</span></td><td class="num">${fmt(r.o.text.length / 3 - 1)}</td><td>${r.hit ? `<span class="snip">${esc(r.hit)}</span>` : '<span class="muted">none</span>'}</td><td>${annotTag(r.o)}</td></tr>`).join("")
+      || `<tr><td colspan="7" class="muted">No ORFs this long.</td></tr>`;
+    // chance rate: start codons in random DNA with a match
+    const ck = rbsPat.value + "|" + rbsAlt.checked;
+    if (!(ck in chanceCache)) {
+      const sre = rbsAlt.checked ? /(?=(?:ATG|GTG|TTG))/g : /(?=ATG)/g;
+      let total = 0, hits = 0;
+      for (const m of RANDOM.matchAll(sre)) { total++; if (re.test(win(RANDOM, m.index))) hits++; }
+      chanceCache[ck] = { total, hits };
+    }
+    const ch = chanceCache[ck];
+    const pct = ch.total ? (100 * ch.hits / ch.total).toFixed(1) : "0";
+    st.innerHTML = (state.rec.cds.length ? `<span class="pill ${agree === state.rec.cds.length ? "ok" : "bad"}">Start agrees with GenBank: ${agree} of ${state.rec.cds.length} genes</span>` : `<span class="pill">No annotation to compare</span>`)
+      + `<span class="pill">Random start codons with an RBS match: ${pct}%</span><span class="checkmsg">${fmt(ch.hits)} of ${fmt(ch.total)} in 100 kb of random DNA</span>`;
+  }
+  let rt;
+  rbsPat.addEventListener("input", () => { clearTimeout(rt); rt = setTimeout(refreshRbs, 200); });
+  rbsMin.addEventListener("input", refreshRbs);
+  rbsAlt.addEventListener("change", refreshRbs);
+
+  /* ---------- promoter explorer ---------- */
+  const box35 = document.getElementById("box35"), box10 = document.getElementById("box10"), mm = document.getElementById("mmSlider");
+  const KNOWN = [
+    { name: "lac, wild type (this record, 1210)", m35: "TTTACA", m10: "TATGTT" },
+    { name: "lacUV5 mutant (variation 1237–1238)", m35: "TTTACA", m10: "TATAAT" }
+  ];
+  function combos(n, k, from = 0, acc = [], out = []) {
+    if (acc.length === k) { out.push(acc.slice()); return out; }
+    for (let i = from; i < n; i++) { acc.push(i); combos(n, k, i + 1, acc, out); acc.pop(); }
+    return out;
+  }
+  function fuzzy(box, k) {
+    if (k === 0) return box;
+    return "(?:" + combos(box.length, Math.min(k, box.length)).map(pos => box.split("").map((b, i) => pos.includes(i) ? "[ACGT]" : b).join("")).join("|") + ")";
+  }
+  const promPattern = (a, b, k) => fuzzy(a, k) + "[ACGT]{15,19}" + fuzzy(b, k);
+  const hamming = (a, b) => { let d = 0; for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) d++; return d + Math.abs(a.length - b.length); };
+  const countHits = (pattern, seq) => {
+    const re = new RegExp("(?=" + pattern + ")", "g");
+    let n = 0; for (const s of [seq, rc(seq)]) for (const _ of s.matchAll(re)) n++;
+    return n;
+  };
+  let randCache = {};
+  function refreshPromoter() {
+    const a = box35.value.toUpperCase().replace(/[^ACGT]/g, ""), b = box10.value.toUpperCase().replace(/[^ACGT]/g, "");
+    const k = +mm.value;
+    document.getElementById("mmOut").textContent = k;
+    const st = document.getElementById("promStatus");
+    if (a.length < 4 || b.length < 4) { st.innerHTML = '<span class="pill err">Each box needs at least 4 bases</span>'; return; }
+    const pat = promPattern(a, b, k);
+    document.getElementById("promRegex").textContent = pat;
+    const inSeq = state.seq.length ? countHits(pat, state.seq) : 0;
+    let lacCaught = null;
+    if (state.key === "lac") {
+      const re = new RegExp("(?=(" + pat + "))", "g");
+      lacCaught = [...state.seq.matchAll(re)].some(m => m.index === 1209);
+    }
+    st.innerHTML = `<span class="pill">${fmt(inSeq)} hit${inSeq === 1 ? "" : "s"} in this sequence</span>` +
+      (lacCaught === null ? "" : `<span class="pill ${lacCaught ? "ok" : "bad"}">lac promoter at 1210 ${lacCaught ? "caught" : "missed"}</span>`) +
+      `<span class="checkmsg">Regex is ${fmt(pat.length)} characters long.</span>`;
+    document.getElementById("knownRows").innerHTML = KNOWN.map(p => {
+      const d1 = hamming(p.m35, a), d2 = hamming(p.m10, b), ok = d1 <= k && d2 <= k;
+      return `<tr><td>${esc(p.name)}</td><td class="mono">${p.m35}</td><td class="mono">${p.m10}</td><td class="num">${d1} + ${d2}</td><td><span class="tag ${ok ? "ok" : "bad"}">${ok ? "caught" : "missed"}</span></td></tr>`;
+    }).join("");
+    document.getElementById("mmRows").innerHTML = [0, 1, 2, 3].map(kk => {
+      const p = promPattern(a, b, kk), rk = p;
+      if (!(rk in randCache)) randCache[rk] = countHits(p, RANDOM);
+      const here = state.seq.length ? countHits(p, state.seq) : 0;
+      return `<tr${kk === k ? ' aria-selected="true" style="background:var(--primary-soft)"' : ""}><td class="num">${kk}</td><td class="num">${fmt(p.length)}</td><td class="num">${(randCache[rk] / 10).toFixed(1)}</td><td class="num">${fmt(here)}</td></tr>`;
+    }).join("");
+  }
+  [box35, box10].forEach(x => x.addEventListener("input", refreshPromoter));
+  mm.addEventListener("input", refreshPromoter);
+
   /* ---------- sequence choice ---------- */
   const customBox = document.getElementById("customBox");
+  function showRecord() {
+    const r = state.rec;
+    document.getElementById("recordInfo").innerHTML = r.seq.length
+      ? `<span class="eyebrow">Loaded</span><b>${esc(r.acc || r.locus || "Your sequence")}</b><span>${esc(r.def || "Pasted sequence")}</span><span class="muted">${fmt(r.seq.length)} bp · ${r.cds.length} annotated CDS</span>`
+      : `<span class="muted">No sequence loaded yet.</span>`;
+    document.getElementById("geneChips").innerHTML = r.cds.map(c => `<span class="gene-chip"><i>${esc(c.name)}</i>${c.strand} ${fmt(c.start)}–${fmt(c.end)} · ${c.codon} start</span>`).join("");
+  }
   function setSeq(key) {
-    state.key = key;
+    state.key = key; state.rec = RECORDS[key]; state.seq = state.rec.seq;
     document.querySelectorAll("#seqSeg button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.seq === key)));
     customBox.hidden = key !== "custom";
-    state.seq = SEQS[key]();
+    showRecord();
     updaters.forEach(u => u());
-    refreshOrfs();
+    refreshOrfs(); refreshRbs(); refreshPromoter();
   }
   document.querySelectorAll("#seqSeg button").forEach(b => b.addEventListener("click", () => {
     setSeq(b.dataset.seq);
     if (b.dataset.seq === "custom") document.getElementById("customSeq").focus();
   }));
-  document.getElementById("useCustom").addEventListener("click", () => {
-    const raw = document.getElementById("customSeq").value;
-    state.custom = raw.split(/\r?\n/).filter(l => !l.startsWith(">")).join("").toUpperCase().replace(/U/g, "T").replace(/[^ACGT]/g, "");
-    document.getElementById("customInfo").textContent = state.custom.length ? fmt(state.custom.length) + " nt loaded." : "No A, C, G or T found.";
+  function loadCustom(raw) {
+    RECORDS.custom = parseAny(raw);
+    const r = RECORDS.custom;
+    document.getElementById("customInfo").textContent = r.seq.length ? `${fmt(r.seq.length)} nt loaded, ${r.cds.length} CDS features.` : "No A, C, G or T found.";
     setSeq("custom");
+  }
+  document.getElementById("useCustom").addEventListener("click", () => loadCustom(document.getElementById("customSeq").value));
+  document.getElementById("customFile").addEventListener("change", e => {
+    const f = e.target.files && e.target.files[0]; if (!f) return;
+    const fr = new FileReader();
+    fr.onload = () => { document.getElementById("customSeq").value = fr.result; loadCustom(String(fr.result)); };
+    fr.readAsText(f);
   });
 
   /* ---------- notes & copy ---------- */
@@ -925,9 +1306,8 @@ if __name__ == <span class="s">"__main__"</span>:
       const r = document.createRange(); r.selectNodeContents(fallbackEl);
       const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); flash("Selected, press Ctrl+C");
     };
-    try {
-      navigator.clipboard.writeText(txt).then(() => flash("Copied"), selectFallback);
-    } catch (e) { selectFallback(); }
+    try { navigator.clipboard.writeText(txt).then(() => flash("Copied"), selectFallback); }
+    catch (e) { selectFallback(); }
   }
   document.querySelectorAll("pre[data-copy]").forEach(pre => {
     const b = document.createElement("button");
@@ -938,6 +1318,6 @@ if __name__ == <span class="s">"__main__"</span>:
   });
 
   freeTranslate();
-  setSeq("teach");
+  setSeq("lac");
 })();
 </script>
