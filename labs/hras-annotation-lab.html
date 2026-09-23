@@ -56,7 +56,7 @@ header.top h1{font-size:clamp(2.1rem,5.2vw,3.5rem);font-weight:800;letter-spacin
 header.top h1 em{font-style:normal;color:var(--accent)}
 header.top .lead{font-size:1.1rem;color:var(--muted);max-width:70ch}
 .hero-strip{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:grid;gap:6px}
-.pipeline{list-style:none;margin:8px 0 0;padding:0;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));border:1px solid var(--line);border-radius:10px;background:var(--panel);overflow:hidden}
+.pipeline{list-style:none;margin:8px 0 0;padding:0;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));border:1px solid var(--line);border-radius:10px;background:var(--panel);overflow:hidden}
 @media (max-width:860px){.pipeline{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media (max-width:480px){.pipeline{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .pipeline li{border-right:1px solid var(--line)}
@@ -203,7 +203,22 @@ table.hits tr.ns td{color:var(--muted)}
 .go-row code{background:none;padding:0}
 .go-row .asp{font:600 .7rem var(--mono);padding:2px 6px;border-radius:99px;border:1px solid var(--line-2);color:var(--muted)}
 
-/* section 6 */
+/* section 5: orthology */
+.rbh-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:14px}
+table.hits.rbh{min-width:0}
+table.hits.rbh tr{cursor:default}
+table.hits.rbh tr:hover td{background:none}
+table.hits.rbh tr.best td{background:var(--accent-soft);font-weight:600}
+.rbh-flow{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font:600 .9rem var(--mono)}
+.rbh-flow .node{padding:6px 10px;border:1px solid var(--line-2);border-radius:6px;background:var(--panel-2)}
+.rbh-flow .arr{color:var(--muted);font-weight:400}
+.rbh-flow .node.ok{border-color:var(--ok);color:var(--ok)}
+.rbh-flow .node.bad{border-color:var(--bad);color:var(--bad)}
+.mouse-edit{display:grid;gap:8px}
+.mouse-edit[open]{gap:10px}
+.mouse-edit summary{cursor:pointer;font-size:.9rem;color:var(--muted)}
+
+/* section 7 */
 .record{font:.74rem/1.55 var(--mono);white-space:pre;background:var(--panel-2);padding:10px 12px;border-radius:6px;overflow:auto;max-height:24em;margin:0}
 .busco{display:grid;gap:8px}
 .bus-row{display:grid;grid-template-columns:8.5em 1fr;gap:10px;align-items:center;font-size:.85rem}
@@ -226,13 +241,32 @@ dl.gloss dd{margin:2px 0 0;color:var(--muted);font-size:.93rem}
 footer.src{margin-top:64px;padding-top:16px;border-top:1px solid var(--line);font-size:.85rem;color:var(--muted);display:grid;gap:6px;max-width:80ch}
 footer.src ul{margin:0;padding-left:1.2em;display:grid;gap:4px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+/* course navigation, shared by all four BIO 116 labs */
+.course{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;padding-block:16px 0}
+.course > span{font:600 .72rem/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.course ol{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:6px}
+.course li > a,.course li > span{display:inline-flex;gap:7px;align-items:baseline;padding:5px 11px;border:1px solid var(--line);border-radius:99px;background:var(--panel);color:var(--ink);text-decoration:none;font-size:.86rem;line-height:1.3}
+.course li b{font:600 .72rem var(--mono);color:var(--muted)}
+.course li > a:hover{border-color:var(--accent);color:var(--accent)}
+.course li > span[aria-current]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+.course li > span[aria-current] b{color:inherit;opacity:.8}
+.course-next{margin-top:48px;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:12px}
+.course-next a{display:grid;gap:4px;padding:14px 16px;border:1px solid var(--line);border-radius:10px;background:var(--panel);text-decoration:none;color:var(--ink)}
+.course-next a:hover{border-color:var(--accent)}
+.course-next a:hover .cn-t{color:var(--accent)}
+.course-next .cn-d{font:600 .72rem/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.course-next .cn-t{font-family:var(--display);font-weight:700;font-size:1.15rem;line-height:1.2}
+.course-next .cn-s{font-size:.88rem;color:var(--muted)}
+.course-next a.cn-next{text-align:right}
 </style>
 
 <div class="page">
+<nav class="course" aria-label="BIO 116 labs, in order"><span>BIO 116 · Lab 4 of 4</span><ol><li><a href="https://claude.ai/artifact/K6pqdffgaSJRc9PCddFuuM" target="_blank" rel="noopener"><b>1</b>Sequencing &amp; assembly</a></li><li><a href="https://claude.ai/artifact/RGsb5xH3MCuj8K2kJZqeNf" target="_blank" rel="noopener"><b>2</b>Gene finding</a></li><li><a href="https://claude.ai/artifact/DHRSyrq2TGRQYbbcTcGwme" target="_blank" rel="noopener"><b>3</b>Genome browser</a></li><li><span aria-current="page"><b>4</b>Genome annotation</span></li></ol></nav>
 <header class="top">
   <p class="eyebrow">BIO 116 · Bioinformatics lab 4</p>
   <h1>From a gene model to an <em>annotated</em> genome</h1>
-  <p class="lead">In the last lab you found where HRAS is. Annotation is everything that comes after. You mask the repeats, write the gene model in a standard file format, weigh it against the evidence, work out what the protein does, and publish a record that other people and programs can use. The six sections follow the steps a pipeline like MAKER, BRAKER or Ensembl runs on every new genome, using the same 10,309 bases of human DNA.</p>
+  <p class="lead">In lab 2 you found where HRAS is, and in lab 3 you read its annotation in a genome browser. Annotation is everything that comes after. You mask the repeats, write the gene model in a standard file format, weigh it against the evidence, work out what the protein does, and publish a record that other people and programs can use. The seven sections follow the steps a pipeline like MAKER, BRAKER or Ensembl runs on every new genome, using the same 10,309 bases of human DNA.</p>
   <div class="hero-strip" aria-label="The annotation layers built in this lab">
     <p class="eyebrow">The annotation stack you will build · NG_007666.1</p>
     <div class="scroll"><svg id="heroSvg" viewBox="0 0 1000 118" style="min-width:560px;width:100%" role="img" aria-label="Annotation tracks across the 10,309-bp entry: interspersed repeats, simple repeats, RNA evidence, and the HRAS and LRRC56 gene models"></svg></div>
@@ -280,7 +314,7 @@ footer.src ul{margin:0;padding-left:1.2em;display:grid;gap:4px}
   <div class="st-head"><span class="st-num">2</span><div><p class="eyebrow">Section 2 · Writing it down</p><h2>GFF3: the gene model as nine columns</h2></div></div>
   <div class="st-grid">
     <div class="prose">
-      <p>An annotation only helps others if programs can read it. The standard is <b>GFF3</b>: one feature per line, nine tab-separated columns, with <b>1-based, inclusive</b> coordinates (as in the genome browser lab).</p>
+      <p>An annotation only helps others if programs can read it. The standard is <b>GFF3</b>: one feature per line, nine tab-separated columns, with <b>1-based, inclusive</b> coordinates (as in lab 3).</p>
       <p>Features form a tree through <code>ID</code> and <code>Parent</code>: a <b>gene</b> has an <b>mRNA</b>, and the mRNA has <b>exons</b> and <b>CDS</b> pieces.</p>
       <p>Column 8, <b>phase</b>, is used only on CDS lines. It is the number of bases to <em>skip</em> from the start of this CDS piece before the first complete codon begins:</p>
       <p class="formula">phase = (3 − (coding bases before this piece mod 3)) mod 3</p>
@@ -356,9 +390,45 @@ footer.src ul{margin:0;padding-left:1.2em;display:grid;gap:4px}
   </div>
 </section>
 
-<!-- ================= SECTION 5 ================= -->
+<!-- ================= SECTION 5 (orthology) ================= -->
+<section class="station" id="ortho">
+  <div class="st-head"><span class="st-num">5</span><div><p class="eyebrow">Section 5 · Functional annotation</p><h2>Name it by orthology: the reciprocal best hit</h2></div></div>
+  <div class="st-grid">
+    <div class="prose">
+      <p>Section 4 showed that a best BLAST hit cannot tell HRAS from its paralogues KRAS and NRAS. A gene name should come from its <b>orthologue</b>, the same gene in another species, separated only by speciation.</p>
+      <p>The simplest test for orthology is the <b>reciprocal best hit</b> (RBH):</p>
+      <ol>
+        <li><b>Forward:</b> search your protein against the other species' proteome and take the best hit.</li>
+        <li><b>Reverse:</b> search that hit back against your own species' proteome.</li>
+        <li>If the reverse best hit is the protein you started with, the pair is an RBH and very probably orthologous.</li>
+      </ol>
+      <p>Here the other species is the house mouse. Mouse and human diverged about 90 million years ago, long after the RAS genes duplicated. So each human RAS gene should have exactly one mouse partner.</p>
+      <p>A draft annotation can be missing genes. To see how RBH protects against that, press <b>Remove Hras from the mouse proteome</b>.</p>
+      <div class="checks" data-station="ortho"></div>
+    </div>
+    <div class="instrument">
+      <div class="inst-head"><span class="eyebrow">Reciprocal best-hit check · human model ⇄ mouse</span><button class="btn" type="button" id="dropHras" aria-pressed="false">Remove Hras from the mouse proteome</button></div>
+      <div class="inst-body">
+        <div class="rbh-flow" id="rbhFlow" aria-live="polite"></div>
+        <div class="rbh-grid">
+          <div><p class="eyebrow" style="margin-bottom:6px">1 · Forward: your model vs mouse</p><div class="scroll"><table class="hits rbh"><thead><tr><th>Mouse protein</th><th class="n">Bits</th><th>Identity</th></tr></thead><tbody id="fwdRows"></tbody></table></div></div>
+          <div><p class="eyebrow" style="margin-bottom:6px" id="revTitle">2 · Reverse: best mouse hit vs human</p><div class="scroll"><table class="hits rbh"><thead><tr><th>Human protein</th><th class="n">Bits</th><th>Identity</th></tr></thead><tbody id="revRows"></tbody></table></div></div>
+        </div>
+        <div class="status" id="rbhVerdict"></div>
+        <details class="mouse-edit">
+          <summary>Edit the mouse proteome (FASTA)</summary>
+          <p class="note">The mouse sequences start as <b>stand-ins</b>: copies of the matching human proteins, because mouse and human RAS proteins differ at only a few positions. For real data, paste the mouse sequences from UniProt (Hras Q61411, Kras P32883, Nras P08556, Rap1a P62835, Rhoa Q9QUI0) over them and press Run. Keep the names after “&gt;” so the page can match them up.</p>
+          <textarea class="gff" id="mouseFasta" spellcheck="false" aria-label="Mouse proteome in FASTA format" style="min-height:12em;white-space:pre-wrap;overflow-wrap:anywhere"></textarea>
+          <div class="presets"><button class="btn primary" type="button" id="mouseRun">Run the check again</button><button class="btn" type="button" id="mouseReset">Restore stand-ins</button></div>
+        </details>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= SECTION 6 (domains) ================= -->
 <section class="station" id="domains">
-  <div class="st-head"><span class="st-num">5</span><div><p class="eyebrow">Section 5 · Functional annotation</p><h2>Domains, motifs and Gene Ontology terms</h2></div></div>
+  <div class="st-head"><span class="st-num">6</span><div><p class="eyebrow">Section 6 · Functional annotation</p><h2>Domains, motifs and Gene Ontology terms</h2></div></div>
   <div class="st-grid">
     <div class="prose">
       <p>Whole-protein similarity can mislead: two proteins may share one domain and nothing else. So pipelines also run <b>InterProScan</b>, which searches the protein against domain models (Pfam, SMART and others) and short motif patterns (PROSITE).</p>
@@ -389,10 +459,10 @@ footer.src ul{margin:0;padding-left:1.2em;display:grid;gap:4px}
 
 <!-- ================= SECTION 6 ================= -->
 <section class="station" id="publish">
-  <div class="st-head"><span class="st-num">6</span><div><p class="eyebrow">Section 6 · Release</p><h2>Publish the record and grade the gene set</h2></div></div>
+  <div class="st-head"><span class="st-num">7</span><div><p class="eyebrow">Section 7 · Release</p><h2>Publish the record and grade the gene set</h2></div></div>
   <div class="st-grid">
     <div class="prose">
-      <p>The finished annotation combines everything: repeat features, the gene model, and functional attributes (name, product, database cross-references, GO terms). The record on the right is built from <em>your</em> work in Sections 1–5. If your GFF3 still has errors, the reference model is used and a warning is shown.</p>
+      <p>The finished annotation combines everything: repeat features, the gene model, and functional attributes (name, product, database cross-references, GO terms). The record on the right is built from <em>your</em> work in Sections 1–6. If your GFF3 still has errors, the reference model is used and a warning is shown.</p>
       <p>A whole genome has ~20,000 protein-coding genes, so nobody checks each one by hand. One standard measure of completeness is <b>BUSCO</b>. It searches the annotation for a set of genes that are present in a <b>single copy</b> in almost every species of a lineage (3,354 for vertebrates, 255 for all eukaryotes). Each is scored as:</p>
       <ul>
         <li><b>C</b>omplete: <b>S</b>ingle-copy or <b>D</b>uplicated</li>
@@ -425,10 +495,10 @@ footer.src ul{margin:0;padding-left:1.2em;display:grid;gap:4px}
     <tbody>
       <tr><th scope="row">Repeat masking</th><td>RepeatModeler (builds a species library), RepeatMasker, Dfam, TRF, DustMasker</td><td>Soft-masked FASTA, repeat GFF</td><td>Section 1</td></tr>
       <tr><th scope="row">Evidence alignment</th><td>HISAT2 / STAR (RNA-seq), StringTie, miniprot / Exonerate / GenomeThreader (proteins)</td><td>Spliced alignments, transcript models</td><td>Section 3 evidence tracks</td></tr>
-      <tr><th scope="row">Gene prediction and combining</th><td>BRAKER3 (AUGUSTUS + GeneMark), MAKER, EVidenceModeler, Ensembl gene build, NCBI Eukaryotic Genome Annotation Pipeline</td><td>Gene models in GFF3, with AED or support scores</td><td>Sections 2–3 (lab 3 did prediction)</td></tr>
-      <tr><th scope="row">Functional annotation</th><td>BLASTP / DIAMOND vs UniProt, InterProScan (Pfam, PROSITE, SMART…), eggNOG-mapper, Blast2GO</td><td>Names, products, domains, GO terms</td><td>Sections 4–5</td></tr>
-      <tr><th scope="row">Completeness and QC</th><td>BUSCO, compleasm, OMArk, AGAT statistics, GenomeTools gff3validator</td><td>C/S/D/F/M scores, format reports</td><td>Section 6</td></tr>
-      <tr><th scope="row">Viewing and curation</th><td>JBrowse 2, Apollo, IGV, table2asn for GenBank submission</td><td>Curated release</td><td>Genome browser lab</td></tr>
+      <tr><th scope="row">Gene prediction and combining</th><td>BRAKER3 (AUGUSTUS + GeneMark), MAKER, EVidenceModeler, Ensembl gene build, NCBI Eukaryotic Genome Annotation Pipeline</td><td>Gene models in GFF3, with AED or support scores</td><td>Sections 2–3 (lab 2 did prediction)</td></tr>
+      <tr><th scope="row">Functional annotation</th><td>BLASTP / DIAMOND vs UniProt, orthology (reciprocal best hits, OrthoFinder, Ensembl Compara, OMA), InterProScan (Pfam, PROSITE, SMART…), eggNOG-mapper, Blast2GO</td><td>Names, products, domains, GO terms</td><td>Sections 4–6</td></tr>
+      <tr><th scope="row">Completeness and QC</th><td>BUSCO, compleasm, OMArk, AGAT statistics, GenomeTools gff3validator</td><td>C/S/D/F/M scores, format reports</td><td>Section 7</td></tr>
+      <tr><th scope="row">Viewing and curation</th><td>JBrowse 2, Apollo, IGV, table2asn for GenBank submission</td><td>Curated release</td><td>Lab 3 (genome browser)</td></tr>
     </tbody></table></div>
 
   <div class="prose" style="margin-top:28px"><p class="eyebrow">Reference</p><h2>Key terms</h2></div>
@@ -442,6 +512,7 @@ footer.src ul{margin:0;padding-left:1.2em;display:grid;gap:4px}
     <div><dt>AED</dt><dd>Annotation Edit Distance: 1 − (SN + SP)/2 between a model and its evidence. 0 is perfect support.</dd></div>
     <div><dt>E-value</dt><dd>Expected number of chance hits at least this good, given the query and database sizes.</dd></div>
     <div><dt>Orthologue / paralogue</dt><dd>Genes related by speciation (the same gene in two species) or by duplication (e.g. HRAS, KRAS, NRAS).</dd></div>
+    <div><dt>Reciprocal best hit</dt><dd>Two genes in different species that are each other’s best search hit. A quick, widely used test for 1:1 orthology.</dd></div>
     <div><dt>PROSITE pattern</dt><dd>A short motif written as a regular expression, e.g. G-x(4)-G-K-[ST] for the P-loop.</dd></div>
     <div><dt>GO evidence code</dt><dd>How a GO term was assigned: IDA (direct assay), ISS (sequence similarity, curated), IEA (electronic, uncurated), and others.</dd></div>
     <div><dt>BUSCO</dt><dd>Benchmarking Universal Single-Copy Orthologs: the share of expected conserved genes an assembly or annotation contains.</dd></div>
@@ -455,9 +526,11 @@ footer.src ul{margin:0;padding-left:1.2em;display:grid;gap:4px}
     <li>Repeats are found in the page. Alus come from a Smith–Waterman alignment (match +2, mismatch −3, gap −5) of the AluY consensus from Dfam/Repbase, entered by hand. Simple repeats are tandem runs with a period of 1–6 bp. This finds the same kinds of element as RepeatMasker but is not identical to its output.</li>
     <li>Database proteins are human KRAS (P01116-2, isoform 4B), NRAS (P01111), RAP1A (P62834), RHOA (P61586), RAB5A (P20339), RAN (P62826) and myoglobin (P02144). They were typed in from UniProt records for teaching, so check them against UniProt before reusing them. E-values use the published BLOSUM62 gapped constants for gap costs 11/1 (λ = 0.267, K = 0.041).</li>
     <li>HRAS motif and region boundaries follow UniProt P01112 and the Ras literature. The Pfam PF00071 domain boundary is approximate. The GO terms are real terms from the HRAS record, but the evidence codes shown are for the exercise.</li>
-    <li>In Section 3, the protein evidence is an idealised alignment covering the RefSeq CDS, and models B–D are constructed teaching examples. The BUSCO results in Section 6 are simulated.</li>
+    <li>The mouse proteome in Section 5 starts as stand-ins: copies of the human RAS, RAP1A and RHOA sequences, used because the real mouse sequences could not be fetched when the page was built. Mouse and human RAS proteins differ at only a few positions, so the check gives the same answer; paste the UniProt mouse sequences into the editor to run it on real data.</li>
+    <li>In Section 3, the protein evidence is an idealised alignment covering the RefSeq CDS, and models B–D are constructed teaching examples. The BUSCO results in Section 7 are simulated.</li>
   </ul>
 </footer>
+<nav class="course-next" aria-label="Previous and next lab"><a href="https://claude.ai/artifact/DHRSyrq2TGRQYbbcTcGwme" target="_blank" rel="noopener"><span class="cn-d">← Previous · lab 3</span><span class="cn-t">Genome browser</span><span class="cn-s">Tracks, coordinates, variants and the files behind them</span></a></nav>
 </div>
 <script>
 const SEQ='CCACCCCGAGCCTAGAGAAGGCTCCTAGCTTGGCTGGGCCTCATGGGGCCCTTGTCTGCTTAGTTCCAGCCTGGAGGGCCTCACGCTCCCCTCCCCCAGCCTTGGCTCGACCCCCTCTGCTTCGTAGGACACCCTCCCTGTGTTTCTGCCCATCCTCAGGGTCCATGCAGGGAGTGCTGGCTTCAGGCCTCCCCACCTGAGGCCCACAGGGGCTGTGAGCCTGGGGTGCCGGGCCAGCTGCCGGTGGCTGTGGGGCTCCCGGCACTGCCTCAAGCTGTGGGCTATGGGTCCTTCTCCACCTGATGGTCTCTGAGCCTGGGGTCCAGGATCAAGTCCCAGGCCTTCCCCTACCCCAGCCCTGTGCCAGCCGAGCCCCTTCACCTGCAGGCAGCTGCCCTCTCCTGCTGTGGGTCAAACATCCAGGCAAGGAGGTGGCATGTACCCTCAGGCAGTACCTGCAAGAGTCAGAGTGGCTTCCTGGCCAGGTTACTGTGCCCATGGGAGCCTGGAATGGGCCAGGCTGAGGTCACAGCACCTAGAGGTGAGCAGATCAGCCCAGGACCTGACTATCCACGGACCCAGCTGGCGAGGAGGAAGAGAGTCAGGTGTGTGACCGATGCTGGGGTACCTCTGGGTCCCCCAACACAATGCCTGCTGCTCATCCAAATCCCACTTCCCTCCTTCTCCACAGGGGTCCTCTCTTGCACCCTGTTCTTCCTGAGCCCCTCCCCAGGCCTCTGAGGGTATTGGCCCAGTGTGTCCCTCTCTTGCATCCCATTCTTCCTAAGCCCAGTGTGTCCCTCGACTACGTGCATCAGGCTTACCTGGTGTTGCCCCTTAAAGATGCAGACGTCTGGCGGGGCGCAGTGGCTCACGCCTGTAATCCCAGCACTTTGGGAGGCCGCGGCGGGCAGATCACGAGGTCAGGAGATTGAGACCATCCTGGCTAACACGGTGAAACCCTGTCTCTACTAAAAATACAAAAAAAAAAAAAAAAAAATTAGCTGGCGTGGTGGCAGGTGCCTGTAGTCCCAGCTACTTGGGAGGCTGAGGCAGGAGAATGCCATGAACCCGCGAGGCGGAGCTTGCAGTGAGACAAGATCGCGCCACTGTCCTCCAGCCTGGGCAACAGAGCAAGACTCTGTCTCAAAAAAAAAAAAAAAAAAGGCTGGGTGCGGTGGCTCACACCTGTAATCCCAGCACTTTGGGAGGCTGAGGCGGGCAGATCACAAGATCAGGAGATCAAGACCATCCTGGCTAACGAGGTGAAACCCCATCTCTACTAAAGATACAAAAAACATAGTTAGCCAGGCGTGGTGGCGGACGCCTGTAGTCCCAGCTACTTGGGAGGCTGAGGCTGGGGAATGGCATGAACCCAGGAGGTGGAGCTTGCAGTGAGCCAAGATGGCACCACTGCACTCCAGCCTGGGCGACAGAGAGAGACTCCATCTCAAAAAACAAACAAACAAACAAAGATGCAGACATCTGCCTCGGCCCCAGGCCCTGGAATCATGAGCTCCAGGCGTGGAGTGACAAGTGTGCTCGGAGCGTCCAGTGTCCTCCTCCCTGACCACCTTCATGTGTCTTCAGTCTGGACCTGGACTGATCCCCTGACTGCACTCCCCACCCAGCCTTCCCAGATTTATCTTCCTGATGAGACGAGTTCCCTTCGGAGCCCTGTGTGTCTTACTACGTGTTCGGTTGAGGGCCTGCCTCGCCCCAGAGCTGTGGGCTGCACGTGGCCTGCACGTGGCCTGCGTGCTCCTCTGCTGTCCACAGTCGCAGGAGGGGATGCTCAAATATTTGTCGAAGGAATCCGTGAACAGGCAGATGCACATGTAGCCACTTAGAACGTTCTGGCCATGGCTTTTATCTGTTGACCACGTGTGGACACTGAAGATGCATCCTCTCCATCCCGTCTAGAGCTGCCCCTGTGCCAGGCGAGTTGGCCGGCTGTTGACAGAGGTGGTGGGTGGGAGTGTTGGAGCGGGGCAGTGGCTCAGGCTCTGGGTGCCTCACTGGCCTGGTCTGGAAGGTGACCATGCACCAAGGATCAAAGAAGTGAAGCCCAAAGCAGAATCTCATGGAGTTTCCAGCCCAAATCTCCCCCACTGCCTGCCTTTCTCCAGCCAGTGCAAGGCCCCAGGCCTCACAGCAGGACCCCAACACTGCATCCCCCCAAAGACTCTGGCCACCTCCATCCCAGGCCTGCCAGCCTCGAGCCTCATGGAGGGCGTGAGCTGGCGGGGTCACGGGCAGCCCCTGGACACCTATGGGTGACACTAAGGGCTGAGTCAGCTACCCTTGTCTCCTCTGTGCCCAAGAGCCCCAAGCATCAGACTGGTCTGAGCCCCAAGGCCTGGGGGTGCAAGGGGTTGGAGGCTGTGGGATCCAAAGACCCCATTGAACTCCCACCTCAGACACTGCACCTAGTGTTCTCACCCAGGCCTGAACCCATCCACACACTTCACGGCCCTGCTCCCACCCTGTGTCCCCTCTGCAAGCCCCCATGCTCCCCAAATTGGTAACTGGGGGGCCTGTCTCCACACCCCTGCTAGTGCCATTCCCTGGTGGGTAGCCATCACCTCTGGGTCCCCTGCTGCCCTCGCCCCTTCACCATGGGGGCTCGGAAGGCAGAGCCCGCTCCCCTCCTGAGCCCCACCCTGGAACCCTGAGCACCCTGGGTCATTGCCTCTGAGTCTCCCTCAGGGGCAGGGCTTGGGGCCCCTCCTGTCTCCTGACAGGGAGCCCTTTCAGTGCAGGGCCAGGGGGTGGTGGAGGCAAGGGTCCTCAGGGGACCAGATCTGACATGCGGGGCCATCACTGGGTCCCCGATGGCTGTGCTGCTTCGTCCCCGCGCCCACGCCTCGGCGCAGGTTCCCTCCTGGCACCGGTCATAGGGCGAGGCTTGCGGCTCCCACCCCAAGGGTGCGCTCGGCTCTCACCTGAGGGCTCAGCCTAGGTGTCCGGCCCTGGCAGCTCGGCCCTGGGCGCCCTCCACCTCCAGGCGCTGTCTCCTACTCCAGGCTGTTCTTCCGGCCGCCGCGGGGTTGCGGCCTGGGCGCCATAGCAACGGGAGCCAGGCCTCATTTGAATACGCAAATATTTATAAGTCGCCGGGGGCTCGGGTTCCGTGCGGCTGAGCCACGCCCCTTAGCAACGGTCGCTAGGGCGGGGCCACGTGGACTGGCACGTGCGTGGGCGCCCCTGCTGCGGGCGATCCCAGGGGAAGGTGACGCGCCACCAACTCGAGTTGGGTGGGCGCAGGCGCGTCAGGTGCCAGCTTCCTGCGGCTCCGTGCCTGGGCCGTCGCGATGCACGTGTCGCGTTTCCTCGCGATCCTGGCGCTTCCCACGCGGGGCGGGTAAAGGCGGTCTCTGCTGGAGGCTCGCGCCCACCTTTCCCAGGTGGAAGGGTCGCCCCTGGGGCCGAGGCCTGCCGTCCTGACCTTCGGTTGGAAGTGAGGCCGACGGCAAAAGGAAGCACCGGGGGAAGCGCCCCCGAGGACCAGGAAACACACACCGGACGCCGGAGCGCACCCGAGTGCCCGGCCCGCGGGACACGCTGCCGCCCGCCGTCCAGTCGCCGCTTCTCACTCGCGTTCATGCGTGTCCGCCCCGAGCCGAGCTCTGACTGCGACCGCGCGGTGGACGGACGGCAGGCGGGACCCCCGGGACCGCACGTGGGTGGAGCCCCGGGTCAGCAGCGACCGGCGCAGGAGGGCGAGGCGGGCGCTGGACTGGGCAGAGGCAGGGTTTGCCTGACTGTAAAACGCCTTTTTTGTTTTGAGACGAAGTAGCGCTCTGTTGCCCAGTGCAGTGGCGCGATTTCGGCTCACCGCAACATCCGCCTCCCGGGTTCCAGCGATTCTCCTGCCTCAGCCTCCCGAGTAGCTGGGACTACAGGCGCGCGCCACTGCAGCCGACTAATTTTTTGTGTTTTTAGTAGAGACAGGGTTTCATCATGTTGGCCAGGCTGGTCTTGAACTCCTGACCTCAAGTAATCCACCCGCTTAGGCCTCCCGAAGTGCTGGGATTATAGGCGTGAGCCACCGCGCCCGGCCCTTTTTGTTTTTTAATGAGGATGTATTTCTGATTCCTTTGCAATTTTAAAAAATGTTAAAAACATGTCTTTTTGGGTTTGAAAGAGCTAGGATGTGCGTCTATGTGCTTGGGGTGAGCCCTGGGCACTTCGCTCCCCTGTGGCAACTTGTGGGTACGGTTTAACTGGACCACGCTGAGCTTCTGCAGCGTTGGAACCTCAAGTTTGGGGGGACTGGGCGGGCAGGGTCGCCTGCCACGCAGGCCCGAGAAAGAGGAGAGTGGTGGAGGGGGCGTTCTCACGCCTGGCCCCAGGGCACACGGCTGCGCCCGCCGCCCGGAACCCCACCGGGGCTGCAAGCGTCCTCGGGGTGGGTTGCGGTGGGAGTAGGGGAGCTGGGGTGCGTGGTGGTAGGTGGGGTGCGCGGCCGCTCCACCTGCGCGGAAGGGCAGCCGGGCAACCGGACCCCGCGGCCACCCGGGGGCCCCCAGCTCCGAGCATCCCGCCTTGGTCCCGGCGGATCCCAGCCTTTCCCCAGCCCGTAGCCCCGGGACCTCCGCGGTGGGCGGCGCCGCGCTGCCGGCGCAGGGAGGGCCTCTGGTGCACCGGCACCGCTGAGTCGGGTTCTCTCGCCGGCCTGTTCCCGGGAGAGCCCGGGGCCCTGCTCGGAGATGCCGCCCCGGGCCCCCAGACACCGGCTCCCTGGCCTTCCTCGAGCAACCCCGAGCTCGGCTCCGGTCTCCAGCCAAGCCCAACCCCGAGAGGCCGCGGCCCTACTGGCTCCGCCTCCCGCGTTGCTCCCGGAAGCCCCGCCCGACCGCGGCTCCTGACAGACGGGCCGCTCAGCCAACCGGGGTGGGGCGGGGCCCGATGGCGCGCAGCCAATGGTAGGCCGCGCCTGGCAGACGGACGGGCGCGGGGCGGGGCGTGCGCAGGCCCGCCCGAGTCTCCGCCGCCCGTGCCCTGCGCCCGCAACCCGAGCCGCACCCGCCGCGGACGGAGCCCATGCGCGGGGCGAACCGCGCGCCCCCGCCCCCGCCCCGCCCCGGCCTCGGCCCCGGCCCTGGCCCCGGGGGCAGTCGCGCCTGTGAACGGTGAGTGCGGGCAGGGATCGGCCGGGCCGCGCGCCCTCCTCGCCCCCAGGCGGCAGCAATACGCGCGGCGCGGGCCGGGGGCGCGGGGCCGGCGGGCGTAAGCGGCGGCGGCGGCGGCGGCGGCGGGTGGGTGGGGCCGGGCGGGGCCCGCGGGCACAGGTGAGCGGGCGTCGGGGGCTGCGGCGGGCGGGGGCCCCTTCCTCCCTGGGGCCTGCGGGAATCCGGGCCCCACCCGTGGCCTCGCGCTGGGCACGGTCCCCACGCCGGCGTACCCGGGAGCCTCGGGCCCGGCGCCCTCACACCCGGGGGCGTCTGGGAGGAGGCGGCCGCGGCCACGGCACGCCCGGGCACCCCCGATTCAGCATCACAGGTCGCGGACCAGGCCGGGGGCCTCAGCCCCAGTGCCTTTTCCCTCTCCGGGTCTCCCGCGCCGCTTCTCGGCCCCTTCCTGTCGCTCAGTCCCTGCTTCCCAGGAGCTCCTCTGTCTTCTCCAGCTTTCTGTGGCTGAAAGATGCCCCCGGTTCCCCGCCGGGGGTGCGGGGCGCTGCCCGGGTCTGCCCTCCCCTCGGCGGCGCCTAGTACGCAGTAGGCGCTCAGCAAATACTTGTCGGAGGCACCAGCGCCGCGGGGCCTGCAGGCTGGCACTAGCCTGCCCGGGCACGCCGTGGCGCGCTCCGCCGTGGCCAGACCTGTTCTGGAGGACGGTAACCTCAGCCCTCGGGCGCCTCCCTTTAGCCTTTCTGCCGACCCAGCAGCTTCTAATTTGGGTGCGTGGTTGAGAGCGCTCAGCTGTCAGCCCTGCCTTTGAGGGCTGGGTCCCTTTTCCCATCACTGGGTCATTAAGAGCAAGTGGGGGCGAGGCGACAGCCCTCCCGCACGCTGGGTTGCAGCTGCACAGGTAGGCACGCTGCAGTCCTTGCTGCCTGGCGTTGGGGCCCAGGGACCGCTGTGGGTTTGCCCTTCAGATGGCCCTGCCAGCAGCTGCCCTGTGGGGCCTGGGGCTGGGCCTGGGCCTGGCTGAGCAGGGCCCTCCTTGGCAGGTGGGGCAGGAGACCCTGTAGGAGGACCCCGGGCCGCAGGCCCCTGAGGAGCGATGACGGAATATAAGCTGGTGGTGGTGGGCGCCGGCGGTGTGGGCAAGAGTGCGCTGACCATCCAGCTGATCCAGAACCATTTTGTGGACGAATACGACCCCACTATAGAGGTGAGCCTGGCGCCGCCGTCCAGGTGCCAGCAGCTGCTGCGGGCGAGCCCAGGACACAGCCAGGATAGGGCTGGCTGCAGCCCCTGGTCCCCTGCATGGTGCTGTGGCCCTGTCTCCTGCTTCCTCTAGAGGAGGGGAGTCCCTCGTCTCAGCACCCCAGGAGAGGAGGGGGCATGAGGGGCATGAGAGGTACCAGGGAGAGGCTGGCTGTGTGAACTCCCCCCACGGAAGGTCCTGAGGGGGTCCCTGAGCCCTGTCCTCCTGCAGGATTCCTACCGGAAGCAGGTGGTCATTGATGGGGAGACGTGCCTGTTGGACATCCTGGATACCGCCGGCCAGGAGGAGTACAGCGCCATGCGGGACCAGTACATGCGCACCGGGGAGGGCTTCCTGTGTGTGTTTGCCATCAACAACACCAAGTCTTTTGAGGACATCCACCAGTACAGGTGAACCCCGTGAGGCTGGCCCGGGAGCCCACGCCGCACAGGTGGGGCCAGGCCGGCTGCGTCCAGGCAGGGGCCTCCTGTCCTCTCTGCGCATGTCCTGGATGCCGCTGCGCCTGCAGCCCCCGTAGCCAGCTCTCGCTTTCCACCTCTCAGGGAGCAGATCAAACGGGTGAAGGACTCGGATGACGTGCCCATGGTGCTGGTGGGGAACAAGTGTGACCTGGCTGCACGCACTGTGGAATCTCGGCAGGCTCAGGACCTCGCCCGAAGCTACGGCATCCCCTACATCGAGACCTCGGCCAAGACCCGGCAGGTGAGGCAGCTCTCCACCCCACAGCTAGCCAGGGACCCGCCCCGCCCCGCCCCAGCCAGGGAGCAGCACTCACTGACCCTCTCCCTTGACACAGGGCAGCCGCTCTGGCTCTAGCTCCAGCTCCGGGACCCTCTGGGACCCCCCGGGACCCATGTGACCCAGCGGCCCCTCGCGCTGTAAGTCTCCCGGGACGGCAGGGCAGTGAGGGAGGCGAGGGCCGGGGTCTGGGCTCACGCCCTGCAGTCCTGGGCCGACACAGCTCCGGGGAAGGCGGAGGTCCTTGGGGAGAGCTGCCCTGAGCCAGGCCGGAGCGGTGACCCTGGGGCCCGGCCCCTCTTGTCCCCAGAGTGTCCCACGGGCACCTGTTGGTTCTGAGTCTTAGTGGGGCTACTGGGGACACGGGCCGTAGCTGAGTCGAGAGCTGGGTGCAGGGTGGTCAAACCCTGGCCAGACCTGGAGTTCAGGAGGGCCCCGGGCCACCCTGACCTTTGAGGGGCTGCTGTAGCATGATGCGGGTGGCCCTGGGCACTTCGAGATGGCCAGAGTCCAGCTTCCCGTGTGTGTGGTGGGCCTGGGGAAGTGGCTGGTGGAGTCGGGAGCTTCGGGCCAGGCAAGGCTTGATCCCACAGCAGGGAGCCCCTCACCCAGGCAGGCGGCCACAGGCCGGTCCCTCCTGATCCCATCCCTCCTTTCCCAGGGAGTGGAGGATGCCTTCTACACGTTGGTGCGTGAGATCCGGCAGCACAAGCTGCGGAAGCTGAACCCTCCTGATGAGAGTGGCCCCGGCTGCATGAGCTGCAAGTGTGTGCTCTCCTGACGCAGGTGAGGGGGACTCCCAGGGCGGCCGCCACGCCCACCGGATGACCCCGGCTCCCCGCCCCTGCCGGTCTCCTGGCCTGCGGTCAGCAGCCTCCCTTGTGCCCCGCCCAGCACAAGCTCAGGACATGGAGGTGCCGGATGCAGGAAGGAGGTGCAGACGGAAGGAGGAGGAAGGAAGGACGGAAGCAAGGAAGGAAGGAAGGGCTGCTGGAGCCCAGTCACCCCGGGACCGTGGGCCGAGGTGACTGCAGACCCTCCCAGGGAGGCTGTGCACAGACTGTCTTGAACATCCCAAATGCCACCGGAACCCCAGCCCTTAGCTCCCCTCCCAGGCCTCTGTGGGCCCTTGTCGGGCACAGATGGGATCACAGTAAATTATTGGATGGTCTTGATCTTGGTTTTCGGCTGAGGGTGGGACACGGTGCGCGTGTGGCCTGGCATGAGGTATGTCGGAACCTCAGGCCTGTCCAGCCCTGGGCTCTCCATAGCCTTTGGGAGGGGGAGGTTGGGAGAGGCCGGTCAGGGGTCTGGGCTGTGGTGCTCTCTCCTCCCGCCTGCCCCAGTGTCCACGGCTTCTGGCAGAGAGCTCTGGACAAGCAGGCAGATCATAAGGACAGAGAGCTTACTGTGCTTCTACCAACTAGGAGGGCGTCCTGGTCCTCCAGAGGGAGGTGGTTTCAGGGGTTGGGGATCTGTGCCGGTGGCTCTGGTCTCTGCTGGGAGCCTTCTTGGCGGTGAGAGGCATCACCTTTCCTGACTTGCTCCCAGCGTGAAATGCACCTGCCAAGAATGGCAGACATAGGGACCCCGCCTCCTGGGCCTTCACATGCCCAGTTTTCTTCGGCTCTGTGGCCTGAAGCGGTCTGTGGACCTTGGAAGTAGGGCTCCAGCACCGACTGGCCTCAGGCCTCTGCCTCATTGGTGGTCGGGTAGCGGCCAGTAGGGCGTGGGAGCCTGGCCATCCCTGCCTCCTGGAGTGGACGAGGTTGGCAGCTGGTCCGTCTGCTCCTGCCCCACTCTCCCCCGCCCCTGCCCTCACCCTACCCTTGCCCCACGCCTGCCTCATGGCTGGTTGCTCTTGGAGCCTGGTAGTGTCACTGGCTCAGCCTTGCTGGGTATACACAGGCTCTGCCACCCACTCTGCTCCAAGGGGCTTGCCCTGCCTTGGGCCAAGTTCTAGGTCTGGCCACAGCCACAGACAGCTCAGTCCCCTGTGTGGTCATCCTGGCTTCTGCTGGGGGCCCACAGCGCCCCTGGTGCCCCTCCCCTCCCAGGGCCCGGGTTGAGGCTGGGCCAGGCCCCTCTGGGACGGGGACTTGTGCCCTGTCAGGGTTCCCTATCCCTGAGGTTGGGGGAGAGCTAGCAGGGCATGCCGCTGGCTGGCCAGGGCTGCAGGGACACTCCCCCTTTTGTCCAGGGAATACCACACTCGCCCTTCTCTCCAGCGAACACCACACTCGCCCTTCTCTCCAGGGGACGCCACACTCCCCCTTCTGTCCAGGGGACGCCACACTCCCCCTTCTCTCCAGGGGACGCCACACTCGCCCTTCTCTCCAGGGGACGCCACACTCGCCCTTCTCTCCAGGGGACGCCACACTCCCCCTTCTGTCCAGGGGACGCCACACTCGCCCTTCTCTCCAGGGGACGCCACACTGGCCCTTCTCTCCAGGGGACGCCACACTCCCCCTTCTGTCCAGGGGACGCCACACTCCCCCTTCTCTCCAGGGGACGCCACACTCCCCCTTCTCTCCAGGGGACGCCACACTGGCCCTTCTCTCCAGGGGACGCCACACTCCCCCTTCTGTCCAGGGGACGCCACACTCGCCCTTCTCTCCAGGGGACGCCACACTCGCCCTTCTCTCCAGGGGACGCCACACTCCCCCTTCTCTCCAGGGGACGCCACACTCCCCCTTCTCTCCAGGGGACGCCACACTCCCCCTTCTCTCCAGGGGACGCCACACTCCCCCTTCTGTCCAGGGGACGCCACACTCGCCCTTCTCTCCAGGGGACGCCACACTCCCCCTTCTCTCCAGGGGACGCCACACTCCCCCTTCTCTCCAGGGGACGCCACACTCCCCCTTCTGTCCAGGGGACGCCACACTCGCCCTTCTCTCCAGGGGACGCCACACTCGCCCTTCTCTCCAGGGGACGCCACACTCGCCCTTCTCTCCAGGGGACGCCACACTTGCCCTTCTGTCCAGGGAATGCCACACTCCCCCTTCTCCCCAGCAGCCTCCGAGTGACCAGCTTCCCCATCGATAGACTTCCCGAGGCCAGGAGCCCTCTAGGGCTGCCGGGTGCCACCCTGGCTCCTTCCACACCGTGCTGGTCACTGCCTGCTGGGGGCGTCAGATGCAGGTGACCCTGTGCAGGAGGTATCTCTGGACCTGCC';
@@ -686,6 +759,7 @@ const STATIONS = [
   {id:'gff', t:'Write GFF3'},
   {id:'aed', t:'Weigh evidence'},
   {id:'blast', t:'Homology search'},
+  {id:'ortho', t:'Name by orthology'},
   {id:'domains', t:'Domains & GO'},
   {id:'publish', t:'Publish & QC'},
 ];
@@ -701,7 +775,7 @@ const CHECKS = {
   gff:[
     {id:'g2fix', task:true, q:'Fix all four errors so the file passes validation.'},
     {id:'g2phase', hint:'The first two CDS pieces are 111 and 179 bases. Take 290 mod 3, then apply the phase formula.', q:'What is the correct phase of the third CDS line (6,939–7,098)?', num:1, tol:0, why:'290 mod 3 = 2. One more base finishes the codon that was split by the intron, so skip 1 base: phase = 1.'},
-    {id:'g2vs', hint:'Intron phase counts the bases of the split codon that come before the intron. What does GFF phase count?', q:'In lab 3, intron 2 had phase 2. Here the CDS after it has phase 1. Why are they different?', opts:['One of them uses 0-based coordinates','They count opposite sides of the split codon. Intron phase counts the codon bases before the intron (2). CDS phase counts the bases to skip after it (1). The two add up to 3, or are both 0','GFF3 counts phase from the 3′ end of the gene','They describe different transcripts'], a:1, why:'Confusing the two is one of the commonest bugs in annotation files. GFF3 phase is always “bases to skip to the next codon start”.'},
+    {id:'g2vs', hint:'Intron phase counts the bases of the split codon that come before the intron. What does GFF phase count?', q:'In lab 2, intron 2 had phase 2. Here the CDS after it has phase 1. Why are they different?', opts:['One of them uses 0-based coordinates','They count opposite sides of the split codon. Intron phase counts the codon bases before the intron (2). CDS phase counts the bases to skip after it (1). The two add up to 3, or are both 0','GFF3 counts phase from the 3′ end of the gene','They describe different transcripts'], a:1, why:'Confusing the two is one of the commonest bugs in annotation files. GFF3 phase is always “bases to skip to the next codon start”.'},
     {id:'g2bed', hint:'BED starts count the gaps between bases from 0, so subtract 1 from the GFF start. The end stays the same.', q:'Exon 2 is 6,176–6,339 in GFF3. What is its start coordinate in a BED file?', num:6175, tol:0, why:'BED is 0-based and half-open: 6175–6339. The first error in the file was the reverse mistake, a BED start pasted into GFF.'},
   ],
   aed:[
@@ -715,7 +789,14 @@ const CHECKS = {
     {id:'b4aln', task:true, q:'Open the alignment with RHOA and find the P-loop (GxxxxGKS/T) near the start.'},
     {id:'b4id', hint:'Read the Identity column for KRAS.', q:'What is the percent identity between the query and KRAS?', num:()=>+(100*refHit('KRAS').ident).toFixed(1), tol:0.01, unit:'%', why:'The first ~165 residues (the G domain) are almost identical. The differences are mostly in the C-terminal hypervariable region, which decides where in the cell each RAS protein goes.'},
     {id:'b4e', hint:'Drag the database size slider from 10⁸ to 10¹¹ and watch the Bits and E-value columns.', q:'What happens to each E-value when the database grows from 10⁸ to 10¹¹ residues?', opts:['It gets 1,000 times smaller','It gets 1,000 times larger, while the bit score stays the same','The bit score falls and the E-value stays the same','Nothing changes'], a:1, why:'E = m · n · 2^−S′, so E grows in step with database size. The same alignment is less surprising in a bigger haystack.'},
-    {id:'b4name', hint:'HRAS, KRAS and NRAS arose from gene duplications. Which kind of relative carries the same name?', q:'The two best hits, NRAS and KRAS, are both about 86% identical. Could you name the query “HRAS” from this search alone?', opts:['Yes: name it after the best hit','Yes: the E-values are tiny','No. It is clearly a RAS-family GTPase, but HRAS, KRAS and NRAS are paralogues. A specific gene name needs orthology evidence, such as a reciprocal best hit with HRAS in a related species, or conserved gene order (synteny)','No: the E-values are too high'], a:2, why:'Naming a gene after its best BLAST hit spreads mistakes from genome to genome. Curated pipelines use orthology (e.g. Ensembl Compara, OrthoDB) and synteny instead.'},
+    {id:'b4name', hint:'HRAS, KRAS and NRAS arose from gene duplications. Which kind of relative carries the same name?', q:'The two best hits, NRAS and KRAS, are both about 86% identical. Could you name the query “HRAS” from this search alone?', opts:['Yes: name it after the best hit','Yes: the E-values are tiny','No. It is clearly a RAS-family GTPase, but HRAS, KRAS and NRAS are paralogues. A specific gene name needs orthology evidence, such as a reciprocal best hit with HRAS in a related species, or conserved gene order (synteny)','No: the E-values are too high'], a:2, why:'Naming a gene after its best BLAST hit spreads mistakes from genome to genome. Curated pipelines use orthology (e.g. Ensembl Compara, OrthoDB) and synteny instead. Section 5 runs the simplest orthology test.'},
+  ],
+  ortho:[
+    {id:'o5drop', task:true, q:'Remove Hras from the mouse proteome and read the new verdict.'},
+    {id:'o5margin', hint:'With the full mouse proteome, subtract the second row’s bits from the first row’s bits in the forward table.', q:'In the forward search, by how many bits does the best mouse hit beat the second-best?', num:()=>{ const f=orthoRun(P01112,parseFasta(MOUSE_DEFAULT)).fwd; return +(f[0].bits-f[1].bits).toFixed(1); }, tol:0.01, unit:'bits', why:'Only the hypervariable C-terminus (~25 residues) separates the RAS paralogues, so the margin is modest. When forward margins are small, orthology calls lean on extra evidence such as gene order.'},
+    {id:'o5why', hint:'With Hras removed, follow the arrows: where does the reverse search land?', q:'With Hras missing, the forward best hit becomes mouse Nras. Why is the model still not named after it?', opts:['Nras has a low E-value','Mouse Nras’s best hit in human is NRAS, not your model. The hits are not reciprocal, so Nras is a paralogue of your gene, not its orthologue','The query is too short','RBH only works for bacteria'], a:1, why:'This is the point of the reverse step. A missing gene in a draft proteome makes the closest paralogue the best forward hit, and only the reverse search exposes it.'},
+    {id:'o5syn', hint:'Look back at the hero track: which gene sits right next to HRAS in this entry?', q:'Which extra evidence would best support HRAS ⇄ Hras orthology?', opts:['A higher bit score','Conserved gene order (synteny): LRRC56 sits next to HRAS in human and next to Hras in mouse','A longer query sequence','The same GC content'], a:1, why:'Neighbouring genes that stay together across species (synteny) are independent evidence for orthology. They are especially useful when paralogues are nearly identical.'},
+    {id:'o5fish', hint:'Teleost fish went through an extra whole-genome duplication after they split from the lineage leading to mammals.', q:'Zebrafish has two HRAS genes, hrasa and hrasb. RBH can pair human HRAS with only one of them. How are the two fish genes related to HRAS?', opts:['Only the RBH partner is an orthologue; the other is unrelated','Both are co-orthologues of human HRAS: they come from the fish-specific genome duplication, after fish and mammals split. RBH misses 1:many cases, so tree-based methods such as Ensembl Compara or OrthoFinder handle them','hrasb is the orthologue of KRAS','They are pseudogenes'], a:1, why:'RBH assumes one partner per gene. After a lineage-specific duplication, orthology is one-to-many, and only a gene tree shows it.'},
   ],
   domains:[
     {id:'d5scan', task:true, q:'Write and scan a pattern that matches the CaaX box at the C-terminus of HRAS (CVLS, residues 186–189).'},
@@ -922,7 +1003,7 @@ function runSearch(){
   const m=GFF&&GFF.model;
   if (m && m.protein.length>=30 && !m.protein.includes('*')){ QUERY=m.protein; QSRC=`Query: ${QUERY.length} aa translated from your Section 2 model`+(m.match?' (identical to P01112).':' (differs from P01112; fix Section 2 to search with the real protein).'); }
   else { QUERY=P01112; QSRC=`Query: the reference HRAS protein (${QUERY.length} aa), because your Section 2 model does not translate cleanly yet.`; }
-  HITS=search(QUERY); drawHits();
+  HITS=search(QUERY); drawHits(); runOrtho();
 }
 function drawHits(){
   const n=Math.pow(10,+$('dbSize').value); $('dbSizeO').textContent='10'+sup($('dbSize').value)+' aa';
@@ -941,7 +1022,44 @@ function drawHits(){
 }
 $('dbSize').oninput=drawHits;
 
-// ================= section 5 =================
+// ================= section 5: orthology =================
+const HUMAN_PROTEOME = [{id:'HRAS', acc:'P01112', desc:'GTPase HRas', seq:P01112}, ...DB];
+const STANDIN = {Hras:['Q61411','HRAS'], Kras:['P32883','KRAS'], Nras:['P08556','NRAS'], Rap1a:['P62835','RAP1A'], Rhoa:['Q9QUI0','RHOA']};
+const MOUSE_DEFAULT = Object.entries(STANDIN).map(([m,[acc,h]]) => `>${m} mouse ${acc} (stand-in: human ${h} sequence)\n${HUMAN_PROTEOME.find(x=>x.id===h).seq.match(/.{1,60}/g).join('\n')}`).join('\n');
+function parseFasta(t){ const out=[]; let cur=null;
+  for (const line of t.split(/\r?\n/)){ if (line.startsWith('>')){ const h=line.slice(1).trim(); cur={id:h.split(/\s+/)[0]||'unnamed', desc:h, seq:''}; out.push(cur); }
+    else if (cur) cur.seq+=line.toUpperCase().replace(/[^A-Z]/g,''); }
+  return out.filter(x=>x.seq.length>=20); }
+function orthoRun(query, mouse){
+  const hitList=(q,db)=>db.map(d=>{ const r=swProt(q,d.seq); return {...d, score:r.score, bits:bits(r.score), ident:r.cols?r.nid/r.cols:0}; }).sort((a,b)=>b.score-a.score);
+  const fwd=hitList(query,mouse); if (!fwd.length) return {fwd, rev:[], rbh:false};
+  const rev=hitList(fwd[0].seq,HUMAN_PROTEOME);
+  const tie=(l)=>l.length>1 && Math.abs(l[0].score-l[1].score)<1e-9;
+  return {fwd, rev, rbh:rev[0].id==='HRAS' && !tie(fwd) && !tie(rev), tieF:tie(fwd), tieR:tie(rev)};
+}
+let ORTHO=null, dropHras=false;
+$('mouseFasta').value=MOUSE_DEFAULT;
+function runOrtho(){
+  let mouse=parseFasta($('mouseFasta').value);
+  if (dropHras) mouse=mouse.filter(m=>m.id.toLowerCase()!=='hras');
+  const v=$('rbhVerdict');
+  if (!mouse.length){ v.className='status bad'; v.textContent='The mouse proteome is empty. Restore the stand-ins or paste FASTA records.'; $('fwdRows').innerHTML=$('revRows').innerHTML=$('rbhFlow').innerHTML=''; ORTHO=null; return; }
+  ORTHO=orthoRun(QUERY, mouse);
+  const {fwd,rev,rbh}=ORTHO, b=fwd[0], r=rev[0];
+  const row=(h,i)=>`<tr class="${i===0?'best':''}"><td><b>${esc(h.id)}</b></td><td class="n">${h.bits.toFixed(1)}</td><td><span class="idbar" style="width:${Math.round(50*h.ident)}px"></span><span class="mono">${pct(h.ident)}</span></td></tr>`;
+  $('fwdRows').innerHTML=fwd.map(row).join('');
+  $('revTitle').textContent=`2 · Reverse: mouse ${b.id} vs human`;
+  $('revRows').innerHTML=rev.map(row).join('');
+  $('rbhFlow').innerHTML=`<span class="node">your model</span><span class="arr">→ best mouse hit →</span><span class="node">${esc(b.id)}</span><span class="arr">→ best human hit →</span><span class="node ${rbh?'ok':'bad'}">${esc(r.id)}</span><span class="arr">${rbh?'= your model ✓':'≠ your model ✗'}</span>`;
+  if (ORTHO.tieF||ORTHO.tieR){ v.className='status warn'; v.textContent='Two hits score exactly the same, so there is no single best hit and RBH cannot decide. Look at synteny or build a gene tree.'; }
+  else if (rbh){ v.className='status ok'; v.innerHTML=`Reciprocal best hit: your model ⇄ mouse <b>${esc(b.id)}</b>. They are very probably 1:1 orthologues, so the model takes the orthologous name, <b>HRAS</b> (human symbols are approved by HGNC).`; }
+  else { v.className='status bad'; v.innerHTML=`Not reciprocal. Your model's best mouse hit is <b>${esc(b.id)}</b>, but ${esc(b.id)}'s best human hit is <b>${esc(r.id)}</b>, not your model. ${esc(b.id)} is a paralogue here, so do not transfer its name. The true orthologue is probably missing from this mouse annotation.`; }
+}
+$('dropHras').onclick=()=>{ dropHras=!dropHras; $('dropHras').setAttribute('aria-pressed',dropHras); $('dropHras').textContent=dropHras?'Put Hras back':'Remove Hras from the mouse proteome'; runOrtho(); renderRecord(); if (dropHras) markDone('o5drop'); };
+$('mouseRun').onclick=()=>{ runOrtho(); renderRecord(); };
+$('mouseReset').onclick=()=>{ $('mouseFasta').value=MOUSE_DEFAULT; runOrtho(); renderRecord(); };
+
+// ================= section 6 =================
 const HFEAT = [
   {a:10,b:17,n:'G1 · P-loop',s:'GAGGVGKS',m:1},{a:35,b:35,n:'G2',s:'T35',m:1},{a:57,b:60,n:'G3',s:'DTAG',m:1},{a:116,b:119,n:'G4',s:'NKCD',m:1},{a:145,b:147,n:'G5',s:'SAK',m:1},{a:186,b:189,n:'CaaX',s:'CVLS',m:1},
 ];
@@ -990,11 +1108,11 @@ function renderGO(){
   $('goList').innerHTML=GO.map((g,i)=>`<div class="go-row"><code>${g.id}</code><span>${g.t} <span class="note">· evidence ${g.ev}</span></span><select id="go-${i}" aria-label="Aspect for ${g.t}"><option value="">aspect…</option><option${done&&g.asp==='MF'?' selected':''}>MF</option><option${done&&g.asp==='BP'?' selected':''}>BP</option><option${done&&g.asp==='CC'?' selected':''}>CC</option></select></div>`).join('')+
     `<div class="presets"><button class="btn" type="button" id="goCheck">Check aspects</button></div><div class="status" id="goMsg">${done?'All five aspects are correct.':'MF = what the protein does at the molecular level; BP = which larger process it takes part in; CC = where in the cell it is.'}</div>`;
   $('goCheck').onclick=()=>{ const wrong=GO.filter((g,i)=>$('go-'+i).value!==g.asp); const m=$('goMsg');
-    if (!wrong.length){ m.className='status ok'; m.textContent='All five aspects are correct. These terms go into the record in Section 6.'; markDone('d5go'); }
+    if (!wrong.length){ m.className='status ok'; m.textContent='All five aspects are correct. These terms go into the record in Section 7.'; markDone('d5go'); }
     else { m.className='status bad'; m.textContent=`${wrong.length} not right yet: ${wrong.map(g=>g.t).join(', ')}.`; } };
 }
 
-// ================= section 6 =================
+// ================= section 7 =================
 const pe = s => String(s).replace(/%/g,'%25').replace(/;/g,'%3B').replace(/=/g,'%3D').replace(/&/g,'%26').replace(/,/g,'%2C');
 function renderRecord(){
   const m=GFF&&GFF.model, ok=GFF && !GFF.errs.length && m && m.match;
@@ -1006,7 +1124,7 @@ function renderRecord(){
     ? row('lab-scan','dispersed_repeat',r.a,r.b,r.score,r.strand==='+'?'+':'-','.',`ID=rep-${i+1};Name=AluY;rpt_family=Alu;Note=${pe(Math.round(100*r.ident)+'% identity to consensus '+r.qa+'-'+r.qb)}`)
     : row('lab-scan','tandem_repeat',r.a,r.b,'.','+','.',`ID=rep-${i+1};rpt_unit_seq=${r.unit.toLowerCase()}`));
   L.push('# gene model'+(ok?' (from your Section 2 file)':' (reference: your Section 2 file does not pass yet)'));
-  row('RefSeq','gene',ex[0][0],ex[ex.length-1][1],'.','+','.','ID=gene-HRAS;Name=HRAS;description=HRas proto-oncogene%2C GTPase;Dbxref=GeneID:3265,HGNC:HGNC:5173');
+  row('RefSeq','gene',ex[0][0],ex[ex.length-1][1],'.','+','.','ID=gene-HRAS;Name=HRAS;description=HRas proto-oncogene%2C GTPase;Dbxref=GeneID:3265,HGNC:HGNC:5173'+(ORTHO&&ORTHO.rbh?`;Note=${pe(`orthologue of mouse ${ORTHO.fwd[0].id} (reciprocal best hit)`)}`:''));
   row('RefSeq','mRNA',ex[0][0],ex[ex.length-1][1],'.','+','.','ID=rna-NM_005343.4;Parent=gene-HRAS;Name=NM_005343.4;product=GTPase HRas');
   ex.forEach(([a,b],i)=>row('RefSeq','exon',a,b,'.','+','.',`ID=exon-${i+1};Parent=rna-NM_005343.4`));
   const goIds=GO.map(g=>g.id).join(',');
