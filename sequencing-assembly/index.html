@@ -266,7 +266,7 @@ footer.src ul{margin:0;padding-left:1.2em;display:grid;gap:4px}
   <div class="st-grid">
     <div class="prose">
       <p>The genome is sheared into ~300–500 bp fragments and adapters are ligated on (a <b>library</b>). Each fragment is copied in place on a glass <b>flow cell</b> into a <b>cluster</b> of ~1,000 identical molecules, so its signal is bright enough to photograph.</p>
-      <p>Each <b>cycle</b>, the sequencer adds all four nucleotides, each with its own dye and a <em>reversible</em> terminator. Every strand adds exactly one base. A camera images the tile, then the dye and the block are cleaved off. One cycle = one base, for billions of clusters at once.</p>
+      <p>Each <b>cycle</b>, the sequencer adds all four nucleotides, each with its own dye and a <em>reversible</em> terminator. (Newer instruments tell the four bases apart with just two dyes; this simulation shows the classic four.) Every strand adds exactly one base. A camera images the tile, then the dye and the block are cleaved off. One cycle = one base, for billions of clusters at once.</p>
       <p>Over time some molecules in a cluster fall a cycle behind (<b>phasing</b>) or jump ahead. The colour gets muddier and the base caller trusts it less. That confidence is the <b>Phred quality score</b>:</p>
       <p class="formula">Q = −10 · log₁₀(P<sub>error</sub>)   Q20 = 1 in 100 · Q30 = 1 in 1,000</p>
       <div class="checks" data-station="illumina"></div>
@@ -351,15 +351,15 @@ footer.src ul{margin:0;padding-left:1.2em;display:grid;gap:4px}
         <li>each <b>node</b> is a (k−1)-mer,</li>
         <li>each <b>k-mer</b> is an edge from its prefix to its suffix.</li>
       </ul>
-      <p>A walk that uses every edge exactly once (an <b>Eulerian path</b>) spells out the genome. Unlike the path OLC needs, it can be found quickly.</p>
-      <p>The catch is <b>repeats</b>. If a (k−1)-mer occurs twice in the genome, the two copies merge into one node and the graph gets a fork or a loop. Then several different walks use every edge, and the k-mers alone can't tell you which one is the real genome. Try a small k on the HRAS preset, where codons 10–12 are <span class="mono">GTG GTG GTG</span>.</p>
+      <p>A walk that uses every edge exactly once (an <b>Eulerian path</b>) spells out the genome. It can be found in linear time. OLC's layout instead needs a path that visits every <em>read</em> once (a Hamiltonian path), which is computationally hard.</p>
+      <p>The catch is <b>repeats</b>. If a (k−1)-mer occurs twice in the genome, the two copies merge into one node and the graph gets a fork or a loop. Then several different walks use every edge, and the k-mers alone can't tell you which one is the real genome. Try a small k on the HRAS preset, where codons 7–9 are <span class="mono">GTG GTG GTG</span>.</p>
       <div class="checks" data-station="debruijn"></div>
     </div>
     <div class="instrument">
       <div class="inst-head"><span class="eyebrow">De Bruijn graph builder</span><button class="btn primary" id="walk" type="button">Walk the path</button></div>
       <div class="inst-body">
         <div class="ctl">
-          <label for="dbgPreset">Sequence <select id="dbgPreset"><option value="CTGGTGGTGGTGGGCGCC">HRAS codons 6–12</option><option value="TAATGCCATGGGATGTT">Textbook example</option><option value="ATGACGGAATATAAGCTG">HRAS codons 1–6 (no repeats)</option><option value="custom">Type my own…</option></select></label>
+          <label for="dbgPreset">Sequence <select id="dbgPreset"><option value="CTGGTGGTGGTGGGCGCC">HRAS codons 6–11</option><option value="TAATGCCATGGGATGTT">Textbook example</option><option value="ATGACGGAATATAAGCTG">HRAS codons 1–6</option><option value="custom">Type my own…</option></select></label>
           <label for="kSlider">k <input type="range" id="kSlider" min="3" max="12" value="3" style="width:120px"><output id="kO">3</output></label>
         </div>
         <div class="ctl" id="customRow" hidden><input type="text" id="dbgCustom" maxlength="40" spellcheck="false" aria-label="Custom DNA sequence, 8 to 40 bases" placeholder="8–40 bases of A, C, G, T"><button class="btn" id="dbgApply" type="button">Build graph</button></div>
@@ -379,7 +379,7 @@ footer.src ul{margin:0;padding-left:1.2em;display:grid;gap:4px}
   <div class="st-head"><span class="st-num">6</span><div><p class="eyebrow">Station 6 · Finishing</p><h2>Repeats, long reads and N50</h2></div></div>
   <div class="st-grid">
     <div class="prose">
-      <p>About half the human genome is repeats. There are ~1.2 million <b>Alu</b> elements (~300 bp each). The HRAS entry has two of them, near positions 880 and 1,190. There are also tandem arrays like the <b>HRAS1 minisatellite</b>: a 28-bp unit repeated ~25 times over ~700 bp, just downstream of the gene.</p>
+      <p>About half the human genome is repeats. There are ~1.2 million <b>Alu</b> elements (~300 bp each). The HRAS entry has two of them back to back, at about positions 855–1,470. There are also tandem arrays like the <b>HRAS1 minisatellite</b>: a 28-bp unit repeated ~25 times over ~700 bp, just downstream of the gene.</p>
       <p>A read that falls entirely inside a repeat could have come from any copy. Short-read assemblers <b>collapse</b> such repeats into one copy and break the contig at each end. The fix is a read long enough to <b>span</b> the whole repeat and anchor in unique sequence on both sides.</p>
       <p>That's why PacBio HiFi and Oxford Nanopore reads (10 kb to over 1 Mb) made the first truly complete, gap-free human genome possible: <b>T2T-CHM13</b> (2022).</p>
       <p>Assemblies are compared by <b>N50</b>. Sort contigs longest to shortest and add up their lengths. N50 is the length of the contig at which the running total first reaches half the assembly size. Higher is more contiguous.</p>
@@ -439,7 +439,7 @@ footer.src ul{margin:0;padding-left:1.2em;display:grid;gap:4px}
   <ul>
     <li>All sequence is the 10,309-bp human HRAS genomic entry in this course's <code>triplets.txt</code>, the same entry and numbering as the genome browser lab. The coding sequence comes from the four coding exons aligned to HRAS p21 (UniProt P01112).</li>
     <li>The chromatogram, flow-cell images and quality scores are <b>simulated</b> to show how each instrument behaves. The G12V change (c.35G&gt;T) is a real, common HRAS hotspot mutation.</li>
-    <li>Station 3 and 6 reads are drawn at random start positions without errors. Real reads also carry errors, which assemblers have to correct.</li>
+    <li>Station 3 and 6 reads start at random positions and have no errors. The entry sits inside chromosome 11, so reads can hang off either end; only the part on the entry is drawn and counted. Real reads also carry errors, which assemblers have to correct.</li>
   </ul>
 </footer>
 </div>
@@ -496,7 +496,7 @@ const CHECKS = {
     {id:'s4q1', q:'Your 64-bp contig was built from 7 × 16 = 112 bases of reads. Why is the contig shorter?', opts:['Overlapping bases are shared between neighbouring reads and counted once in the contig','Some reads were discarded as low quality','The assembler trims 3′ ends','The contig is circular'], a:0, why:'Six overlaps totalling 48 bases: 112 − 48 = 64.'},
   ],
   debruijn:[
-    {id:'s5q1', q:'For the preset “HRAS codons 6–12”, what is the smallest k that gives exactly one possible genome?', num:() => dbgKmin, tol:0, why:'Below this k, some (k−1)-mer inside GTGGTGGTGG repeats. The graph gets a loop, and walks around it a different number of times still use every edge.'},
+    {id:'s5q1', q:'For the preset “HRAS codons 6–11”, what is the smallest k that gives exactly one possible genome?', num:() => dbgKmin, tol:0, why:'Below this k, some (k−1)-mers inside GTGGTGGTG occur more than once. They merge into shared nodes, the graph forks and loops, and more than one walk uses every edge.'},
     {id:'s5q2', q:'Why do real assemblers use k ≈ 31–127 rather than a very large k?', opts:['k must be shorter than the reads, and a longer k-mer is more likely to contain an error','Large k makes the graph have more forks','Eulerian paths only exist for odd k below 128','Memory use falls as k grows'], a:0, why:'Larger k resolves more repeats, but every k-mer must fit inside a read and be error-free. Assemblers balance the two, and SPAdes tries several k values.'},
   ],
   repeats:[
@@ -546,7 +546,7 @@ function renderChecks(){
           d.appendChild(row); const fb=document.createElement('div'); fb.className='fb'; d.appendChild(fb);
           const go = () => { const v=parseFloat(row.querySelector('input').value.replace(/,/g,'')); const ans = typeof c.num==='function' ? c.num() : c.num;
             if (isNaN(v)){ fb.className='fb bad'; fb.textContent='Enter a number.'; return; }
-            const ok = c.tol ? Math.abs(v-ans)/ans <= c.tol : v===ans;
+            const ok = (c.tol ? Math.abs(v-ans)/ans <= c.tol : v===ans) || (c.id==='s2q2' && v===0.001);
             if (ok){ fb.className='fb ok'; fb.textContent='Correct. '+c.why; markDone(c.id); } else { fb.className='fb bad'; fb.textContent= typeof c.num==='function' ? 'Not yet. Move the k slider and watch the verdict under the graph.' : 'Not quite. Check your arithmetic and units.'; } };
           row.querySelector('button').onclick=go; row.querySelector('input').onkeydown=e=>{ if(e.key==='Enter') go(); };
           if (state[c.id]){ row.querySelector('input').value = typeof c.num==='function' ? c.num() : c.num; fb.className='fb ok'; fb.textContent=c.why; }
@@ -644,8 +644,8 @@ const clusters = Array.from({length:NCL},(_,j)=>{
   for (const c of clusters){ let x,y,tries=0; do { x=24+rnd()*252; y=30+rnd()*150; tries++; } while (tries<200 && pts.some(p=>Math.hypot(p[0]-x,p[1]-y)<46)); pts.push([x,y]); c.x=x; c.y=y; }
 }
 let cyc=0;
-function lagFrac(j,c){ return j===PHASED ? Math.min(0.46, 0.012*Math.pow(c,1.35)) : 0.0006*c; }
-function qOf(j,c){ const f=lagFrac(j,c); const p=f*0.9+0.00025; return Math.max(2, Math.round(-10*Math.log10(p))); }
+function lagFrac(j,c){ return j===PHASED ? Math.min(0.46, 0.012*Math.pow(c,1.35)) : 0.00005*c; }
+function qOf(j,c){ const f=lagFrac(j,c); const p=f*0.9+0.0002; return Math.max(2, Math.round(-10*Math.log10(p))); }
 function drawTile(){
   const svg=$('tile'); svg.innerHTML='';
   svg.appendChild(el('text',{x:8,y:14,class:'tile-lbl'}, cyc? `tile 1101 · cycle ${cyc} image` : 'tile 1101 · before cycle 1'));
@@ -688,7 +688,7 @@ let covSeed = 1;
 function drawCoverage(){
   const L=+$('rlen').value, N=+$('rnum').value; $('rlenO').textContent=L+' bp'; $('rnumO').textContent=N;
   const rnd=mulberry(covSeed*977+L); const reads=[];
-  for (let i=0;i<N;i++){ const s=Math.floor(rnd()*(G-L+1)); reads.push([s,s+L]); }
+  for (let i=0;i<N;i++){ const s=Math.floor(rnd()*(G+L-1))-L+1; reads.push([Math.max(0,s),Math.min(G,s+L)]); }
   reads.sort((a,b)=>a[0]-b[0]);
   const depth=new Int32Array(G+1); for (const [s,e] of reads){ depth[s]++; depth[e]--; }
   for (let i=1;i<=G;i++) depth[i]+=depth[i-1];
@@ -719,10 +719,10 @@ function drawCoverage(){
   svg.appendChild(el('line',{x1:X0,x2:X1,y1:cy0+cyH+2,y2:cy0+cyH+2,class:'axis-l'}));
   for (let t=0;t<=10000;t+=2000){ svg.appendChild(el('text',{x:sx(t),y:cy0+cyH+2+12,class:'axis-t','text-anchor':t===0?'start':'middle'},fmt(t))); }
   // stats
-  const C=N*L/G; const pct=covered/G*100;
+  const onG=reads.reduce((t,[s,e])=>t+e-s,0); const C=onG/G; const pct=covered/G*100;
   $('covStats').innerHTML = [
-    ['Bases sequenced', fmt(N*L)], ['Coverage C = NL/G', C.toFixed(1)+'×'], ['Bases covered', pct.toFixed(pct>99.9&&pct<100?2:1)+'%'],
-    ['Gaps', gaps.length], ['Predicted uncovered, e^−C', (Math.exp(-C)*100).toFixed(C>5?2:1)+'%']
+    ['Bases on the entry', fmt(onG)], ['Coverage C = bases / G', C.toFixed(1)+'×'], ['Bases covered', pct.toFixed(pct>99.9&&pct<100?2:1)+'%'],
+    ['Gaps', gaps.length], ['Predicted uncovered, e^−C', Math.exp(-C)<1e-4 ? '< 0.01%' : (Math.exp(-C)*100).toFixed(C>5?2:1)+'%']
   ].map(([k,v])=>`<div><dt>${k}</dt><dd>${v}</dd></div>`).join('');
   if (gaps.length===0) markDone('s3gap');
 }
@@ -849,7 +849,7 @@ $('dbgApply').onclick=applyCustom; $('dbgCustom').onkeydown=e=>{ if(e.key==='Ent
 const WIN=[8600, G], ANCH=30; let repSeed=1;
 function drawRepeats(){
   const L=+$('lrLen').value; $('lrLenO').textContent=L+' bp';
-  const span=WIN[1]-WIN[0]; const N=Math.max(8, Math.round(15*span/L));
+  const span=WIN[1]-WIN[0]; const N=Math.max(8, Math.round(15*(span+L-1)/L));
   const rnd=mulberry(repSeed*131+L); const reads=[];
   for (let i=0;i<N;i++){ const s=WIN[0]-L+1+Math.floor(rnd()*(span+L-1)); const a=Math.max(WIN[0],s), b=Math.min(WIN[1],s+L); if (b-a>=40) reads.push([s,s+L]); }
   reads.sort((a,b)=>a[0]-b[0]);
