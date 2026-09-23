@@ -691,7 +691,7 @@ promoter_re = re.compile(<span class="s">"(?=("</span> + fuzzy(<span class="s">"
       <h2>Your ORF finder</h2>
     </div>
     <div class="prose">
-      <p>Write a script that reads the GenBank file <code>data/J01636_lac_operon.gb</code>, finds candidate genes of at least 100 codons on both strands, picks a start for each using the RBS, translates it, and compares every call with the annotated CDS features. Try it yourself first. The minimal goal (both strands, overlaps, a length cutoff, translation) is <code>find_candidate_genes.py</code> in the course repository: a written-out codon table plus about 20 lines of code. The full reference answer, with the RBS and the GenBank comparison, is in the drawer below.</p>
+      <p>Start from the FASTA file <code>data/J01636_lac_operon.fasta</code>. Write a script that reads it, finds candidate genes of at least 100 codons on both strands, and translates them. Then compare your list with the GenBank annotation (the gene chips at the top of this page). Try it yourself first. The minimal goal (both strands, overlaps, a length cutoff, translation) is <code>find_candidate_genes.py</code> in the course repository: a written-out codon table plus about 20 lines of code. The full reference answer in the drawer below goes further: it reads the GenBank version, picks starts using the RBS, and compares every call with the annotated CDS features.</p>
       <h3>Extensions</h3>
       <ul>
         <li><b>Score your finder.</b> Count true positives, false positives and missed genes against the annotation. Change <code>MIN_CODONS</code> and <code>STARTS</code> and see how the counts move.</li>
@@ -899,7 +899,7 @@ genome = {codon: f for aa, family in shares.items() if aa != <span class="s">"*"
 
   <footer>
     <div>Bio116 Bioinformatics · Regex ORF Lab (draft)</div>
-    <div>Sequence and annotation: GenBank <a href="https://www.ncbi.nlm.nih.gov/nuccore/J01636.1" target="_blank" rel="noopener">J01636.1</a>, <i>E. coli</i> lactose operon (7,477 bp), also in the course repository as <code>data/J01636_lac_operon.gb</code>. <code>triplets.txt</code> is the course file, frame 1. To test patterns with full Python syntax, use <a href="https://regex101.com/?flavor=python" target="_blank" rel="noopener">regex101 (Python flavor)</a>.</div>
+    <div>Sequence and annotation: GenBank <a href="https://www.ncbi.nlm.nih.gov/nuccore/J01636.1" target="_blank" rel="noopener">J01636.1</a>, <i>E. coli</i> lactose operon (7,477 bp), also in the course repository as <code>data/J01636_lac_operon.fasta</code> (sequence only) and <code>data/J01636_lac_operon.gb</code> (with annotation). <code>triplets.txt</code> is the course file, frame 1. To test patterns with full Python syntax, use <a href="https://regex101.com/?flavor=python" target="_blank" rel="noopener">regex101 (Python flavor)</a>.</div>
   </footer>
 </main>
 

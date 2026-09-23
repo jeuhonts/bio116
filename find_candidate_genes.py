@@ -36,9 +36,9 @@ CODE = {
     "GTG": "V",  "GCG": "A",  "GAG": "E",  "GGG": "G",
 }
 
-# DNA from the GenBank file: the lines after ORIGIN, keeping only the bases
-text = open("data/J01636_lac_operon.gb").read()
-seq = re.sub("[^acgt]", "", text.split("\nORIGIN")[1].split("\n", 1)[1]).upper()
+# DNA from the FASTA file: skip the ">" header line, join the rest into one string
+lines = open("data/J01636_lac_operon.fasta").read().splitlines()
+seq = "".join(line.strip() for line in lines if not line.startswith(">")).upper()
 
 # The other strand: complement every base, then read it backwards
 other = seq.translate(str.maketrans("ACGT", "TGCA"))[::-1]
@@ -51,7 +51,7 @@ for strand, dna in (("+", seq), ("-", other)):
     for end, orf in longest.items():
         if len(orf) < 3 * MIN_CODONS:              # too short to count as a candidate gene
             continue
-        protein = "".join(CODE[orf[i:i + 3]] for i in range(0, len(orf) - 3, 3))   # skip the stop
-        # GenBank-style positions on the + strand
+        protein = "".join(CODE.get(orf[i:i + 3], "X") for i in range(0, len(orf) - 3, 3))   # skip the stop; X = unknown (e.g. N)
+        # positions on the + strand, counting from 1 (the same numbering GenBank uses)
         first, last = (end - len(orf) + 1, end) if strand == "+" else (len(seq) - end + 1, len(seq) - end + len(orf))
         print(f"{first}..{last} ({strand})  {len(protein)} aa  {protein[:40]}...")
