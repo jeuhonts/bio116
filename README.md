@@ -21,3 +21,6 @@ Python, run from the repository root:
 
 Step 9 (optional) scores ORFs by codon usage. Its genome-wide *E. coli* K-12 table comes from the
 Kazusa Codon Usage Database via the `python_codon_tables` package (CC0).
+
+`orf-map.html` maps the ORFs that three versions of the regex find in the lac operon (the lookahead
+version from the lab, and two common online versions without a lookahead) against the GenBank genes.

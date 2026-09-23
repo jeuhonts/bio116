@@ -1,0 +1,119 @@
+<title>lac ORF Map</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,750&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+<style>
+:root {
+  --bg: #F2F5F1; --surface: #FFFFFF; --surface-2: #E6ECE6; --ink: #17231F; --muted: #56675F; --line: #CBD7CF;
+  --gene: #2F6FA3; --orf: #0E8A5F; --accent: #C2185B; --accent-soft: #F9D5E3;
+  --display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", sans-serif;
+  --body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #0E1512; --surface: #151F1B; --surface-2: #1D2A25; --ink: #E2ECE7; --muted: #95A89F; --line: #2B3B34;
+    --gene: #4F8CC9; --orf: #2FA271; --accent: #F2709E; --accent-soft: #4A1D2E;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0E1512; --surface: #151F1B; --surface-2: #1D2A25; --ink: #E2ECE7; --muted: #95A89F; --line: #2B3B34;
+  --gene: #4F8CC9; --orf: #2FA271; --accent: #F2709E; --accent-soft: #4A1D2E;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font: 400 16px/1.6 var(--body); padding-inline: 16px; padding-block: 36px 56px; }
+.wrap { max-width: 1080px; margin: 0 auto; display: grid; gap: 22px; }
+h1, h2 { font-family: var(--display); margin: 0; line-height: 1.12; text-wrap: balance; }
+h1 { font-size: clamp(2rem, 5vw, 3rem); font-weight: 750; letter-spacing: -0.02em; }
+h2 { font-size: 1.35rem; font-weight: 750; }
+p { margin: 0; max-width: 72ch; }
+.eyebrow { font: 600 0.75rem/1 var(--body); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.muted { color: var(--muted); }
+code { font-family: var(--mono); font-size: 0.88em; background: var(--surface-2); padding: 0.05em 0.35em; border-radius: 4px; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 12px; }
+.scroll { overflow-x: auto; }
+.scroll svg { min-width: 820px; display: block; }
+svg .axis { stroke: var(--muted); stroke-width: 1; }
+svg .tick { font: 400 11px var(--mono); fill: var(--muted); }
+svg .rowt { font: 600 13px var(--body); fill: var(--ink); }
+svg .rows { font: 400 11px var(--body); fill: var(--muted); }
+svg .lane { font: 600 13px var(--mono); fill: var(--muted); }
+svg .lanel { stroke: var(--line); stroke-width: 1; }
+svg .gene { fill: var(--gene); }
+svg .orf { fill: var(--orf); }
+svg .other { fill: var(--orf); fill-opacity: 0.22; stroke: var(--orf); stroke-width: 1.2; }
+svg .miss { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 1.4; stroke-dasharray: 3 2; }
+svg .glab { font: 500 11px var(--body); fill: var(--ink); }
+svg .olab { font: 400 10px var(--mono); fill: var(--muted); }
+svg .guide { stroke: var(--accent); stroke-width: 1; stroke-dasharray: 2 3; opacity: 0.7; }
+svg .gl { font: 500 10.5px var(--mono); fill: var(--accent); }
+svg g:hover polygon, svg g:hover rect { filter: brightness(1.15); }
+.legend { display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: 0.82rem; color: var(--muted); align-items: center; }
+.sw { display: inline-block; width: 22px; height: 11px; border-radius: 2px; vertical-align: -1px; margin-right: 6px; }
+.patterns { display: grid; gap: 6px; font-size: 0.88rem; }
+.patterns div { display: grid; grid-template-columns: 13em 1fr; gap: 10px; align-items: baseline; }
+.patterns code { white-space: nowrap; overflow-x: auto; display: block; }
+@media (max-width: 640px) { .patterns div { grid-template-columns: 1fr; gap: 2px; } }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; display: grid; gap: 6px; align-content: start; }
+.card h3 { margin: 0; font: 600 1rem/1.3 var(--body); }
+.card .big { font: 500 1.05rem var(--mono); color: var(--accent); font-variant-numeric: tabular-nums; }
+table { border-collapse: collapse; width: 100%; font-size: 0.88rem; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+th { font: 600 0.72rem var(--body); letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); background: var(--surface-2); }
+td.num { font-family: var(--mono); text-align: right; }
+td.diff { color: var(--accent); font-weight: 600; }
+td.strand { font-family: var(--mono); font-weight: 600; }
+</style>
+
+<main class="wrap">
+  <div class="eyebrow">Bio116 · Regex ORF Lab · companion</div>
+  <h1>lac ORF Map</h1>
+  <p>Three versions of the ORF regex run on both strands of the <i>E. coli</i> lac operon (GenBank J01636.1, 7,477 bp), each keeping ORFs of at least 100 codons. The top row is the GenBank annotation. The versions agree everywhere except where one ORF hides the start codon of another.</p>
+
+  <section class="panel" aria-label="ORF map">
+    <div class="scroll"><svg viewBox="0 0 1000 654" width="100%" role="img" aria-label="Map of ORFs found by three regex versions compared with the GenBank genes of the lac operon"><line x1="191.8" y1="46" x2="191.8" y2="634" class="guide"/><line x1="210.0" y1="46" x2="210.0" y2="634" class="guide"/><line x1="647.7" y1="46" x2="647.7" y2="634" class="guide"/><line x1="674.4" y1="46" x2="674.4" y2="634" class="guide"/><line x1="170" y1="30" x2="980" y2="30" class="axis"/><line x1="170.0" y1="25" x2="170.0" y2="30" class="axis"/><text x="170.0" y="21" class="tick" text-anchor="start">1</text><line x1="278.2" y1="25" x2="278.2" y2="30" class="axis"/><text x="278.2" y="21" class="tick" text-anchor="middle">1,000</text><line x1="386.6" y1="25" x2="386.6" y2="30" class="axis"/><text x="386.6" y="21" class="tick" text-anchor="middle">2,000</text><line x1="494.9" y1="25" x2="494.9" y2="30" class="axis"/><text x="494.9" y="21" class="tick" text-anchor="middle">3,000</text><line x1="603.3" y1="25" x2="603.3" y2="30" class="axis"/><text x="603.3" y="21" class="tick" text-anchor="middle">4,000</text><line x1="711.6" y1="25" x2="711.6" y2="30" class="axis"/><text x="711.6" y="21" class="tick" text-anchor="middle">5,000</text><line x1="820.0" y1="25" x2="820.0" y2="30" class="axis"/><text x="820.0" y="21" class="tick" text-anchor="middle">6,000</text><line x1="980.0" y1="25" x2="980.0" y2="30" class="axis"/><text x="980.0" y="21" class="tick" text-anchor="end">7,477</text><text x="0" y="60" class="rowt">GenBank CDS</text><text x="0" y="75" class="rows">J01636.1 annotation</text><text x="160" y="95" class="lane" text-anchor="end">+</text><text x="160" y="131" class="lane" text-anchor="end">−</text><line x1="170" y1="117" x2="980" y2="117" class="lanel"/><g><polygon points="178.5,84 288.7,84 295.7,91.0 288.7,98 178.5,98" class="gene"/><title>lacI: 79–1,161 (+), GTG start</title></g><text x="237.1" y="81" class="glab" text-anchor="middle"><tspan font-style="italic">lacI</tspan> · GTG</text><g><polygon points="309.0,84 635.1,84 642.1,91.0 635.1,98 309.0,98" class="gene"/><title>lacZ: 1,284–4,358 (+), ATG start</title></g><text x="475.5" y="81" class="glab" text-anchor="middle"><tspan font-style="italic">lacZ</tspan> · ATG</text><g><polygon points="647.7,84 776.5,84 783.5,91.0 776.5,98 647.7,98" class="gene"/><title>lacY: 4,410–5,663 (+), ATG start</title></g><text x="715.6" y="81" class="glab" text-anchor="middle"><tspan font-style="italic">lacY</tspan> · ATG</text><g><polygon points="790.4,84 849.6,84 856.6,91.0 849.6,98 790.4,98" class="gene"/><title>lacA: 5,727–6,338 (+), TTG start</title></g><text x="823.5" y="81" class="glab" text-anchor="middle"><tspan font-style="italic">lacA</tspan> · TTG</text><text x="0" y="188" class="rowt">Lookahead regex</text><text x="0" y="203" class="rows">lab script; Biopython: same</text><text x="160" y="223" class="lane" text-anchor="end">+</text><text x="160" y="289" class="lane" text-anchor="end">−</text><line x1="170" y1="275" x2="980" y2="275" class="lanel"/><g><polygon points="171.2,212 198.5,212 205.5,219.0 198.5,226 171.2,226" class="other"/><title>12–329 (+), 105 aa: not an annotated gene</title></g><text x="188.4" y="209" class="olab" text-anchor="middle">12–329</text><g><rect x="178.5" y="242" width="13.3" height="14" class="miss"/><polygon points="191.8,242 288.7,242 295.7,249.0 288.7,256 191.8,256" class="orf"/><title>202–1,161 (+), 319 aa: lacI starting 123 bp after the GenBank start (79)</title></g><text x="237.1" y="239" class="glab" text-anchor="middle"><tspan font-style="italic">lacI</tspan> from 202</text><g><polygon points="309.0,212 635.1,212 642.1,219.0 635.1,226 309.0,226" class="orf"/><title>1,284–4,358 (+), 1024 aa: matches lacZ exactly</title></g><text x="475.5" y="209" class="glab" text-anchor="middle"><tspan font-style="italic">lacZ</tspan> ✓</text><g><polygon points="647.7,212 776.5,212 783.5,219.0 776.5,226 647.7,226" class="orf"/><title>4,410–5,663 (+), 417 aa: matches lacY exactly</title></g><text x="715.6" y="209" class="glab" text-anchor="middle"><tspan font-style="italic">lacY</tspan> ✓</text><g><rect x="790.4" y="212" width="1.5" height="14" class="miss"/><polygon points="791.0,212 849.6,212 856.6,219.0 849.6,226 791.0,226" class="orf"/><title>5,733–6,338 (+), 201 aa: lacA starting 6 bp after the GenBank start (5,727)</title></g><text x="823.5" y="209" class="glab" text-anchor="middle"><tspan font-style="italic">lacA</tspan> from 5,733</text><g><polygon points="915.1,278 874.8,278 867.8,285.0 874.8,292 915.1,292" class="other"/><title>6,441–6,878 (-), 145 aa: not an annotated gene</title></g><text x="891.4" y="275" class="olab" text-anchor="middle">6,441–6,878</text><g><polygon points="552.6,278 525.9,278 518.9,285.0 525.9,292 552.6,292" class="other"/><title>3,221–3,532 (-), 103 aa: not an annotated gene</title></g><text x="535.7" y="275" class="olab" text-anchor="middle">3,221–3,532</text><g><polygon points="437.6,278 410.6,278 403.6,285.0 410.6,292 437.6,292" class="other"/><title>2,157–2,471 (-), 104 aa: not an annotated gene</title></g><text x="420.6" y="275" class="olab" text-anchor="middle">2,157–2,471</text><text x="0" y="346" class="rowt">Online regex, {100,}</text><text x="0" y="361" class="rows">finditer, no lookahead</text><text x="160" y="381" class="lane" text-anchor="end">+</text><text x="160" y="447" class="lane" text-anchor="end">−</text><line x1="170" y1="433" x2="980" y2="433" class="lanel"/><g><polygon points="171.2,370 198.5,370 205.5,377.0 198.5,384 171.2,384" class="other"/><title>12–329 (+), 105 aa: not an annotated gene</title></g><text x="188.4" y="367" class="olab" text-anchor="middle">12–329</text><g><rect x="178.5" y="400" width="31.5" height="14" class="miss"/><polygon points="210.0,400 288.7,400 295.7,407.0 288.7,414 210.0,414" class="orf"/><title>370–1,161 (+), 263 aa: lacI starting 291 bp after the GenBank start (79)</title></g><text x="237.1" y="397" class="glab" text-anchor="middle"><tspan font-style="italic">lacI</tspan> from 370</text><g><polygon points="309.0,370 635.1,370 642.1,377.0 635.1,384 309.0,384" class="orf"/><title>1,284–4,358 (+), 1024 aa: matches lacZ exactly</title></g><text x="475.5" y="367" class="glab" text-anchor="middle"><tspan font-style="italic">lacZ</tspan> ✓</text><g><polygon points="647.7,370 776.5,370 783.5,377.0 776.5,384 647.7,384" class="orf"/><title>4,410–5,663 (+), 417 aa: matches lacY exactly</title></g><text x="715.6" y="367" class="glab" text-anchor="middle"><tspan font-style="italic">lacY</tspan> ✓</text><g><rect x="790.4" y="370" width="1.5" height="14" class="miss"/><polygon points="791.0,370 849.6,370 856.6,377.0 849.6,384 791.0,384" class="orf"/><title>5,733–6,338 (+), 201 aa: lacA starting 6 bp after the GenBank start (5,727)</title></g><text x="823.5" y="367" class="glab" text-anchor="middle"><tspan font-style="italic">lacA</tspan> from 5,733</text><g><polygon points="915.1,436 874.8,436 867.8,443.0 874.8,450 915.1,450" class="other"/><title>6,441–6,878 (-), 145 aa: not an annotated gene</title></g><text x="891.4" y="433" class="olab" text-anchor="middle">6,441–6,878</text><g><polygon points="552.6,436 525.9,436 518.9,443.0 525.9,450 552.6,450" class="other"/><title>3,221–3,532 (-), 103 aa: not an annotated gene</title></g><text x="535.7" y="433" class="olab" text-anchor="middle">3,221–3,532</text><g><polygon points="437.6,436 410.6,436 403.6,443.0 410.6,450 437.6,450" class="other"/><title>2,157–2,471 (-), 104 aa: not an annotated gene</title></g><text x="420.6" y="433" class="olab" text-anchor="middle">2,157–2,471</text><text x="0" y="504" class="rowt">Online regex, + then filter</text><text x="0" y="519" class="rows">finditer, filter ≥ 100 after</text><text x="160" y="539" class="lane" text-anchor="end">+</text><text x="160" y="605" class="lane" text-anchor="end">−</text><line x1="170" y1="591" x2="980" y2="591" class="lanel"/><g><polygon points="171.2,528 198.5,528 205.5,535.0 198.5,542 171.2,542" class="other"/><title>12–329 (+), 105 aa: not an annotated gene</title></g><text x="188.4" y="525" class="olab" text-anchor="middle">12–329</text><g><rect x="178.5" y="558" width="31.5" height="14" class="miss"/><polygon points="210.0,558 288.7,558 295.7,565.0 288.7,572 210.0,572" class="orf"/><title>370–1,161 (+), 263 aa: lacI starting 291 bp after the GenBank start (79)</title></g><text x="237.1" y="555" class="glab" text-anchor="middle"><tspan font-style="italic">lacI</tspan> from 370</text><g><polygon points="309.0,528 635.1,528 642.1,535.0 635.1,542 309.0,542" class="orf"/><title>1,284–4,358 (+), 1024 aa: matches lacZ exactly</title></g><text x="475.5" y="525" class="glab" text-anchor="middle"><tspan font-style="italic">lacZ</tspan> ✓</text><g><rect x="647.7" y="528" width="26.7" height="14" class="miss"/><polygon points="674.4,528 776.5,528 783.5,535.0 776.5,542 674.4,542" class="orf"/><title>4,656–5,663 (+), 335 aa: lacY starting 246 bp after the GenBank start (4,410)</title></g><text x="715.6" y="525" class="glab" text-anchor="middle"><tspan font-style="italic">lacY</tspan> from 4,656</text><g><rect x="790.4" y="528" width="1.5" height="14" class="miss"/><polygon points="791.0,528 849.6,528 856.6,535.0 849.6,542 791.0,542" class="orf"/><title>5,733–6,338 (+), 201 aa: lacA starting 6 bp after the GenBank start (5,727)</title></g><text x="823.5" y="525" class="glab" text-anchor="middle"><tspan font-style="italic">lacA</tspan> from 5,733</text><g><polygon points="915.1,594 874.8,594 867.8,601.0 874.8,608 915.1,608" class="other"/><title>6,441–6,878 (-), 145 aa: not an annotated gene</title></g><text x="891.4" y="591" class="olab" text-anchor="middle">6,441–6,878</text><g><polygon points="552.6,594 525.9,594 518.9,601.0 525.9,608 552.6,608" class="other"/><title>3,221–3,532 (-), 103 aa: not an annotated gene</title></g><text x="535.7" y="591" class="olab" text-anchor="middle">3,221–3,532</text><g><polygon points="437.6,594 410.6,594 403.6,601.0 410.6,608 437.6,608" class="other"/><title>2,157–2,471 (-), 104 aa: not an annotated gene</title></g><text x="420.6" y="591" class="olab" text-anchor="middle">2,157–2,471</text><text x="188.8" y="646" class="gl" text-anchor="end">202</text><text x="213.0" y="646" class="gl" text-anchor="start">370</text><text x="644.7" y="646" class="gl" text-anchor="end">4,410</text><text x="677.4" y="646" class="gl" text-anchor="start">4,656</text></svg></div>
+    <div class="legend">
+      <span><span class="sw" style="background:var(--gene)"></span>GenBank gene</span>
+      <span><span class="sw" style="background:var(--orf)"></span>ORF with the same stop as a gene</span>
+      <span><span class="sw" style="background:var(--accent-soft);outline:1.4px dashed var(--accent);outline-offset:-1.4px"></span>part of the gene the ORF misses</span>
+      <span><span class="sw" style="background:color-mix(in srgb, var(--orf) 22%, transparent);outline:1.2px solid var(--orf);outline-offset:-1.2px"></span>ORF that is not an annotated gene</span>
+      <span>Arrows point in the reading direction. Hover a bar for its coordinates.</span>
+    </div>
+    <div class="patterns">
+      <div><b>Lookahead regex</b><code>(?=(ATG(?:(?!TAA|TAG|TGA)...){100,}(?:TAA|TAG|TGA)))</code></div>
+      <div><b>Online regex, {100,}</b><code>ATG((?!TAG|TAA|TGA)...){100,}(TAG|TAA|TGA)</code></div>
+      <div><b>Online regex, + then filter</b><code>ATG((?!TAG|TAA|TGA)...)+(TAG|TAA|TGA)</code></div>
+    </div>
+  </section>
+
+  <h2>Where the versions disagree</h2>
+  <div class="cards">
+    <div class="card">
+      <h3><i>lacI</i>: 202 or 370?</h3>
+      <div class="big">202 → 370</div>
+      <p>The ORF at 12–329 (frame 2) covers the ATG at 202 that starts the <i>lacI</i> ORF (frame 0). Without a lookahead the search resumes at 330, so both online versions start <i>lacI</i> at the next ATG in its frame, 370.</p>
+    </div>
+    <div class="card">
+      <h3><i>lacY</i>: 4410 or 4656?</h3>
+      <div class="big">4410 → 4656</div>
+      <p>With <code>+</code>, short ORFs count during the search. A 46-codon ORF at 4376–4516 in another frame uses up <i>lacY</i>'s real ATG at 4410. The later filter removes that short ORF, but the damage is done. <code>{100,}</code> avoids this one only because that ORF is too short to match.</p>
+    </div>
+    <div class="card">
+      <h3>What no ATG regex can fix</h3>
+      <div class="big">GTG 79 · TTG 5727</div>
+      <p><i>lacI</i> starts at GTG and <i>lacA</i> at TTG, so every version reports them short, by 123 and 6 bp. Allowing alternative starts and checking the RBS (lab step 7) is the next step.</p>
+    </div>
+  </div>
+
+  <section class="panel" aria-label="ORF table">
+    <h2>All ORFs, side by side</h2>
+    <div class="scroll"><table>
+      <thead><tr><th>Strand</th><th>GenBank gene</th><th>Lookahead regex</th><th>Online, {100,}</th><th>Online, + then filter</th></tr></thead>
+      <tbody><tr><td class="strand">+</td><td><span class="muted">not annotated</span></td><td class="num">12–329</td><td class="num">12–329</td><td class="num">12–329</td></tr><tr><td class="strand">+</td><td><i>lacI</i> (79–1,161)</td><td class="num">202–1,161</td><td class="num diff">370–1,161</td><td class="num diff">370–1,161</td></tr><tr><td class="strand">+</td><td><i>lacZ</i> (1,284–4,358)</td><td class="num">1,284–4,358</td><td class="num">1,284–4,358</td><td class="num">1,284–4,358</td></tr><tr><td class="strand">−</td><td><span class="muted">not annotated</span></td><td class="num">2,157–2,471</td><td class="num">2,157–2,471</td><td class="num">2,157–2,471</td></tr><tr><td class="strand">−</td><td><span class="muted">not annotated</span></td><td class="num">3,221–3,532</td><td class="num">3,221–3,532</td><td class="num">3,221–3,532</td></tr><tr><td class="strand">+</td><td><i>lacY</i> (4,410–5,663)</td><td class="num">4,410–5,663</td><td class="num">4,410–5,663</td><td class="num diff">4,656–5,663</td></tr><tr><td class="strand">+</td><td><i>lacA</i> (5,727–6,338)</td><td class="num">5,733–6,338</td><td class="num">5,733–6,338</td><td class="num">5,733–6,338</td></tr><tr><td class="strand">−</td><td><span class="muted">not annotated</span></td><td class="num">6,441–6,878</td><td class="num">6,441–6,878</td><td class="num">6,441–6,878</td></tr></tbody>
+    </table></div>
+    <p class="muted" style="font-size:.85rem">Coordinates are 1-based on the + strand, like GenBank's. Pink: differs from the lookahead version. All three versions use the same stop codons; only the starts move.</p>
+  </section>
+</main>
