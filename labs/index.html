@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>BIO 116 HRAS Labs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@112,700;112,800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@400;600&display=swap">
+</head>
+<body>
+<style>
+:root{
+  --ground:#F3F3F0; --panel:#FFFFFF; --panel-2:#E9E9E4; --ink:#1B1C1A; --muted:#5A5C56;
+  --line:#D9D9D2; --line-2:#B8B9B1;
+  --l1:#7A2E5E; --l2:#0D6A5B; --l3:#2B3A94; --l4:#A0461C;
+  --ok:#1F7F41; --cds:#1B1C1A;
+  --display:'Archivo','Arial Narrow','Segoe UI',system-ui,sans-serif;
+  --body:'Atkinson Hyperlegible','Segoe UI',system-ui,-apple-system,sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --ground:#121311; --panel:#1B1C1A; --panel-2:#252622; --ink:#E8E8E3; --muted:#A3A59D;
+    --line:#2F302C; --line-2:#474942;
+    --l1:#E59AC4; --l2:#6ED3BF; --l3:#9CA8F4; --l4:#F0A27A;
+    --ok:#5CC77E; --cds:#E8E8E3;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --ground:#121311; --panel:#1B1C1A; --panel-2:#252622; --ink:#E8E8E3; --muted:#A3A59D;
+  --line:#2F302C; --line-2:#474942;
+  --l1:#E59AC4; --l2:#6ED3BF; --l3:#9CA8F4; --l4:#F0A27A;
+  --ok:#5CC77E; --cds:#E8E8E3;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--ground);color:var(--ink);font:16px/1.58 var(--body);padding-inline:clamp(16px,4vw,48px);padding-block:44px 64px}
+.page{max-width:1080px;margin:0 auto;display:grid;gap:36px}
+h1,h2,h3{font-family:var(--display);font-stretch:112%;margin:0;line-height:1.08;text-wrap:balance}
+p{margin:0}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--l3);outline-offset:3px}
+.eyebrow{font:600 .74rem/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+
+header{display:grid;gap:14px}
+header h1{font-size:clamp(2.3rem,6vw,4rem);font-weight:800;letter-spacing:-.02em;max-width:15ch}
+header .lead{font-size:1.12rem;color:var(--muted);max-width:66ch}
+
+.locus{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px 10px;display:grid;gap:6px}
+.locus svg{display:block;width:100%;min-width:620px}
+.scroll{overflow-x:auto}
+.axis-l{stroke:var(--line-2)}
+.axis-t{font:10px var(--mono);fill:var(--muted)}
+.cds{fill:var(--cds)}.utr{fill:var(--cds);opacity:.45}.intron{stroke:var(--muted)}
+.lab-lbl{font:600 11px var(--body)}
+.lead-l{stroke-width:1.5;fill:none}
+.note{font-size:.86rem;color:var(--muted)}
+
+ol.labs{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;counter-reset:lab}
+@media (max-width:760px){ol.labs{grid-template-columns:minmax(0,1fr)}}
+.lab{--c:var(--l1);background:var(--panel);border:1px solid var(--line);border-top:5px solid var(--c);border-radius:10px;display:grid;grid-template-rows:auto 1fr auto;min-width:0}
+.lab[data-n="2"]{--c:var(--l2)}.lab[data-n="3"]{--c:var(--l3)}.lab[data-n="4"]{--c:var(--l4)}
+.lab-top{padding:18px 20px 0;display:grid;grid-template-columns:auto 1fr;gap:4px 16px;align-items:start}
+.num{font:800 3.2rem/.85 var(--display);font-stretch:112%;color:var(--c);grid-row:span 2}
+.lab h2{font-size:1.45rem;font-weight:800}
+.lab .q{color:var(--muted);font-size:.95rem}
+.lab-body{padding:14px 20px 16px;display:grid;gap:12px;align-content:start}
+.lab-body > p{font-size:.95rem}
+ul.topics{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:6px}
+ul.topics li{font-size:.8rem;padding:3px 9px;border:1px solid var(--line);border-radius:99px;background:var(--panel-2)}
+.lab-foot{border-top:1px solid var(--line);padding:12px 20px;display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;justify-content:space-between}
+.meta{font:.8rem var(--mono);color:var(--muted);font-variant-numeric:tabular-nums}
+.prog{display:grid;gap:4px;min-width:140px;flex:1 1 160px}
+.bar{height:5px;border-radius:99px;background:var(--panel-2);overflow:hidden}
+.bar > i{display:block;height:100%;width:0;background:var(--ok)}
+.open{display:inline-flex;align-items:center;gap:8px;padding:8px 16px;border-radius:6px;background:var(--c);color:var(--panel);font-weight:700;text-decoration:none;white-space:nowrap}
+.open:hover{filter:brightness(1.08)}
+.flag{font:600 .7rem var(--mono);letter-spacing:.06em;text-transform:uppercase;color:var(--c);border:1px solid var(--c);border-radius:4px;padding:2px 6px;justify-self:start}
+
+.info{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px;border-top:2px solid var(--ink);padding-top:18px}
+@media (max-width:760px){.info{grid-template-columns:minmax(0,1fr)}}
+.info h3{font-size:1.05rem;margin-bottom:6px}
+.info p{font-size:.93rem;color:var(--muted)}
+.info button{font:inherit;font-size:.85rem;background:none;border:0;padding:0;color:var(--ink);text-decoration:underline;cursor:pointer;margin-top:6px}
+footer{font-size:.82rem;color:var(--muted)}
+</style>
+
+<div class="page">
+<header>
+  <p class="eyebrow">BIO 116 · Bioinformatics</p>
+  <h1>One gene, four labs</h1>
+  <p class="lead">These four interactive labs follow a single piece of human DNA: 10,309 bases of chromosome 11 around <b>HRAS</b>, the first human cancer gene ever identified. You sequence and assemble it, find the gene in it, read it in a genome browser, and finally annotate it for other scientists to use. Do the labs in order, because each one builds on the last.</p>
+</header>
+
+<div class="locus" aria-label="The HRAS region used in all four labs">
+  <p class="eyebrow">NG_007666.1 · the sequence in every lab</p>
+  <div class="scroll"><svg id="locus" viewBox="0 0 1000 120" role="img" aria-label="Diagram of the 10,309-bp HRAS entry. Lab 1 covers all of it with reads, lab 2 finds the six HRAS exons, lab 3 views the region as browser tracks, lab 4 annotates repeats and the gene."></svg></div>
+</div>
+
+<ol class="labs" aria-label="The four labs, in order">
+  <li class="lab" data-n="1" data-key="seqasm">
+    <div class="lab-top"><span class="num" aria-hidden="true">1</span><h2>Sequencing &amp; assembly</h2><p class="q">How do we read DNA at all?</p></div>
+    <div class="lab-body">
+      <p>Run a Sanger capillary and an Illumina flow cell, work out how many reads you need, then rebuild the region from overlaps and de Bruijn graphs, and see why repeats break assemblies.</p>
+      <ul class="topics"><li>Sanger</li><li>Illumina &amp; Phred</li><li>Coverage</li><li>Overlap assembly</li><li>De Bruijn graphs</li><li>Repeats &amp; N50</li></ul>
+    </div>
+    <div class="lab-foot"><div class="prog"><span class="meta" data-prog>6 sections · 17 checks</span><div class="bar" aria-hidden="true"><i></i></div></div><a class="open" href="1-sequencing-assembly.html">Open lab 1 <span aria-hidden="true">→</span></a></div>
+  </li>
+  <li class="lab" data-n="2" data-key="genefind">
+    <div class="lab-top"><span class="num" aria-hidden="true">2</span><h2>Gene finding</h2><p class="q">Where is the gene?</p></div>
+    <div class="lab-body">
+      <p>Hide the annotation and find HRAS yourself: scan open reading frames, score splice sites and codon usage, assemble exons into a protein, then check a gene-prediction algorithm against RNA-seq.</p>
+      <ul class="topics"><li>ORFs</li><li>Splice signals</li><li>Coding potential</li><li>Build the model</li><li>Ab initio parser</li><li>RNA-seq evidence</li></ul>
+    </div>
+    <div class="lab-foot"><div class="prog"><span class="meta" data-prog>6 sections · 22 checks</span><div class="bar" aria-hidden="true"><i></i></div></div><a class="open" href="2-gene-finding.html">Open lab 2 <span aria-hidden="true">→</span></a></div>
+  </li>
+  <li class="lab" data-n="3" data-key="browser">
+    <div class="lab-top"><span class="num" aria-hidden="true">3</span><h2>Genome browser</h2><p class="q">How do scientists look at a genome?</p></div>
+    <div class="lab-body">
+      <p>Drive a genome browser around HRAS and the β-globin cluster: coordinates, strands, variants like G12V and sickle-cell HbS, and the file formats behind every track. Then move to the real UCSC browser.</p>
+      <ul class="topics"><li>Tracks &amp; zoom</li><li>Strand</li><li>Variant effects</li><li>0- vs 1-based</li><li>File formats</li><li>UCSC</li></ul>
+      <span class="flag">Includes a graded exercise</span>
+    </div>
+    <div class="lab-foot"><div class="prog"><span class="meta" data-prog>22 practice questions + graded exercise</span><div class="bar" aria-hidden="true"><i></i></div></div><a class="open" href="3-genome-browser.html">Open lab 3 <span aria-hidden="true">→</span></a></div>
+  </li>
+  <li class="lab" data-n="4" data-key="annotate">
+    <div class="lab-top"><span class="num" aria-hidden="true">4</span><h2>Genome annotation</h2><p class="q">What does it do, and how do we write it down?</p></div>
+    <div class="lab-body">
+      <p>Mask repeats, fix a GFF3 file, rank gene models against evidence, search for homologues, name the gene by orthology with mouse, find its domains and GO terms, and publish the finished record.</p>
+      <ul class="topics"><li>Repeat masking</li><li>GFF3</li><li>AED</li><li>Homology</li><li>Orthology</li><li>Domains &amp; GO</li><li>BUSCO</li></ul>
+    </div>
+    <div class="lab-foot"><div class="prog"><span class="meta" data-prog>7 sections · 32 checks</span><div class="bar" aria-hidden="true"><i></i></div></div><a class="open" href="4-genome-annotation.html">Open lab 4 <span aria-hidden="true">→</span></a></div>
+  </li>
+</ol>
+
+<section class="info" aria-label="How the labs work">
+  <div><h3>How to work</h3><p>Each lab has sections with an interactive panel beside the reading. Checks under each section tell you straight away whether you are right, with a hint if not. The progress bar at the top of each lab tracks what you have finished.</p></div>
+  <div><h3>Your progress</h3><p id="progNote">Progress is saved in this browser, on this device only. It is not sent anywhere, and it is not your grade. Use the same computer and browser to pick up where you left off.</p><button type="button" id="clearAll" hidden>Clear saved progress for all four labs</button><span id="clearConfirm" class="note" hidden> Sure? <button type="button" id="clearYes">Yes, clear</button> · <button type="button" id="clearNo">Keep</button></span></div>
+  <div><h3>The graded exercise</h3><p>Lab 3 ends with a personal set of questions. Type your answers (pasting is turned off), press <b>Submit and save file</b>, and upload the file it saves to the assignment on the course site. The practice checks in every lab are not graded.</p></div>
+</section>
+
+<footer>Works in a current version of Chrome, Edge, Firefox or Safari, on a laptop or tablet. The sequence is RefSeqGene NG_007666.1 (human HRAS), the same in all four labs.</footer>
+</div>
+
+<script>
+(() => {
+'use strict';
+const $ = id => document.getElementById(id);
+// locus sketch: the same 10,309-bp entry, one lane per lab
+const LEN=10309, MRNA=[[4975,5135],[6176,6339],[6607,6785],[6939,7098],[7796,7920],[8029,8309]], CDS=[[6229,6339],[6607,6785],[6939,7098],[7796,7915]];
+const X=p=>150+(p-1)/(LEN-1)*840;
+let o='';
+const lane=(y,label,v)=>{ o+=`<text class="lab-lbl" x="0" y="${y+4}" style="fill:var(${v})">${label}</text>`; };
+// lab 1: reads
+lane(12,'1 · reads','--l1');
+for (let i=0;i<46;i++){ const s=1+((i*2237)%LEN), w=260+((i*97)%240), y=6+(i%3)*5; o+=`<rect x="${X(s).toFixed(1)}" y="${y}" width="${Math.min(990,X(s+w))-X(s)}" height="3" rx="1" style="fill:var(--l1);opacity:.7"/>`; }
+// lab 2: gene model
+lane(42,'2 · gene model','--l2');
+o+=`<line class="intron" x1="${X(4975)}" x2="${X(8309)}" y1="42" y2="42"/>`;
+for (const [a,b] of MRNA) o+=`<rect class="utr" x="${X(a)}" y="37" width="${Math.max(2,X(b)-X(a))}" height="10"/>`;
+for (const [a,b] of CDS) o+=`<rect class="cds" x="${X(a)}" y="34" width="${Math.max(2,X(b)-X(a))}" height="16"/>`;
+o+=`<text class="axis-t" x="${X(4975)}" y="30">HRAS →</text>`;
+// lab 3: tracks (GC wiggle)
+lane(70,'3 · browser tracks','--l3');
+let d=`M150 78`; for (let i=0;i<=120;i++){ const p=1+i*(LEN-1)/120, g=0.55+0.25*Math.sin(i/7)+0.12*Math.sin(i/2.3)+(p>3300&&p<6600?0.18:0); d+=` L${X(p).toFixed(1)} ${(78-Math.max(0,g)*16).toFixed(1)}`; }
+o+=`<path d="${d} L990 78 Z" style="fill:var(--l3);opacity:.35"/><path d="${d}" style="fill:none;stroke:var(--l3);stroke-width:1.2"/>`;
+// lab 4: annotation features
+lane(96,'4 · annotation','--l4');
+for (const [a,b] of [[856,1155],[1167,1458],[3781,4063]]) o+=`<rect x="${X(a)}" y="91" width="${X(b)-X(a)}" height="10" rx="2" style="fill:var(--l4)"/>`;
+o+=`<text class="axis-t" x="${X(856)}" y="113">Alu repeats</text>`;
+for (const [a,b] of CDS) o+=`<rect x="${X(a)}" y="91" width="${Math.max(2,X(b)-X(a))}" height="10" style="fill:var(--l4);opacity:.55"/>`;
+o+=`<text class="axis-t" x="${X(6229)}" y="113">CDS · GO · orthologue</text>`;
+o+=`<line class="axis-l" x1="150" x2="990" y1="118" y2="118"/>`;
+$('locus').innerHTML=o;
+
+// progress read from each lab's own saved state (same browser only)
+const read = k => { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch(e){ return null; } };
+const TOTAL = {seqasm:17, genefind:22, browser:22, annotate:32};
+const KEYS = {seqasm:'bio116-seqasm', genefind:'bio116-genefind', annotate:'bio116-annotate'};
+const NOACT = ['bed','b-number','b-strand'];
+let any = false;
+document.querySelectorAll('.lab').forEach(li => {
+  const k = li.dataset.key; let done = 0;
+  if (k === 'browser'){ const s = read('bio116-genome-browser-missions-v2'); if (s && s.q) done = Object.keys(s.q).filter(id => s.q[id] && (NOACT.includes(id) || (s.act && s.act[id]))).length; }
+  else { const s = read(KEYS[k]); if (s) done = Object.values(s).filter(Boolean).length; }
+  done = Math.min(done, TOTAL[k]);
+  if (done){ any = true;
+    li.querySelector('[data-prog]').textContent = `${done} of ${TOTAL[k]} ${k==='browser'?'practice questions':'checks'} done` + (done===TOTAL[k]?' · finished':'');
+    li.querySelector('.bar > i').style.width = (100*done/TOTAL[k]) + '%'; }
+});
+const KEYS_ALL = ['bio116-seqasm','bio116-genefind','bio116-genome-browser-missions-v2','bio116-annotate','bio116-locus'];
+let hasEx = false; try { for (let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if (k && k.startsWith('bio116-ex-')) hasEx = true; } } catch(e){}
+if (any || hasEx) $('clearAll').hidden = false;
+$('clearAll').onclick = () => { $('clearConfirm').hidden = false; $('clearAll').hidden = true; };
+$('clearNo').onclick = () => { $('clearConfirm').hidden = true; $('clearAll').hidden = false; };
+$('clearYes').onclick = () => {
+  try { const del = []; for (let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); if (k && (KEYS_ALL.includes(k) || k.startsWith('bio116-ex-'))) del.push(k); } del.forEach(k => localStorage.removeItem(k)); } catch(e){}
+  $('clearConfirm').hidden = true;
+  document.querySelectorAll('.lab').forEach(li => { li.querySelector('.bar > i').style.width = '0'; });
+  $('progNote').textContent = 'Saved progress and any unsubmitted Lab 3 answers have been cleared from this browser.';
+  setTimeout(() => location.reload(), 1200);
+};
+})();
+</script>
+
+</body>
+</html>
