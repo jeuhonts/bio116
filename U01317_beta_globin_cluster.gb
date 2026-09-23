@@ -1,0 +1,2588 @@
+LOCUS       HUMHBB                 73308 bp    DNA     linear   PRI 16-OCT-2008
+DEFINITION  Human beta globin region on chromosome 11.
+ACCESSION   U01317 J00093 J00094 J00096 J00158-J00175 J00177 J00178 J00179
+            K01239 K01890 K02544 M18047 M19067 M24868 M24886
+VERSION     U01317.1
+KEYWORDS    Alu repeat; HPFH; KpnI repetitive sequence; RNA polymerase III;
+            allelic variation; alternate cap site; beta-1 pseudogene;
+            beta-globin; delta-globin; epsilon-globin; gamma-globin; gene
+            duplication; globin; polymorphism; promoter mutation; pseudogene;
+            repetitive sequence; thalassemia.
+SOURCE      Homo sapiens (human)
+  ORGANISM  Homo sapiens
+            Eukaryota; Metazoa; Chordata; Craniata; Vertebrata; Euteleostomi;
+            Mammalia; Eutheria; Euarchontoglires; Primates; Haplorrhini;
+            Catarrhini; Hominidae; Homo.
+REFERENCE   1  (bases 62409 to 62631; 63482 to 63610)
+  AUTHORS   Marotta,C.A., Forget,B.G., Weissman,S.M., Verma,I.M.,
+            McCaffrey,R.P. and Baltimore,D.
+  TITLE     Nucleotide sequences of human globin messenger RNA
+  JOURNAL   Proc. Natl. Acad. Sci. U.S.A. 71 (6), 2300-2304 (1974)
+   PUBMED   4135409
+REFERENCE   2  (bases 63602 to 63646)
+  AUTHORS   Forget,B.G., Marotta,C.A., Weissman,S.M. and Cohen-Solal,M.
+  TITLE     Nucleotide sequences of the 3'-terminal untranslated region of
+            messenger RNA for human beta globin chain
+  JOURNAL   Proc. Natl. Acad. Sci. U.S.A. 72 (9), 3614-3618 (1975)
+   PUBMED   1059150
+REFERENCE   3  (bases 63593 to 63626)
+  AUTHORS   Proudfoot,N.J. and Brownlee,G.G.
+  TITLE     Nucleotide sequences of globin messenger RNA
+  JOURNAL   Br. Med. Bull. 32 (3), 251-256 (1976)
+   PUBMED   788834
+REFERENCE   4  (bases 63673 to 63743)
+  AUTHORS   Proudfoot,N.J. and Longley,J.I.
+  TITLE     The 3' terminal sequences of human alpha and beta globin messenger
+            RNAs: comparison with rabbit globin messenger RNA
+  JOURNAL   Cell 9 (4 PT 2), 733-746 (1976)
+   PUBMED   1035137
+REFERENCE   5  (sites)
+  AUTHORS   Proudfoot,N.J. and Brownlee,G.G.
+  TITLE     3' non-coding region sequences in eukaryotic messenger RNA
+  JOURNAL   Nature 263 (5574), 211-214 (1976)
+   PUBMED   822353
+REFERENCE   6  (bases 63596 to 63743)
+  AUTHORS   Proudfoot,N.J.
+  TITLE     Complete 3' noncoding region sequences of rabbit and human
+            beta-globin messenger RNAs
+  JOURNAL   Cell 10 (4), 559-570 (1977)
+   PUBMED   67897
+REFERENCE   7  (bases 62137 to 62193)
+  AUTHORS   Baralle,F.
+  TITLE     Complete nucleotide sequence of the 5' noncoding region of human
+            alpha-and beta-globin mRNA
+  JOURNAL   Cell 12 (4), 1085-1095 (1977)
+   PUBMED   597858
+REFERENCE   8  (sites)
+  AUTHORS   Marotta,C.A., Forget,B.G., Cohne-Solal,M., Wilson,J.T. and
+            Weissman,S.M.
+  TITLE     Human beta-globin messenger RNA. I. Nucleotide sequences derived
+            from complementary RNA
+  JOURNAL   J. Biol. Chem. 252 (14), 5019-5031 (1977)
+   PUBMED   873928
+REFERENCE   9  (bases 62187 to 63610)
+  AUTHORS   Cohen-Solal,M., Forget,B.G., Prensky,W., Marotta,C.A. and
+            Weissman,S.M.
+  TITLE     Human beta-globin messenger RNA. II. nucleotide sequences derived
+            from 125I-labeled globin messenger RNA
+  JOURNAL   J. Biol. Chem. 252 (14), 5032-5039 (1977)
+   PUBMED   318159
+REFERENCE   10 (bases 54790 to 54881; 62409 to 62631; 63482 to 63715)
+  AUTHORS   Marotta,C.A., Wilson,J.T., Forget,B.G. and Weissman,S.M.
+  TITLE     Human beta-globin messenger RNA. III. Nucleotide sequences derived
+            from complementary DNA
+  JOURNAL   J. Biol. Chem. 252 (14), 5040-5053 (1977)
+   PUBMED   68958
+REFERENCE   11 (bases 62137 to 62189)
+  AUTHORS   Chang,J.C., Temple,G.F., Poon,R., Neumann,K.H. and Kan,Y.W.
+  TITLE     The nucleotide sequences of the untranslated 5' regions of human
+            alpha- and beta-globin mRNAs
+  JOURNAL   Proc. Natl. Acad. Sci. U.S.A. 74 (11), 5145-5149 (1977)
+   PUBMED   270752
+REFERENCE   12 (bases 56103 to 56184)
+  AUTHORS   Lawn,R.M., Fritsch,E.F., Parker,R.C., Blake,G. and Maniatis,T.
+  TITLE     The isolation and characterization of linked delta- and beta-globin
+            genes from a cloned library of human DNA
+  JOURNAL   Cell 15 (4), 1157-1174 (1978)
+   PUBMED   728996
+REFERENCE   13 (bases 35854 to 35946; 63482 to 63531)
+  AUTHORS   Little,P., Curtis,P., Coutelle,C., Van den Berg,J., Dalgleish,R.,
+            Malcolm,S., Courtney,M., Westaway,D. and Williamson,R.
+  TITLE     Isolation and partial sequence of recombinant plasmids containing
+            human alpha-, beta- and gamma-globin cDNA fragments
+  JOURNAL   Nature 273 (5664), 640-643 (1978)
+   PUBMED   318161
+REFERENCE   14 (bases 62187 to 63742)
+  AUTHORS   Wilson,J.T., Wilson,L.B., deRiel,J.K., Villa-komaroff,L.,
+            Efstratiadis,A., Forget,B.G. and Weissman,S.M.
+  TITLE     Insertion of synthetic copies of human globin genes into bacterial
+            plasmids
+  JOURNAL   Nucleic Acids Res. 5 (2), 563-581 (1978)
+   PUBMED   345245
+REFERENCE   15 (bases 34478 to 34563; 39414 to 39499)
+  AUTHORS   Chang,J.C., Poon,R., Neumann,K.H. and Kan,Y.W.
+  TITLE     The nucleotide sequence of the 5' untranslated region of human
+            gamma-globin mRNA
+  JOURNAL   Nucleic Acids Res. 5 (10), 3515-3522 (1978)
+   PUBMED   318162
+REFERENCE   16 (bases 40839 to 40985)
+  AUTHORS   Poon,R., Kan,Y.W. and Boyer,H.W.
+  TITLE     Sequence of the 3'-noncoding and adjacent coding regions of human
+            gamma-globin mRNA
+  JOURNAL   Nucleic Acids Res. 5 (12), 4625-4630 (1978)
+   PUBMED   318163
+REFERENCE   17 (bases 35826 to 35907; 40742 to 40823)
+  AUTHORS   Smithies,O., Blechl,A.E., Denniston-Thompson,K., Newell,N.,
+            Richards,J.E., Slightom,J.L., Tucker,P.W. and Blattner,F.R.
+  TITLE     Cloning human fetal gamma globin and mouse alpha-type globin DNA:
+            characterization and partial sequencing
+  JOURNAL   Science 202 (4374), 1284-1289 (1978)
+   PUBMED   725604
+REFERENCE   18 (bases 34478 to 34536; 62137 to 62192; 63608 to 63742)
+  AUTHORS   Kan,Y.W., Chang,C.S. and Poon,R.
+  TITLE     Nucleotide sequences of the untranslated 5' and 3' regions of human
+            alpha-, beta-, and gamma-globin mRNAS
+  JOURNAL   (in) Stamatoyannopoulos,G. and Newhouse,A.W. (Eds.);
+            CELLULAR AND MOLECULAR REGULATION OF HEMOGLOBIN SWITCHING: 0-0;
+            Grune and Stratton, New York (1979) In press
+REFERENCE   19 (sites)
+  AUTHORS   Chang,J.C. and Kan,Y.W.
+  TITLE     beta 0 thalassemia, a nonsense mutation in man
+  JOURNAL   Proc. Natl. Acad. Sci. U.S.A. 76 (6), 2886-2889 (1979)
+   PUBMED   88735
+REFERENCE   20 (bases 19846 to 19965)
+  AUTHORS   Proudfoot,N.J. and Baralle,F.E.
+  TITLE     Molecular cloning of human epsilon-globin gene
+  JOURNAL   Proc. Natl. Acad. Sci. U.S.A. 76 (11), 5435-5439 (1979)
+   PUBMED   160554
+REFERENCE   21 (sites)
+  AUTHORS   Chang,J.C., Kan,Y.W., Trecartin,R.F. and Temple,G.F.
+  TITLE     Nonsense mutation as a cause of beta 0 thalassemia
+  JOURNAL   Ann. N. Y. Acad. Sci. 344, 113-119 (1980)
+   PUBMED   6985475
+REFERENCE   22 (sites)
+  AUTHORS   Fritsch,E.F., Lawn,R.M. and Maniatis,T.
+  TITLE     Molecular cloning and characterization of the human beta-like
+            globin gene cluster
+  JOURNAL   Cell 19 (4), 959-972 (1980)
+   PUBMED   6155216
+REFERENCE   23 (bases 19462 to 21741)
+  AUTHORS   Baralle,F.E., Shoulders,C.C. and Proudfoot,N.J.
+  TITLE     The primary structure of the human epsilon-globin gene
+  JOURNAL   Cell 21 (3), 621-626 (1980)
+   PUBMED   6254663
+REFERENCE   24 (bases 34422 to 36069; 39358 to 40986)
+  AUTHORS   Slightom,J.L., Blechl,A.E. and Smithies,O.
+  TITLE     Human fetal G gamma- and A gamma-globin genes: complete nucleotide
+            sequences suggest that DNA can be exchanged between these
+            duplicated genes
+  JOURNAL   Cell 21 (3), 627-638 (1980)
+   PUBMED   7438203
+REFERENCE   25 (bases 54618 to 56602)
+  AUTHORS   Spritz,R.A., DeRiel,J.K., Forget,B.G. and Weissman,S.M.
+  TITLE     Complete nucleotide sequence of the human delta-globin gene
+  JOURNAL   Cell 21 (3), 639-646 (1980)
+   PUBMED   7438204
+REFERENCE   26 (bases 62034 to 64083)
+  AUTHORS   Lawn,R.M., Efstratiadis,A., O'Connell,C. and Maniatis,T.
+  TITLE     The nucleotide sequence of the human beta-globin gene
+  JOURNAL   Cell 21 (3), 647-651 (1980)
+   PUBMED   6254664
+REFERENCE   27 (sites)
+  AUTHORS   Efstratiadis,A., Posakony,J.W., Maniatis,T., Lawn,R.M.,
+            O'Connell,C., Spritz,R.A., DeRiel,J.K., Forget,B.G., Weissman,S.M.,
+            Slightom,J.L., Blechl,A.E., Smithies,O., Baralle,F.E.,
+            Shoulders,C.C. and Proudfoot,N.J.
+  TITLE     The structure and evolution of the human beta-globin gene family
+  JOURNAL   Cell 21 (3), 653-668 (1980)
+   PUBMED   6985477
+REFERENCE   28 (bases 19864 to 19983)
+  AUTHORS   Baralle,F.E., Shoulders,C.C., Goodbourn,S., Jeffreys,A. and
+            Proudfoot,N.J.
+  TITLE     The 5' flanking region of human epsilon-globin gene
+  JOURNAL   Nucleic Acids Res. 8 (19), 4393-4404 (1980)
+   PUBMED   6253916
+REFERENCE   29 (bases 32353 to 43728)
+  AUTHORS   Shen,S.H., Slightom,J.L. and Smithies,O.
+  TITLE     A history of the human fetal globin gene duplication
+  JOURNAL   Cell 26 (2 PT 2), 191-203 (1981)
+   PUBMED   7332928
+REFERENCE   30 (sites)
+  AUTHORS   Busslinger,M., Moschonas,N. and Flavell,R.A.
+  TITLE     Beta + thalassemia: aberrant splicing results from a single point
+            mutation in an intron
+  JOURNAL   Cell 27 (2 PT 1), 289-298 (1981)
+   PUBMED   6895866
+REFERENCE   31 (bases 32353 to 33218; 51978 to 52472)
+  AUTHORS   Duncan,C.H., Jagadeeswaran,P., Wang,R.R. and Weissman,S.M.
+  TITLE     Structural analysis of templates and RNA polymerase III transcripts
+            of Alu family sequences interspersed among the human beta-like
+            globin genes
+  JOURNAL   Gene 13 (2), 185-196 (1981)
+   PUBMED   6165649
+REFERENCE   32 (sites)
+  AUTHORS   Orkin,S.H. and Goff,S.C.
+  TITLE     Nonsense and frameshift mutations in beta 0-thalassemia detected in
+            cloned beta-globin genes
+  JOURNAL   J. Biol. Chem. 256 (19), 9782-9784 (1981)
+   PUBMED   6985481
+REFERENCE   33 (bases 62454 to 62613)
+  AUTHORS   Orkin,S.H., Goff,S.C. and Nathan,D.G.
+  TITLE     Heterogeneity of DNA deletion in gamma delta beta-thalassemia
+  JOURNAL   J. Clin. Invest. 67 (3), 878-884 (1981)
+   PUBMED   6162860
+REFERENCE   34 (sites)
+  AUTHORS   Trecartin,R.F., Liebhaber,S.A., Chang,J.C., Lee,K.Y., Kan,Y.W.,
+            Furbetta,M., Angius,A. and Cao,A.
+  TITLE     beta zero thalassemia in Sardinia is caused by a nonsense mutation
+  JOURNAL   J. Clin. Invest. 68 (4), 1012-1017 (1981)
+   PUBMED   6457059
+REFERENCE   35 (sites)
+  AUTHORS   Westaway,D. and Williamson,R.
+  TITLE     An intron nucleotide sequence variant in a cloned beta
+            +-thalassaemia globin gene
+  JOURNAL   Nucleic Acids Res. 9 (8), 1777-1788 (1981)
+   PUBMED   6264391
+REFERENCE   36 (sites)
+  AUTHORS   Moschonas,N., de Boer,E., Grosveld,F.G., Dahl,H.H., Wright,S.,
+            Shewmaker,C.K. and Flavell,R.A.
+  TITLE     Structure and expression of a cloned beta o thalassaemic globin
+            gene
+  JOURNAL   Nucleic Acids Res. 9 (17), 4391-4401 (1981)
+   PUBMED   6272205
+REFERENCE   37 (bases 60489 to 60948)
+  AUTHORS   Spritz,R.A.
+  TITLE     Duplication/deletion polymorphism 5' - to the human beta globin
+            gene
+  JOURNAL   Nucleic Acids Res. 9 (19), 5037-5047 (1981)
+   PUBMED   7312624
+REFERENCE   38 (bases 59345 to 59593)
+  AUTHORS   Miesfeld,R., Krystal,M. and Arnheim,N.
+  TITLE     A member of a new repeated sequence family which is conserved
+            throughout eucaryotic evolution is found between the human delta
+            and beta globin genes
+  JOURNAL   Nucleic Acids Res. 9 (22), 5931-5947 (1981)
+   PUBMED   6273813
+REFERENCE   39 (bases 16595 to 17840)
+  AUTHORS   Di Segni,G., Carrara,G., Tocchini-Valentini,G.R., Shoulders,C.C.
+            and Baralle,F.E.
+  TITLE     Selective in vitro transcription of one of the two Alu family
+            repeats present in the 5' flanking region of the human
+            epsilon-globin gene
+  JOURNAL   Nucleic Acids Res. 9 (24), 6709-6722 (1981)
+   PUBMED   7335492
+REFERENCE   40 (sites)
+  AUTHORS   Adams,J.G. 3rd, Steinberg,M.H., Newman,M.V., Morrison,W.T.,
+            Benz,E.J. Jr. and Iyer,R.
+  TITLE     beta-Thalassemia present in cis to a new beta-chain structural
+            variant, Hb Vicksburg [beta 75 (E19)Leu leads to 0]
+  JOURNAL   Proc. Natl. Acad. Sci. U.S.A. 78 (1), 469-473 (1981)
+   PUBMED   6165992
+REFERENCE   41 (bases 61921 to 63824)
+  AUTHORS   Spritz,R.A., Jagadeeswaran,P., Choudary,P.V., Biro,P.A.,
+            Elder,J.T., deRiel,J.K., Manley,J.L., Gefter,M.L., Forget,B.G. and
+            Weissman,S.M.
+  TITLE     Base substitution in an intervening sequence of a beta+-thalassemic
+            human globin gene
+  JOURNAL   Proc. Natl. Acad. Sci. U.S.A. 78 (4), 2455-2459 (1981)
+   PUBMED   6264477
+REFERENCE   42 (sites)
+  AUTHORS   Baird,M., Driscoll,C., Schreiner,H., Sciarratta,G.V., Sansone,G.,
+            Niazi,G., Ramirez,F. and Bank,A.
+  TITLE     A nucleotide change at a splice junction in the human beta-globin
+            gene is associated with beta 0-thalassemia
+  JOURNAL   Proc. Natl. Acad. Sci. U.S.A. 78 (7), 4218-4221 (1981)
+   PUBMED   6270663
+REFERENCE   43 (sites)
+  AUTHORS   Grosveld,F., Busslinger,M., Grosveld,G., Groffen,J., DeKleine,A.
+            and Flavell,R.A.
+  TITLE     The structure and expression of the haemoglobin genes
+  JOURNAL   Adv. Exp. Med. Biol. 158, 65-80 (1982)
+   PUBMED   6297279
+REFERENCE   44 (sites)
+  AUTHORS   Treisman,R., Proudfoot,N.J., Shander,M. and Maniatis,T.
+  TITLE     A single-base change at a splice site in a beta 0-thalassemic gene
+            causes abnormal RNA splicing
+  JOURNAL   Cell 29 (3), 903-911 (1982)
+   PUBMED   7151176
+REFERENCE   45 (bases 63823 to 64083)
+  AUTHORS   Poncz,M., Ballantine,M., Solowiejczyk,D., Barak,I., Schwartz,E. and
+            Surrey,S.
+  TITLE     beta-Thalassemia in a Kurdish Jew. Single base changes in the
+            T-A-T-A box
+  JOURNAL   J. Biol. Chem. 257 (11), 5994-5996 (1982)
+   PUBMED   7076659
+REFERENCE   46 (bases 61873 to 62198; 62375 to 62448)
+  AUTHORS   Gorski,J., Fiori,M. and Mach,B.
+  TITLE     A new nonsense mutation as the molecular basis for beta
+            thalassaemia
+  JOURNAL   J. Mol. Biol. 154 (3), 537-540 (1982)
+   PUBMED   6896219
+REFERENCE   47 (bases 50716 to 51215)
+  AUTHORS   Jagadeeswaran,P., Tuan,D., Forget,B.G. and Weissman,S.M.
+  TITLE     A gene deletion ending at the midpoint of a repetitive DNA sequence
+            in one form of hereditary persistence of fetal haemoglobin
+  JOURNAL   Nature 296 (5856), 469-470 (1982)
+   PUBMED   6174873
+REFERENCE   48 (sites)
+  AUTHORS   Orkin,S.H., Kazazian,H.H. Jr., Antonarakis,S.E., Goff,S.C.,
+            Boehm,C.D., Sexton,J.P., Waber,P.G. and Giardina,P.J.
+  TITLE     Linkage of beta-thalassaemia mutations and beta-globin gene
+            polymorphisms with DNA polymorphisms in human beta-globin gene
+            cluster
+  JOURNAL   Nature 296 (5858), 627-631 (1982)
+   PUBMED   6280057
+REFERENCE   49 (sites)
+  AUTHORS   Ottolenghi,S. and Giglioni,B.
+  TITLE     The deletion in a type of delta 0-beta 0-thalassaemia begins in an
+            inverted AluI repeat
+  JOURNAL   Nature 300 (5894), 770-771 (1982)
+   PUBMED   6184621
+REFERENCE   50 (bases 62651 to 62715)
+  AUTHORS   Spence,S.E., Pergolizzi,R.G., Donovan-Peluso,M., Kosche,K.A.,
+            Dobkin,C.S. and Bank,A.
+  TITLE     Five nucleotide changes in the large intervening sequence of a beta
+            globin gene in a beta+ thalassemia patient
+  JOURNAL   Nucleic Acids Res. 10 (4), 1283-1294 (1982)
+   PUBMED   6280138
+REFERENCE   51 (bases 60676 to 62137)
+  AUTHORS   Moschonas,N., de Boer,E. and Flavell,R.A.
+  TITLE     The DNA sequence of the 5' flanking region of the human beta-globin
+            gene: evolutionary conservation and polymorphic differences
+  JOURNAL   Nucleic Acids Res. 10 (6), 2109-2120 (1982)
+   PUBMED   6985483
+REFERENCE   52 (sites)
+  AUTHORS   Alan,M., Grindlay,G.J., Stefani,L. and Paul,J.
+  TITLE     Epsilon globin gene transcripts originating upstream of the mRNA
+            cap site in K562 cells and normal human embryos
+  JOURNAL   Nucleic Acids Res. 10 (17), 5133-5147 (1982)
+   PUBMED   6292831
+REFERENCE   53 (sites)
+  AUTHORS   Kinniburgh,A.J., Maquat,L.E., Schedl,T., Rachmilewitz,E. and
+            Ross,J.
+  TITLE     mRNA-deficient beta o-thalassemia results from a single nucleotide
+            deletion
+  JOURNAL   Nucleic Acids Res. 10 (18), 5421-5427 (1982)
+   PUBMED   6292840
+REFERENCE   54 (bases 54438 to 54740)
+  AUTHORS   Kimura,A., Matsunaga,E., Ohta,Y., Fujiyoshi,T., Matsuo,T.,
+            Nakamura,T., Imamura,T., Yanase,T. and Takagi,Y.
+  TITLE     Structure of cloned delta-globin genes from a normal subject and a
+            patient with delta-thalassemia; sequence polymorphisms found in the
+            delta-globin gene region of Japanese individuals
+  JOURNAL   Nucleic Acids Res. 10 (19), 5725-5732 (1982)
+   PUBMED   6292847
+REFERENCE   55 (bases 10410 to 13774)
+  AUTHORS   Shen,S.H. and Smithies,O.
+  TITLE     Human globin psi B2 is not a globin-related sequence
+  JOURNAL   Nucleic Acids Res. 10 (23), 7809-7818 (1982)
+   PUBMED   6897566
+REFERENCE   56 (sites)
+  AUTHORS   Spritz,R.A. and Orkin,S.H.
+  TITLE     Duplication followed by deletion accounts for the structure of an
+            Indian deletion beta (0)-thalassemia gene
+  JOURNAL   Nucleic Acids Res. 10 (24), 8025-8029 (1982)
+   PUBMED   7162987
+REFERENCE   57 (bases 62373 to 62421)
+  AUTHORS   Flavell,R.A., Bud,H., Bullman,H., Busslinger,M., de Boer,E., de
+            Kleine,A., Golden,L., Groffen,J., Grosveld,F.G., Mellor,A.L.,
+            Moschonas,N. and Weiss,E.
+  TITLE     The structure and expression of mammalian gene clusters
+  JOURNAL   Prog. Clin. Biol. Res. 103, 37-55 (1982)
+  MEDLINE   83144268
+REFERENCE   58 (sites)
+  AUTHORS   Ley,T.J. and Nienhuis,A.W.
+  TITLE     A weak upstream promoter gives rise to long human beta-globin RNA
+            molecules
+  JOURNAL   Biochem. Biophys. Res. Commun. 112 (3), 1041-1048 (1983)
+   PUBMED   6303333
+REFERENCE   59 (sites)
+  AUTHORS   Carlson,D.P. and Ross,J.
+  TITLE     Human beta-globin promoter and coding sequences transcribed by RNA
+            polymerase III
+  JOURNAL   Cell 34 (3), 857-864 (1983)
+   PUBMED   6194893
+REFERENCE   60 (sites)
+  AUTHORS   Allan,M., Lanyon,W.G. and Paul,J.
+  TITLE     Multiple origins of transcription in the 4.5 Kb upstream of the
+            epsilon-globin gene
+  JOURNAL   Cell 35 (1), 187-197 (1983)
+   PUBMED   6194897
+REFERENCE   61 (sites)
+  AUTHORS   Vanin,E.F., Henthorn,P.S., Kioussis,D., Grosveld,F. and Smithies,O.
+  TITLE     Unexpected relationships between four large deletions in the human
+            beta-globin gene cluster
+  JOURNAL   Cell 35 (3 PT 2), 701-709 (1983)
+   PUBMED   6652684
+REFERENCE   62 (bases 50744 to 67204)
+  AUTHORS   Poncz,M., Schwartz,E., Ballantine,M. and Surrey,S.
+  TITLE     Nucleotide sequence analysis of the delta beta-globin gene region
+            in humans
+  JOURNAL   J. Biol. Chem. 258 (19), 11599-11609 (1983)
+   PUBMED   6311816
+REFERENCE   63 (bases 62050 to 62050; 62279 to 62279; 62283 to 62283)
+  AUTHORS   Treisman,R., Orkin,S.H. and Maniatis,T.
+  TITLE     Specific transcription and RNA splicing defects in five cloned
+            beta-thalassaemia genes
+  JOURNAL   Nature 302 (5909), 591-596 (1983)
+   PUBMED   6188062
+REFERENCE   64 (bases 62190 to 62244)
+  AUTHORS   Chang,J.C., Alberti,A. and Kan,Y.W.
+  TITLE     A beta-thalassemia lesion abolishes the same Mst II site as the
+            sickle mutation
+  JOURNAL   Nucleic Acids Res. 11 (22), 7789-7794 (1983)
+   PUBMED   6316272
+REFERENCE   65 (bases 50716 to 53976)
+  AUTHORS   Maeda,N., Bliska,J.B. and Smithies,O.
+  TITLE     Recombination and balanced chromosome polymorphism suggested by DNA
+            sequences 5' to the human delta-globin gene
+  JOURNAL   Proc. Natl. Acad. Sci. U.S.A. 80 (16), 5012-5016 (1983)
+   PUBMED   6308666
+REFERENCE   66 (sites)
+  AUTHORS   Kimura,A., Ohta,Y., Fukumaki,Y. and Takagi,Y.
+  TITLE     A fusion gene in man: DNA sequence analysis of the abnormal globin
+            gene of hemoglobin Miyada
+  JOURNAL   Biochem. Biophys. Res. Commun. 119 (3), 968-974 (1984)
+   PUBMED   6324786
+REFERENCE   67 (sites)
+  AUTHORS   Kazazian,H.H. Jr., Orkin,S.H., Antonarakis,S.E., Sexton,J.P.,
+            Boehm,C.D., Goff,S.C. and Waber,P.G.
+  TITLE     Molecular characterization of seven beta-thalassemia mutations in
+            Asian Indians
+  JOURNAL   EMBO J. 3 (3), 593-596 (1984)
+   PUBMED   6714226
+REFERENCE   68 (sites)
+  AUTHORS   Guida,S., Giglioni,B., Comi,P., Ottolenghi,S., Camaschella,C. and
+            Saglio,G.
+  TITLE     The beta-globin gene in Sardinian delta beta 0-thalassemia carries
+            a C----T nonsense mutation at codon 39
+  JOURNAL   EMBO J. 3 (4), 785-787 (1984)
+   PUBMED   6327288
+REFERENCE   69 (sites)
+  AUTHORS   Giglioni,B., Casini,C., Mantovani,R., Merli,S., Comi,P.,
+            Ottolenghi,S., Saglio,G., Camaschella,C. and Mazza,U.
+  TITLE     A molecular study of a family with Greek hereditary persistence of
+            fetal hemoglobin and beta-thalassemia
+  JOURNAL   EMBO J. 3 (11), 2641-2645 (1984)
+   PUBMED   6210198
+REFERENCE   70 (bases 61557 to 61623)
+  AUTHORS   Semenza,G.L., Malladi,P., Surrey,S., Delgrosso,K., Poncz,M. and
+            Schwartz,E.
+  TITLE     Detection of a novel DNA polymorphism in the beta-globin gene
+            cluster
+  JOURNAL   J. Biol. Chem. 259 (10), 6045-6048 (1984)
+   PUBMED   6327661
+REFERENCE   71 (sites)
+  AUTHORS   Orkin,S.H., Antonarakis,S.E. and Kazazian,H.H. Jr.
+  TITLE     Base substitution at position -88 in a beta-thalassemic globin
+            gene. Further evidence for the role of distal promoter element
+            ACACCC
+  JOURNAL   J. Biol. Chem. 259 (14), 8679-8681 (1984)
+   PUBMED   6086605
+REFERENCE   72 (bases 45336 to 47463)
+  AUTHORS   Chang,L.Y. and Slightom,J.L.
+  TITLE     Isolation and nucleotide sequence analysis of the beta-type globin
+            pseudogene from human, gorilla and chimpanzee
+  JOURNAL   J. Mol. Biol. 180 (4), 767-784 (1984)
+   PUBMED   6098690
+REFERENCE   73 (sites)
+  AUTHORS   Grindlay,G.J., Lanyon,W.G., Allan,M. and Paul,J.
+  TITLE     Alternative sites of transcription initiation upstream of the
+            canonical cap site in human gamma-globin and beta-globin genes
+  JOURNAL   Nucleic Acids Res. 12 (4), 1811-1820 (1984)
+   PUBMED   6701091
+REFERENCE   74 (sites)
+  AUTHORS   Stoeckert,C.J. Jr., Collins,F.S. and Weissman,S.M.
+  TITLE     Human fetal globin DNA sequences suggest novel conversion event
+  JOURNAL   Nucleic Acids Res. 12 (11), 4469-4479 (1984)
+   PUBMED   6330670
+REFERENCE   75 (sites)
+  AUTHORS   Mager,D.L. and Henthorn,P.S.
+  TITLE     Identification of a retrovirus-like repetitive element in human DNA
+  JOURNAL   Proc. Natl. Acad. Sci. U.S.A. 81 (23), 7510-7514 (1984)
+   PUBMED   6095301
+REFERENCE   76 (bases 19120 to 61776)
+  AUTHORS   Collins,F.S. and Weissman,S.M.
+  TITLE     The molecular genetics of human hemoglobin
+  JOURNAL   Prog. Nucleic Acid Res. Mol. Biol. 31, 315-462 (1984)
+   PUBMED   6397774
+REFERENCE   77 (bases 34276 to 34276; 34282 to 34282; 34321 to 34321)
+  AUTHORS   Gilman,J.G. and Huisman,T.H.
+  TITLE     DNA sequence variation associated with elevated fetal G gamma
+            globin production
+  JOURNAL   Blood 66 (4), 783-787 (1985)
+   PUBMED   2412616
+REFERENCE   78 (sites)
+  AUTHORS   Ruskin,B., Greene,J.M. and Green,M.R.
+  TITLE     Cryptic branch point activation allows accurate in vitro splicing
+            of human beta-globin intron mutants
+  JOURNAL   Cell 41 (3), 833-844 (1985)
+   PUBMED   3879973
+REFERENCE   79 (sites)
+  AUTHORS   Lang,K.M. and Spritz,R.A.
+  TITLE     Cloning specific complete polyadenylylated 3'-terminal cDNA
+            segments
+  JOURNAL   Gene 33 (2), 191-196 (1985)
+   PUBMED   2581851
+REFERENCE   80 (bases 1 to 16593)
+  AUTHORS   Li,Q., Powers,P.A. and Smithies,O.
+  TITLE     Nucleotide sequence of 16-kilobase pairs of DNA 5' to the human
+            epsilon-globin gene
+  JOURNAL   J. Biol. Chem. 260 (28), 14901-14910 (1985)
+   PUBMED   4066658
+REFERENCE   81 (sites)
+  AUTHORS   Gelinas,R., Endlich,B., Pfeiffer,C., Yagi,M. and
+            Stamatoyannopoulos,G.
+  TITLE     G to A substitution in the distal CCAAT box of the A gamma-globin
+            gene in Greek hereditary persistence of fetal haemoglobin
+  JOURNAL   Nature 313 (6000), 323-325 (1985)
+   PUBMED   2578619
+REFERENCE   82 (sites)
+  AUTHORS   Collins,F.S., Metherall,J.E., Yamakawa,M., Pan,J., Weissman,S.M.
+            and Forget,B.G.
+  TITLE     A point mutation in the A gamma-globin gene promoter in Greek
+            hereditary persistence of fetal haemoglobin
+  JOURNAL   Nature 313 (6000), 325-326 (1985)
+   PUBMED   2578620
+REFERENCE   83 (bases 67071 to 73308)
+  AUTHORS   Hattori,M., Hidaka,S. and Sakaki,Y.
+  TITLE     Sequence analysis of a KpnI family member near the 3' end of human
+            beta-globin gene
+  JOURNAL   Nucleic Acids Res. 13 (21), 7813-7827 (1985)
+   PUBMED   2999705
+REFERENCE   84 (sites)
+  AUTHORS   van Santen,V.L. and Spritz,R.A.
+  TITLE     mRNA precursor splicing in vivo: sequence requirements determined
+            by deletion analysis of an intervening sequence
+  JOURNAL   Proc. Natl. Acad. Sci. U.S.A. 82 (9), 2885-2889 (1985)
+   PUBMED   3857622
+REFERENCE   85 (sites)
+  AUTHORS   Tuan,D., Solomon,W., Li,Q. and London,I.M.
+  TITLE     The 'beta-like-globin' gene domain in human erythroid cells
+  JOURNAL   Proc. Natl. Acad. Sci. U.S.A. 82 (19), 6384-6388 (1985)
+   PUBMED   3879975
+REFERENCE   86 (sites)
+  AUTHORS   Chabot,B., Black,D.L., LeMaster,D.M. and Steitz,J.A.
+  TITLE     The 3' splice site of pre-messenger RNA is recognized by a small
+            nuclear ribonucleoprotein
+  JOURNAL   Science 230 (4732), 1344-1349 (1985)
+   PUBMED   2933810
+REFERENCE   87 (bases 21354 to 21360)
+  AUTHORS   Collins,F.S.
+  JOURNAL   Unpublished
+REFERENCE   88 (bases 58799 to 58958; 63036 to 63295)
+  AUTHORS   Popovich,B.W., Rosenblatt,D.S., Kendall,A.G. and Nishioka,Y.
+  TITLE     Molecular characterization of an atypical beta-thalassemia caused
+            by a large deletion in the 5' beta-globin gene region
+  JOURNAL   Am. J. Hum. Genet. 39 (6), 797-810 (1986)
+   PUBMED   3799598
+REFERENCE   89 (bases 54874 to 54892)
+  AUTHORS   Lapoumeroulie,C., Pagnier,J., Bank,A., Labie,D. and
+            Krishnamoorthy,R.
+  TITLE     Beta thalassemia due to a novel mutation in IVS 1 sequence donor
+            site consensus sequence creating a restriction site
+  JOURNAL   Biochem. Biophys. Res. Commun. 139 (2), 709-713 (1986)
+   PUBMED   3021139
+REFERENCE   90 (bases 62373 to 62419)
+  AUTHORS   Metherall,J.E., Collins,F.S., Pan,J., Weissman,S.M. and Forget,B.G.
+  TITLE     Beta zero thalassemia caused by a base substitution that creates an
+            alternative splice acceptor site in an intron
+  JOURNAL   EMBO J. 5 (10), 2551-2557 (1986)
+   PUBMED   3780671
+REFERENCE   91 (bases 37640 to 37677; 40162 to 40199)
+  AUTHORS   Tate,V.E., Hill,A.V., Bowden,D.K., Sadler,J.R., Weatherall,D.J. and
+            Clegg,J.B.
+  TITLE     A silent deletion in the beta-globin gene cluster
+  JOURNAL   Nucleic Acids Res. 14 (12), 4743-4750 (1986)
+   PUBMED   2425337
+REFERENCE   92 (sites)
+  AUTHORS   Prchal,J.T., Cashman,D.P. and Kan,Y.W.
+  TITLE     Hemoglobin Long Island is caused by a single mutation (adenine to
+            cytosine) resulting in a failure to cleave amino-terminal
+            methionine
+  JOURNAL   Proc. Natl. Acad. Sci. U.S.A. 83 (1), 24-27 (1986)
+   PUBMED   3455755
+REFERENCE   93 (bases 59589 to 59718; 72211 to 72340)
+  AUTHORS   Gilman,J.G. and Abraham,J.
+  TITLE     DNA sequence analysis of the Dutch beta-0-thalassemia deletion
+  JOURNAL   Biomed. Biochim. Acta 46, 131-135 (1987)
+REFERENCE   94 (bases 43723 to 50721)
+  AUTHORS   Miyamoto,M.M., Slightom,J.L. and Goodman,M.
+  TITLE     Phylogenetic relations of humans and African apes from DNA
+            sequences in the psi eta-globin region
+  JOURNAL   Science 238 (4825), 369-373 (1987)
+   PUBMED   3116671
+REFERENCE   95 (sites)
+  AUTHORS   Fei,Y.J., Stoming,T.A., Efremov,G.D., Efremov,D.G., Battacharia,R.,
+            Gonzalez-Redondo,J.M., Altay,C., Gurgey,A. and Huisman,T.H.
+  TITLE     Beta-thalassemia due to a T----A mutation within the ATA box
+  JOURNAL   Biochem. Biophys. Res. Commun. 153 (2), 741-747 (1988)
+   PUBMED   3382401
+REFERENCE   96 (bases 55038 to 55052)
+  AUTHORS   Atweh,G.F., Brickner,H.E., Zhu,X.X., Kazazian,H.H. Jr. and
+            Forget,B.G.
+  TITLE     New amber mutation in a beta-thalassemic gene with nonmeasurable
+            levels of mutant messenger RNA in vivo
+  JOURNAL   J. Clin. Invest. 82 (2), 557-561 (1988)
+   PUBMED   3403716
+REFERENCE   97 (sites)
+  AUTHORS   Engelke,D.R., Hoener,P.A. and Collins,F.S.
+  TITLE     Direct sequencing of enzymatically amplified human genomic DNA
+  JOURNAL   Proc. Natl. Acad. Sci. U.S.A. 85 (2), 544-548 (1988)
+   PUBMED   3267215
+REFERENCE   98 (sites)
+  AUTHORS   Guidal,C., Lapoumeroulie,C., Krishnamoorthy,R. and Elion,J.
+  TITLE     Sequence correction and reassignment of the TaqI polymorphic site
+            in the human inter-gamma-globin gene region, an African-specific
+            marker
+  JOURNAL   Unpublished
+REFERENCE   99 (bases 16594 to 19305)
+  AUTHORS   Trepicchio,W.L., Dyer,M.A., Hardison,R.G. and Baron,M.H.
+  TITLE     Upstream regulatory region of the human embryonic beta-like globin
+            gene, epsilon
+  JOURNAL   Unpublished (1993)
+REFERENCE   100 (bases 1 to 73308)
+  AUTHORS   Teixeira,A., Tahiri-Alaoui,A., West,S., Thomas,B., Ramadass,A.,
+            Martianov,I., Dye,M., James,W., Proudfoot,N.J. and Akoulitchev,A.
+  TITLE     Autocatalytic RNA cleavage in the human beta-globin pre-mRNA
+            promotes transcription termination
+  JOURNAL   Nature 432 (7016), 526-530 (2004)
+   PUBMED   15565159
+COMMENT     On Feb 16, 1994 this sequence version replaced gi:183807.
+            [1]  cRNA fragments.
+            [2]  mRNA.
+            [5]  sites; polyadenylation signal and site for the beta gene.
+            [4]  cDNA from normal and thalassemic mRNAs.
+            [6]  cDNA.
+            [9]  mRNA and cDNA fragments.
+            [10]  mRNA.
+            [7]  cDNA.
+            [13]  see comment below for 35854 to 35946 - may be 40770 to 40862.
+            [19]  sites; amber mutation at codon 17 of the beta chain.
+            [22]  sites; gene order for the beta-like globin cluster.
+            [27]  sites; consensus sequences in the promoter regions.
+            [40]  sites; mutation associated with Hb Vicksburg.
+            [41]  beta thalassemia DNA.
+            [42]  sites; mutation associated with beta-0 thalassemia.
+            [35]  sites; mutation associated with beta-plus thalassemia.
+            [36]  sites; mutation associated with beta-0 thalassemia.
+            [37]  six alleles over this span.
+            [32]  sites; mutations associated with beta-0 thalassemia.
+            [34]  sites; mutation associated with beta-0 thalassemia.
+            [52]  sites; alternative cap sites for mRNA.
+            [53]  sites; mutation associated with beta-plus thalassemia.
+            [56]  sites; deletion mutation associated with beta-0 thalassemia.
+            [48]  sites; mutations associated with beta thalassemias.
+            [49]  sites; deletion mutation; for sequence, see separate entry.
+            [62]  DNA from Kurdish Jew with thalassemia.
+            [58]  sites; promoter region for beta gene.
+            [59]  sites; termini for RNA polymerase III transcripts.
+            [60]  sites; alternative cap sites for mRNA.
+            [61]  sites; deletion mutations associated with thalassemias;.
+            [65]  for the R allele;.
+            [73]  sites; beta and gamma gene cap sites.
+            [71]  sites; mutation associated with beta thalassemia.
+            [66]  sites; Miyada Hb lesion; for sequence, see separate entry.
+            [75]  sites; hsRTVL-H element; for sequence, see separate entry.
+            [67]  sites; mutations associated with thalassemia.
+            [68]  sites; mutation associated with thalassemia.
+            [69]  sites; mutation associated with thalassemia.
+            [76]  see comment; review.
+            [74]  sites; mutations in the A-gamma gene.
+            [81]  sites; mutation in promoter region leading to HPFH;.
+            [82]  sites; mutation in promoter region leading to HPFH.
+            [85]  sites; DNAse I hypersensitivity sites in the region.
+            [78]  sites; cryptic branch points in beta IVS1.
+            [79]  sites; 3' segments of beta and G-gamma cDNAs.
+            [84]  sites; mutational analysis of G-gamma IVS-2.
+            [86]  sites; small nuclear ribonucleoprotein binding site to mRNA.
+            [92]  sites; hemoglobin Long Island mutation.
+            [94]  revises [72].
+            [95]  sites; mutations resulting in beta-thalassemia.
+            [97]  sites; sickle cell anemia mutation site.
+            [30]  sites; thalassemia mutations.
+            [43]  sites; thalassemia mutations.
+            [44]  sites; thalassemia mutation.
+            [21]  sites; thalassemia mutation.
+            [90]  beta-0 thalassemia mutations.
+            
+            
+            
+            This 73 kb sequence, which includes all of the known beta genes in
+            the cluster on chromosome 11, was compiled from the following
+            sources primarily:
+            
+            
+            
+            
+                bases             references
+                ------           ------------
+            
+            
+            
+            
+               1 to 10409           [80]
+               10410 to 13774       [55]
+               13775 to 16594       [80]
+               16595 to 19304       [99]
+               19305 to 21381       [23], [28], [39]
+               21382 to 32352       [63; see acknowledgments therein; bases
+            31888-32020 sequenced on one strand only]
+               32353 to 43728       [29]
+               43729 to 50715       [94]
+               50716 to 67204       [47], [62]
+               67205 to 73308       [83]
+            
+            
+            
+            Other sequence work is referenced and annotated below. Oliver
+            Smithies provided the sequence in [80] via Arpanet and Francis
+            Collins supplied a diskette with the sequence in [76].
+            Computer-readable sequence for [94] kindly provided by
+            M.M.Miyamoto, 15-FEB-1988.
+            
+            
+            
+            The five beta-like globin genes are found within a 45 kb cluster on
+            chromosome 11 in the following order:
+            
+            
+            
+            
+                  5'-epsilon -G-gamma -A-gamma -delta -beta-3'   [22]
+            
+            
+            
+            Additionally, the pseudogene beta-1 is located between the A-gamma
+            and delta genes [72]. A region 5' to the epsilon gene was thought
+            to be another pseudogene; however [55] shows this not to be so.
+            These embryonic, fetal and adult beta-like genes have the same
+            overall exonic structure, leading to the conclusion that they are
+            derived from one ancestral gene. In particular, they have many
+            consensus sequences and repetitive sequences in common which have
+            been analyzed by [27] and [76].
+            
+            
+            
+            
+                   Epsilon gene
+                   ------------
+            
+            
+            
+            The epsilon globin gene (hbe below) is normally expressed in the
+            embryonic yolk sac: two epsilon chains together with two zeta
+            chains (an alpha-like globin; see separate entry) constitute the
+            embryonic hemoglobin Hb Gower I; two epsilon chains together with
+            two alpha chains form the embryonic Hb Gower II.  Both of these
+            embryonic hemoglobins are normally supplanted by fetal, and later,
+            adult hemoglobin.
+            
+            
+            
+            The promoter region sequences 'ccaat', 'ata' and 'cttccg' found at
+            19403, 19458 and 19495 are characteristic of all human beta-like
+            genes, as well as of some other mammalian genes, and are thought to
+            influence initiation of transcription and translation [27],[76].
+            However, at least nine alternative cap sites which do not possess
+            these conserved sequences have been found upstream from the
+            so-called canonical cap sites at 19486 and 19488 [52],[60].
+            
+            
+            
+            The Alu family sequences found at 16892-17158 and 17927-18190 are
+            typical of the 5' flanking regions of the beta-like globin genes
+            [23],[39]. The first of these bipolar repeats has been shown to be
+            active as a template for RNA polymerase III [39].
+            
+            
+            
+            
+                   G-gamma and A-gamma genes
+                   -------------------------
+            
+            
+            
+            The gamma globin genes (hbgg and hbga below) are normally expressed
+            in the fetal liver, spleen and bone marrow.  Two gamma chains
+            together with two alpha chains constitute fetal hemoglobin (HbF)
+            which is normally replaced by adult hemoglobin (HbA) at birth.  In
+            some beta-thalassemias and related conditions (HPFH or 'hereditary
+            persistence of fetal hemoglobin'), gamma chain production continues
+            into adulthood.  The mapping of deletions in these pathologies is
+            therefore of special interest with regard to developmental control
+            mechanisms.
+            
+            
+            
+            The two types of gamma chains differ at residue 136 where glycine
+            is found in the G-gamma product and alanine is found in the A-gamma
+            product.  The former is predominant at birth.  Because of the
+            sequence identity of the two genes over large stretches, it was not
+            always possible in the early work to know which sequence was being
+            investigated [13],[15],[17].  Moreover, because allelic variation
+            has been reported for each of these non-allelic genes, further
+            sequence work is required to determine the consensus sequence for
+            each.  Thus far the sequences of two A-gamma alleles have been
+            reported ([24]; see separate entry which annotates the allelic
+            variation).  The second introns for the hbgg and hbga genes shown
+            below contain 886 and 866 bases respectively, while their alleles
+            on the opposing chromosome have 904 and 876 bases for the
+            corresponding introns.  [24] and [29] present an analysis of this
+            phenomenon and conclude that intergenic exchange can occur in human
+            germ line cells with significant frequency.
+            
+            
+            
+            Given the above-mentioned uncertainties with regard to polymorphism
+            and material, differences, where annotated, are treated as
+            variations rather than as conflicts.
+            
+            
+            
+            The promoter region sequences 'ccaat', 'ata' and 'cttctg' found at
+            bases 34390, 34448 and 34485 in the hbgg gene, and bases 39326,
+            39384 and 39421 in the hbga gene, are characteristic of all
+            beta-like genes, as well as of some other mammalian genes, and are
+            thought to influence transcription and translation [27],[76].  The
+            gamma genes each manifest duplicate 'ccaat' boxes at positions
+            34363 (hbgg) and 39299 (hbga).  Alternative cap sites are active in
+            vitro upstream from the canonical cap sites at 34478 and 39414: at
+            bases 34398, 34408, 34418 and 34428 for hbgg, and at bases 39334,
+            39344, 39354 and 39364 for hbga [73].  Alternative cap sites have
+            also been reported for epsilon and beta mRNAs when there is no
+            duplication of the 'ccaat' sequence.  [81] and [82] show that the
+            distal 'ccaat' box for the hbga gene (for the B allele -- see
+            separate sequence) has some vital function: a g -> a mutation at
+            base 39297 is apparently responsible for one form of Greek HPFH.
+            
+            
+            
+            The Alu family sequences found at bases 32390-32723 (approx.) and
+            37325-37562 (approx.) are typical of the beta-like globin Alu's
+            [27],[76],[31],[29].  A study of the hbgg repeat has revealed RNA
+            transcription by polymerase III [31]( also reported for Alu regions
+            in the 5' flanks of the epsilon and beta genes).
+            
+            
+            
+            
+                   Pseudo-beta-1
+                   -------------
+            
+            
+            
+            Human, gorilla and chimpanzee beta-like pseudogenes were sequenced
+            and compared (see separate entries for the other primate sequences)
+            by [72] and revised by [94]. The pseudogene structure was deduced
+            through comparison with the A-gamma globin gene. Base substitutions
+            in the initiation codon and in codons downstream, that create
+            internal termination signals in exons 2 and 3, make this sequence a
+            pseudogene.
+            
+            
+            
+            
+                   Delta and beta genes
+                   --------------------
+            
+            
+            
+            The delta and beta genes (denoted hbd and hbb below) are normally
+            expressed in the adult: two alpha chains plus two beta chains
+            constitute HbA, which in normal adult life comprises about 97% of
+            the total hemoglobin.  Two alpha chains plus two delta chains
+            constitute HbA-2, which with HbF comprises the remaining 3% of
+            adult hemoglobin.
+            
+            
+            
+            The sequence given below has been reconstructed from the sequences
+            reported by [47] and [62]: the mutation at base 62143 is apparently
+            sufficient to distinguish the Kurdish Jew thalassemic sequence from
+            a normal (consensus) beta globin DNA; [62] has resolved all
+            sequence differences to date with exception of the differences
+            reported herein as variations.
+            
+            
+            
+            The promoter region sequences 'ccaat', 'ata' and 'cttctg' found at
+            bases 54672, 54709 and 54747 in the delta gene, and at bases 62061,
+            62106 and 62144 in the beta gene, are characteristic of all
+            beta-like genes, as well as of some other mammalian genes, and are
+            thought to influence transcription and translation [27],[76].
+            However, alternative cap sites have been found for these genes as
+            well as other beta-like genes [58],[73].
+            
+            
+            
+            [95] describes the mutation (substitution of 'a' for 't' at
+            position 62107, thereby destroying the promoter) found in an Hb
+            Lepore-beta+ -thalassemia patient, who was homozygous for this
+            mutation.  The father who had the simple beta-thalassemia trait was
+            found to be heterozygous.
+            
+            
+            
+            A form of thalassemia exists, where 19 bp are added after the first
+            exon, starting at position 62390 and ending at a stop codon at
+            position 62406-62408 [30],[43],[57]. This aberrant splicing is
+            caused by a mutation of 'g' to 'a' in the first intron of
+            beta-hemoglobin at position 62388.  The substitution of a 'g' for a
+            't' at position 62394 also causes premature splicing and results in
+            an abnormal and abbreviated beta hemoglobin [90].
+            
+            
+            
+            Another form of beta-thalassemia is produced by the substitution of
+            an 'a' for a 'g' at position 62632.  This causes a readthrough at
+            the exon/intron boundary of exon 2/intron 2 [44].
+            
+            
+            
+            The Alu family sequences found at bases 50915, 51976, 65513 and
+            66776 are again typical of the beta-like globin Alu's.  These
+            sequences are of considerable interest in relation to regulation,
+            recombination and transcription by RNA polymerase III.
+            
+            
+            
+            There are non-Alu repetitive elements in the gene cluster that have
+            been partially characterized: the EC-1 repeat [38] and a
+            retrovirus-like element in the 3' flank about 300 kb downstream of
+            this sequence [75] (see separate entry); there are numerous repeats
+            in the 5' flank which will be included in a future update [80].
+            Reference [83] has characterized a novel KpnI family sequence in
+            the 3' flank of the cluster.
+            
+            
+            
+            Potential polyadenylation signals were identified for the following
+            genes:
+               hbe       positions 21055-21060
+               hbgg      positions 36043-36048
+               hbga      positions 40959-40964
+               hbd       positions 56365-56370
+               hbb       positions 63718-63723.
+FEATURES             Location/Qualifiers
+     source          1..73308
+                     /organism="Homo sapiens"
+                     /mol_type="genomic DNA"
+                     /db_xref="taxon:9606"
+                     /map="11p15.5"
+     repeat_region   10597..10611
+                     /note="Alu flank repeat 5' copy"
+     repeat_region   10612..10924
+                     /rpt_family="Alu"
+                     /rpt_type=dispersed
+     repeat_region   10925..10939
+                     /note="Alu flank repeat 3' copy"
+     repeat_region   complement(16918..17218)
+                     /rpt_family="Alu"
+                     /rpt_type=dispersed
+     repeat_region   17940..18231
+                     /rpt_family="Alu"
+                     /rpt_type=dispersed
+     gene            19289..21080
+                     /gene="HBE1"
+     precursor_RNA   19289..21080
+                     /gene="HBE1"
+                     /note="hbe mRNA (alt.) [23],[52],[60]"
+     mRNA            join(19289..19632,19755..19977,20833..21080)
+                     /gene="HBE1"
+                     /product="epsilon-globin"
+     exon            19289..19632
+                     /gene="HBE1"
+                     /note="epsilon-globin"
+                     /number=1
+     precursor_RNA   19486..21080
+                     /gene="HBE1"
+                     /note="hbe mRNA (alt.) [23],[52],[60]"
+     precursor_RNA   19488..21080
+                     /gene="HBE1"
+                     /note="hbe mRNA (alt.) [23],[52],[60]"
+     CDS             join(19541..19632,19755..19977,20833..20961)
+                     /gene="HBE1"
+                     /codon_start=1
+                     /product="epsilon-globin"
+                     /protein_id="AAA16330.1"
+                     /translation="MVHFTAEEKAAVTSLWSKMNVEEAGGEALGRLLVVYPWTQRFFD
+                     SFGNLSSPSAILGNPKVKAHGKKVLTSFGDAIKNMDNLKPAFAKLSELHCDKLHVDPE
+                     NFKLLGNVMVIILATHFGKEFTPEVQAAWQKLVSAVAIALAHKYH"
+     exon            19755..19977
+                     /gene="HBE1"
+                     /number=2
+     exon            20833..21080
+                     /gene="HBE1"
+                     /note="epsilon-globin"
+                     /number=3
+     variation       20983
+                     /gene="HBE1"
+                     /note="g in [76]; c in [23]"
+     old_sequence    21354..21360
+                     /citation=[76]
+                     /replace=""
+     unsure          31888..32020
+                     /note="sequenced on one strand only [76]"
+     repeat_region   32390..32406
+                     /note="Alu flank repeat 5' copy [31]"
+     repeat_region   32407..32711
+                     /note="[31]"
+                     /rpt_family="Alu"
+                     /rpt_type=dispersed
+     variation       32608
+                     /note="g in [29]; a in [31]"
+     repeat_region   32712..32728
+                     /note="Alu flank repeat 3' copy [31]"
+     variation       32743..32744
+                     /note="ag in [29]; ga in [31]"
+     variation       33186
+                     /note="a in [29]; g in [31]"
+     variation       33198
+                     /note="a in [29]; g in [31]"
+     variation       34276
+                     /note="c in wt; g in persons with elevated gamma chain
+                     [77]"
+     variation       34282
+                     /note="c in wt; t in persons with elevated gamma chain
+                     [77]"
+     variation       34321
+                     /note="c in wt; t in high G-gamma SS; beta thalassemia;
+                     and in low Hb F G-gamma-beta+-HPHF and HPFH [77]"
+     variation       34361
+                     /note="g in wt; a in persons with elevated gamma chain
+                     [77]"
+     gene            34478..36069
+                     /gene="HBG2"
+     mRNA            join(34478..34622,34745..34967,35854..36069)
+                     /gene="HBG2"
+                     /product="G-gamma globin"
+     exon            34478..34622
+                     /gene="HBG2"
+                     /note="G-gamma globin"
+                     /number=1
+     CDS             join(34531..34622,34745..34967,35854..35982)
+                     /gene="HBG2"
+                     /codon_start=1
+                     /product="G-gamma globin"
+                     /protein_id="AAA16331.1"
+                     /translation="MGHFTEEDKATITSLWGKVNVEDAGGETLGRLLVVYPWTQRFFD
+                     SFGNLSSASAIMGNPKVKAHGKKVLTSLGDAIKHLDDLKGTFAQLSELHCDKLHVDPE
+                     NFKLLGNVLVTVLAIHFGKEFTPEVQASWQKMVTGVASALSSRYH"
+     exon            34745..34967
+                     /gene="HBG2"
+                     /number=2
+     exon            35854..36069
+                     /gene="HBG2"
+                     /note="G-gamma globin"
+                     /number=3
+     misc_difference 37486
+                     /note="conflict"
+                     /citation=[29]
+                     /replace="t"
+     variation       37657..40179
+                     /note="g-25 kb-c in wt; gc in silent deletion [91]"
+     variation       37975
+                     /note="t in all Benin-type sickle cell (beta-S)
+                     chromosomes and some African beta-A chromosomes; t
+                     abolishes a TaqI site"
+                     /citation=[29]
+                     /replace="t"
+     variation       39297
+                     /note="g in wt (b allele, see separate sequence); a in
+                     HPFH [81],[82]"
+     gene            39414..40985
+                     /gene="HBG1"
+     mRNA            join(39414..39558,39681..39903,40770..40985)
+                     /gene="HBG1"
+                     /product="A-gamma globin"
+     exon            39414..39558
+                     /gene="HBG1"
+                     /note="A-gamma globin"
+                     /number=1
+     variation       39438
+                     /gene="HBG1"
+                     /note="a in [29]; g in [15]"
+     CDS             join(39467..39558,39681..39903,40770..40898)
+                     /gene="HBG1"
+                     /codon_start=1
+                     /product="A-gamma globin"
+                     /protein_id="AAA16332.1"
+                     /translation="MGHFTEEDKATITSLWGKVNVEDAGGETLGRLLVVYPWTQRFFD
+                     SFGNLSSASAIMGNPKVKAHGKKVLTSLGDAIKHLDDLKGTFAQLSELHCDKLHVDPE
+                     NFKLLGNVLVTVLAIHFGKEFTPEVQASWQKMVTAVASALSSRYH"
+     exon            39681..39903
+                     /gene="HBG1"
+                     /number=2
+     exon            40770..40985
+                     /gene="HBG1"
+                     /note="A-gamma globin"
+                     /number=3
+     variation       43782..43784
+                     /note="gat in [94]; gt in [76]"
+     variation       43830..43832
+                     /note="ttg in [94]; tg in [76]"
+     variation       43843
+                     /note="t in [94]; c in [76]"
+     variation       44122
+                     /note="t in [94]; c in [76]"
+     variation       45069..45077
+                     /note="aaaaaaaaa in [94]; aa in [76]"
+     variation       45227..45228
+                     /note="ca in [94]; ctca in [76]"
+     variation       45280
+                     /note="t in [94]; c in [76]"
+     variation       45297
+                     /note="c in [94]; t in [76]"
+     variation       45299
+                     /note="t in [94]; c in [76]"
+     variation       45309..45311
+                     /note="cat in [94]; ct in [76]"
+     variation       45317..45319
+                     /note="tta in [94]; ta in [76]"
+     variation       45321..45323
+                     /note="tag in [94]; tg in [76]"
+     mRNA            join(45657..45800,45922..46145,46997..47370)
+                     /note="pseudo-hbp mRNA [72]"
+     CDS             join(45710..45800,45922..46145,46997..47124)
+                     /note="pseudo-hbp"
+                     /pseudo
+                     /codon_start=1
+     exon            <45710..45800
+                     /note="pseudo-hbp, [72]"
+                     /number=1
+     exon            45922..46145
+                     /note="pseudo-hbp, [72]"
+                     /number=2
+                     /pseudo
+     exon            46997..>47124
+                     /note="pseudo-hbp, [72]"
+                     /number=3
+     repeat_region   complement(50889..50894)
+                     /note="Alu flank repeat 3' copy [47],[62]"
+     repeat_region   complement(50915..51198)
+                     /note="[47],[62]"
+                     /rpt_family="Alu"
+                     /rpt_type=dispersed
+     repeat_region   complement(51199..51204)
+                     /note="Alu flank repeat 5' copy [47],[62]"
+     repeat_region   51966..51975
+                     /note="Alu flank repeat 5' copy [62]"
+     repeat_region   51976..52259
+                     /note="[31],[62]"
+                     /rpt_family="Alu"
+                     /rpt_type=dispersed
+     repeat_region   52286..52295
+                     /note="Alu flank repeat 3' copy [62]"
+     gene            54740..56389
+                     /gene="HBD"
+     mRNA            join(54740..54881,55010..55232,56131..56389)
+                     /gene="HBD"
+                     /product="delta-globin"
+     exon            54740..54881
+                     /gene="HBD"
+                     /note="delta-globin"
+                     /number=1
+     CDS             join(54790..54881,55010..55232,56131..56259)
+                     /gene="HBD"
+                     /codon_start=1
+                     /product="delta-globin"
+                     /protein_id="AAA16333.1"
+                     /translation="MVHLTPEEKTAVNALWGKVNVDAVGGEALGRLLVVYPWTQRFFE
+                     SFGDLSSPDAVMGNPKVKAHGKKVLGAFSDGLAHLDNLKGTFSQLSELHCDKLHVDPE
+                     NFRLLGNVLVCVLARNFGKEFTPQMQAAYQKVVAGVANALAHKYH"
+     variation       54886
+                     /gene="HBD"
+                     /note="g in wt; a in beta thalassemia [89]"
+     exon            55010..55232
+                     /gene="HBD"
+                     /number=2
+     variation       55047
+                     /gene="HBD"
+                     /note="g in wt; t in beta-thalassemia Glu->stop"
+     variation       55523
+                     /gene="HBD"
+                     /note="ct in [54],[62],[76]; tc in [25]"
+     variation       55571..55572
+                     /gene="HBD"
+                     /note="ct in [62],[76]; c in [25]; cc in [54]"
+     exon            56131..56389
+                     /gene="HBD"
+                     /note="delta-globin"
+                     /number=3
+     variation       58855..63093
+                     /note="a-4239 bp-c in wt; ac in atypical beta-thalassemia
+                     [88]"
+     variation       59663..72286
+                     /note="t-12622 bp-t in wt; tt in Dutch beta-0- thalassemia
+                     [93]"
+     variation       60745..60750
+                     /note="tatttt in [62],[76]; t in [37]"
+     variation       60832
+                     /note="a in [37],[62],[76]; g in [51]"
+     variation       60842
+                     /note="c in [62],[76]; ca in [37],[51]"
+     variation       61148
+                     /note="c in [51],[62],[76]; g in [51]"
+     variation       61294
+                     /note="c in [62],[76]; t in [51]"
+     variation       61308
+                     /note="t in [62],[76]; tt in [51]"
+     variation       61586
+                     /note="t in wt; c in Albanian allele (produces RsaI site)
+                     [70]"
+     variation       61608..61609
+                     /note="tt in wt; tatat in Albanian allele [70]"
+     variation       61663
+                     /note="a in [62],[76]; g in [51]"
+     variation       61753
+                     /note="gc in [62],[76]; g in [51]"
+     variation       61773
+                     /note="g in [62]; a in [76]"
+     variation       61797
+                     /note="t in [54],[62],[76]; c in [51]"
+     variation       61824
+                     /note="g in [62],[76]; c in [51]"
+     variation       61922
+                     /note="g in [51],[62],[76]; c in [41]"
+     variation       61932
+                     /note="a in [51],[62],[76]; t in [41]"
+     variation       62050
+                     /note="c in wt; g in beta-thalassemia [63]"
+     variation       62107
+                     /note="t in normal promoter; a in thalassemia patient (Hb
+                     Lepore-beta+ -thal)"
+     variation       62109
+                     /note="a in [26],[41],[51]; c in [62],[76],[J. Biol. C"
+     gene            62137..63742
+                     /gene="HBB"
+     mRNA            join(62137..62278,62409..62631,63482..63742)
+                     /gene="HBB"
+                     /product="beta-globin"
+     exon            62137..62278
+                     /gene="HBB"
+                     /note="beta-globin"
+                     /number=1
+     variation       62156
+                     /gene="HBB"
+                     /note="c in [62],[76]; t in [48]"
+     CDS             join(62187..62278,62409..62631,63482..63610)
+                     /gene="HBB"
+                     /codon_start=1
+                     /product="beta-globin"
+                     /protein_id="AAA16334.1"
+                     /translation="MVHLTPEEKSAVTALWGKVNVDEVGGEALGRLLVVYPWTQRFFE
+                     SFGDLSTPDAVMGNPKVKAHGKKVLGAFSDGLAHLDNLKGTFATLSELHCDKLHVDPE
+                     NFRLLGNVLVCVLAHHFGKEFTPPVQAAYQKVVAGVANALAHKYH"
+     gene            <62187..>62408
+                     /gene="HBB thalassemia"
+     mRNA            join(<62187..62278,62390..>62408)
+                     /gene="HBB thalassemia"
+                     /product="beta-globin thalassemia"
+     CDS             join(62187..62278,62390..62408)
+                     /gene="HBB thalassemia"
+                     /codon_start=1
+                     /product="beta-globin thalassemia"
+                     /protein_id="AAA16335.1"
+                     /translation="MVHLTPEEKSAVTALWGKVNVDEVGGEALGSLFSHP"
+     exon            <62187..62278
+                     /gene="HBB thalassemia"
+                     /note="beta-globin thalassemia, [30],[43]"
+                     /number=1
+     variation       62195
+                     /gene="HBB thalassemia"
+                     /note="c in [26],[62],[76]; t in [48]"
+     variation       62205..62207
+                     /gene="HBB thalassemia"
+                     /note="gag in wt; gg in beta-thalassemia [64]"
+     variation       62206
+                     /gene="HBB thalassemia"
+                     /note="a in normal hbb; t in sickle cell anemia 78]"
+     variation       62238
+                     /gene="HBB thalassemia"
+                     /note="a in wt; t in thalassemia [Ann. N.Y. Acad. Sci.
+                     344, 113-119 (1980)]"
+     variation       62279
+                     /gene="HBB thalassemia"
+                     /note="g in wt; a in thalassemia [63]"
+     variation       62283
+                     /gene="HBB thalassemia"
+                     /note="g in wt; c in thalassemia [63]"
+     variation       62284
+                     /gene="HBB thalassemia"
+                     /note="t in wt; c in thalassemia [63]"
+     variation       62388
+                     /gene="HBB thalassemia"
+                     /note="g in wt; a in thalassemia [30],[43],[57],[90]"
+     exon            62390..>62408
+                     /gene="HBB thalassemia"
+                     /note="beta-globin thalassemia, [30],[43]"
+                     /number=2
+     variation       62394
+                     /gene="HBB thalassemia"
+                     /note="t in wt; g in thalassemia [90]"
+     exon            62409..62631
+                     /gene="HBB"
+                     /number=2
+     variation       62430
+                     /gene="HBB"
+                     /note="g in wt; a in a form of thalassemia [30]"
+     variation       62632
+                     /gene="HBB"
+                     /note="g in wt; a in a form of thalassemia [44]"
+     variation       62647
+                     /gene="HBB"
+                     /note="c in [26],[48],[62],[76]; g in [48]"
+     variation       62705
+                     /gene="HBB"
+                     /note="g in [26],[62],[76]; t in [48]"
+     variation       62712
+                     /gene="HBB"
+                     /note="c in [26],[62],[76]; t in [48]"
+     variation       63297
+                     /gene="HBB"
+                     /note="t in [26],[48],[62],[76]; c in [48]"
+     variation       63376
+                     /gene="HBB"
+                     /note="c in wt; g thalassemia [63] (causes an extra exon)"
+     exon            63482..63742
+                     /gene="HBB"
+                     /note="beta-globin"
+                     /number=3
+     variation       63830..63831
+                     /note="ta in [62],[76]; t in [26]"
+     variation       63918..63919
+                     /note="ct in wt; cct in a form of thalassemia [45]"
+     variation       63918
+                     /note="c in [62],[76]; cc in [26]"
+     variation       63957..63958
+                     /note="aa in [37],[62],[76]; tt in [26]"
+     variation       63957..63958
+                     /note="tt in wt; aa in a form of thalassemia [45]"
+     variation       63974
+                     /note="g in [37],[62],[76]; c in [26]"
+     repeat_region   65490..65502
+                     /note="Alu flank repeat 5' copy [62],[76]"
+     repeat_region   65513..65767
+                     /note="[62],[76]"
+                     /rpt_family="Alu"
+                     /rpt_type=dispersed
+     repeat_region   65768..65780
+                     /note="Alu flank repeat 3' copy [62],[76]"
+     repeat_region   66765..66775
+                     /note="Alu flank repeat 5' copy [62],[76]"
+     repeat_region   66776..67042
+                     /note="[62],[76]"
+                     /rpt_family="Alu"
+                     /rpt_type=dispersed
+     repeat_region   67069..67079
+                     /note="Alu flank repeat 3' copy [62],[76]"
+     repeat_region   67071..73195
+                     /note="[83]"
+                     /rpt_family="KpnI"
+                     /rpt_type=dispersed
+ORIGIN      
+        1 gaattctaat ctccctctca accctacagt cacccatttg gtatattaaa gatgtgttgt
+       61 ctactgtcta gtatccctca agtagtgtca ggaattagtc atttaaatag tctgcaagcc
+      121 aggagtggtg gctcatgtct gtaattccag cactggagag gtagaagtgg gaggactgct
+      181 tgagctcaag agtttgatat tatcctggac aacatagcaa gacctcgtct ctacttaaaa
+      241 aaaaaaaaat tagccaggca tgtgatgtac acctgtagtc ccagctactc aggaggccga
+      301 aatgggagga tcccttgagc tcaggaggtc aaggctgcag tgagacatga tcttgccact
+      361 gcactccagc ctggacagca gagtgaaacc ttgcctcacg aaacagaata caaaaacaaa
+      421 caaacaaaaa actgctccgc aatgcgcttc cttgatgctc taccacatag gtctgggtac
+      481 tttgtacaca ttatctcatt gctgttcgta attgttagat taattttgta atattgatat
+      541 tattcctaga aagctgaggc ctcaagatga taacttttat tttctggact tgtaatagct
+      601 ttctcttgta ttcaccatgt tgtaactttc ttagagtagt aacaatataa agttattgtg
+      661 agtttttgca aacacagcaa acacaacgac ccatatagac attgatgtga aattgtctat
+      721 tgtcaattta tgggaaaaca agtatgtact ttttctacta agccattgaa acaggaataa
+      781 cagaacaaga ttgaaagaat acattttccg aaattacttg agtattatac aaagacaagc
+      841 acgtggacct gggaggaggg ttattgtcca tgactggtgt gtggagacaa atgcaggttt
+      901 ataatagatg ggatggcatc tagcgcaatg actttgccat cacttttaga gagctcttgg
+      961 ggaccccagt acacaagagg ggacgcaggg tatatgtaga catctcattc tttttcttag
+     1021 tgtgagaata agaatagcca tgacctgagt ttatagacaa tgagcccttt tctctctccc
+     1081 actcagcagc tatgagatgg cttgccctgc ctctctacta ggctgactca ctccaaggcc
+     1141 cagcaatggg cagggctctg tcagggcttt gatagcacta tctgcagagc cagggccgag
+     1201 aaggggtgga ctccagagac tctccctccc attcccgagc agggtttgct tatttatgca
+     1261 tttaaatgat atatttattt taaaagaaat aacaggagac tgcccagccc tggctgtgac
+     1321 atggaaacta tgtagaatat tttgggttcc attttttttt ccttctttca gttagaggaa
+     1381 aaggggctca ctgcacatac actagacaga aagtcaggag ctttgaatcc aagcctgatc
+     1441 atttccatgt catactgaga aagtccccac ccttctctga gcctcagttt ctctttttat
+     1501 aagtaggagt ctggagtaaa tgatttccaa tggctctcat ttcaatacaa aatttccgtt
+     1561 tattaaatgc atgagcttct gttactccaa gactgagaag gaaattgaac ctgagactca
+     1621 ttgactggca agatgtcccc agaggctctc attcagcaat aaaattctca ccttcaccca
+     1681 ggcccactga gtgtcagatt tgcatgcact agttcacgtg tgtaaaaagg aggatgcttc
+     1741 tttcctttgt attctcacat acctttagga aagaacttag cacccttccc acacagccat
+     1801 cccaataact catttcagtg actcaaccct tgactttata aaagtcttgg gcagtataga
+     1861 gcagagatta agagtacaga tgctggagcc agaccacctg agtgattagt gactcagttt
+     1921 ctcttagtaa ttgtatgact cagtttcttc atctgtaaaa tggagggttt tttaattagt
+     1981 ttgtttttga gaaagggtct cactctgtca cccaaatggg agtgtagtgg caaaatctcg
+     2041 gctcactgca acttgcactt cccaggctca agcggtcctc ccacctcaac atcctgagta
+     2101 gctggaacca caggtacaca ccaccatacc tcgctaattt tttgtatttt tggtagagat
+     2161 ggggtttcac atgttacaca ggatggtctc agactccgga gctcaagcaa tctgcccacc
+     2221 tcagccttcc aaagtgctgg gattataagc atgattacag gagttttaac aggctcataa
+     2281 gattgttctg cagcccgagt gagttaatac atgcaaagag tttaaagcag tgacttataa
+     2341 atgctaacta ctctagaaat gtttgctagt attttttgtt taactgcaat cattcttgct
+     2401 gcaggtgaaa actagtgttc tgtactttat gcccattcat ctttaactgt aataataaaa
+     2461 ataactgaca tttattgaag gctatcagag actgtaatta gtgctttgca taattaatca
+     2521 tatttaatac tcttggattc tttcaggtag atactattat tatccccatt ttactacagt
+     2581 taaaaaaact acctctcaac ttgctcaagc atacactctc acacacacaa acataaacta
+     2641 ctagcaaata gtagaattga gatttggtcc taattatgtc tttgctcact atccaataaa
+     2701 tatttattga catgtacttc ttggcagtct gtatgctgga tgctggggat acaaagatgt
+     2761 ttaaatttaa gctccagtct ctgcttccaa aggcctccca ggccaagtta tccattcaga
+     2821 aagcattttt tactctttgc attccactgt ttttcctaag tgactaaaaa attacacttt
+     2881 attcgtctgt gtcctgctct gggatgatag tctgactttc ctaacctgag cctaacatcc
+     2941 ctgacatcag gaaagactac accatgtgga gaaggggtgg tggttttgat tgctgctgtc
+     3001 ttcagttaga tggttaactt tgtgaagttg aaaactgtgg ctctctggtt gactgttaga
+     3061 gttctggcac ttgtcactat gcctattatt taacaaatgc atgaatgctt cagaatatgg
+     3121 gaatattatc ttctggaata gggaatcaag ttatattatg taacccagga ttagaagatt
+     3181 cttctgtgtg taagaatttc ataaacatta agctgtctag caaaagcaag ggcttggaaa
+     3241 atctgtgagc tcctcaccat atagaaagct tttaacccat cattgaataa atccctatag
+     3301 gggatttcta ccctgagcaa aaggctggtc ttgattaatt cccaaactca tatagctctg
+     3361 agaaagtcta tgctgttaac gttttcttgt ctgctacccc atcatatgca caacaataaa
+     3421 tgcaggccta ggcatgactg aaggctctct cataattctt ggttgcatga atcagattat
+     3481 caacagaaat gttgagacaa actatgggga agcagggtat gaaagagctc tgaatgaaat
+     3541 ggaaaccgca atgcttcctg cccattcagg gctccagcat gtagaaatct ggggctttgt
+     3601 gaagactggc ttaaaatcag aagccccatt ggataagagt agggaagaac ctagagccta
+     3661 cgctgagcag gtttccttca tgtgacaggg agcctcctgc cccgaacttc cagggatcct
+     3721 ctcttaagtg tttcctgctg gaatctcctc acttctatct ggaaatggtt tctccacagt
+     3781 ccagcccctg gctagttgaa agagttaccc atgcagaggc cctcctagca tccagagact
+     3841 agtgcttaga ttcctacttt cagcgttgga caacctggat ccacttgccc agtgttcttc
+     3901 cttagttcct accttcgacc ttgatcctcc tttatcttcc tgaaccctgc tgagatgatc
+     3961 tatgtgggga gaatggcttc tttgagaaac atcttcttcg ttagtggcct gcccctcatt
+     4021 cccactttaa tatccagaat cactataaga agaatataat aagaggaata actcttatta
+     4081 taggtaaggg aaaattaaga ggcatacgtg atgggatgag taagagagga gagggaagga
+     4141 ttaatggatg ataaaatcta ctactatttg ttgagacctt ttatagtcta atcaattttg
+     4201 ctattgtttt ccatcctcac gctaactcca taaaaaaaca ctattattat ctttattttg
+     4261 ccatgacaag actgagctca gaagagtcaa gcatttgcct aaggtcggac atgtcagagg
+     4321 cagtgccaga cctatgtgag actctgcagc tactgctcat gggccctgtg ctgcactgat
+     4381 gaggaggatc agatggatgg ggcaatgaag caaaggaatc attctgtgga taaaggagac
+     4441 agccatgaag aagtctatga ctgtaaattt gggagcagga gtctctaagg acttggattt
+     4501 caaggaattt tgactcagca aacacaagac cctcacggtg actttgcgag ctggtgtgcc
+     4561 agatgtgtct atcagaggtt ccagggaggg tggggtgggg tcagggctgg ccaccagcta
+     4621 tcagggccca gatgggttat aggctggcag gctcagatag gtggttaggt caggttggtg
+     4681 gtgctgggtg gagtccatga ctcccaggag ccaggagaga tagaccatga gtagagggca
+     4741 gacatgggaa aggtggggga ggcacagcat agcagcattt ttcattctac tactacatgg
+     4801 gactgctccc ctataccccc agctaggggc aagtgccttg actcctatgt tttcaggatc
+     4861 atcatctata aagtaagagt aataattgtg tctatctcat agggttatta tgaggatcaa
+     4921 aggagatgca cactctctgg accagtggcc taacagttca ggacagagct atgggcttcc
+     4981 tatgtatggg tcagtggtct caatgtagca ggcaagttcc agaagatagc atcaaccact
+     5041 gttagagata tactgccagt ctcagagcct gatgttaatt tagcaatggg ctgggaccct
+     5101 cctccagtag aaccttctaa ccagctgctg cagtcaaagt cgaatgcagc tggttagact
+     5161 ttttttaatg aaagcttagc tttcattaaa gattaagctc ctaagcaggg cacagatgaa
+     5221 attgtctaac agcaactttg ccatctaaaa aaatctgact tcactggaaa catggaagcc
+     5281 caaggttctg aacatgagaa atttttagga atctgcacag gagttgagag ggaaacaaga
+     5341 tggtgaaggg actagaaacc acatgagaga cacgaggaaa tagtgtagat ttaggctgga
+     5401 ggtaaatgaa agagaagtgg gaattaatac ttactgaaat ctttctatat gtcaggtgcc
+     5461 attttatgat atttaataat ctcattacat atggtaattc tgtgagatat gtattattga
+     5521 acatactata attaatacta atgataagta acacctcttg agtacttagt atatgctaga
+     5581 atcaaattta agtttatcat atgaggccgg gcacggtggc tcatatatgg gattacatgc
+     5641 ctgtaatccc agcactttgg gaggccaagg caattggatc acctgaggtc aggagttcca
+     5701 gaccagcctg gccaacatgg tgaaacccct tctctactaa aaaatacaaa aaatcagcca
+     5761 ggtgtggtgg cacgcgtcta taatcccagc tactcaggag gctgaggcag gagaatcact
+     5821 tgaacccagg aggtggaggt tgcagtgagc taagattgca ccactgcact ccagcctagg
+     5881 cgacagagtg agactccatc tcaaaaaaaa aaaaagaagt ttattatatg aattaactta
+     5941 gttttactca caccaatact cagaagtaga ttattacctc atttattgat gaggagccca
+     6001 atgtacttgt agtgtagatc aacttattga aagcacaagc taataagtag acaattagta
+     6061 attagaagtc agatggtctg agctctccta ctgtctacat tacatgagct cttattaact
+     6121 ggggactcga aaatcaaaga catgaaataa tttgtccaag cttacagaac caccaagtag
+     6181 taaggctagg atgtagaccc agttctgcta cctctgaaga cagtgttttt tccacagcaa
+     6241 aacacaaact cagatattgt ggatgcgaga aattagaagt agatattcct gccctgtggc
+     6301 ccttgcttct tacttttact tcttggcgat tggaagttgt ggtccaagcc acagttgcag
+     6361 accatacttc ctcaaccata attgcatttc ttcaggaaag tttgagggag aaaaaggtaa
+     6421 agaaaaattt agaaacaact tcagaataaa gagattttct cttgggttac agagattgtc
+     6481 atatgacaaa ttataagcag acacttgaga aaactgaagg cccatgcctg cccaaattac
+     6541 cctttgaccc cttggtcaag ctgcaacttt ggttaaaggg agtgtttatg tgttatagtg
+     6601 ttcatttact cttctggtct aacccattgg ctccgtcttc atcctgcagt gacctcagtg
+     6661 cctcagaaac atacatatgt ttgtctagtt taagtttgtg tgaaattcta actagcgtca
+     6721 agaactgagg gccctaaact atgctaggaa tagtgctgtg gtgctgtgat aggtacacaa
+     6781 gaaatgagaa gaaactgcag attctctgca tctccctttg ccgggtctga caacaaagtt
+     6841 tccccaaatt ttaccaatgc aagccatttc tccatatgct aactacttta aaatcatttg
+     6901 gggcttcaca ttgtctttct catctgtaaa aagaatggaa gaactcattc ctacagaact
+     6961 ccctatgtct tccctgatgg gctagagttc ctctttctca aaaattagcc attattgtat
+     7021 ttccttctaa gccaaagctc agaggtcttg tattgcccag tgacatgcac actggtcaaa
+     7081 agtaggctaa gtagaagggt actttcacag gaacagagag caaaagaggt gggtgaatga
+     7141 gagggtaagt gagaaaagac aaatgagaag ttacaacatg atggcttgtt gtctaaatat
+     7201 ctcctaggga attattgtga gaggtctgaa tagtgttgta aaataagctg aatctgctgc
+     7261 ctaacattaa cagtcaagaa atacctccga ataactgtac ctccaattat tctttaaggt
+     7321 agcatgcaac tgtaatagtt gcatgtatat atttatcata atactgtaac agaaaacact
+     7381 tactgaatat atactgtgtc cctagttctt tacacaataa actaatctca tcctcataat
+     7441 tctattagct aatacatatt atcatcctat atttcagaga cttcaagaag ttaagcaact
+     7501 tgctcaagat catctaagaa gtaggtggta tttctgggct catttggccc ctcctaatct
+     7561 ctcatggcaa catggctgcc taaagtgttg attgccttaa ttcatcaggg atgggctcat
+     7621 actcactgca gaccttaact ggcatcctct tttcttatgt gatctgcctg accctagtag
+     7681 aacttatgaa atttctgatg agaaaggaga gaggagaaag gcagagctga ctgtgatgag
+     7741 tgatgaaggt gccttctcat ctgggtacca gtggggcctc taagactaag tcactctgtc
+     7801 tcactgtgtc ttagccagtt ccttacagct tgccctgatg ggagatagag aatgggtatc
+     7861 ctccaacaaa aaaataaatt ttcatttctc aaggtccaac ttatgttttc ttaattttta
+     7921 aaaaaatctt gaccattctc cactctctaa aataatccac agtgagagaa acattctttt
+     7981 cccccatccc ataaatacct ctattaaata tggaaaatct gggcatggtg tctcacacct
+     8041 gtaatcccag cactttggga ggctgaggtg ggtggactgc ttggagctca ggagttcaag
+     8101 accatcttgg acaacatggt gataccctgc ctctacaaaa agtacaaaaa ttagcctggc
+     8161 atggtggtgt gcacctgtaa tcccagctat tagggtggct gaggcaggag aattgcttga
+     8221 acccgggagg cggaggttgc agtgagctga gatcgtgcca ctgcactcca gcctggggga
+     8281 cagagcacat tataattaac tgttattttt tacttggact cttgtgggga ataagataca
+     8341 tgttttattc ttatttatga ttcaagcact gaaaatagtg tttagcatcc agcaggtgct
+     8401 tcaaaaccat ttgctgaatg attactatac tttttacaag ctcagctccc tctatccctt
+     8461 ccagcatcct catctctgat taaataagct tcagtttttc cttagttcct gttacatttc
+     8521 tgtgtgtctc cattagtgac ctcccatagt ccaagcatga gcagttctgg ccaggcccct
+     8581 gtcggggtca gtgccccacc cccgccttct ggttctgtgt aaccttctaa gcaaaccttc
+     8641 tggctcaagc acagcaatgc tgagtcatga tgagtcatgc tgaggcttag ggtgtgtgcc
+     8701 cagatgttct cagcctagag tgatgactcc tatctgggtc cccagcagga tgcttacagg
+     8761 gcagatggca aaaaaaagga gaagctgacc acctgactaa aactccacct caaacggcat
+     8821 cataaagaaa atggatgcct gagacagaat gtgacatatt ctagaatata ttatttcctg
+     8881 aatatatata tatatatata tacacatata cgtatatata tatatatata tatatttgtt
+     8941 gttatcaatt gccatagaat gattagttat tgtgaatcaa atatttatct tgcaggtggc
+     9001 ctctatacct agaagcggca gaatcaggct ttattaatac atgtgtatag atttttagga
+     9061 tctatacaca tgtattaata tgaaacaagg atatggaaga ggaaggcatg aaaacaggaa
+     9121 aagaaaacaa accttgtttg ccattttaag gcacccctgg acagctaggt ggcaaaaggc
+     9181 ctgtgctgtt agaggacaca tgctcacata cggggtcaga tctgacttgg ggtgctactg
+     9241 ggaagctctc atcttaagga tacatctcag gccagtcttg gtgcattagg aagatgtagg
+     9301 caactctgat cctgagagga aagaaacatt cctccaggag agctaaaagg gttcacctgt
+     9361 gtgggtaact gtgaaggact acaagaggat gaaaaacaat gacagacaga cataatgctt
+     9421 gtgggagaaa aaacaggagg tcaaggggat agagaaggct tccagaagaa tggctttgaa
+     9481 gctggcttct gtaggagttc acagtggcaa agatgtttca gaaatgtgac atgacttaag
+     9541 gaactataca aaaaggaaca aatttaagga gaggcagata aattagttca acagacatgc
+     9601 aaggaatttt cagatgaatg ttatgtctcc actgagcttc ttgaggttag cagctgtgag
+     9661 ggttttgcag gcccaggacc cattacagga cctcacgtat acttgacact gttttttgta
+     9721 ttcatttgtg aatgaatgac ctcttgtcag tctactcggt ttcgctgtga atgaatgatg
+     9781 tcttgtcagc ctacttggtt tcgctaagag cacagagaga agatttagtg atgctatgta
+     9841 aaaacttcct ttttggttca agtgtatgtt tgtgatagaa atgaagacag gctacatgat
+     9901 gcatatctaa cataaacaca aacattaaga aaggaaatca acctgaagag tatttataca
+     9961 gataacaaaa tacagagagt gagttaaatg tgtaataact gtggcacagg ctggaatatg
+    10021 agccatttaa atcacaaatt aattagaaaa aaaacagtgg ggaaaaaatt ccatggatgg
+    10081 gtctagaaag actagcattg ttttaggttg agtggcagtg tttaaagggt gatatcagac
+    10141 taaacttgaa atatgtggct aaataactag aatactcttt attttttcgt atcatgaata
+    10201 gcagatatag cttgatggcc ccatgcttgg tttaacatcc ttgctgttcc tgacatgaaa
+    10261 tccttaattt ttgacaaagg ggctattcat tttcatttta tattgggcct agaaattatg
+    10321 tagatggtcc tgaggaaaag tttatagctt gtctatttct ctctctaaca tagttgtcag
+    10381 cacaatgcct aggctatagg aagtactcaa agcttgttaa attgaattct atccttctta
+    10441 ttcaattcta cacatggagg aaaaactcat cagggatgga ggcacgcctc taaggaaggc
+    10501 aggtgtggct ctgcagtgtg attgggtact tgcaggacga agggtggggt gggagtggct
+    10561 aaccttccat tcctagtgca gaggtcacag cctaaacatc aaattccttg aggtgcggtg
+    10621 gctcactcct gtaatcacag cagtttggga cgccaaggtg ggcagatcac ttgaggtcag
+    10681 gagttggaca ccagcccagc caacatagtg aaacctggtc tctgcttaaa aatataaaaa
+    10741 ttagctggac gtggtgacgg gagcctgtaa tccaactact tgggaggctg aggcaggaga
+    10801 atcgcttgaa ccggggaggt ggagtttgca ctgagcagag atcatgccat tgcactccag
+    10861 cctccagagc gagactctgt ctaaagaaaa acgaaaacaa acaaacaaac aaacaaacaa
+    10921 aacccatcaa attccctgac cgaacagaat tctgtctgat tgttctctga cttatctacc
+    10981 attttccctc cttaaagaaa ctgtggaact tccttcagct agaggggcct ggctcagaag
+    11041 cctctggtca gcatccaaga aatacttgat gtcactttgg ctaaaggtat gatgtgtaga
+    11101 caagctccag agatggtttc tcatttccat atccacccac ccagctttcc aattttaaag
+    11161 ccaattctga ggtagagact gtgatgaaca aacaccttga caaaattcaa cccaaagact
+    11221 cactttgcct agcttcaaaa tccttactct gacatatact cacagccaga aattagcatg
+    11281 cactagagtg tgcatgagtg caacacacac acacaccaat tccatattct ctgtcagaaa
+    11341 atcctgttgg tttttcgtga aaggatgttt tcagaggctg accccttgcc ttcacctcca
+    11401 atgctaccac tctggtctaa gtcactgtca ccaccaccta aattatagct gttgactcat
+    11461 aacaatcttc ctgcttctac cactgcccca ctacaatttc ttcccaatat actatccaaa
+    11521 ttagtctttt caaaatgtaa gtcatatatg gtcacctctt tgttcaaagt cttctgatag
+    11581 tttcctatat catttataat aaaaccaaat ccttacaatt ctctacaata gttgttcatg
+    11641 catatattat gtttattaca gatacgcata tatatagctc tcatataaat aaatatatat
+    11701 atttatgtgt atgtgtgtag agtgtttttt cttacaactc tatgatgtag gtattattag
+    11761 tgtcccaaat tttataattt aggacttcta tgatctcatc ttttattctc cccttcaccg
+    11821 aatctcatcc tacattggcc ttattgatat tccttgaaaa ttctaagcat cttacatctt
+    11881 tagggtattt acatttgcca ttccctatgc cctaaatatt taatcatagt ttcatataaa
+    11941 tgggttcctc atcatctatg ggtactctct caggtgttaa ctttatagtg aggactttcc
+    12001 tgccatacta cttaaagtag cgataccctt tcaccctgtc ctaatcacac tctggccttc
+    12061 atttcagttt tttttttttc tccatagcac ctaatctcat tggtatataa catgtttcat
+    12121 ttgcttattt aatgtcaagc tctttccact atcaagtcca tgaaaacagg aactttattc
+    12181 ctctattctg tttttgtgct gtattcttag caattttaca attttgaatg aaatgaatga
+    12241 gcagtcaaac acatatacaa ctataattaa aaggatgtat gctgacacat ccactgctat
+    12301 gcacacacaa agaaatcagt ggagtagagc tggaagcgct aagcctgcat agagctagtt
+    12361 agccctccgc aggcagagcc ttgatgggat tactgagttc tagaattgga ctcatttgtt
+    12421 ttgtaggctg agatttgctc ttgaaaactt gttctgacca aaataaaagg ctcaaaagat
+    12481 gaatatcgaa accagggtgt tttttacact ggaatttata actagagcac tcatgtttat
+    12541 gtaagcaatt aattgtttca tcagtcaggt aaaagtaaag aaaaactgtg ccaaggcagg
+    12601 tagcctaatg caatatgcca ctaaagtaaa cattattcca taggtgtcag atatggctta
+    12661 ttcatccatc ttcatgggaa ggatggcctt ggcctggaca tcagtgttat gtgaggttca
+    12721 aaacacctct aggctataag gcaacagagc tccttttttt tttttctgtg ctttcctggc
+    12781 tgtccaaatc tctaatgata agcatacttc tattcaatga gaatattctg taagattata
+    12841 gttaagaatt gtgggagcca ttccgtctct tatagttaaa tttgagcttc ttttatgatc
+    12901 actgtttttt taatatgctt taagttctgg ggtacatgtg ccatggtggt ttgctgcacc
+    12961 catcaacccg tcatctacat taggtatttc tcctaatgct atccttcccc tagcccccca
+    13021 cccccaacag gccccagtgt gtgatgttcc cctccctgtg tccatggatc actggttttt
+    13081 tttttttttt tttttttttt tttaaagtct cagttaaatt tttggaatgt aatttatttt
+    13141 cctggtatcc taggacctgc aagttatctg gtcactttag ccctcacgtt ttgatgataa
+    13201 tcacatattt gtaaacacaa cacacacaca cacacacaca cacatatata tatataaaac
+    13261 atatatatac ataaacacac ataacatatt tatcgggcat ttctgagcaa ctaactcatg
+    13321 caggactctc aaacactaac ctatagcctt ttctatgtat ctacttgtgt agaaaccaag
+    13381 cgtggggact gagaaggcaa tagcaggagc attctgactc tcactgcctt tggctaggtc
+    13441 cctccctcat cacagctcag catagtccga gctcttatct atatccacac acagtttctg
+    13501 acgctgccca gctatcacca tcccaagtct aaagaaaaaa ataatgggtt tgcccatctc
+    13561 tgttgattag aaaacaaaac aaaataaaat aagcccctaa gctcccagaa aacatgacta
+    13621 aaccagcaag aagaagaaaa tacaataggt atatgaggag actggtgaca ctagtgtctg
+    13681 aatgaggctt gagtacagaa aagaggctct agcagcatag tggtttagag gagatgtttc
+    13741 tttccttcac agatgcctta gcctcaataa gcttgcggtt gtggaagttt actttcagaa
+    13801 caaactcctg tggggctaga attattgatg gctaaaagaa gcccggggga gggaaaaatc
+    13861 attcagcatc ctcaccctta gtgacacaaa acagaggggg cctggttttc catatttcct
+    13921 catgatggat gatctcgtta atgaaggtgg tctgacgaga tcattgcttc ttccatttaa
+    13981 gccttgctca cttgccaatc ctcagtttta accttctcca gagaaataca cattttttat
+    14041 tcaggaaaca tactatgtta tagtttcaat actaaataat caaagtactg aagatagcat
+    14101 gcataggcaa gaaaaagtcc ttagctttat gttgctgttg tttcagaatt taaaaaagat
+    14161 caccaagtca aggacttctc agttctagca ctagaggtgg aatcttagca tataatcaga
+    14221 ggtttttcaa aatttctaga catgagattc aaagccctgc acttaaaata gtctcatttg
+    14281 aattaactct ttatataaat tgaaagcaca ttctgaacta cttcagagta ttgttttatt
+    14341 tctatgttct tagttcataa atacattagg caatgcaatt taattaaaaa aacccaagaa
+    14401 tttcttagaa ttttaatcat gaaaataaat gaaggcatct ttacttactc aaggtcccaa
+    14461 aaggtcaaag aaaccaggaa agtaaagcta tatttcagcg gaaaatggga tatttatgag
+    14521 ttttctaagt tgacagactc aagttttaac cttcagtgcc catgatgtag gaaagtgtgg
+    14581 cataactggc tgattctggc tttctactcc tttttcccat taaagatccc tcctgcttaa
+    14641 ttaacattca caagtaactc tggttgtact ttaggcacag tggctcccga ggtcagtcac
+    14701 acaataggat gtctgtgctc caagttgcca gagagagaga ttactcttga gaatgagcct
+    14761 cagccctggc tcaaactcac ctgcaaactt cgtgagagat gaggcagagg tacactacga
+    14821 aagcaacagt tagaagctaa atgatgagaa cacatggact catagaggga aacaacgcat
+    14881 actggggcct atcagagggt ggagggtgag agaaggagag gatcaggaaa aatcactaat
+    14941 ggatgctaag cgtaatacct gagtgatgag atcatctata caacaaaccc ccttgacatt
+    15001 catttatcta tgtaacaaac ctgcacatcc tgtacacgta cccctgaact taaaataaaa
+    15061 gttgaaaaca agaaagcaac agtttgaaca cttgttatgg tctattctct cattctttac
+    15121 aattacacta gaaaatagcc acaggctcct gcaaggcagc cacagaattt atgacttgtg
+    15181 atatccaagt cattcctgga taatgcaaaa tctaacacaa aatctagtag aatcatttgc
+    15241 ttacatctat ttttgttctg agaatataga tttagataca taatggaagc agaataattt
+    15301 aaaatctggc taatttagaa tcctaagcag ctcttttcct atcagtggtt tacaagcctt
+    15361 gtttatattt ttcctatttt aaaaataaaa ataaagtaag ttatttgtgg taaagaatat
+    15421 tcattaaagt atttatttct tagataatac catgaaaaac attcagtgaa gtgaagggcc
+    15481 tactttaccc aacaagaatc taatttatat aatttttcat actaatagca tctaagaaca
+    15541 gtacaatatt tgactcttca ggttaaacat atgtcataaa ttagccagaa agatttaaga
+    15601 aaatattgga tgtttccttg tttaaattag gcatcttaca gtttttagaa tcctgcatag
+    15661 aacttaagaa attacaaatg ctaaagcaaa cccaaacagg caggaattaa tcttcatcga
+    15721 atttgggtgt ttctttctaa aagtccttta tacttaaatg tcttaagaca tacatagatt
+    15781 ttattttact aattttaatt atacagacaa taaatgaata ttcttactga ttactttttc
+    15841 tgactgtcta atctttctga tctatcctgg atggccataa cacttatctc tctgaacttt
+    15901 gggcttttaa tataggaaag aaaagcaata atccattttt catggtatct catatgataa
+    15961 acaaataaaa tgcttaaaaa tgagcaggtg aagcaattta tcttgaacca acaagcatcg
+    16021 aagcaataat gagactgccc gcagcctacc tgacttctga gtcaggattt ataagccttg
+    16081 ttactgagac acaaacctgg gcctttcaat gctataacct ttcttgaagc tcctccctac
+    16141 cacctttagc cataaggaaa catggaatgg gtcagatccc tggatgcaag ccaggtctgg
+    16201 aaccataggc agtaaggaga gaagaaaatg tgggctctgc aactggctcc gagggagcag
+    16261 gagagaatca accccatact ctgaatctaa gagaagactg gtgtccatac tctgaatggg
+    16321 aagaatgatg ggattaccca tagggcttgt tttagggaga aacctgttct ccaaactctt
+    16381 ggccttgaga tacctggtcc ttattccttg gactttggca atgtctgacc ctcacattca
+    16441 agttctgagg aagggccact gccttcatac tgtggatctg tagcaaattc cccctgaaaa
+    16501 cccagagctg tatcttaatt gtttaaaaaa attatattat ctcaaggact gttcttctct
+    16561 gagtagccaa gctcagcttg gttcaagcta caagcagctg agctgctttt tgtctagtca
+    16621 ttgttctttt atttcagtgg atcaaatacg ttctttccaa acctaggatc ttgtcttcct
+    16681 aggctatata ttttgtccca ggaagtctta atctggggtc cacagaacac tagggggctg
+    16741 gtgaagttta tagaaaaaaa atctgtattt ttacttacat gtaactgaaa tttagcattt
+    16801 tcttctactt tgaatgcaaa ggacaaacta gaatgacatc atcagtacct attgcatagt
+    16861 tataaagaga aaccacagat attttcatac tacaccatag gtattgcaga tctttttgtt
+    16921 tttgtttttg tttgagatgg agtttcgctc ttattgccca ggctggagtg cagtggcatg
+    16981 atttcggctc actgcaacct ccccttcctg cattcaagca attctcctgc cttggcctcc
+    17041 agagtagctg gggattacag gcacctgcca ccatgccagt ctaatttttg tatttttagt
+    17101 agagatgggg tttcgccatg ttggccaggc tggtcttgaa ctcctgacct cagatgatct
+    17161 gcccgccttg gcctcctgaa gtgctgggat tataggtgtg agccaccacg cctggcccat
+    17221 tgcagatatt tttaattcac atttatctgc atcactactt ggatcttaag gtagctgtag
+    17281 acccaatcct agatctaatg ctttcataaa gaagcaaata taataaatac tataccacaa
+    17341 atgtaatgtt tgatgtctga taatgatatt tcagtgtaat taaacttagc actcctatgt
+    17401 atattatttg atgcaataaa aacatatttt ttttagcact tacagtctgc caaactggcc
+    17461 tgtgacacaa aaaaagttta ggaattcctg gttttgtctg tgttagccaa tggttagaat
+    17521 atatgctcag aaagatacca ttggttaata gctgaaagaa aatggagtag aaattcagtg
+    17581 gcctggaata ataacaattt gggcagtcat taagtcaggt gaagacttct ggaatcatgg
+    17641 gagaaaagca agggagacat tcttacttgc cacaagtgtt tttttttttt tttttttatc
+    17701 acaaacataa gaaaatataa taaataacaa agtcaggtta tagaagagag aaacgctctt
+    17761 agtaaacttg gaatatggaa tccccaaagg cacttgactt gggagacagg agccatactg
+    17821 ctaagtgaaa aagacgaaga acctctaggg cctgaacata ggaaattgta ggaacagaaa
+    17881 ttcctagatc tggtggggca aggggagcca taggagaaag aaatggtaga aatggatgga
+    17941 gacggaggca gaggtgggca gatcatgagg tcaagagatc gagaccatcc tggcaaacat
+    18001 ggtgaaatcc cgtctctact aaaaataaaa aaattagctg ggcatggtgg catgcgcctg
+    18061 tagtcccagc tgctcgggag gctgaggcag gagaatcgtt tgaacccagg aggcgaaggt
+    18121 tgcagtgagc tgagatagtg ccattgcact ccagtctggc aacagagtga gactccgtct
+    18181 caaaaaaaaa aaaaagaaag aaagaaaaga aaaagaaaaa agaaaaaata aatggatgta
+    18241 gaacaagcca gaaggaggaa ctgggctggg gcaatgagat tatggtgatg taagggactt
+    18301 ttatagaatt aacaatgctg gaatttgtgg aactctgctt ctattattcc cccaatcatt
+    18361 acttctgtca cattgatagt taaataattt ctgtgaattt attccttgat tctaaaatat
+    18421 gaggataatg acaatggtat tataagggca gattaagtga tatagcataa gcaatattct
+    18481 tcaggcacat ggatcgaatt gaatacactg taaatcccaa cttccagttt cagctctacc
+    18541 aagtaaagag ctagcaagtc atcaaaatgg ggacatacag aaaaaaaaaa ggacactaga
+    18601 ggaataatat accctgactc ctagcctgat taatatatcg attcactttt ttctctgttt
+    18661 gatgacaaat tctggcttta aataatttta ggattttagg cttctcagct cccttcccag
+    18721 tgagaagtat aagcaggaca gacaggcaag caagaagaga gccccaggca atactcacaa
+    18781 agtagccagt gtcccctgtg gtcatagaga aatgaaaaga gagaggattc cctggaagca
+    18841 ctggatgtaa tcttttctgt ctgtcctctc tagggaatca ccccaaggta ctgtactttg
+    18901 ggattaaggc tttagtccca ctgtggacta cttgctattc tgttcagttt ctagaaggaa
+    18961 ctatgtacgg tttttgtctc cctagagaaa ctaaggtaca gaagttttgt ttacaatgca
+    19021 ctccttaaga gagctagaac tgggtgagat tctgttttaa cagctttatt ttcttttcct
+    19081 tggccctgtt tttgtcaact gtcaccacct ttaaggcaaa tgttaaatgt gctttggctg
+    19141 aaactttttt tcctattttg agatttgctc ctttatatga ggctttcttg gaaaaggaga
+    19201 atgggagaga tggatatcat tttggaagat gatgaagagg gtaaaaaagg ggacaaatgg
+    19261 aaatttgtgt tgcagataga tgaggagcca acaaaaaaga gcctcaggat ccagcacaca
+    19321 ttatcacaaa cttagtgtcc atccatcact gctgaccctc tccggacctg actccacccc
+    19381 tgaggacaca ggtcagcctt gaccaatgac ttttaagtac catggagaac agggggccag
+    19441 aacttcggca gtaaagaata aaaggccaga cagagaggca gcagcacata tctgcttccg
+    19501 acacagctgc aatcactagc aagctctcag gcctggcatc atggtgcatt ttactgctga
+    19561 ggagaaggct gccgtcacta gcctgtggag caagatgaat gtggaagagg ctggaggtga
+    19621 agccttgggc aggtaagcat tggttctcaa tgcatgggaa tgaagggtga atattaccct
+    19681 agcaagttga ttgggaaagt cctcaagatt ttttgcatct ctaattttgt atctgatatg
+    19741 gtgtcatttc atagactcct cgttgtttac ccctggaccc agagattttt tgacagcttt
+    19801 ggaaacctgt cgtctccctc tgccatcctg ggcaacccca aggtcaaggc ccatggcaag
+    19861 aaggtgctga cttcctttgg agatgctatt aaaaacatgg acaacctcaa gcccgccttt
+    19921 gctaagctga gtgagctgca ctgtgacaag ctgcatgtgg atcctgagaa cttcaaggtg
+    19981 agttcaggtg ctggtgatgt gattttttgg ctttatattt tgacattaat tgaagctcat
+    20041 aatcttattg gaaagaccaa caaagatctc agaaatcatg ggtcgagctt gatgttagaa
+    20101 cagcagactt ctagtgagca taaccaaaac ttacatgatt cagaactagt gacagtaaag
+    20161 gactactaac agcctgaatt ggcttaactt ttcaggaaat cttgccagaa cttgatgtgt
+    20221 ttatcccaga gaattgtatt atagaattgt agacttgtga aagaagaatg aaatttggct
+    20281 tttggtagat gaaagtccat ttcaaggaaa tagaaatgcc ttattttatg tgggtcatga
+    20341 taattgaggt ttagaagaga tttttgcaaa aaaaataaaa gatttgctca aagaaaaata
+    20401 agacacattt tctaaaatat gttaaatttc ccatcagtat tgtgaccaag tgaaggcttg
+    20461 tttccgaatt tgttggggat tttaaactcc cgctgagaac tcttgcagca ctcacattct
+    20521 acatttacaa aaattagaca attgcttaaa gaaaaacagg gagagaggga acccaataat
+    20581 actggtaaaa tggggaaggg ggtgagggtg taggtaggta gaatgttgaa tgtagggctc
+    20641 atagaataaa attgaaccta agctcatctg aattttttgg gtgggcacaa accttggaac
+    20701 agtttgaggt cagggttgtc taggaatgta ggtataaagc cgtttttgtt tgtttgtttg
+    20761 ttttttcatc aagttgtttt cggaaacttc tactcaacat gcctgtgtgt tattttgtct
+    20821 tttgcctaac agctcctggg taacgtgatg gtgattattc tggctactca ctttggcaag
+    20881 gagttcaccc ctgaagtgca ggctgcctgg cagaagctgg tgtctgctgt cgccattgcc
+    20941 ctggcccata agtaccactg agttctcttc cagtttgcag gtcttcctgt gaccctgaca
+    21001 ccctccttct gcacatgggg actgggcttg gccttgagag aaagccttct gtttaataaa
+    21061 gtacattttc ttcagtaatc aaaaattgca attttatctt ctccatcttt tactcttgtg
+    21121 ttaaaaggaa aaagtgttca tgggctgagg gatggagaga aacataggaa gaaccaagag
+    21181 cttccttaag aaatgtatgg gggcttgtaa aattaatgtg gatgttatgg gagaattccc
+    21241 aagattccca aggaggatga tatgatggag aaaaatcttt atcggggtgg gaaaatggtt
+    21301 aattaagtgg cagagactcc taggcagttt ttactgcacc ggggaaagaa ggagctgttg
+    21361 tggtacctga gaaagcagat ttgtggtaca tgtcactttt cattaaaaac aaaaacaaaa
+    21421 caaaacaaaa cttcatagat atccaagata taggctgaga attactattt taatttactc
+    21481 ttatttacat tttgaagtag ctagcttgtc acatgtttta tgaaattgat ttggagataa
+    21541 gatgagtgtg tatcaacaat agcctgctct ttccatgaag gattccatta tttcatgggt
+    21601 tagctgaagc taagacacat gatatcattg tgcattatct tctgatacaa tgtaacatgc
+    21661 actaaaataa agttagagtt aggacctgag tgggaaagtt tttggagagt gtgatgaaga
+    21721 ctttccgtgg gagatagaat actaataaag gcttaaattc taaaaccagc aagctagggc
+    21781 ttcgtgactt gcatgaaact ggctctctgg aagtagaagg gagagtaaga catacgtaga
+    21841 ggactaggaa agaccagata gtacagggcc tggctacaaa aatacaagct tttactatgc
+    21901 tattgcaata ctaaacgata agcattagga tgttaagtga ctcaggaaat aagattttgg
+    21961 gaaaaagtaa tctgcttatg tgcacaaaat ggattcaagt ttgcagataa aataaaatat
+    22021 ggatgatgat tcaaggggac agatacaatg gttcaaaccc aagaggagca gtgagtctgt
+    22081 ggaattttga aggatggaca aaggtggggt gagaaagaca tagtattcga cctgactgtg
+    22141 ggagatgaga aggaagaagg aggtgataaa tgactgaaag ctcccagact ggtgaagata
+    22201 acaggaggaa accatgcact tgaccctggt gactctcatg tgtgaagggt agagggatat
+    22261 taacagattt actttttagg aagtgctaga ttggtcaggg agttttgacc ttcaggtctt
+    22321 gtgtctttca tatcaaggaa cctttgcatt ttccaagtta gagtgccata ttttggcaaa
+    22381 tataacttta ttagtaattt tatagtgctc tcacattgat cagacttttt cctgtgaatt
+    22441 acttttgaat ttggctgtat atatccagaa tatgggagag agacaaataa ttattgtagt
+    22501 tgcaggctat caacaatact ggtctctctg agccttataa cctttcaata tgccccataa
+    22561 acagagtaaa cagggattat tcatggcact aaatattttc acctaggtca gtcaacaaat
+    22621 ggaggcaatg tgcatttttt gatacatatt tttatatatt tatggggcat gtgatactta
+    22681 catgcctaga acatgtgact gattaagtct agatatttag gatatccatt actttgagca
+    22741 tttatcattt ctatgtattg agaaaatttc aaatcctcat ttctgaccat tttgaaatat
+    22801 ataataaata gtaattaact atagtcaccc tactcaaata tcaacattat aaactaacta
+    22861 atccttcttt ccactttttt accaaccaac atctcttaaa tcccctgcca tacacatcac
+    22921 acatttttca gctctgataa ctatcattct actctcatac caccatgaga ccactttttt
+    22981 agctccacag atgaataaaa acatgtgata tttgactttc tgtatctggc ttattttatt
+    23041 atctatctct ttggcatacc aagagtttgt ttttgttctg cttcagggct ttcaattaac
+    23101 ataatgacct ctggttccat ccatgttgct acaaatgaca agatttcatt ctttttcatg
+    23161 gcaaaatagt actgtgcaaa aaatacaatt ttttaatccg ttcatctgtt gatagacact
+    23221 taggttgatc ccaaacctta actattgtga ataggtgctt caataaacat gagtgtaatg
+    23281 tgtccattgg atatactgat ttcctttctt ttggataaat aaccactagt gagattgctg
+    23341 gattgtatga tagttctgtt tttagtttat tgagaaatct tcatactgtt ttccataatg
+    23401 gttgtactat tttacattcc caccaacagt gtgtaagaaa gagttccctt ttctccatat
+    23461 cctcacaagg atctgttatt ttttgtcttt tttgttaata gcattttaac tagagtaagt
+    23521 agatatctca ttgtagtttt gatttgcatt tccctgatca ttagtgatgt tgagattttt
+    23581 tcatatgttt gttggtcatt tgtatatctt tttctgagat tgtctgttca tgtccttatc
+    23641 ctacttttat tgggattgtt gttattttct tgataatcat tgtgtcattt tagagcctgg
+    23701 atattattct tttgtcagat gtatagattg tgaagatttt ctcctctgtg ggttgtctgt
+    23761 ttattctgca gactcttcct tttgccatgc aaaagctctt tagtttaatt tagtcccaga
+    23821 tattttcttt gtttttatgt gtttgcattt gtgttcttgt catgaaatcc tttcctaagc
+    23881 caatgtgtag aagggttttt ccgatgttat tttctagaat tgttacagtt tcaggcttag
+    23941 atttaagtcc ttgatccatc ttaagttgat ttttgtataa ggtgagagat gaagatccag
+    24001 tttcattctc ctacatgtag cttgccagct atcccgactc atttgttgaa tagggtgccc
+    24061 tttcccattt atgtttttgt ttgctttgtc aaagatcagt tcggatgtaa gtatttgagt
+    24121 ttatttctgg gttctctatt ctgttccatt ggtccgatgt gcctatttgt acaccagcat
+    24181 catgctgtgt ttttggtgac tatggcctta ttgtatagtt tgaaatgagg taatgtaatg
+    24241 ccattcagat ttgttctttt ttttagactt gcttgtttat tgggctcttt tttggttcca
+    24301 taagaatttt aggattgttt tttctagttc tgtgaaggct aatggtggta tttatgggaa
+    24361 ttgcaatgca atttgtaggt tgcttctggc attatggcca ttttcacaat attgattcta
+    24421 cccatctatg agaatggcat gtgtttccat ttgtttgtgt cttatatgat tactatcagc
+    24481 cgtgttttgt agttttcctt gtagatgtct ttcacctcct tggttaggta tatattccta
+    24541 agtttttgtt ttgttttgtt ttgttttttg cagctattgt aaaaggggtt gagttattga
+    24601 ttttattctc atcttggtca ttgctggtat gtaagaaagc aactcattgg tgtacgttaa
+    24661 ttttgtatcc agaaactttg ctgaattatt ttatcagttc tagggggttt tggaggagtc
+    24721 tttagagttt tctacataca caatcatatc atcagcaaac agtgacagtt tgactttctc
+    24781 tttaacaatt tggatgtgct ttacttgttt ctcttgtctg attgctcttg ctaggacttc
+    24841 cagtaatatg ttaaagagaa gtggtgagag tgggtatcct tgtctcattc cagttttcag
+    24901 acagaatgct tttaactttt tcccattcaa tataatgttg gctgtgtgtt taccatagct
+    24961 ggcttttatt acattgaggt atgtcctttg taaaccgatt ttgctgagtt ttagtcataa
+    25021 agtgatgttg aattttgttg aatgcagttt ctgtggctat tgagataatc acatgatttt
+    25081 tgtttccaat tctctttatg ttgtgtatca cacttattga cttgcgtatg ttaaaccatc
+    25141 cgtgcatccc tcgcatgaaa ccacttgatc atgggttttg atatgccgtg tgggatgcta
+    25201 ttagctatat tttgtcaagg atgttggcat ctatgttcat cagggatatt gatctgtagt
+    25261 gttttttttt tttggttatg ttctttccca gttttggtat taaggtgata ctggcttcat
+    25321 agaatgattt agggaggatt ctctctttct ctatcttgta gaatactgtc aataggattg
+    25381 gtatcaattc ttctttgaat gtctggtaga attcgaacgt ctcctttagg ttttctagtt
+    25441 tattcatgta aaggtgttca tagtaacctt gaataatctt ttgtatttct gtggtatcag
+    25501 taatagtatc tcctgttttg tttctaactg agtttatttg cacttctctc ctcttttctt
+    25561 ggttaatctt gctaatggtc tatcagtttt atttatcttt tcaaagaacc agctttttat
+    25621 ttcatttagc ttttgtattt ttttgcagtt gttttaattt catttagttc tcctcttatc
+    25681 ttagttattc cctttctttt gctgggtttt ggttctgttt gtttttgttt ctctagtttc
+    25741 ttgtggtgtg accttatatt gtctgtcctc tttcagactc tttgacatcg acatttaggg
+    25801 ctgtgaactt tccttttagc accatctttg ctgtatccta gaggttttga taggtgtgtc
+    25861 actattgtcg gtcagttcaa gtaattttgt tgttcttatt atactttaag ttctgggata
+    25921 catgtgcaga atgtgcaggt ttgttacata ggtatagatg tgccatggtg gtttgctgct
+    25981 cccatcaacc tgtcatctac attaggtatt tcttttaatg ttatccctct cctaaccccc
+    26041 tcaccccccg acaggccctg gtgtgtgatg ttcccctccc tgtgtccatg tgttctcatt
+    26101 gttcaactcc cacttatgag tgagaacgtg tggtgtttgg tttctctgtt cctgtgttag
+    26161 tttgctcaga atgatgtttc caccttcacc atgtccctgc aaagacatga actcatcatt
+    26221 ttatggctgc atatattcca tggtgtatat gtgccacatt ttctttatcc attatatcgc
+    26281 tgatggccat ttgggttggt tccaagtctt tggtattgtg aatagtgccg caataaacat
+    26341 acgtgtgcac atgtctttat agtagaatga tttctaattc tttgggtata tacccagtaa
+    26401 tgggattgct gggtcaaaca gtatttctgg ttctagatcc ttgaggaatt gccacactgt
+    26461 cttccacaat ggttgaacta atttacacac ccatcaacag tgtaaaattt ttcctattct
+    26521 tccacatcct ctccagcacc ttttgtttcc tgacttttta ataattgcca ttctaactgg
+    26581 catgagatgg tatctcattg tggttttgat ttgcatttct ctaatgacca gtgatgatga
+    26641 gcttcttttc atgtgtttct tggccacata aatgacttct ttagagaagc atctgttcat
+    26701 atcctttgtc cactttttga tggggtcgtt aggttttttc ttgtaaattt gttgaagttc
+    26761 tttgtagatt ttggatgtta gccctttgtc agatggatag attggcaaaa attttctccc
+    26821 attctgtagg ttgcctgttc actctgatga tagtcttttg ctgtgcagaa gctctttagt
+    26881 ttaattagat cccatatgtc aattttggcc tttgttgtca ttgcttttga tgtttagtcg
+    26941 tggaattttg cccatgccta tgtcctgaat ggtattgcct aggttatctt ctaggatttt
+    27001 tatggtttta ggttgcacat ttaagtcttt aatccacctt gagttaattt ttgtataagg
+    27061 tgtaaggaag gggtacagtt tcagttttat gcatattgct agccagtttt tccagcacca
+    27121 tttattaaat agggaattct ttctccattg cttttgtgat gtttgtcaaa gatcagatgg
+    27181 tcgtagatgt gtggcattat ttctgaggct tctgttctgt tccactggtc tatatatctg
+    27241 ttttggtacc agtaccatgc tgtttttgtt actgtagcct tgtagtatag cttgaagtca
+    27301 ggtagcatca tgcctccagc tttgttcttt ttgtttagga ttgtcttggc tatatgggct
+    27361 cttttttgat tccatatgac atttaaagta gttttttcta attctttgaa aaaagtcagt
+    27421 ggtagcttga tggggatagc attgaatcta taaattactt tgggcagtat ggccatttta
+    27481 aagatattga ttctttctat ctatgagcat ggaatgtttt tccatttgtt tgtgtcctct
+    27541 cttatttcct tgagcagtga gtggtttgta gctctccttg aagaggttct tcacatccct
+    27601 tataagttgt atttctaggt attttatttt attctctttg cagcaattgt gaatgggagt
+    27661 tcacccatga tttggctctc tgcttgtcta ttattggtgt ataggaatgc ttgtgatttt
+    27721 tgcacactga ttttgtatct tgagactttg ctgaagctgt ttatcagctt aagattttgg
+    27781 gctgagatga cagggtcttc taaatataca atcatgtcat ctgcaaacag agacaatttg
+    27841 acttcctctc ttcctatttg aatatgcttt atttctttct cttgcctgat tgtcctggcg
+    27901 agaacttcca atactatgtt gagtaagagt ggcgagaggg catccttgtc ttgtgccggt
+    27961 tttcaaagca aatgattttt aaatttccgt cttgatttca ttgttgaccc aatgatcatt
+    28021 caggagcagg ttatttaatt tccctgtatt tgcatggttt tgaaggttcc ttttgtagtt
+    28081 gatttccaat tttattctac tgtggtctga gagagtgctt gatataattt caatttttaa
+    28141 aaatttattg aggcttgttt tgtggcatat catatggcct atcttggaga aagttccatg
+    28201 tgctgatgaa tagaatgtgt attctgcagt tgttgggtag aatgtcctgt aaatatctgt
+    28261 taagtccatt tgttctttaa atccattgtt tctttgtaga ctgtcttgat gacctgccta
+    28321 gtgcagtcag tggagtattg aagtccccca ctattattat gttgctgtct agtagtaatt
+    28381 gttttataaa tttgggatct ccagtattag atgcatatat attaagaatt gtaatattct
+    28441 cccattggac aagggctttt atcattatat gatgtccctc tttgtctttt ttaactgctg
+    28501 tttctttaaa gtttgttttg tctgacataa gaatagctgc tttggctcgc ttttggtgtc
+    28561 catttgtgtg gaatgtcatt ttccacccct ttaccttaag tttatgtgag tccttatgtg
+    28621 ttaggtgagt ctcctgaagg cggcagataa ctggttggtg aattctattc attctgcaat
+    28681 tctgtatctt ttaagtggag catttagtcc atttacattc aacatcagta ttgaggtgtg
+    28741 aggtgactat tccattcttc gtggtatttg ttgcctgtgt atctttttat ctgtattttt
+    28801 gttgtatatg tcctatggga tttatgcttt aaagaggttc tgttttgatg tgcttccagg
+    28861 gtttatttca agatttagag ctccttttat cattcttgta gtgttggctt ggtagtgccg
+    28921 aattctctca gcatttgttt ttctgaaaaa cactgtgtat tttcttcatt tgtgaagctt
+    28981 agtttcactg gatataaaat tcttggctga taattgtttt gtttaagaag gctgaagata
+    29041 gggccatatt cacttctagc ttttacggtt tctgctgaga aatctgctgt taatctgata
+    29101 ggttttcttt cataggttac ctggtagttt cacctcacag ctcttaagat tctctttgtc
+    29161 tttagataac tttggatact ctgatgacaa tgtacctagg caatgatatt tttgcaatga
+    29221 atttcccagg tgtttattga gcttctttgt atttggatat ctaggtctct agcaaggagg
+    29281 gggaagtttt ccttgattat ttccatggac aagttttcca aacttttaga tttctcttct
+    29341 ttctcaggaa tgctgattat tcttaggttt gattgtttaa cataatccca gatttcttgg
+    29401 aggctttgtt catattttct tattcttttt tctttgtctt tgttggattg ggtaattcaa
+    29461 aaactttgtc ttcaagctct gaatttcttc tgcttggatt ctattgctga gactttctag
+    29521 agcattttgc atttctataa gtgcatccat tcatccattg tttcctgaag ttttgaatgt
+    29581 tttttattta tgctatctct ttaactgaag atttctcccc tcatttcttg tatcatattt
+    29641 ttggtttttt taaaattgga cttcaccttc ctcggatgcc tccttgatta gcttaataac
+    29701 tgaccttctg aattattttt caggtaaatc agggatttct tcttggtttg gatgcattgc
+    29761 tggtgagcta gtatgatttt ttggggggtg ttaaagaacc ttgtttttca tattaccaga
+    29821 gttagttttc tggttccttc tcacttgggt aggctctgtc agagggaaag tctaggcctc
+    29881 aaggctgaga cttttgtccc agcaggtgtt cccttgatgt agcacagtcc cccttttcct
+    29941 aggacgtggg gcttcctgag agccgaactg tagtgattgt tatctctctt ctggatctag
+    30001 ccacccatca ggtctaccag actccaggct ggtactgggg tttgtctgca cagagtcttg
+    30061 tgacgtgaac catctgtggg tctctcagcc atagatacaa ccacctgctc caatggaggt
+    30121 ggtagaggat gaaatgaact ctgtgagggt ccttactttt ggttgttcaa tgcactatct
+    30181 ttttgtgctg gttggcctcc tgccaggagg tggcactttc tagaaagcat cagcagaggc
+    30241 agtcaggtgg tggtggctgg gggggctggg gcactagaac tcccaagaat atatgccctt
+    30301 tgtcttcagc tactagggtg agtaaggaag gaccatcagg tgggggcagg actagtcgtg
+    30361 tctgagctca gagtctcctt gggcaggtct ttctgtggct actgtgggag gatgggggtg
+    30421 tagtttccag gtcaatggat ttatgttcct aggacaatta tggctgcctc tgctgtgtca
+    30481 tgcaggtcat caggaaagtg ggggaaagca agcagtcacg tgacttgccc agctcccatg
+    30541 caactcaaaa ggttggtctc acttccagcg tgcaccctcc cccgcaacag ctccgaatct
+    30601 gtttccatgc agtcagtgag caaggctgag aacttgccca ggctaccagc tgcgaaacca
+    30661 agtagggctg tcctacttcc ctgccagtgg agtctgcaca ccaaattcat gtccccccac
+    30721 caaccccccc actgcccagc ccctagatct ggccaggtgg agattttctt tttcctgtct
+    30781 cttttcccag ttcctctggc agccctccca aatgacccct gtgaggcaag gcagaaatgg
+    30841 cttcctaggg gacccagaga gcccacaggg cttttcccgc tgcttcctct acccctgtat
+    30901 tttgcttggc cctctaaatt gactcagctc caggtaaggt cagaatcttc tcctgtggtc
+    30961 tagatcttca ggttcccagt gaggatgtgt gtttgggggt agacggtccc ccttttccac
+    31021 ttccacagtt tgggcactca caatatttgg ggtgtttccc gggtcctaca tgagcaatct
+    31081 gcttctttca gagggtgtgt gcgttctctc agctttcttg aatttatttc tgcaggtggt
+    31141 tctgcaaaaa aaattcctga tgggagactt cacatgctgc tctgtgcatc cgagtgggag
+    31201 ctgcaatgta cttctgctgc cacccatctg ccatcaccct ctaatttgtc ggtaatatgc
+    31261 atttttaatc aatctttttt tctctctctc tcttttcttc tcccccaaaa ctatactgcc
+    31321 ctttgatatc aaggaatcaa ggccgtgatg ttgaggggtg ggcagtggat acactcttta
+    31381 ccccttaggg agcatatcta gatttagata ttgccaattc aagataactt aattgaaagc
+    31441 aaattcataa tgaatacaca cacacacaca cacatctgca tgacaagatt tttaatagtt
+    31501 gaaagaataa ctaataattg tccacaggca ataagggctt tttaagcaaa acagttgtga
+    31561 taaaacaggt cattcttaga atagtaatcc agccaatagt acaggttgct tagagattat
+    31621 gacattacca gagttaaaat tcaataatgg cttctcactc cctaccactg aggacaagtt
+    31681 tatgtcctta ggtttatgct tccctgaaac aataccacct gctattctcc actttacata
+    31741 tcaacggcac tggttcttta tctaactctc tggcacagca ggagtttgtt ttcttctgct
+    31801 tcagagcttt gaatttacta tttcagcttc taaactttat ttgcaatgcc ttcccatggc
+    31861 agactccttc tgtcattttg cctctgttcg aaaacttttt ccttaatttc attcttagtt
+    31921 aataatatct gaaattattt tgttgtttaa cttaattatt aattttatgt atgttctacc
+    31981 tagatataat cttctagagg attgttttat tctctgactt atttaactta aatgcccact
+    32041 acctttaaaa attatgacat ttatttaaca gatatttgct gaacaaatgt ttgaaaatac
+    32101 atgggaaaga atgcttgaaa acacttgaaa ttgcttgtgt aaagaaacag ttttatcagt
+    32161 taggatttaa tcaatgtcag aagcaatgat ataggaaaaa tcgaggaata agacagttat
+    32221 ggataaggag aaatcaacaa actcttaaaa gatattgcct caaaagcata agaggaaata
+    32281 agggtttata catgactttt agaacactgc ctgggttttt ggataaatgg ggaagttgtt
+    32341 ggaaaacagg agggatccta gatattcctt agtctgagga ggagcaatta agattcactt
+    32401 gtttagaggc tgggagtggt ggctcacgcc tgtaatccca gaattttggg aggccaaggc
+    32461 aggcagatca cctgaggtca agagttcaag accaacctgg ccaacatggt gaaatcccat
+    32521 ctctacaaaa atacaaaaat tagacaggca tgatggcaag tgcctgtaat cccagctact
+    32581 tgggaggctg aggaaggaga attgcttgaa cctggaaggc aggagttgca gtgagccgag
+    32641 atcataccac tgcactccag cctgggtgac agaacaagac tctgtctcaa aaaaaaaaaa
+    32701 gagagattca aaagattcac ttgtttaggc cttagcgggc ttagacacca gtctctgaca
+    32761 cattcttaaa ggtcaggctc tacaaatgga acccaaccag actctcagat atggccaaag
+    32821 atctatacac acccatctca cagatcccct atcttaaaga gaccctaatt tgggttcacc
+    32881 tcagtctcta taatctgtac cagcatacca ataaaaatct ttctcaccca tccttagatt
+    32941 gagagaagtc acttattatt atgtgagtaa ctggaagata ctgataagtt gacaaatctt
+    33001 tttctttcct ttcttattca acttttattt taacttccaa agaacaagtg caatatgtgc
+    33061 agctttgttg cgcaggtcaa catgtatctt tctggtcttt tagccgccta acactttgag
+    33121 cagatataag ccttacacag gattatgaag tctgaaagga ttccaccaat attattataa
+    33181 ttcctatcaa cctgataagt taggggaagg tagagctctc ctccaataag ccagatttcc
+    33241 agagtttctg acgtcataat ctaccaaggt catggatcga gttcagagaa aaaacaaaag
+    33301 caaaaccaaa cctaccaaaa aataaaaatc ccaaagaaaa aataaagaaa aaaacagcat
+    33361 gaatacttcc tgccatgtta agtggccaat atgtcagaaa cagcactgag ttacagataa
+    33421 agatgtctaa actacagtga catcccagct gtcacagtgt gtggactatt agtcaataaa
+    33481 acagtccctg cctcttaaga gttgttttcc atgcaaatac atgtcttatg tcttagaata
+    33541 agattcccta agaagtgaac ctagcattta tacaagataa ttaattctaa tccatagtat
+    33601 ctggtaaaga gcattctacc atcatcttta ccgagcatag aagagctaca ccaaaaccct
+    33661 gggtcatcag ccagcacata cacttatcca gtgataaata cacatcatcg ggtgcctaca
+    33721 tacatacctg aatataaaaa aaatactttt gctgagatga aacaggcgtg atttatttca
+    33781 aataggtacg gataagtaga tattgaagta aggattcagt cttatattat attacataac
+    33841 attaatctat tcctgcactg aaactgttgc tttataggat ttttcactac actaatgaga
+    33901 acttaagaga taatggccta aaaccacaga gagtatattc aagaataagt atagcacttc
+    33961 ttatttggaa accaatgctt actaaatgag actaagacgt gtcccatcaa aaatcctgga
+    34021 cctatgccta aaacacattt cacaatccct gaacttttca aaaattggta catgctttaa
+    34081 ctttaaacta caggcctcac tggagctaca gacaagaagg tgaaaaacgg ctgacaaaag
+    34141 aagtcctggt atcttctatg gtgggagaag aaaactagct aaagggaaga ataaattaga
+    34201 gaaaaattgg aatgactgaa tcggaacaag gcaaaggcta taaaaaaaat taagcagcag
+    34261 tatcctcttg ggggcccctt ccccacacta tctcaatgca aatatctgtc tgaaacggtt
+    34321 cctggctaaa ctccacccat gggttggcca gccttgcctt gaccaatagc cttgacaagg
+    34381 caaacttgac caatagtctt agagtatcca gtgaggccag gggccggcgg ctggctaggg
+    34441 atgaagaata aaaggaagca cccttcagca gttccacaca ctcgcttctg gaacgtctga
+    34501 ggttatcaat aagctcctag tccagacgcc atgggtcatt tcacagagga ggacaaggct
+    34561 actatcacaa gcctgtgggg caaggtgaat gtggaagatg ctggaggaga aaccctggga
+    34621 aggtaggctc tggtgaccag gacaagggag ggaaggaagg accctgtgcc tggcaaaagt
+    34681 ccaggtcgct tctcaggatt tgtggcacct tctgactgtc aaactgttct tgtcaatctc
+    34741 acaggctcct ggttgtctac ccatggaccc agaggttctt tgacagcttt ggcaacctgt
+    34801 cctctgcctc tgccatcatg ggcaacccca aagtcaaggc acatggcaag aaggtgctga
+    34861 cttccttggg agatgccata aagcacctgg atgatctcaa gggcaccttt gcccagctga
+    34921 gtgaactgca ctgtgacaag ctgcatgtgg atcctgagaa cttcaaggtg agtccaggag
+    34981 atgtttcagc actgttgcct ttagtctcga ggcaacttag acaactgagt attgatctga
+    35041 gcacagcagg gtgtgagctg tttgaagata ctggggttgg gagtgaagaa actgcagagg
+    35101 actaactggg ctgagaccca gtggcaatgt tttagggcct aaggagtgcc tctgaaaatc
+    35161 tagatggaca actttgactt tgagaaaaga gaggtggaaa tgaggaaaat gacttttctt
+    35221 tattagattt cggtagaaag aactttcacc tttcccctat ttttgttatt cgttttaaaa
+    35281 catctatctg gaggcaggac aagtatggtc gttaaaaaga tgcaggcaga aggcatatat
+    35341 tggctcagtc aaagtgggga actttggtgg ccaaacatac attgctaagg ctattcctat
+    35401 atcagctgga cacatataaa atgctgctaa tgcttcatta caaacttata tcctttaatt
+    35461 ccagatgggg gcaaagtatg tccaggggtg aggaacaatt gaaacatttg ggctggagta
+    35521 gattttgaaa gtcagctctg tgtgtgtgtg tgtgtgtgtg cgcgcgtgtg tttgtgtgtg
+    35581 tgtgagagcg tgtgtttctt ttaacgtttt cagcctacag catacagggt tcatggtggc
+    35641 aagaagataa caagatttaa attatggcca gtgactagtg ctgcaagaag aacaactacc
+    35701 tgcatttaat gggaaagcaa aatctcaggc tttgagggaa gttaacatag gcttgattct
+    35761 gggtggaagc ttggtgtgta gttatctgga ggccaggctg gagctctcag ctcactatgg
+    35821 gttcatcttt attgtctcct ttcatctcaa cagctcctgg gaaatgtgct ggtgaccgtt
+    35881 ttggcaatcc atttcggcaa agaattcacc cctgaggtgc aggcttcctg gcagaagatg
+    35941 gtgactggag tggccagtgc cctgtcctcc agataccact gagctcactg cccatgatgc
+    36001 agagctttca aggataggct ttattctgca agcaatacaa ataataaatc tattctgcta
+    36061 agagatcaca catggttgtc ttcagttctt ttttttatgt ctttttaaat atatgagcca
+    36121 caaagggttt tatgttgagg gatgtgttta tgtgtattta tacatggcta tgtgtgtttg
+    36181 tgtcatgtgc acactccaca cttttttgtt tacgttagat gtgggttttg atgagcaaat
+    36241 aaaagaacta ggcaataaag aaacttatac atgggagcgt ctgcaagtgg gagtaaaagg
+    36301 tgcaggagaa atctggttgg aagaaagacc tctataggac aggactcctc agaaacagat
+    36361 gttttggaag agatggggaa aggttcagtg aagggggctg aacccccttc cctggattgc
+    36421 agcacagcag cgaggaaggg gctcaacgaa gaaaaagtgt tccaagcttt aggaagtcaa
+    36481 ggtttaggca gggatagcca ttctatttta ttaggggcaa tactatttcc aacggcatct
+    36541 ggcttttctc agcccttgtg aggctctacg gggaggttga ggtgttagag atcagagcag
+    36601 gaaacaggtt tttctttcca cggtaactac aatgaagtga tccttacttt actaaggaac
+    36661 tttttcattt taagtgttga cgcatgccta aagaggtgaa attaatccca tacccttaag
+    36721 tctacagact ggtcacagca tttcaaggag gagacctcat tgtaagcttc tagggaggtg
+    36781 gggacctagg tgaaggaaat gagccagcag aagctcacaa gtcagcatca gcgtgtcatg
+    36841 tctcagcagc agaacagcac ggtcagatga aaatatagtg tgaagaattt gtataacatt
+    36901 aattgagaag gcagattcac tggagttctt atataattga aagttaatgc acgttaataa
+    36961 gcaagagttt agtttaatgt gatggtgtta tgaacttaac gcttgtgtct ccagaaaatt
+    37021 cacatgctga atccccaact cccaattggc tccatttgtg ggggaggctt tggaaaagta
+    37081 atcaggttta gaggagctca tgagagcaga tccccatcat agaattattt tcctcatcag
+    37141 aagcagagag attagccatt tctcttcctt ctggtgagga cacagtggga agtcagccac
+    37201 ctgcaaccca ggaagagagc cctgaccagg aaccagcaga aaagtgagaa aaaatcctgt
+    37261 tgttgaagtc acccagtcta tgctattttg ttatagcacc ttgcactaag taaggcagat
+    37321 gaagaaagag aaaaaaataa gcttcggtgt tcagtggatt agaaaccatg tttatctcag
+    37381 gtttacaaat ctccacttgt cctctgtgtt tcagaataaa ataccaactc tactactctc
+    37441 atctgtaaga tgcaaatagt aagcctgatc ccttctgtct aacttcgaat tctatttttt
+    37501 cttcaacgta ctttaggctt gtaatgtgtt tatatacagt gaaatgtcaa gttctttctt
+    37561 tatatttctt tctttctttt ttttcctcag cctcagagtt ttccacatgc ccttcctacc
+    37621 ttcaggaact tctttctcca aacgtcttct gcctggcctc cattcaaatc ataaaggacc
+    37681 cacttcaaat gccatcactc actaccattt cacaattcgc actttctttc tttgtccttt
+    37741 ttttttttag taaaacaagt ttataaaaaa ttgaaggaat aaatgaatgg ctacttcata
+    37801 ggcagagtag acacaagggc tactggttgc cgatttttat tgttattttt caatagtatg
+    37861 ctaaacaagg ggtagattat ttatgctgcc catttttaga ccataaaaga taacttcctg
+    37921 atgttgccat ggcatttttt ttccttttaa ttttatttca tttcatttta atttcgaagg
+    37981 tacatgtgca ggatgtgcag gcttgttaca tgggtaaatg tgtgtctttc tggcctttta
+    38041 gccatctgta tcaatgagca gatataagct ttacacagga tcatgaagga tgaaagaatt
+    38101 tcaccaatat tataataatt tcaatcaacc tgatagctta ggggataaac taatttgaag
+    38161 atacagcttg cctccgataa gccagaattc cagagcttct ggcattataa tctagcaagg
+    38221 ttagagatca tggatcactt tcagagaaaa acaaaaacaa actaaccaaa agcaaaacag
+    38281 aaccaaaaaa cctccataaa tacttcctac ccagttaatg gtccaatatg tcagaaacag
+    38341 cactgtgtta gaaataaagc tgtctaaagt acactaatat tcgagttata atagtgtgtg
+    38401 gactattagt caataaaaac aacccttgcc tctttagagt tgttttccat gtacacgcac
+    38461 atcttatgtc ttagagtaag attccctgag aagtgaacct agcatttata caagataatt
+    38521 aattctaatc cacagtacct gccaaagaac attctaccat catctttact gagcatagaa
+    38581 gagctacgcc aaaaccctgg gtcatcagcc agcacacaca cttatccagt ggtaaataca
+    38641 catcatctgg tgtatacata catacctgaa tatggaatca aatatttttc taagatgaaa
+    38701 cagtcatgat ttatttcaaa taggtacgga taagtagata ttgaggtaag cattaggtct
+    38761 tatattatgt aacactaatc tattactgcg ctgaaactgt ggtctttatg aaaattgttt
+    38821 tcactacact attgagaaat taagagataa tggcaaaagt cacaaagagt atattcaaaa
+    38881 agaagtatag cactttttcc ttagaaacca ctgctaactg aaagagacta agatttgtcc
+    38941 cgtcaaaaat cctggaccta tgcctaaaac acatttcaca atccctgaac ttttcaaaaa
+    39001 ttggtacatg ctttagcttt aaactacagg cctcactgga gctacagaca agaaggtaaa
+    39061 aaacggctga caaaagaagt cctggtatcc tctatgatgg gagaaggaaa ctagctaaag
+    39121 ggaagaataa attagagaaa aactggaatg actgaatcgg aacaaggcaa aggctataaa
+    39181 aaaaattaag cagcagtatc ctcttggggg ccccttcccc acactatctc aatgcaaata
+    39241 tctgtctgaa acggtccctg gctaaactcc acccatgggt tggccagcct tgccttgacc
+    39301 aatagccttg acaaggcaaa cttgaccaat agtcttagag tatccagtga ggccaggggc
+    39361 cggcggctgg ctagggatga agaataaaag gaagcaccct tcagcagttc cacacactcg
+    39421 cttctggaac gtctgagatt atcaataagc tcctagtcca gacgccatgg gtcatttcac
+    39481 agaggaggac aaggctacta tcacaagcct gtggggcaag gtgaatgtgg aagatgctgg
+    39541 aggagaaacc ctgggaaggt aggctctggt gaccaggaca agggagggaa ggaaggaccc
+    39601 tgtgcctggc aaaagtccag gtcgcttctc aggatttgtg gcaccttctg actgtcaaac
+    39661 tgttcttgtc aatctcacag gctcctggtt gtctacccat ggacccagag gttctttgac
+    39721 agctttggca acctgtcctc tgcctctgcc atcatgggca accccaaagt caaggcacat
+    39781 ggcaagaagg tgctgacttc cttgggagat gccataaagc acctggatga tctcaagggc
+    39841 acctttgccc agctgagtga actgcactgt gacaagctgc atgtggatcc tgagaacttc
+    39901 aaggtgagtc caggagatgt ttcagcactg ttgcctttag tctcgaggca acttagacaa
+    39961 ctgagtattg atctgagcac agcagggtgt gagctgtttg aagatactgg ggttgggagt
+    40021 gaagaaactg cagaggacta actgggctga gacccagtgg caatgtttta gggcctaagg
+    40081 agtgcctctg aaaatctaga tggacaactt tgactttgag aaaagagagg tggaaatgag
+    40141 gaaaatgact tttctttatt agatttcggt agaaagaact ttcacctttc ccctattttt
+    40201 gttattcgtt ttaaaacatc tatctggagg caggacaagt atggtcgtta aaaagatgca
+    40261 ggcagaaggc atatattggc tcagtcaaag tggggaactt tggtggccaa acatacattg
+    40321 ctaaggctat tcctatatca gctggacaca tataaaatgc tgctaatgct tcattacaaa
+    40381 cttatatcct ttaattccag atgggggcaa agtatgtcca ggggtgagga acaattgaaa
+    40441 catttgggct ggagtagatt ttgaaagtca gctctgtgtg tgtgtgtgtg tgtgtgtgtg
+    40501 tcagcgtgtg tttcttttaa cgtcttcagc ctacaacata cagggttcat ggtgggaaga
+    40561 agatagcaag atttaaatta tggccagtga ctagtgcttg aaggggaaca actacctgca
+    40621 tttaatggga aggcaaaatc tcaggctttg agggaagtta acataggctt gattctgggt
+    40681 ggaagctggg tgtgtagtta tctggaggcc aggctggagc tctcagctca ctatgggttc
+    40741 atctttattg tctcctttca tctcaacagc tcctgggaaa tgtgctggtg accgttttgg
+    40801 caatccattt cggcaaagaa ttcacccctg aggtgcaggc ttcctggcag aagatggtga
+    40861 ctgcagtggc cagtgccctg tcctccagat accactgagc ctcttgccca tgattcagag
+    40921 ctttcaagga taggctttat tctgcaagca atacaaataa taaatctatt ctgctgagag
+    40981 atcacacatg attttcttca gctctttttt ttacatcttt ttaaatatat gagccacaaa
+    41041 gggtttatat tgagggaagt gtgtatgtgt atttctgcat gcctgtttgt gtttgtggtg
+    41101 tgtgcatgct cctcatttat ttttatatga gatgtgcatt ttgatgagca aataaaagca
+    41161 gtaaagacac ttgtacacgg gagttctgca agtgggagta aatggtgttg gagaaatccg
+    41221 gtgggaagaa agacctctat aggacaggac ttctcagaaa cagatgtttt ggaagagatg
+    41281 ggaaaaggtt cagtgaagac ctgggggctg gattgattgc agctgagtag caaggatggt
+    41341 tcttaatgaa gggaaagtgt tccaagcttt aggaattcaa ggtttagtca ggtgtagcaa
+    41401 ttctatttta ttaggaggaa tactatttct aatggcactt agcttttcac agcccttgtg
+    41461 gatgcctaag aaagtgaaat taatcccatg ccctcaagtg tgcagattgg tcacagcatt
+    41521 tcaagggaga gacctcattg taagactctg ggggaggtgg ggacttaggt gtaagaaatg
+    41581 aatcagcaga ggctcacaag tcagcatgag catgttatgt ctgagaaaca gaccagcact
+    41641 gtgagatcaa aatgtagtgg gaagaatttg tacaacatta attggaaggt ttacttaatg
+    41701 gaatttttgt atagttggat gttagtgcat ctctataagt aagagtttaa tatgatggtg
+    41761 ttacggacct ggtgtttgtg tctcctcaaa attcacatgc tgaatcccca actcccaact
+    41821 gaccttatct gtgggggagg cttttgaaaa gtaattaggt ttagctgagc tcataagagc
+    41881 agatccccat cataaaatta ttttccttat cagaagcaga gagacaagcc atttctcttt
+    41941 cctcccggtg aggacacagt gagaagtccg ccatctgcaa tccaggaaga gaaccctgac
+    42001 cacgagtcag ccttcagaaa tgtgagaaaa aactctgttg ttgaagccac ccagtctttt
+    42061 gtattttgtt atagcacctt acactgagta aggcagatga agaaggagaa aaaaataagc
+    42121 ttgggttttg agtgaactac agaccatgtt atctcaggtt tgcaaagctc ccctcgtccc
+    42181 ctatgtttca gcataaaata cctactctac tactctcatc tataagaccc aaataataag
+    42241 cctgcgccct tctctctaac tttgatttct cctattttta cttcaacatg ctttactcta
+    42301 gccttgtaat gtctttacat acagtgaaat gtaaagttct ttattctttt tttctttctt
+    42361 tcttttttct cctcagcctc agaatttggc acatgccctt ccttctttca ggaacttctc
+    42421 caacatctct gcctggctcc atcatatcat aaaggtccca cttcaaatgc agtcactacc
+    42481 gtttcaggat atgcactttc tttctttttt gttttttgtt ttttttaagt caaagcaaat
+    42541 ttcttgagag agtaaagaaa taaacgaatg actactgcat aggcagagca gccccgaggg
+    42601 ccgctggttg ttccttttat ggttatttct tgatgatatg ttaaacaagt tttggattat
+    42661 ttatgccttc tctttttagg ccatataggg taactttctg acattgccat ggcatgtttc
+    42721 ttttaattta atttactgtt accttaaatt caggggtaca cgtacaggat atgcaggttt
+    42781 gttttatagg taaaagtgtg ccatggtttt aatgggtttt ttttttcttg taaagttgtt
+    42841 taagtttctt gtttactctg gatattggcc tttgtcagaa gaatagattg gaaaatcttt
+    42901 ttcccattct gtagattgtc tttcgctctg atggtagttt cttttgctga gcaggagctc
+    42961 tttagtttaa ttagattcca ttggtcaatt tttgcttttg ctgcaattgc ttttcacgct
+    43021 ttcatcatga aatctgtgcc cgtgtttata tcatgaatag tattgccttg atttttttct
+    43081 aggcttttta tagtttgggg tttttcattt aagtctctaa tccatccgga gttaattttg
+    43141 gataaggtat aaggaaggag tccagtttca tttttcagca tatggctagc cagttctccc
+    43201 ccatcattta ttaaattgaa aatcctttcc ccattgcttg cttttgtcag gtttctaaaa
+    43261 gacagatggt tgtaggtaca atatgcagtt tcttcaagtc atataatacc atctgaaatc
+    43321 tcttattaat tcatttcttt tagtatgtat gctggtctcc tctgctcact atagtgaggg
+    43381 caccattagc cagagaatct gtctgtctag ttcatgtaag attctcagaa ttaagaaaaa
+    43441 tggatggcat atgaatgaaa cttcatggat gacatatgga atctaatgtg tatttgttga
+    43501 attaatgcat aagatgcaac aagggaaagg ttgacaactg cagtgataac ctggtattga
+    43561 tgatataaga gtctatagat cacagtagaa gcaataatca tggaaaacaa ttggaaatgg
+    43621 ggaacagcca caaacaagaa agaatcaata ctaccaggaa agtgactgca ggtcactttt
+    43681 cctggagcgg gtgagagaaa agtggaagtt gcagtaactg ccgaattcct ggttggctga
+    43741 tggaaagatg gggcaactgt tcactggtac gcagggtttt agatgtatgt acctaaggat
+    43801 atgaggtatg gcaatgaaca gaaattcttt tgggaatgag ttttagggcc attaaaggac
+    43861 atgacctgaa gtttcctctg aggccagtcc ccacaactca atataaatgt gtttcctgca
+    43921 tatagtcaaa gttgccactt ctttttcttc atatcatcga tctctgctct taaagataat
+    43981 cttggttttg cctcaaactg tttgtcacta caaactttcc ccatgttcct aagtaaaaca
+    44041 ggtaactgcc tctcaactat atcaagtaga ctaaaatatt gtgtctctaa tatcagaaat
+    44101 tcagctttaa tatattgggt ttaactcttt gaaatttaga gtctccttga aatacacatg
+    44161 ggggtgattt cctaaacttt atttcttgta aggatttatc tcaggggtaa cacacaaacc
+    44221 agcatcctga acctctaagt atgaggacag taagccttaa gaatataaaa taaactgttc
+    44281 ttctctctgc cggtggaagt gtgccctgtc tattcctgaa attgcttgtt tgagacgcat
+    44341 gagacgtgca gcacatgaga cacgtgcagc agcctgtgga atattgtcag tgaagaatgt
+    44401 ctttgcctga ttagatataa agacaagtta aacacagcat tagactatag atcaagcctg
+    44461 tgccagacac aaatgaccta atgcccagca cgggccacgg aatctcctat cctcttgctt
+    44521 gaacagagca gcacacttct cccccaacac tattagatgt tctggcataa ttttgtagat
+    44581 atgtaggatt tgacatggac tattgttcaa tgattcagag gaaatctcct ttgttcagat
+    44641 aagtacactg actactaaat ggattaaaaa acacagtaat aaaacccagt tttcccctta
+    44701 cttccctagt ttgtttctta ttctgctttc ttccaagttg atgctggata gaggtgttta
+    44761 tttctattct aaaaagtgat gaaattggcc gggcgcggtg gctcacacct gtaatcccag
+    44821 cactttggga ggctgaggtg ggcggatcac gaggtcagga gatcaagacc atcctggcta
+    44881 acatggtgaa accccatctc tactaaaaat acaaaaaatt agccagagac ggtggcgggt
+    44941 gcctgtagtc ccagctactc gggaggctga ggcaggagaa tggcgtgaac ctgggaggca
+    45001 gagctgcagt gagcagagat cgcgccactg cacactccag cctgggtgac aaagcgagac
+    45061 tccatctcaa aaaaaaaaaa aaaaaaaaaa agaaagaaag aaagaaaaaa aaagtgatga
+    45121 aattgtgtat tcaatgtagt ctcaagagaa ttgaaaacca agaaaggctg tggcttcttc
+    45181 cacataaagc ctggatgaat aacaggataa cacgttgtta cattgtcaca actcctgatc
+    45241 caggaattga tggctaagat attcgtaatt cttatccttt tcagttgtaa cttattccta
+    45301 tttgtcagca ttcaggttat tagcggctgc tggcgaagtc cttgagaaat aaactgcaca
+    45361 ctggatggtg ggggtagtgt aggaaaatgg aggggaagga agtaaagttt caaattaagc
+    45421 ctgaacagca aagttcccct gagaaggcca cctggattct atcagaaact cgaatgtcca
+    45481 tcttgcaaaa cttccttgcc caaaccccac ccctggagtc acaacccacc cttgaccaat
+    45541 agattcattt cactgaggga ggcaaagggc tggtcaatag attcatttca ctgggagagg
+    45601 caaagggctg ggggccagag aggagaagta aaaagccaca catgaagcag caatgcaggc
+    45661 atgcttctgg ctcatctgtg atcaccagga aactcccaga tctgacactg tagtgcattt
+    45721 cactgctgac aagaaggctg ctgccaccag cctgtgaagc aaggttaagg tgagaaggct
+    45781 ggaggtgaga ttctgggcag gtaggtactg gaagccggga caaggtgcag aaaggcagaa
+    45841 agtgtttctg aaagagggat tagcccgttg tcttacatag tctgactttg cacctgctct
+    45901 gtgattatga ctatcccaca gtctcctggt tgtctaccca tggacctaga ggtactttga
+    45961 aagttttgga tatctgggct ctgactgtgc aataatgggc aaccccaaag tcaaggcaca
+    46021 tggcaagaag gtgctgatct ccttcggaaa agctgttatg ctcacggatg acctcaaagg
+    46081 cacctttgct acactgagtg acctgcactg taacaagctg cacgtggacc ctgagaactt
+    46141 cctggtgagt agtaagtaca ctcacgcttt cttctttacc cttagatatt tgcactatgg
+    46201 gtacttttga aagcagaggt ggctttctct tgtgttatga gtcagctatg ggatatgata
+    46261 tttcagcagt gggattttga gagttatgtt gctgtaaata acataactaa aatttggtag
+    46321 agcaaggact atgaataatg gaaggccact taccatttga tagctctgaa aaacacatct
+    46381 tataaaaaat tctggccaaa atcaaactga gtgttttgga tgagggaaca gaagttgaga
+    46441 tagagaaaat aacatctttc ctttggtcag cgaaattttc tataaaaatt aatagtcact
+    46501 tttctgcata gtcctggagg ttagaaaaag atcaactgaa caaagtagtg ggaagctgtt
+    46561 aaaagaggat tgtttccctc cgaatgatga tggtatactt ttgtacgcat ggtacaggat
+    46621 tctttgttat gagtgtttgg gaaaattgta tgtatgtatg tatgtatgtg atgactgggg
+    46681 acttatccta tccattactg ttccttgaag tactattatc ctacttttta aaaggacgaa
+    46741 gtctctaaaa aaaaaatgaa acaatcacaa tatgttgggg tagtgagttg gcatagcaag
+    46801 taagagaagg ataggacaca atgggaggtg cagggctgcc agtcatattg aagctgatat
+    46861 ctagcccata atggtgagag ttgctcaaac tctggtcaaa aaggatgtaa gtgttatatc
+    46921 tatttactgc aagtccagct tgaggccttc tattcactat gtaccatttt cttttttatc
+    46981 ttcactccct ccccagctct taggcaacgt gatattgatt gttttggcaa cccacttcag
+    47041 cgaggatttt accctacaga tacaggcttc ttggcagtaa ctaacaaatg ctgtggttaa
+    47101 tgctgtagcc cacaagacca ctgagttccc tgtccactat gtttgtacct atgtcccaaa
+    47161 atctcatctc ctttagatgg gggaggttgg ggagaagagc agtatcctgc ctgctgattc
+    47221 agttcctgca tgataaaaat agaataaaga aatatgctct ctaagaaata tcattgtact
+    47281 ctttttctgt ctttatattt taccctgatt cagccaaaag gacgcactat ttctgatgga
+    47341 aatgagaatg ttggagaatg ggagtttaag gacagagaag atactttctt gcaatcctgc
+    47401 aagaaaagag agaactcgtg ggtggattta gtggggtagt tactcctagg aaggggaaat
+    47461 cgtctctaga ataagacaat gtttttacag aaagggaggt caatggaggt actctttgga
+    47521 ggtgtaagag gattgttggt agtgtgtaga ggtatgttag gactcaaatt agaagttctg
+    47581 tataggctat tatttgtatg aaactcagga tatagctcat ttggtgactg cagttcactt
+    47641 ctacttattt taaacaacat attttttatg atttataatg aagtggggat ggggcttcct
+    47701 agagaccaat caagggccaa accttgaact ttctcttaac gtcttcaatg gtattaatag
+    47761 agaattatct ctaaggcatg tgaactggct gtcttggttt tcatctgtac ttcatctgct
+    47821 acctctgtga cctgaaacat atttataatt ccattaagct gtgcatatga tagatttatc
+    47881 atatgtattt tccttaaagg atttttgtaa gaactaattg aattgatacc tgtaaagtct
+    47941 ttatcacact acccaataaa taataaatct ctttgttcag ctctctgttt ctataaatat
+    48001 gtacaagttt tattgttttt agtggtagtg attttattct ctttctatat atatacacac
+    48061 acatgtgtgc attcataaat atatacaatt tttatgaata aaaaattatt agcaatcaat
+    48121 attgaaaacc actgattttt gtttatgtga gcaaacagca gattaaaagg ctgagattta
+    48181 ggaaacagca cgttaagtca agttgataga ggagaatatg gacatttaaa agaggcagga
+    48241 tgatataaaa ttagggaaac tggatgcaga gaccagatga agtaagaaaa atagctatcg
+    48301 ttttgagcaa aaatcactga agtttcttgc atatgagagt gacataataa atagggaaac
+    48361 gtagaaaatt gattcacatg tatatatata tatagaactg attagacaaa gtctaacttg
+    48421 ggtatagtca gaggagcttg ctgtaattat attgaggtga tggataaaga actgaagttg
+    48481 atggaaacaa tgaagttaag aaaaaaaatc gagtaagaga ccattgtggc agtgattgca
+    48541 cagaactgga aaacattgtg aaacagagag tcagagatga cagctaaaat ccctgtctgt
+    48601 gaatgaaaag aaggaaattt attgacagaa cagcaaatgc ctacaagccc cctgtttgga
+    48661 tctggcaatg aacgtagcca ttctgtggca atcacttcaa actcctgtac ccaagaccct
+    48721 taggaagtat gtagcaccct caaacctaaa acctcaaaga aagaggtttt agaagatata
+    48781 ataccctttc ttctccagtt tcattaatcc caaaacctct ttctcaaagt atttcctcta
+    48841 tgtgtccacc ccaaagagct cacctcacca tatctcttga gtgggagcac atagataggc
+    48901 ggtgctacca tctaacagct tctgaaattc ctttgtcata tttttgagtc cccactaata
+    48961 acccacaaag cagaataaat accagttgct catgtacaat aatcactcaa ctgctgtctt
+    49021 gtagcataca ttaattaagc acattctttg aataattact gtgtccaaac aatcacactt
+    49081 taaaatctca cacttgtgct atcccttgcc cttctgaatg tcactctgta ttttaaatga
+    49141 agagatgagg gttgaatttc ctgtgttact tattgttcat ttctcgatga ggagttttca
+    49201 cattcacctt tactggaaaa cacataagta cacatcttac aggaaaaata taccaaactg
+    49261 acatgtagca tgaatgcttg tgcatgtagt catataaaat cttgtagcaa tgtaaacatt
+    49321 ctctgatata cacatacaga tgtgtctata tgtctacaca atttcttatg ctccatgaac
+    49381 aaacattcca tgcacacata agaacacaca ctgttacaga tgcatacttg agtgcattga
+    49441 caaaattacc ccagtcaatc tagagaattt ggatttctgc atttgactct gttagctttg
+    49501 tacatgctgt tcatttactc tgggtgatgt ctttccctca ttttgccttg tctatcttgt
+    49561 actcatactt taagtcctaa cttatatgtt atctcaacta agaagctatt tttttttaat
+    49621 tttaactggg cttaaagccc tgtctataaa ctctgctaca attatgggct ctttcttata
+    49681 atatttagtg tttttcctac taatgtactt aatctgctca ttgtatattc ctaccactaa
+    49741 attttaacct cttttatggt agagacattg tcttgtaaac tcttatttcc ctagtatttg
+    49801 gagatgaaaa aaaagattaa attatccaaa attagatctc tcttttctac attatgagta
+    49861 ttacactatc catagggaag tttgtttgag acctaaactg aggaaccttt ggttctaaaa
+    49921 tgactatgtg atatcttagt atttataggt catgaggttc cttcctctgc ctctgctata
+    49981 gtttgattag tcagcaagca tgtgtcatgc atttattcac atcagaattt catacactaa
+    50041 taagacatag tatcagaagt cagtttatta gttatatcag ttagggtcca tcaaggaaag
+    50101 gacaaaccat tatcagttac tcaacctaga attaaataca gctcttaata gttaattatc
+    50161 cttgtattgg aagagctaaa atatcaaata aaggacagtg cagaaatcta gatgttagta
+    50221 acatcagaaa acctcttccg ccattaggcc tagaagggca gaaggagaaa atgtttatac
+    50281 caccagagtc cagaaccaga gcccataacc agaggtccac tggattcagt gagctagtgg
+    50341 gtgctccttg gagagagcca gaactgtcta atgggggcat caaagtatca gccataaaaa
+    50401 accataaaaa agactgtctg ctgtaggaga tccgttcaga gagagagaga gaccagaaat
+    50461 aatcttgctt atgctttccc tcagccagtg tttaccattg cagaatgtac atgcgactga
+    50521 aagggtgagg aaacctggga aatgtcagtt cctcaaatac agagaacact gagggaagga
+    50581 tgagaaataa atgtgaaagc agacatgaat ggtaattgac agaaggaaac taggatgtgt
+    50641 ccagtaaatg aataattaca gtgtgcagtg attattgcaa tgattaatgt attgataaga
+    50701 taatatgaaa acacagaatt caaacagcag tgaactgaga ttagaattgt ggagagcact
+    50761 ggcatttaag aatgtcacac ttagaatgtg tctctaggca ttgttctgtg catatatcat
+    50821 ctcaatattc attatctgaa aattatgaat taggtacaaa gctcaaataa tttatttttt
+    50881 caggttagca agaacttttt tttttttttt ttctgagatg gagcattgct atggttgccc
+    50941 aggctggagt gcaatggcat gatccaggct cactgcaaca tctgcctccc aggttcaagc
+    51001 gattctcctg cctcagcctc ccaagtagct ggcattacag gcatgtgcca ccaccatgcc
+    51061 tggctaattt tctattttta gtagataggg ggtttcacca tgttggtcag gctgatctcg
+    51121 aactcctaac atcaggtgat ccaccctcct cggcctctga atgtactggg atcacaggcg
+    51181 tgagccacca cacccagcca agaatgtgaa ttttgtagaa ggatataacc catatttctc
+    51241 tgaccctaga gtccttagta tacctcccat accatgtggc tcatcctcct tacatacatt
+    51301 tcccatcttt caccctacct tttccttttt gtttcagctt ttcactgtgt gtcaaaatct
+    51361 agaaccttat ctcctacctg ctctgaaacc aacagcaagt tgacttccat tctaacccac
+    51421 attggcatta cactaattaa aatcgatact gagttctaaa atcatctggg attttgggga
+    51481 ctatgtctta cttcatactt ccttgagatt tcacattaaa tgttggtgtt cattaaaggt
+    51541 ccttcattta actttgtatt catcacactc ttggattcac agttatatct aaactcttat
+    51601 atatagcctg tataatccca attcccaagt ctgatttcta acctctgacc tccaacctca
+    51661 gtgccaaacc catatatcaa acaatgtact gggcttattt atatagatgt cctataggca
+    51721 cctcagactc agcatgggta tttcacttgt tatactaaaa ctgtttctct tccagtgttt
+    51781 tccattttag tcattagata gctacttgcc cattcaccaa ggtcacagat taaaatcatt
+    51841 tccctacctc taatcaacag ttcaattctg cttcaatttg tccctatcta ttaatcacca
+    51901 ctcttactgc ccagtcaggt cctcattgtt tcctgaacaa gagtagatgc tattctttcc
+    51961 actttaagac cttatcctgg ctggatgcgg tggctcaggc ttgtaaaccc agcactttgg
+    52021 gaggccgagg caggcagatc acttgaggtc aggagttcaa gaccagcctg accaacatgg
+    52081 tgaaacccca tctctactaa aaatacaaaa tcagccgggc gtgtggtgca tgcctgcagt
+    52141 cccagctatt caggtggctg aggcaggaga attgcttgaa cccaggaggc ggaggttgcg
+    52201 gtgagcctag attgcaccat tgcactctag cttgggcaat agggatgaaa ctccatctca
+    52261 gaagagaaaa gaaaaaaaga ccttattctg ttacacaaat cctctcaatg caatccatat
+    52321 agaataaaca tgtaaccaga tctcccaatg tgtaaaatca tttcaggtag aacagaatta
+    52381 aagtgaaaag ccaagtcttt ggaattaaca gacaaagttc aaataacagt cctcatggcc
+    52441 ttaagaattt acctaacatt ttttttagaa tcaattttct tatatatgaa ttggaaacat
+    52501 aattcctccc tcacaaacac attctaagat tttaaggaga tattgatgaa gtacatcatc
+    52561 tgtcattttt aacagttagt ggtagtgatt cacacagcac attatgatct gttcttgtat
+    52621 gttctgttcc attctgtatt cttgacctgg ttgtattctt tctgagctcc agatccacat
+    52681 atctaagtac atctttttgc attttacaag agtgcataca atacaatgta tccaagactg
+    52741 tatttctgat tttatcgtac cactaaactc acaaatgtgg ccctattctt gtgttcacga
+    52801 ctgacatcac cgtcatggtc caagtctgat aatagaaatg gcattgtcac tttcttccct
+    52861 actgcaacag aagcccagct atttgtctcc cattttctct acttctaaaa tacatttctt
+    52921 cactaagtga gaataatctt ttaaagacac aaatcaaacc atgccaccac ctttcttgaa
+    52981 ttattcaata tctttcgttg gcttccaggt tacagaaaaa taacttgtaa caaagtttaa
+    53041 aggtcattca tggctcctct ctaccctatt ttataacatt tccccttgtg atcagaatct
+    53101 caggcacatc atccatcttt ctatatacaa ataaagtcat atagtttgaa ctcacctctg
+    53161 gttactttta atcaaccaaa tgctgtaaaa tgcatttgta tcgctacgtg ttaagcagta
+    53221 gttgattctt ttcatttctt gttaatattc tattctttga ctataccgta atttatcaat
+    53281 tctactgttg gtaagcattt aagtggctac cggtttgagg tttttatgat tattgctgtc
+    53341 ataagcattt ctatacatgt ctttggatac acacatgcat gtgtttctga atatctaaaa
+    53401 atgtaattgc taggtaatag acttatcaag catccagcat ttgtggatac tattaaaggt
+    53461 tttccaaagg ggttatacta ttgtacagtg tcaccaacag agtttgagtt tctattgatc
+    53521 catatcacca ccaaaatttg aactgtcagt cttatctctt ctcttgtctc ttttttcctc
+    53581 ttttttttcc ttcccttccc ctctcttcgt ttcttttctc tcctcttctc ttctttcctc
+    53641 tcttcccttc cctttctctt tctcttccct atcccttctc ctctcctctc ccctcctttt
+    53701 ttctcctctc ctctccatta tttatttttc cttcttctcc tccatccctt ccatcctctc
+    53761 tcttcccctc ttccttcctt cctttctcca tttcttcctc ctctttccct caatccttcc
+    53821 ttttggatat gctcatgggt gtgtatttgt ctgccattgt ggcattattt gaattcagaa
+    53881 aagagtgaaa aactactggg atcttcattc tgggtctaat tccacatttt tttttaagaa
+    53941 cacactctgt aaaaatgttc tgtactagca tattcccagg aacttcgtta aatttaatct
+    54001 ggctgaatat ggtaaatcta ctttgcactt tgcattcttt ctttagtcat accataattt
+    54061 taaacattca aaatatttgt atataatatt tgattttatc tgtcattaaa atgttaacct
+    54121 taaaattcat gtttccagaa cctatttcaa taactggtaa ataaacacta ttcatttttt
+    54181 aaatattctt ttaatggata tttatttcaa tataataaaa aattagagtt ttattatagg
+    54241 aagaatttac caaaagaagg aggaagcaag caagtttaaa ctgcagcaat agttgtccat
+    54301 tccaacctct caaaattccc ttggagacaa aatctctaga ggcaaagaag aactttatat
+    54361 tgagtcaact tgttaaaaca tctgctttta gataagtttt cttagtataa agtgacagaa
+    54421 acaaataagt taaactctaa gatacattcc actatattag cctaaaacac ttctgcaaaa
+    54481 atgaaactag gaggatattt ttagaaacaa ctgctgaaag agatgcggtg gggagatatg
+    54541 cagaggagaa cagggtttct gagtcaagac acacatgaca gaacagccaa tctcagggca
+    54601 agttaaggga atagtggaat gaaggttcat ttttcattct cacaaactaa tgaaaccctg
+    54661 cttatcttaa accaacctgc tcactggagc agggaggaca ggaccagcat aaaaggcagg
+    54721 gcagagtcga ctgttgctta cactttcttc tgacataaca gtgttcacta gcaacctcaa
+    54781 acagacacca tggtgcatct gactcctgag gagaagactg ctgtcaatgc cctgtggggc
+    54841 aaagtgaacg tggatgcagt tggtggtgag gccctgggca ggttggtatc aaggttataa
+    54901 gagaggctca aggaggcaaa tggaaactgg gcatgtgtag acagagaaga ctcttgggtt
+    54961 tctgataggc actgactctc tgtcccttgg gctgttttcc taccctcaga ttactggtgg
+    55021 tctacccttg gacccagagg ttctttgagt cctttgggga tctgtcctct cctgatgctg
+    55081 ttatgggcaa ccctaaggtg aaggctcatg gcaagaaggt gctaggtgcc tttagtgatg
+    55141 gcctggctca cctggacaac ctcaagggca ctttttctca gctgagtgag ctgcactgtg
+    55201 acaagctgca cgtggatcct gagaacttca gggtgagtcc aggagatgct tcacttttct
+    55261 ctttttactt tctaatctta cattttggtt cttttaccta cctgctcttc tcccacattt
+    55321 ttgtcatttt actatatttt atcatttaat gcttctaaaa ttttgttaat tttttattta
+    55381 aatattctgc attttttcct tcctcacaat cttgctattt taaattattt aatatcctgt
+    55441 ctttctctcc caaccccctc ccttcatttt tccttctcta acaacaactc aaattatgca
+    55501 taccagctct cacctgctaa ttctgcactt agaataatcc ttttgtctct ccacatgggt
+    55561 atgggagagg ctccaactca aagatgagag gcatagaata ctgttttaga ggctataaat
+    55621 cattttacaa taaggaataa ttggaatttt ataaattctg tagtaaatgg aatggaaagg
+    55681 aaagtgaata tttgattatg aaagactagg cagttacact ggaggtgggg cagaagtcgt
+    55741 tgctaggaga cagcccatca tcacactgat taatcaatta atttgtatct attaatctgt
+    55801 ttatagtaat taatttgtat atgctatata cacatacaaa attaaaacta atttggaatt
+    55861 aatttgtata tagtattata cagcatatat agcatatatg tacatatata gactacatgc
+    55921 tagttaagta catagaggat gtgtgtgtat agatatatgt tatatgtatg cattcatata
+    55981 tgtacttatt tatgctgatg ggaataacct ggggatcagt tttgtctaag atttgggcag
+    56041 aaaaaaatgg gtgttggctc agtttctcag aagccagtct ttatttctct gttaaccata
+    56101 tgcatgtatc tgcctacctc ttctccgcag ctcttgggca atgtgctggt gtgtgtgctg
+    56161 gcccgcaact ttggcaagga attcacccca caaatgcagg ctgcctatca gaaggtggtg
+    56221 gctggtgtgg ctaatgccct ggctcacaag taccattgag atcctggact gtttcctgat
+    56281 aaccataaga agaccctatt tccctagatt ctattttctg aacttgggaa cacaatgcct
+    56341 acttcaaggg tatggcttct gcctaataaa gaatgttcag ctcaacttcc tgattaattt
+    56401 cacttatttc atttttttgt ccaggtgtgt aagaaggttc ctgaggctct acagataggg
+    56461 agcacttgtt tattttacaa agagtacatg ggaaaagaga aaagcaaggg aaccgtacaa
+    56521 ggcattaatg ggtgacactt ctacctccaa agagcagaaa ttatcaagaa ctcttgatac
+    56581 aaagataata ctggcactgc agaggttcta gggaagacct caaccctaag acatagcctc
+    56641 aagggtaata gctacgatta aactccaaca attactgaga aaataatgtg ctcaattaaa
+    56701 ggcataatga ttactcaaga caatgttatg ttgtctttct tcctccttcc tttgcctgca
+    56761 cattgtagcc cataatacta taccccatca agtgttcctg ctccaagaaa tagcttcctc
+    56821 ctcttacttg ccccagaaca tctctgtaaa gaatttcctc ttatcttccc atatttcagt
+    56881 caagattcat tgctcacgta ttacttgtga cctctcttga ccccagccac aataaacttc
+    56941 tctatactac ccaaaaaatc tttccaaacc ctccccgaca ccatattttt atatttttct
+    57001 tatttatttc atgcacacac acacactccg tgctttataa gcaattctgc ctattctcta
+    57061 ccttcttaca atgcctactg tgcctcatat taaattcatc aatgggcaga aagaaaatat
+    57121 ttattcaaga aaacagtgaa tgaatgaacg aatgagtaaa tgagtaaatg aaggaatgat
+    57181 tattccttgc tttagaactt ctggaattag aggacaatat taataatacc atcgcacagt
+    57241 gtttctttgt tgttaatgct acaacataca aagaggaagc atgcagtaaa caaccgaaca
+    57301 gttatttcct ttctgatcat aggagtaata tttttttcct tgagcacatt tttgccatag
+    57361 gtaaaattag aaggattttt agaactttct cagttgtata catttttaaa aatctgtatt
+    57421 atatgcatgt tgattaattt taaacttact tgaataccta aacagaatct gttgtttcct
+    57481 tgtgtttgaa agtgctttca cagtaactct gtctgtactg ccagaatata ctgacaatgt
+    57541 gttatagtta actgttttga tcacaacatt ttgaattgac tggcagcaga agctcttttt
+    57601 atatccatgt gttttcctta agtcattata catagtaggc atgagactct ttatactgaa
+    57661 taagatattt aggaaccact ggtttacata tcagaagcag agctactcag ggcattttgg
+    57721 ggaagatcac tttcacattc ctgagcatag ggaagttctc ataagagtaa gatattaaaa
+    57781 ggagatactt gtgtggtatt cgaaagacag taagagagat tgtagacctt atgatcttga
+    57841 tagggaaaac aaactacatt cctttctcca aaagtcaaaa aaaaagagca aatatagctt
+    57901 actatacctt ctattcctac accattagaa gtagtcagtg agtctaggca agatgttggc
+    57961 cctaaaaatc caaataccag agaattcatg agaacatcac ctggatggga catgtgccga
+    58021 gcaacacaat tactatatgc taggcattgc tatcttcata ttgaagatga ggaggtcaag
+    58081 agatgaaaaa agacttggca ccttgttgtt atattaaaat tatttgttag agtagagctt
+    58141 ttgtaagagt ctaggagtgt gggagctaaa tgatgataca catggacaca aagaatagat
+    58201 caacagacac ccaggcctac ttgagggttg agggtgggaa gagggagacg atgaaaaaga
+    58261 acctattggg tattaagttc atcactgagt gatgaaataa tctgtacatc aagacccagt
+    58321 gatatgcaat ttacctatat aacttgtaca tgtaccccca aatttaaaat aaagttaaaa
+    58381 caaagtatag gaatggaatt aattcctcaa gatttggctt taattttatt tgataattta
+    58441 tcaaatggtt gtttttcttt tctcactatg gcgttgcttt ataaactatg ttcagtatgt
+    58501 ctgaatgaaa gggtgtgtgt gtgtgtgaaa gagagggaga gaggaaggga agagaggacg
+    58561 taataatgtg aatttgagtt catgaaaatt tttcaataaa ataatttaat gtcaggagaa
+    58621 ttaagcctaa tagtctccta aatcatccat ctcttgagct tcagagcagt cctctgaatt
+    58681 aatgcctaca tgtttgtaaa gggtgttcag actgaagcca agattctacc tctaaagaga
+    58741 tgcaatctca aatttatctg aagactgtac ctctgctctc cataaattga caccatggcc
+    58801 cacttaatga ggttaaaaaa aagctaattc tgaatgaaaa tctgagccca gtggaggaaa
+    58861 tattaatgaa caaggtgcag actgaaatat aaattttctg taataattat gcatatactt
+    58921 tagcaaagtt ctgtctatgt tgactttatt gcttttggta agaaatacaa ctttttaaag
+    58981 tgaactaaac tatcctattt ccaaactatt ttgtgtgtgt gcggtttgtt tctatgggtt
+    59041 ctggttttct tggagcattt ttatttcatt ttaattaatt aattctgaga gctgctgagt
+    59101 tgtgtttact gagagattgt gtatctgcga gagaagtctg tagcaagtag ctagactgtg
+    59161 cttgacctag gaacatatac agtagattgc taaaatgtct cacttgggga attttagact
+    59221 aaacagtaga gcatgtataa aaatactcta gtcaagtgct gcttttgaaa caaatgataa
+    59281 aaccacactc ccatagatga gtgtcatgat tttcatggag gaagttaata ttcatcctct
+    59341 aagtataccc agactagggc cattctgata taaaacatta ggacttaaga aagattaata
+    59401 gactggagta aaggaaatgg acctctgtct ctctcgctgt ctcttttttg aggacttgtg
+    59461 tgtgtgtgtg tgtgtgtgtg tgtgtgtgtt gtggtcagtg gggctggaat aaaagtagaa
+    59521 tagacctgca cctgctgtgg catccattca cagagtagaa gcaagctcac aatagtgaag
+    59581 atgtcagtaa gcttgaatag tttttcagga actttgaatg ctgatttaga tttgaaactg
+    59641 aggctctgac cataaccaaa tttgcactat ttattgcttc ttgaaactta tttgcctggt
+    59701 atgcctgggc ttttgatggt cttagtatag cttgcagcct tgtccctgca gggtattatg
+    59761 ggtaatagaa agaaaagtct gcgttacact ctagtcacac taagtaacta ccattggaaa
+    59821 agcaacccct gccttgaagc caggatgatg gtatctgcag cagttgccaa cacaagagaa
+    59881 ggatccatag ttcatcattt aaaaaagaaa acaaaataga aaaaggaaaa ctatttctga
+    59941 gcataagaag ttgtagggta agtctttaag aaggtgacaa tttctgccaa tcaggatttc
+    60001 aaagctcttg ctttgacaat tttggtcttt cagaatacta taaatataac ctatattata
+    60061 atttcataaa gtctgtgcat tttctttgac ccaggatatt tgcaaaagac atattcaaac
+    60121 ttccgcagaa cactttattt cacatataca tgcctcttat atcagggatg tgaaacaggg
+    60181 tcttgaaaac tgtctaaatc taaaacaatg ctaatgcagg tttaaattta ataaaataaa
+    60241 atccaaaatc taacagccaa gtcaaatctg tatgttttaa catttaaaat attttaaaga
+    60301 cgtcttttcc caggattcaa catgtgaaat cttttctcag ggatacacgt gtgcctagat
+    60361 cctcattgct ttagtttttt acagaggaat gaatataaaa agaaaatact taaattttat
+    60421 ccctcttacc tctataatca tacataggca taatttttta acctaggctc cagatagcca
+    60481 tagaagaacc aaacactttc tgcgtgtgtg agaataatca gagtgagatt ttttcacaag
+    60541 tacctgatga gggttgagac aggtagaaaa agtgagagat ctctatttat ttagcaataa
+    60601 tagagaaagc atttaagaga ataaagcaat ggaaataaga aatttgtaaa tttccttctg
+    60661 ataactagaa atagaggatc cagtttcttt tggttaacct aaattttatt tcattttatt
+    60721 gttttatttt attttatttt attttatttt gtgtaatcgt agtttcagag tgttagagct
+    60781 gaaaggaaga agtaggagaa acatgcaaag taaaagtata acactttcct tactaaaccg
+    60841 actgggtttc caggtagggg caggattcag gatgactgac agggccctta gggaacactg
+    60901 agaccctacg ctgacctcat aaatgcttgc tacctttgct gttttaatta catcttttaa
+    60961 tagcaggaag cagaactctg cacttcaaaa gtttttcctc acctgaggag ttaatttagt
+    61021 acaaggggaa aaagtacagg gggatgggag aaaggcgatc acgttgggaa gctatagaga
+    61081 aagaagagta aattttagta aaggaggttt aaacaaacaa aatataaaga gaaataggaa
+    61141 cttgaatcaa ggaaatgatt ttaaaacgca gtattcttag tggactagag gaaaaaaata
+    61201 atctgagcca agtagaagac cttttcccct cctaccccta ctttctaagt cacagaggct
+    61261 ttttgttccc ccagacactc ttgcagatta gtccaggcag aaacagttag atgtccccag
+    61321 ttaacctcct atttgacacc actgattacc ccattgatag tcacactttg ggttgtaagt
+    61381 gactttttat ttatttgtat ttttgactgc attaagaggt ctctagtttt ttatctcttg
+    61441 tttcccaaaa cctaataagt aactaatgca cagagcacat tgatttgtat ttattctatt
+    61501 tttagacata atttattagc atgcatgagc aaattaagaa aaacaacaac aaatgaatgc
+    61561 atatatatgt atatgtatgt gtgtatatat acacatatat atatatattt tttttctttt
+    61621 cttaccagaa ggttttaatc caaataagga gaagatatgc ttagaactga ggtagagttt
+    61681 tcatccattc tgtcctgtaa gtattttgca tattctggag acgcaggaag agatccatct
+    61741 acatatccca aagctgaatt atggtagaca aagctcttcc acttttagtg catcaatttc
+    61801 ttatttgtgt aataagaaaa ttgggaaaac gatcttcaat atgcttacca agctgtgatt
+    61861 ccaaatatta cgtaaataca cttgcaaagg aggatgtttt tagtagcaat ttgtactgat
+    61921 ggtatggggc caagagatat atcttagagg gagggctgag ggtttgaagt ccaactccta
+    61981 agccagtgcc agaagagcca aggacaggta cggctgtcat cacttagacc tcaccctgtg
+    62041 gagccacacc ctagggttgg ccaatctact cccaggagca gggagggcag gagccagggc
+    62101 tgggcataaa agtcagggca gagccatcta ttgcttacat ttgcttctga cacaactgtg
+    62161 ttcactagca acctcaaaca gacaccatgg tgcacctgac tcctgaggag aagtctgccg
+    62221 ttactgccct gtggggcaag gtgaacgtgg atgaagttgg tggtgaggcc ctgggcaggt
+    62281 tggtatcaag gttacaagac aggtttaagg agaccaatag aaactgggca tgtggagaca
+    62341 gagaagactc ttgggtttct gataggcact gactctctct gcctattggt ctattttccc
+    62401 acccttaggc tgctggtggt ctacccttgg acccagaggt tctttgagtc ctttggggat
+    62461 ctgtccactc ctgatgctgt tatgggcaac cctaaggtga aggctcatgg caagaaagtg
+    62521 ctcggtgcct ttagtgatgg cctggctcac ctggacaacc tcaagggcac ctttgccaca
+    62581 ctgagtgagc tgcactgtga caagctgcac gtggatcctg agaacttcag ggtgagtcta
+    62641 tgggaccctt gatgttttct ttccccttct tttctatggt taagttcatg tcataggaag
+    62701 gggagaagta acagggtaca gtttagaatg ggaaacagac gaatgattgc atcagtgtgg
+    62761 aagtctcagg atcgttttag tttcttttat ttgctgttca taacaattgt tttcttttgt
+    62821 ttaattcttg ctttcttttt ttttcttctc cgcaattttt actattatac ttaatgcctt
+    62881 aacattgtgt ataacaaaag gaaatatctc tgagatacat taagtaactt aaaaaaaaac
+    62941 tttacacagt ctgcctagta cattactatt tggaatatat gtgtgcttat ttgcatattc
+    63001 ataatctccc tactttattt tcttttattt ttaattgata cataatcatt atacatattt
+    63061 atgggttaaa gtgtaatgtt ttaatatgtg tacacatatt gaccaaatca gggtaatttt
+    63121 gcatttgtaa ttttaaaaaa tgctttcttc ttttaatata cttttttgtt tatcttattt
+    63181 ctaatacttt ccctaatctc tttctttcag ggcaataatg atacaatgta tcatgcctct
+    63241 ttgcaccatt ctaaagaata acagtgataa tttctgggtt aaggcaatag caatatttct
+    63301 gcatataaat atttctgcat ataaattgta actgatgtaa gaggtttcat attgctaata
+    63361 gcagctacaa tccagctacc attctgcttt tattttatgg ttgggataag gctggattat
+    63421 tctgagtcca agctaggccc ttttgctaat catgttcata cctcttatct tcctcccaca
+    63481 gctcctgggc aacgtgctgg tctgtgtgct ggcccatcac tttggcaaag aattcacccc
+    63541 accagtgcag gctgcctatc agaaagtggt ggctggtgtg gctaatgccc tggcccacaa
+    63601 gtatcactaa gctcgctttc ttgctgtcca atttctatta aaggttcctt tgttccctaa
+    63661 gtccaactac taaactgggg gatattatga agggccttga gcatctggat tctgcctaat
+    63721 aaaaaacatt tattttcatt gcaatgatgt atttaaatta tttctgaata ttttactaaa
+    63781 aagggaatgt gggaggtcag tgcatttaaa acataaagaa atgaagagct agttcaaacc
+    63841 ttgggaaaat acactatatc ttaaactcca tgaaagaagg tgaggctgca aacagctaat
+    63901 gcacattggc aacagccctg atgcctatgc cttattcatc cctcagaaaa ggattcaagt
+    63961 agaggcttga tttggaggtt aaagttttgc tatgctgtat tttacattac ttattgtttt
+    64021 agctgtcctc atgaatgtct tttcactacc catttgctta tcctgcatct ctcagccttg
+    64081 actccactca gttctcttgc ttagagatac cacctttccc ctgaagtgtt ccttccatgt
+    64141 tttacggcga gatggtttct cctcgcctgg ccactcagcc ttagttgtct ctgttgtctt
+    64201 atagaggtct acttgaagaa ggaaaaacag ggggcatggt ttgactgtcc tgtgagccct
+    64261 tcttccctgc ctcccccact cacagtgacc cggaatctgc agtgctagtc tcccggaact
+    64321 atcactcttt cacagtctgc tttggaagga ctgggcttag tatgaaaagt taggactgag
+    64381 aagaatttga aagggggctt tttgtagctt gatattcact actgtcttat taccctatca
+    64441 taggcccacc ccaaatggaa gtcccattct tcctcaggat gtttaagatt agcattcagg
+    64501 aagagatcag aggtctgctg gctcccttat catgtccctt atggtgcttc tggctctgca
+    64561 gttattagca tagtgttacc atcaaccacc ttaacttcat ttttcttatt caatacctag
+    64621 gtaggtagat gctagattct ggaaataaaa tatgagtctc aagtggtcct tgtcctctct
+    64681 cccagtcaaa ttctgaatct agttggcaag attctgaaat caaggcatat aatcagtaat
+    64741 aagtgatgat agaagggtat atagaagaat tttattatat gagagggtga aacctaaaat
+    64801 gaaatgaaat cagacccttg tcttacacca taaacaaaaa taaatttgaa tgggttaaag
+    64861 aattaaacta agacctaaaa ccataaaaat ttttaaagaa atcaaaagaa gaaaattcta
+    64921 atattcatgt tgcagccgtt ttttgaattt gatatgagaa gcaaaggcaa caaaaggaaa
+    64981 aataaagaag tgaggctaca tcaaactaaa aaatttccac acaaaaaaga aaacaatgaa
+    65041 caaatgaaag gtgaaccatg aaatggcata tttgcaaacc aaatatttct taaatatttt
+    65101 ggttaatatc caaaatatat aagaaacaca gatgattcaa taacaaacaa aaaattaaaa
+    65161 ataggaaaat aaaaaaatta aaaagaagaa aatcctgcca tttatgcgag aattgatgaa
+    65221 cctggaggat gtaaaactaa gaaaaataag cctgacacaa aaagacaaat actacacaac
+    65281 cttgctcata tgtgaaacat aaaaaagtca ctctcatgga aacagacagt agaggtatgg
+    65341 tttccagggg ttgggggtgg gagaatcagg aaactattac tcaaagggta taaaatttca
+    65401 gttatgtggg atgaataaat tctagatatc taatgtacag catcgtgact gtagttaatt
+    65461 gtactgtaag tatatttaaa atttgcaaag agagtagatt tttttgtttt tttagatgga
+    65521 gttttgctct tgttgtccag gctggagtgc aatggcaaga tcttggctca ctgcaacctc
+    65581 cgcctcctgg gttcaagcaa atctcctgcc tcagcctccc gagtagctgg gattacaggc
+    65641 atgcgacacc atgcccagct aattttgtat ttttagtaga gacggggttt ctccatgttg
+    65701 gtcaggctga tccgcctcct cggccaccaa agggctggga ttacaggcgt gaccaccggg
+    65761 cctggccgag agtagatctt aaaagcattt accacaagaa aaaggtaact atgtgagata
+    65821 atgggtatgt taattagctt gattgtggta atcatttcac aaggtataca tatattaaaa
+    65881 catcatgttg tacaccttaa atatatacaa tttttatttg tgaatgatac ctcaataaag
+    65941 ttgaagaata ataaaaaaga atagacatca catgaattaa aaaactaaaa aataaaaaaa
+    66001 tgcatcttga tgattagaat tgcattcttg atttttcaga tacaaatatc catttgactg
+    66061 tttactcttt tccaaaacaa tacaataaat tttagcactt tatcttcatt ttccccttcc
+    66121 caatctataa ttttatatat atatatttta gatattttgt atagttttac tccctagatt
+    66181 ttctagtgtt attattaaat agtgaagaaa tgtttacact tatgtacaaa atgttttgca
+    66241 tgcttttctt catttctaac attctctcta agtttattct attttttcct gattatcctt
+    66301 aatattatct ctttctgctg gaaatatatt gttacttttg gtttatctaa aaatggcttc
+    66361 attttcttca ttctaaaatc atgttaaatt aataccactc atgtgtaagt aagatagtgg
+    66421 aataaataga aatccaaaaa ctaaatctca caaaatataa taatgtgata tataaaaata
+    66481 tagcttttaa atttagcttg gaaataaaaa acaaacagta attgaacaac tatacttttt
+    66541 gaaaagagta aagtgaaatg cttaactgca tataccacaa tcgattacac aattaggtgt
+    66601 gaaggtaaaa ttcagtcacg aaaaaactag aataaaaata tgggaagaca tgtatataat
+    66661 cttagagata acagtgttat ttaattatca acccaaagta gaaactatca agggagaaat
+    66721 aaattcagtc aacaataaaa gcatttaaga agttattcta ggctgggagc ggtggctcac
+    66781 acctgcaatt gcagcacttt gggaggccta gacaggcgga tcacgacgtc aggagttcaa
+    66841 gatcagcctg gccaacatag tgaaacctca tcgctactaa aaatataaaa acttagcctg
+    66901 gcgtggtggc aggcatgtgt aatcccagca atttgggagg ctgaggcagg agaatcgctt
+    66961 gatcctggga ggcagaggtt gcagtgagcc aagattgtgc cactgcattc cagcccaggt
+    67021 gacagcatga gactccgtca caaaaaaaaa agaaaaaaaa gggggggggg ggcggtggag
+    67081 ccaagatgac cgaataggaa cagctccagt ctatagctcc catcgtgagt gacgcagaag
+    67141 acgggtgatt tctgcatttc caactgaggt accaggttca tctcacaggg aagtgccagg
+    67201 cagtgggtgc aggacagtag tgcagtgcac tgtgcatgag ccgaagcagg gcgaggcatc
+    67261 acctcacccg ggaagcacaa ggggtcaggg aattcccttt cctagtcaaa gaaaagggtg
+    67321 acagatggca cctggaaaat cgggtcactc ccgccctaat actgcgctct tccaacaagc
+    67381 ttaacaaatg gcacaccagg agattatatc ccatgcctgg ctcagagggt cctacgccca
+    67441 tggagcctcg ctcattgcta gcacagcagt ctgaggtcaa actgcaaggt ggcagtgagg
+    67501 ctgggggagg ggtgcccacc attgtccagg cttgagcagg taaacaaagc cgcctggaag
+    67561 ctcgaactgg gtggagccca ccacagctca aggaggcctg cctgcctctg taggctccac
+    67621 ctctaggggc agggcacaga caaacaaaag acaacaagaa cctctgcaga cttaaatgtc
+    67681 cctgtctgac agctttgaag agagtagtgg ttctcccagc acatagcttc agatctgaga
+    67741 acaggcagac tgcctcctca agtgggtccc tgacccccga gtagcctaac tgggaggcat
+    67801 cccccagtag ggcggactga cacctcacat ggctggtact cctctaagac aaaacttcca
+    67861 gaggaatgat caggcagcag catttgcggt tcaccaatat ccactgttct gcagccaccg
+    67921 ctgctgatac ccaggaaaac agcatctgga gtggacctcc agtaaactcc aacagacctg
+    67981 cagctgaggg tcctgactgt tagaaggaaa actaacaaac agaaaggaca tccacaccaa
+    68041 aaacccatct gtacatcacc atcatcaaag accaaaggta gataaaacca taaagatggg
+    68101 gaaaaagcag agcagaaaaa ctggacactc taaaaatgag agtgcctctc cttctccaaa
+    68161 gtaacgcagc tcctcaccag caatggaaca aagctgggca gagaatgact ttgacgagtt
+    68221 gagagaggaa ggcttcagaa gatcaaacta ctccaagcta aaggaggaag ttcgaacaaa
+    68281 cggcaaagaa gtaaaaaact ttgaaaaaaa attagatgaa tggataacta gaataaccaa
+    68341 tgcacagaag tccttaaagg acctgatgga gctgaaaacc aaggcaggag aactacgtga
+    68401 caaatacaca agcctcagta accgatgaga tcaactggaa gaaagggtat caatgacgga
+    68461 agatgaaatg aatgaaatga agcatgaaga gaagtttaga gaaaaaagaa taaaaagaaa
+    68521 cgaacaaagc ctccaagaaa tatgggacta tgtgaaaaga ccaaatctac atctaattgg
+    68581 tgtagctgaa agtgatgggg agaatggaac caagttggaa aacactctgc aggatattat
+    68641 ccaggagaac ttccccaatc tagcaaggca gcccaaattc acattcagga aatacagaga
+    68701 acgccacaaa gatactccta gagaaaagca actccaagac acataactga cagattcacc
+    68761 aaagttgaaa tgaaggaaaa aatgttaagg gcagccagag agaaaggtcg ggttacccac
+    68821 aaagggaagc ccatcagact aacagctgat ctatcggcag aaactctaca agccagaaga
+    68881 aagtgggggc caatattcaa cattgttaaa gaaaagaatt ttcggcccag aatttcatat
+    68941 ccagccaaac taagcttcat aagcattgga gaaataaaat cctttacaga caagcaaatg
+    69001 ctgagagatt ttgtcaccac caggcctgcc ctacaagagc tcctgaagga agcactaaac
+    69061 atggaaagga acaactagta tcagccactg caaaaacatg ccaaattgta aacgaccatc
+    69121 aaggctagga agaaactgca tcaaggagca aaataaccag ctaacatcat aatgacagga
+    69181 tcaaattcat acataacaat actcacctta aatgtaaata ggctaaatgc tccaattaaa
+    69241 agacacagac tggcaaattg gataaggagt caagacccat ctgtcgttat gtattcagga
+    69301 aacccatctc acgtgcagag acacacatag gctcgaaata aaaggatgga ggaatatcta
+    69361 ccaagcaaat ggaaaacaaa aaaaggcagg ggttgcaatc ctagtctctg ataaaacaga
+    69421 ttttaaacca acaaagatca aaagagacaa agaaggccat tacataatgg caaagggatc
+    69481 tattcaagaa gaagaactaa ctatactaaa tatatatgca cccaatacag gagcacccag
+    69541 attcataaaa caagtcctga gtgacctaca aagagactta gatgcccaca caataataat
+    69601 gggagacttt aacaccccac tgtcaacatt agacagatca acgagacaga aagttaacaa
+    69661 ggatatccag gaattggact cagctctgca ccaagcagac ctaatagaca tctacagaac
+    69721 tctccacccc aaatcaacag aatatacatt cttttcagca ccacaccaca cctattccaa
+    69781 aactgaccac atagttggaa gtaaagctct cctcagcaaa tgtaaaagaa cagaaactat
+    69841 aacaaactgt ctctcagacc acagtgcaat caaactagaa ctcaggatta agaaactcac
+    69901 tcaaaaccac tcagctacat ggaaactgaa cagcctgctc ctgaatgact actgggtaca
+    69961 taacaaaatg aaggcagaaa taaagatgtt ctttgaaaca acgagaacaa agacacaaca
+    70021 caccagaatc tctgagacac attcaaagca gtgtgtagag ggaaatttat agcactaaat
+    70081 gcccacaagg gaaagcagga aagatctaaa attgacaccc taacatcaca attaaaaaac
+    70141 tagagaagca ggagcaaaca cattcaaaag ctaacagaag acaagaaata actaagatca
+    70201 gagcagaagt gaagaagata gagacacaaa aaacccttca aaaaaatcaa tgaatccaga
+    70261 agctgttttt ttgaaaagat caacaaaatt gatagactgc tagcaagact aataaagaag
+    70321 aaaggggaga agaatcaaat agacgcaata aaaaatgaca cggggtatca ccactgatcc
+    70381 cacagaaata caaactaccg tcagagaata ctataaacac ctctacgcaa ataaactaga
+    70441 aaatctagaa gaaatggata aattcctcga cacatacact ctgccaagac taaaccagga
+    70501 agaagttgta tctctgaata gaccaataac aggctctgaa attgaggcaa taattaatag
+    70561 cttatcaacc aaaaaaagtc cgggaccagt aggattcata gccgaattct accagaggta
+    70621 caaggaggag ctggtaccat tccttctgaa actattccaa tcaatagaaa aagagggaat
+    70681 cctccctaac tcattttatg aggccagcat catcctgata ccaaagcctg acagagacac
+    70741 aacaaaaaaa gagaatgtta caccaatatc cttgatgaac atcgatgcaa aaatcctcaa
+    70801 taaaatactg gcaaactgaa tccagcagca catcaaaaag cttatcctcc atgatcaagt
+    70861 gggcttcatc cctgccatgc aaggctggtt caacatacga aatcaataaa cataatccag
+    70921 catataaaca gaaccaaaga cacaaaccat atgattatct caatagatgc agaaaaggcc
+    70981 tttgacaaaa ttcaacaatg cttcatgcta aaaactctca ataaattagg tattgatggg
+    71041 acatatctca aaataataag agctatctat gacaaaccca cagccaatat catactgagt
+    71101 ggacaaaaac tggaagcatt ccctttgaaa actggcacaa ggcagggatg ccctctctca
+    71161 ccactcctat tcaacatagt gttggaagtt ctggccaggg caatcaggca ggagaaggaa
+    71221 ataaagggca ttcaattagg aaaagaggaa ggtgaaattg tccctgtttg cagatgacat
+    71281 gattgtatat ctagaaaacc ccattgtctc agcccaaaat ctccttaagc tgataagcaa
+    71341 cttcagcaaa gtctcaggat ataaaatcag tgtgcaaaaa tcacaagtat tcctatgcac
+    71401 caataacaga caaacagaga gccaaatcat gagtgaactc ccattcacaa ttgcttcaaa
+    71461 gagaataaaa tacctaggaa tccaacttac aagggatgtg aaggacctct tcaaggagaa
+    71521 ctacaaacca ctgctcaatg aaataaaaga ggatacaaac aaatggaaga acattccatg
+    71581 cttatgggta ggaagaatca tatcgtgaaa atggtcatac tgcccaaggt aatttataga
+    71641 ttcaatgcca tccccatcaa gctaccaatg actttcttca cagaactgga aaaaactact
+    71701 ttaaagttca tatggaatca aaaaagagcc cacatcacca aggcaatcct aagccaaaag
+    71761 aacaaagctg gaggcatcac gctacctgac ttcaaactat actacaatgc tacggtaacc
+    71821 aaaacagcat ggtactggta ccaaaacaga gatctagacc aatggaacag aacagagccc
+    71881 tcagaaataa tgccgcatat ctacaactat ccgatctttg acaaacctga gagaaacaag
+    71941 caatggggaa aggattccct atttaataaa tggtgctggg aaaactggct agccatatgt
+    72001 agaaagctga aactggatcc ttccttacac cttatacaaa aattaattca agatggatta
+    72061 aagacttaaa cattagacct aaaaccataa aaaccctaga aaaaaaccta ggcaatacca
+    72121 ttcaggacat aggcatgggc aaggacttca tgtctaaaac accaaaacga atggcaacaa
+    72181 aagacaaaat ggacaaacgg gatctaatta aactaaagag cttctgcaca gctaaagaaa
+    72241 ctaccatcag agtgaacagg caacctacaa aatgggagaa aatttttgca atctactcat
+    72301 ctgacaaagg gctaatatcc agaatctaca atgaactcaa acaaatttac aagaaaaaac
+    72361 aaacaacccc atcaaaaagt gggcaaagga tatgaacaga cacttctcaa aagaagacat
+    72421 ttatgtaatc aaaaaacaca tgaaaaaatg ctcatcatca ctagccatca gagaaatgca
+    72481 aatcaaaacc acaatgagat accatctcac accagttaga atggcgatca ttaaaaagtc
+    72541 aggaaacaac aggtgctgga gaggatgtgg agaaacagga acaactttta cactgttggt
+    72601 gggactgtaa actagttcaa ccattgcgga agtcagtgtg gcaattcctc aggaatctag
+    72661 aactagaaat accatttgac ccagccatcc cattactggg tagataccca aaggattata
+    72721 aatcatgctg ctataaagac acatgcacac gtatgtttat tgcagcacta ttcacaatag
+    72781 caaagacttg gaaccaaccc aaatgtccaa caacgataga ttggattaag aaaatgtggc
+    72841 acatatacac catggaatac tatgcagcca taaaaaatga tgagttcatg tcctttgtag
+    72901 ggacatggat gaagctggaa actatcattc tcagcaaact atcacaagga caataaacca
+    72961 aacaccgcat gttctcactc ataggtggga attgaacaat gagaacacat ggacacatga
+    73021 agaggaacat cacactctgg ggactgttat ggggtggggg gcaggggcag ggatagcact
+    73081 aggagatata cctaatgcta aatgacgagt taatgggtgc agcacaccaa catggcacat
+    73141 gtatacatat ataacaaacc tgccgttgtg cacatgtacc ctaaaacttg aagtataata
+    73201 ataaaaaaaa gttatcctat taaaactgat ctcacacatc cgtagagcca ttatcaagtc
+    73261 tttctctttg aaacagacag aaatttagtg ttttctcagt cagttaac
+//
+
