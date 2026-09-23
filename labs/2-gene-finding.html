@@ -3,15 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<style>body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
-</head>
-<body>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>HRAS Gene Finding Lab</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@112,700;112,800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
 <style>
 :root{
   --ground:#F1F4F3; --panel:#FFFFFF; --panel-2:#E6ECEA; --ink:#15211F; --muted:#51615D;
@@ -290,7 +288,7 @@ footer.src ul{margin:0;padding-left:1.2em;display:grid;gap:4px}
     <div class="prose">
       <p>An <b>open reading frame</b> (ORF) is a stretch that starts with ATG and runs, codon by codon, to the first stop codon (TAA, TAG or TGA). DNA can be read in <b>six frames</b>: three offsets on each strand.</p>
       <p>In random sequence, 3 of the 64 codons are stops. So a stop turns up about every 21 codons, and an ORF of 100+ codons is rare by chance. In bacteria, where ~88% of the genome is coding and genes have no introns, "long ORF = gene" works well.</p>
-      <p>Try it on the HRAS entry. The chart marks every stop codon in all six frames and highlights ATG-initiated ORFs above your length cut-off. HRAS coding exons are drawn in the bottom track.</p>
+      <p>Try it on the HRAS entry. The chart marks every stop codon in all six frames and highlights ATG-initiated ORFs above your length cut-off. HRAS coding exons are drawn in the HRAS track below the frames.</p>
       <div class="checks" data-station="orfs"></div>
     </div>
     <div class="instrument">
@@ -301,7 +299,7 @@ footer.src ul{margin:0;padding-left:1.2em;display:grid;gap:4px}
         <div class="legend"><span><i class="sw" style="background:var(--muted);opacity:.5"></i>stop codon</span><span><i class="sw" style="background:var(--accent)"></i>ORF ≥ cut-off</span><span><i class="sw" style="background:var(--ok)"></i>ORF overlapping HRAS coding sequence</span><span><i class="sw" style="background:var(--warn)"></i>selected</span></div>
         <dl class="stats" id="orfStats"></dl>
         <div class="status" id="orfInfo">Click an ORF in the chart or the table to inspect it.</div>
-        <div class="scroll"><table class="orfs"><thead><tr><th>#</th><th>Strand · frame</th><th>Position</th><th>Codons</th><th>Overlaps HRAS CDS?</th></tr></thead><tbody id="orfRows"></tbody></table></div>
+        <div class="scroll"><table class="orfs"><thead><tr><th>#</th><th>Strand · frame</th><th>Position</th><th>Codons</th><th>Overlaps HRAS CDS (same strand)?</th></tr></thead><tbody id="orfRows"></tbody></table></div>
       </div>
     </div>
   </div>
@@ -370,7 +368,7 @@ footer.src ul{margin:0;padding-left:1.2em;display:grid;gap:4px}
       <div class="inst-head"><span class="eyebrow">Codon log-likelihood table (bits)</span></div>
       <div class="inst-body">
         <div class="scroll"><div class="cgrid" id="cgrid" role="table" aria-label="Log-likelihood score of each codon"></div></div>
-        <p class="note">Teal codons are enriched in human genes and red ones depleted. The three stop codons score lowest. CpG-containing codons like CCG and GCG score low: CpG is rare in human genes but common in this GC-rich entry.</p>
+        <p class="note">Teal codons are enriched in human genes and red ones depleted. TGA and TAG score lowest, and TAA is also strongly negative. CpG-containing codons like CCG and GCG score almost as low: CpG is rare in human genes but common in this GC-rich entry.</p>
       </div>
       <div class="inst-head"><span class="eyebrow">Three-frame coding score · 6,100–8,400</span>
         <label class="ctl" for="win">Window <input type="range" id="win" min="60" max="600" step="30" value="150"><output id="winO">150 bp</output></label></div>
@@ -472,8 +470,8 @@ footer.src ul{margin:0;padding-left:1.2em;display:grid;gap:4px}
         <li><b>Protein homology</b>: similar proteins from other species.</li>
         <li><b>Conservation</b>: exons change more slowly than introns.</li>
       </ul>
-      <p>Here, RNA-seq reads are simulated from the real HRAS transcript (NM_005343), with some intronic reads from unspliced pre-mRNA added. Arcs join the ends of spliced reads, and the number on each arc is how many reads cross that junction. Compare the evidence with the ab initio prediction from Section 5 (best settings).</p>
-      <p class="note">RNA-seq also reveals <b>alternative splicing</b>. HRAS makes a second protein, p19, by including an extra exon (IDX). Typical expression data would show that as an extra, weaker set of junctions.</p>
+      <p>Here, RNA-seq reads are simulated from the real HRAS transcript (NM_005343), with some intronic reads from unspliced pre-mRNA added. Arcs join the ends of spliced reads, and the number on each arc is how many reads cross that junction. Compare the evidence with the ab initio prediction from Section 5 (weights 1 and 1, exon penalty −16, min site score 3 bits).</p>
+      <p class="note">RNA-seq also reveals <b>alternative splicing</b>. HRAS makes a second protein, p19, by including an extra exon (IDX). Typical expression data would show that as an extra, weaker set of junctions. (IDX lies in the intron between coding exons 3 and 4, and it is not included in this simulation.)</p>
       <div class="checks" data-station="evidence"></div>
     </div>
     <div class="instrument">
@@ -524,7 +522,7 @@ footer.src ul{margin:0;padding-left:1.2em;display:grid;gap:4px}
 <footer class="src">
   <p><b>About the data</b></p>
   <ul>
-    <li>All sequence is the 10,309-bp human HRAS RefSeqGene entry (NG_007666.1) in this course's <code>triplets.txt</code>. It has the same numbering as the other BIO 116 labs. The answer key is the RefSeq annotation: transcript NM_005343.4, CDS NP_005334.1 (UniProt P01112).</li>
+    <li>All sequence is the 10,309-bp human HRAS RefSeqGene entry (NG_007666.1) in this course's <code>triplets.txt</code>. It has the same numbering as the other BIO 116 labs. The answer key is the RefSeq annotation: transcript NM_005343.4, protein NP_005334.1 (UniProt P01112).</li>
     <li>Codon frequencies are the human codon-usage table from the Kazusa Codon Usage Database. Splice-site matrices use rounded, approximate frequencies from published human splice-site compilations. They are good enough to teach with, not to publish with.</li>
     <li>The parser in Section 5 is a teaching simplification. It handles one gene on the forward strand, has no promoter, UTR or length models, and uses bit-scores, not trained HMM probabilities. GENSCAN and AUGUSTUS model all of these.</li>
     <li>Section 6 reads are <b>simulated</b> without errors from the RefSeq exon coordinates. About 1 in 10 reads is drawn from unspliced pre-mRNA.</li>
@@ -604,10 +602,10 @@ const CHECKS = {
     {id:'o1sel', task:true, q:'Select the longest ORF in the entry and read off where it is.'},
     {id:'o1len', hint:'Read the “Longest ORF” box under the chart, or the first row of the table.', q:'How long is the longest ATG-to-stop ORF in the entry, in codons (not counting the stop)?', num:()=>ORFS[0].aa, tol:0, unit:'codons', why:'It is far longer than any HRAS coding exon, and it is not HRAS.'},
     {id:'o1rand', hint:'3 of the 64 codons are stops, so each codon has a 3-in-64 chance of stopping the frame. On average, how many codons pass between stops?', q:'In random sequence with equal base frequencies, about how many codons apart are stop codons on average?', opts:['~21 (64 ÷ 3)','~3','~64','~100'], a:0, why:'Each codon has a 3/64 chance of being a stop, so the average gap is 64/3 ≈ 21 codons.'},
-    {id:'o1why', hint:'Compare the longest HRAS coding exon (in the stats boxes) with the ORFs in the chart. What interrupts the HRAS reading frame?', q:'Why does "report the longest ORF" miss HRAS?', opts:['HRAS coding sequence is split into four exons of 37–60 codons; introns interrupt the frame, so no single long ORF spans the gene','HRAS is on the minus strand','HRAS uses a non-ATG start codon','The HRAS ORF is longer than the entry'], a:0, why:'The longest HRAS coding exon is 179 bp (≈60 codons). Once the frame runs into an intron it soon hits a stop, while chance ORFs in non-coding DNA can be much longer.'},
+    {id:'o1why', hint:'Compare the longest HRAS coding exon (in the stats boxes) with the ORFs in the chart. What interrupts the HRAS reading frame?', q:'Why does "report the longest ORF" miss HRAS?', opts:['HRAS coding sequence is split into four exons of 37–59 codons; introns interrupt the frame, so no single long ORF spans the gene','HRAS is on the minus strand','HRAS uses a non-ATG start codon','The HRAS ORF is longer than the entry'], a:0, why:'The longest HRAS coding exon is 179 bp (59⅔ codons). Once the frame runs into an intron it soon hits a stop, while chance ORFs in non-coding DNA can be much longer.'},
   ],
   signals:[
-    {id:'s2find', task:true, q:'In the donor scanner, click the GT that is the real exon 2 donor (the exon ends at 6,339).'},
+    {id:'s2find', task:true, q:'In the donor scanner, click the GT that is the real exon 2 donor (transcript exon 2, the first coding exon, ends at 6,339).'},
     {id:'s2count', hint:'Read the “GTs in window” box under the histogram.', q:'How many GT dinucleotides are in the 2.3-kb window 6,100–8,400? (See the stats under the histogram.)', num:()=>DONORS.length, tol:0, why:'Only 4 of them are real HRAS donors. That is roughly one real site for every 30 candidates.'},
     {id:'s2thr', hint:'Drag the Threshold slider up until “Real donors kept” drops below 4 / 4, then back one step. Read “Decoys kept”.', q:'Raise the threshold as high as it will go while all four real donors are still kept. How many decoy GTs still pass?', num:()=>{ const m=Math.floor(10*Math.min(...DONORS.filter(d=>d.real).map(d=>d.s)))/10; return DONORS.filter(d=>!d.real && d.s>=m-1e-9).length; }, tol:0, why:'There is no threshold that keeps every real donor and rejects all decoys. Signals alone cannot find exons.'},
     {id:'s2inv', hint:'In the donor logo, find the letters that reach the top of the axis (2 bits).', q:'Which positions of the donor logo carry the full 2 bits of information?', opts:['+1 and +2: the invariant GT','−3 and −2','+5 and +6','None: every position is variable'], a:0, why:'Nearly every intron starts with GT, so those two positions are fixed. The rest are preferences. (A rare ~1% of introns use GC or AT–AC, and our simple matrix ignores them.)'},
@@ -623,15 +621,15 @@ const CHECKS = {
     {id:'a4shift', hint:'Build a, d, g and k, then add h and compare the protein. How long is exon h, and is that a multiple of 3?', q:'Adding candidate exon h (7,193–7,251, 59 bp) between the true exons ruins the protein. Why?', opts:['59 is not a multiple of 3, so every codon after it is read in the wrong frame','Exon h is on the minus strand','Exon h has no GT at its end','Exons shorter than 60 bp cannot be spliced'], a:0, why:'An inserted exon must keep the downstream exons in their frame. A 59-bp insert moves them two bases along, so everything after exon h is translated in the wrong frame. Try it: the protein stops matching HRAS right after exon g (about residue 150).'},
   ],
   parser:[
-    {id:'p5exact', task:true, q:'Find settings where the parser predicts all four coding exons exactly (exon Sn = Sp = 100%).'},
+    {id:'p5exact', task:true, q:'Find settings where the parser predicts all four coding exons exactly (exon Sn = Sp = 100%). Tip: start from Both, then raise Min site score and make the exon penalty more negative.'},
     {id:'p5sig', hint:'Press “Signals only” and compare the predicted exons with the four RefSeq exons.', q:'With signals only, what does the parser do?', opts:['It predicts many short false exons: decoy GT/AG pairs score as well as real sites','It predicts nothing','It finds the exact gene','It predicts one long ORF'], a:0, why:'Splice-site PWMs are not specific enough on their own. Without a coding score, any pair of good-looking sites with an open frame between them becomes an exon.'},
-    {id:'p5end', hint:'Press “Both” (min site score 0) and look at the red and amber marks around the last coding exon, near 7,900.', q:'With a low site threshold, the parser most often gets the gene\'s 3′ end wrong. What does it do there?', opts:['It splices out just before the real stop codon and continues into the 3′ UTR','It misses the start codon','It skips exon 3','It predicts the minus strand'], a:0, why:'A weak GT sits just before the TGA stop. Splicing there lets the parser read on into the 3′ UTR and beyond, where it finds more open frame and a later stop. The 3′ end of a gene is a classic source of prediction errors.'},
+    {id:'p5end', hint:'Press “Both” (min site score 0) and look at the red and amber marks around the last coding exon, near 7,900.', q:'With a low site threshold, the parser most often gets the gene\'s 3′ end wrong. What does it do there?', opts:['It splices out just before the real stop codon and continues into the 3′ UTR','It misses the start codon','It skips exon 3','It predicts the minus strand'], a:0, why:'A good-scoring GT (6.1 bits) sits at 7,900, 13 bases before the TGA stop. Splicing there lets the parser read on into the 3′ UTR (exon 6) and past the gene end, where it finds more open frame and a later stop. The 3′ end of a gene is a classic source of prediction errors.'},
     {id:'p5sn', hint:'Sensitivity = real coding bases found ÷ all real coding bases, as a percentage.', q:'A prediction covers 600 coding bases, of which 500 are real. The true CDS is 570 bases. What is the nucleotide sensitivity, in %?', num:87.7, tol:0.01, unit:'%', why:'Sn = TP/(TP+FN) = 500/570 = 87.7%. (Sp = 500/600 = 83.3%.)'},
   ],
   evidence:[
     {id:'e6click', task:true, q:'Click the junction arc that connects exon 1 (5′ UTR) to exon 2. (No arc there? Add more reads.)'},
     {id:'e6len', hint:"Click the arc from exon 1 to exon 2. The message under the plot gives the intron's coordinates and length.", q:'How long is intron 1 (from the GT after exon 1 to the AG before exon 2), in bp?', num:6175-5136+1, tol:0, unit:'bp', why:'Exon 1 ends at 5,135 and exon 2 begins at 6,176, so the intron is 5,136–6,175 = 1,040 bp.'},
-    {id:'e6utr', hint:'Exon 1 is drawn thin on the RefSeq track. What does a thin box mean, and what do ab initio predictors look for?', q:'Why did no ab initio prediction include exon 1?', opts:['It is entirely 5′ UTR: no codons are translated, so neither the coding score nor an ATG start marks it','It has no GT donor','It is too long','It is on the minus strand'], a:0, why:'Ab initio predictors mostly find coding exons. Non-coding exons, UTRs and transcript ends usually need transcript evidence.'},
+    {id:'e6utr', hint:'Exon 1 is drawn thin on the RefSeq track. What does a thin box mean, and what do ab initio predictors look for?', q:'Why did no ab initio prediction include exon 1?', opts:['It is entirely 5′ UTR: no codons are translated, so neither the coding score nor an ATG start marks it','It has no GT donor','It is too long','It is on the minus strand'], a:0, why:'Ab initio predictors mostly find coding exons. Non-coding exons, UTRs and transcript ends usually need transcript evidence. (In this lab the parser also only scanned 6,100–8,400, so exon 1 was outside its window, but real predictors miss UTR exons for the reason above.)'},
     {id:'e6cds', hint:'Junction arcs show where the RNA is spliced. Do they show where translation starts and stops?', q:'What can RNA-seq alone NOT tell you?', opts:['Which ORF in the mature mRNA is translated, i.e. where the CDS starts and stops','Where the introns are','Which exons are expressed','How the exons are joined'], a:0, why:'Junction reads mark introns and exons. To find the protein you still need the ORF in the spliced transcript, plus protein homology or proteomics to confirm it.'},
   ],
 };
@@ -656,6 +654,7 @@ function markDone(id){
   const box=document.querySelector(`.chk[data-id="${id}"]`); if (box) box.classList.add('done');
   renderPipeline();
 }
+const shuffleIdx=(id,n)=>{ let h=2166136261; for (const ch of id) h=Math.imul(h^ch.charCodeAt(0),16777619)>>>0; const a=[...Array(n).keys()]; for (let i=n-1;i>0;i--){ h=Math.imul(h^(h>>>13),2246822507)>>>0; const j=h%(i+1); [a[i],a[j]]=[a[j],a[i]]; } return a; }; // fixed per-question option order
 function renderChecks(){
   for (const sid in CHECKS){
     const wrap=document.querySelector(`.checks[data-station="${sid}"]`); wrap.innerHTML='';
@@ -665,7 +664,7 @@ function renderChecks(){
       if (!c.task){
         const fb=document.createElement('div'); fb.className='fb';
         if (c.opts){
-          c.opts.forEach((o,i) => { const lb=document.createElement('label'); lb.innerHTML=`<input type="radio" name="${c.id}" id="${c.id}-${i}" value="${i}"> <span>${o}</span>`; d.appendChild(lb); });
+          shuffleIdx(c.id,c.opts.length).forEach(i => { const o=c.opts[i]; const lb=document.createElement('label'); lb.innerHTML=`<input type="radio" name="${c.id}" id="${c.id}-${i}" value="${i}"> <span>${o}</span>`; d.appendChild(lb); });
           const b=document.createElement('button'); b.className='btn'; b.type='button'; b.textContent='Check'; d.appendChild(b); d.appendChild(fb);
           b.onclick=()=>{ const s=d.querySelector('input:checked'); if(!s){ fb.className='fb bad'; fb.textContent='Choose an answer first.'; return; }
             if (+s.value===c.a){ fb.className='fb ok'; fb.textContent='Correct. '+c.why; markDone(c.id); } else { fb.className='fb bad'; fb.textContent='Not quite. Hint: ' + c.hint; } };
@@ -751,8 +750,9 @@ function drawOrfs(){
 }
 function selectOrf(i){
   orfSel=i; const r=ORFS[i];
-  const where = r.hras ? 'It overlaps HRAS coding sequence, but it runs into an intron and does not cover the whole gene.'
-    : (r.a<10100 && r.b>9300 ? 'It lies in the HRAS1 minisatellite downstream of the gene (about 9,300–10,100): a tandem repeat whose unit happens to lack stops in this frame.'
+  const anti = r.strand==='-' && CDS.some(([p,q])=>r.a<=q && r.b>=p);
+  const where = anti ? 'It lies on the minus strand, directly opposite (antisense to) HRAS coding exons, so it is not HRAS: a chance ORF on the other strand.' : r.hras ? 'It overlaps HRAS coding sequence, but it runs into an intron and does not cover the whole gene.'
+    : (r.a<10100 && r.b>9300 ? 'It lies in the HRAS1 minisatellite downstream of the gene (about 9,300–10,300): a tandem repeat whose unit happens to lack stops in this frame.'
     : (r.a<3100 ? 'It lies at the left end of the entry, in the LRRC56 and Alu-repeat region, not in HRAS.' : 'It is not part of any annotated coding sequence: a chance ORF.'));
   $('orfInfo').innerHTML=`<b>ORF ${i+1}</b>: ${r.strand==='+'?'plus':'minus'} strand, frame ${r.frame}, ${fmt(r.a)}–${fmt(r.b)}, ${r.aa} codons. ${where}`;
   if (i===0) markDone('o1sel');
@@ -867,7 +867,7 @@ function drawFrames(){
   $('frameSvg').innerHTML=o;
 }
 function drawFrameTable(){
-  const rows=CDS.map(([a,b],i)=>({n:`CDS exon ${i+1}`,a,b})).concat([[6340,6606],[6786,6938],[7099,7795]].map(([a,b],i)=>({n:`intron ${i+2}`,a,b})));
+  const rows=CDS.map(([a,b],i)=>({n:`CDS exon ${i+1}`,a,b})).concat([[6340,6606],[6786,6938],[7099,7795]].map(([a,b],i)=>({n:`intron ${i+2} (CDS ${i+1}→${i+2})`,a,b})));
   let o='<tr><th>Segment</th><th>Position</th><th>Frame 1</th><th>Frame 2</th><th>Frame 3</th></tr>';
   for (const r of rows){ const v=[1,2,3].map(f=>meanLLR(r.a,r.b,f)); const m=Math.max(...v);
     o+=`<tr><th>${r.n}</th><td>${fmt(r.a)}–${fmt(r.b)}</td>${v.map(q=>`<td class="${q===m&&m>0?'best':''}">${q>=0?'+':''}${q.toFixed(2)}</td>`).join('')}</tr>`; }

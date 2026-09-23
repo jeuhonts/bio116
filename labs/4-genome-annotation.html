@@ -3,15 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<style>body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
-</head>
-<body>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>HRAS Annotation Lab</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Epilogue:wght@700;800&family=Figtree:ital,wght@0,400;0,600;0,700;1,400&family=Fira+Code:wght@400;600&display=swap">
+<style>body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
 <style>
 :root{
   --ground:#F5F2F4; --panel:#FFFFFF; --panel-2:#EDE7EA; --ink:#211A1E; --muted:#62575D;
@@ -326,8 +324,8 @@ footer.src ul{margin:0;padding-left:1.2em;display:grid;gap:4px}
       <p>Features form a tree through <code>ID</code> and <code>Parent</code>: a <b>gene</b> has an <b>mRNA</b>, and the mRNA has <b>exons</b> and <b>CDS</b> pieces.</p>
       <p>Column 8, <b>phase</b>, is used only on CDS lines. It is the number of bases to <em>skip</em> from the start of this CDS piece before the first complete codon begins:</p>
       <p class="formula">phase = (3 − (coding bases before this piece mod 3)) mod 3</p>
-      <p>A colleague typed the HRAS model on the right and made <b>four mistakes</b> (one of them sets off two messages). The validator checks the file the way GenomeTools' <code>gt gff3validator</code> and NCBI's submission checks do. It also translates the CDS and compares it with UniProt P01112. Fix the file until it passes.</p>
-      <p class="note">Columns can be separated by tabs or by two or more spaces. Press Tab in the editor to type a tab.</p>
+      <p>A colleague typed the HRAS model on the right and made <b>four mistakes</b> (the Parent typo also causes an error on a CDS line). The validator checks the file the way GenomeTools' <code>gt gff3validator</code> and NCBI's submission checks do. It also translates the CDS and compares it with UniProt P01112. Fix the file until it passes.</p>
+      <p class="note">Columns can be separated by tabs or, in this editor only, by two or more spaces (real validators accept only tabs). Press Tab in the editor to type a tab.</p>
       <div class="checks" data-station="gff"></div>
     </div>
     <div class="instrument">
@@ -380,7 +378,7 @@ footer.src ul{margin:0;padding-left:1.2em;display:grid;gap:4px}
   <div class="st-grid">
     <div class="prose">
       <p>A gene model says <em>where</em> a gene is. <b>Functional annotation</b> says <em>what</em> it does. Almost all of it is inferred: most genes in a new genome will never be studied in a lab, so their names and functions come from similar, well-studied proteins.</p>
-      <p>The query is the protein translated from the model in Section 2. It is searched with the Smith–Waterman algorithm, the exact local alignment that BLASTP approximates (BLOSUM62 scoring, gap open −11, extend −1), against a small database of well-studied human proteins. Each hit is given a bit score and an <b>E-value</b>:</p>
+      <p>The query is the protein translated from the model in Section 2. It is searched with the Smith–Waterman algorithm, the exact local alignment that BLASTP approximates (BLOSUM62 scoring, gap existence 11 and extension 1, so a gap of k residues costs 11 + k, as in BLASTP), against a small database of well-studied human proteins. Each hit is given a bit score and an <b>E-value</b>:</p>
       <p class="formula">S′ = (λS − ln K) ÷ ln 2   bits<br>E = m · n · 2<sup>−S′</sup></p>
       <p>E is the number of hits this good you would expect <em>by chance</em> when searching a database of <i>n</i> residues with a query of length <i>m</i>. It grows with database size, so a hit that is significant against 7 proteins may not be significant against all of UniProt.</p>
       <div class="checks" data-station="blast"></div>
@@ -410,7 +408,7 @@ footer.src ul{margin:0;padding-left:1.2em;display:grid;gap:4px}
         <li><b>Reverse:</b> search that hit back against your own species' proteome.</li>
         <li>If the reverse best hit is the protein you started with, the pair is an RBH and very probably orthologous.</li>
       </ol>
-      <p>Here the other species is the house mouse. Mouse and human diverged about 90 million years ago, long after the RAS genes duplicated. So each human RAS gene should have exactly one mouse partner. The mouse proteins here are the real UniProt records. Mouse Hras and Rap1a are identical to their human counterparts. Nras differs at 3 residues, Kras at 5 and Rhoa at 1, and all but one of those differences fall in the last 25 residues, the hypervariable tail. That tail is exactly the region that tells the RAS paralogues apart.</p>
+      <p>Here the other species is the house mouse. Mouse and human diverged about 90 million years ago, long after the RAS genes duplicated. So each human RAS gene should have exactly one mouse partner. The mouse proteins here are the real UniProt records. Mouse Hras and Rap1a are identical to their human counterparts. Nras differs at 3 residues, Kras at 5 and Rhoa at 1, and all but one of those differences fall in the last 25 residues, the hypervariable tail. That tail is also where the RAS paralogues differ most, although HRAS and NRAS also differ at about a dozen positions between residues 87 and 141.</p>
       <p>A draft annotation can be missing genes. To see how RBH protects against that, press <b>Remove Hras from the mouse proteome</b>.</p>
       <div class="checks" data-station="ortho"></div>
     </div>
@@ -419,13 +417,13 @@ footer.src ul{margin:0;padding-left:1.2em;display:grid;gap:4px}
       <div class="inst-body">
         <div class="rbh-flow" id="rbhFlow" aria-live="polite"></div>
         <div class="rbh-grid">
-          <div><p class="eyebrow" style="margin-bottom:6px">1 · Forward: your model vs mouse</p><div class="scroll"><table class="hits rbh"><thead><tr><th>Mouse protein</th><th class="n">Bits</th><th>Identity</th></tr></thead><tbody id="fwdRows"></tbody></table></div></div>
-          <div><p class="eyebrow" style="margin-bottom:6px" id="revTitle">2 · Reverse: best mouse hit vs human</p><div class="scroll"><table class="hits rbh"><thead><tr><th>Human protein</th><th class="n">Bits</th><th>Identity</th></tr></thead><tbody id="revRows"></tbody></table></div></div>
+          <div><p class="eyebrow" style="margin-bottom:6px">1 · Forward: your model vs mouse</p><div class="scroll"><table class="hits rbh"><thead><tr><th>Mouse protein</th><th class="n">Bits</th><th>Identity</th><th class="n">Cover</th></tr></thead><tbody id="fwdRows"></tbody></table></div></div>
+          <div><p class="eyebrow" style="margin-bottom:6px" id="revTitle">2 · Reverse: best mouse hit vs human</p><div class="scroll"><table class="hits rbh"><thead><tr><th>Human protein</th><th class="n">Bits</th><th>Identity</th><th class="n">Cover</th></tr></thead><tbody id="revRows"></tbody></table></div></div>
         </div>
         <div class="status" id="rbhVerdict"></div>
         <details class="mouse-edit">
           <summary>Edit the mouse proteome (FASTA)</summary>
-          <p class="note">These are the UniProt mouse records: Hras Q61411, Kras P32883-2 (isoform 4B), Nras P08556, Rap1a P62835 and Rhoa Q9QUI0. Try editing them, for example deleting a whole record or pasting in a protein from another species, then press Run. Keep the names after “&gt;” so the page can match them up.</p>
+          <p class="note">These are the UniProt mouse records: Hras Q61411, Kras P32883-2 (isoform 2B, K-Ras4B), Nras P08556, Rap1a P62835 and Rhoa Q9QUI0. Try editing them, for example deleting a whole record or pasting in a protein from another species, then press Run. Keep the names after “&gt;” so the page can match them up.</p>
           <textarea class="gff" id="mouseFasta" spellcheck="false" aria-label="Mouse proteome in FASTA format" style="min-height:12em;white-space:pre-wrap;overflow-wrap:anywhere"></textarea>
           <div class="presets"><button class="btn primary" type="button" id="mouseRun">Run the check again</button><button class="btn" type="button" id="mouseReset">Restore the UniProt sequences</button></div>
         </details>
@@ -440,7 +438,7 @@ footer.src ul{margin:0;padding-left:1.2em;display:grid;gap:4px}
   <div class="st-grid">
     <div class="prose">
       <p>Whole-protein similarity can mislead: two proteins may share one domain and nothing else. So pipelines also run <b>InterProScan</b>, which searches the protein against domain models (Pfam, SMART and others) and short motif patterns (PROSITE).</p>
-      <p>HRAS has a single <b>Ras domain</b> (Pfam PF00071). It contains five conserved G-box motifs that bind GTP and Mg²⁺, and it ends in a <b>CaaX box</b>. The CaaX box is farnesylated, and the lipid holds the protein on the plasma membrane.</p>
+      <p>HRAS has a single <b>Ras domain</b> (Pfam PF00071). It contains five conserved G-box motifs that bind GTP and Mg²⁺, and it ends in a <b>CaaX box</b>. The CaaX box is farnesylated. Together with palmitate groups on cysteines 181 and 184, these lipids hold the protein on the plasma membrane.</p>
       <p>A PROSITE pattern is a compact regular expression. <code>x</code> is any residue, <code>x(4)</code> is four of them, <code>[ST]</code> is S or T, and <code>&gt;</code> anchors to the C-terminus.</p>
       <p>Functions are recorded as <b>Gene Ontology</b> (GO) terms in three aspects: molecular function (MF), biological process (BP) and cellular component (CC). Each term carries an <b>evidence code</b>. IDA means a direct experiment. ISS means inferred from sequence similarity and reviewed by a curator. IEA means electronic annotation, assigned by a pipeline with no curator.</p>
       <div class="checks" data-station="domains"></div>
@@ -521,7 +519,7 @@ footer.src ul{margin:0;padding-left:1.2em;display:grid;gap:4px}
     <div><dt>E-value</dt><dd>Expected number of chance hits at least this good, given the query and database sizes.</dd></div>
     <div><dt>Orthologue / paralogue</dt><dd>Genes related by speciation (the same gene in two species) or by duplication (e.g. HRAS, KRAS, NRAS).</dd></div>
     <div><dt>Reciprocal best hit</dt><dd>Two genes in different species that are each other’s best search hit. A quick, widely used test for 1:1 orthology.</dd></div>
-    <div><dt>PROSITE pattern</dt><dd>A short motif written as a regular expression, e.g. G-x(4)-G-K-[ST] for the P-loop.</dd></div>
+    <div><dt>PROSITE pattern</dt><dd>A short motif written as a regular expression, e.g. G-x(4)-G-K-[ST], a simplified version of PROSITE's P-loop pattern PS00017 ([AG]-x(4)-G-K-[ST]).</dd></div>
     <div><dt>GO evidence code</dt><dd>How a GO term was assigned: IDA (direct assay), ISS (sequence similarity, curated), IEA (electronic, uncurated), and others.</dd></div>
     <div><dt>BUSCO</dt><dd>Benchmarking Universal Single-Copy Orthologs: the share of expected conserved genes an assembly or annotation contains.</dd></div>
   </dl>
@@ -532,9 +530,9 @@ footer.src ul{margin:0;padding-left:1.2em;display:grid;gap:4px}
   <ul>
     <li>The DNA is the 10,309-bp human HRAS RefSeqGene entry NG_007666.1 in this course's <code>triplets.txt</code>, with the same numbering as the earlier labs. The reference model is transcript NM_005343.4 with CDS NP_005334.1 (UniProt P01112). LRRC56 exons are from the same record.</li>
     <li>Repeats are found in the page. Alus come from a Smith–Waterman alignment (match +2, mismatch −3, gap −5) of the AluY consensus from Dfam/Repbase, entered by hand. Simple repeats are tandem runs with a period of 1–6 bp. This finds the same kinds of element as RepeatMasker but is not identical to its output.</li>
-    <li>Database proteins are human KRAS (P01116-2, isoform 4B), NRAS (P01111), RAP1A (P62834), RHOA (P61586), RAB5A (P20339), RAN (P62826) and myoglobin (P02144). They were typed in from UniProt records for teaching, so check them against UniProt before reusing them. E-values use the published BLOSUM62 gapped constants for gap costs 11/1 (λ = 0.267, K = 0.041).</li>
+    <li>Database proteins are human KRAS (P01116-2, isoform 2B, K-Ras4B), NRAS (P01111), RAP1A (P62834), RHOA (P61586), RAB5A (P20339), RAN (P62826) and myoglobin (P02144). They were typed in from UniProt records for teaching, so check them against UniProt before reusing them. E-values use the published BLOSUM62 gapped constants for gap costs 11/1 (λ = 0.267, K = 0.041).</li>
     <li>HRAS motif and region boundaries follow UniProt P01112 and the Ras literature. The Pfam PF00071 domain boundary is approximate. The GO terms are real terms from the HRAS record, but the evidence codes shown are for the exercise.</li>
-    <li>The Section 5 mouse proteome is the UniProt records Q61411 (Hras), P32883-2 (Kras isoform 4B), P08556 (Nras), P62835 (Rap1a) and Q9QUI0 (Rhoa), downloaded by the instructor.</li>
+    <li>The Section 5 mouse proteome is the UniProt records Q61411 (Hras), P32883-2 (Kras isoform 2B, K-Ras4B), P08556 (Nras), P62835 (Rap1a) and Q9QUI0 (Rhoa), downloaded by the instructor.</li>
     <li>In Section 3, the protein evidence is an idealised alignment covering the RefSeq CDS, and models B–D are constructed teaching examples. The BUSCO results in Section 7 are simulated.</li>
   </ul>
 </footer>
@@ -660,7 +658,7 @@ function swProt(q, s){
 const LAMBDA=0.267, KAPPA=0.041;
 const bits = S => (LAMBDA*S - Math.log(KAPPA))/Math.LN2;
 const DB = [
-  {id:'KRAS', acc:'P01116-2', desc:'GTPase KRas, isoform 4B', seq:'MTEYKLVVVGAGGVGKSALTIQLIQNHFVDEYDPTIEDSYRKQVVIDGETCLLDILDTAGQEEYSAMRDQYMRTGEGFLCVFAINNTKSFEDIHHYREQIKRVKDSEDVPMVLVGNKCDLPSRTVDTKQAQDLARSYGIPFIETSAKTRQGVDDAFYTLVREIRKHKEKMSKDGKKKKKKSKTKCVIM'},
+  {id:'KRAS', acc:'P01116-2', desc:'GTPase KRas, isoform 2B (K-Ras4B)', seq:'MTEYKLVVVGAGGVGKSALTIQLIQNHFVDEYDPTIEDSYRKQVVIDGETCLLDILDTAGQEEYSAMRDQYMRTGEGFLCVFAINNTKSFEDIHHYREQIKRVKDSEDVPMVLVGNKCDLPSRTVDTKQAQDLARSYGIPFIETSAKTRQGVDDAFYTLVREIRKHKEKMSKDGKKKKKKSKTKCVIM'},
   {id:'NRAS', acc:'P01111', desc:'GTPase NRas', seq:'MTEYKLVVVGAGGVGKSALTIQLIQNHFVDEYDPTIEDSYRKQVVIDGETCLLDILDTAGQEEYSAMRDQYMRTGEGFLCVFAINNSKSFADINLYREQIKRVKDSDDVPMVLVGNKCDLPTRTVDTKQAHELAKSYGIPFIETSAKTRQGVEDAFYTLVREIRQYRMKKLNSSDDGTQGCMGLPCVVM'},
   {id:'RAP1A', acc:'P62834', desc:'Ras-related protein Rap-1A', seq:'MREYKLVVLGSGGVGKSALTVQFVQGIFVEKYDPTIEDSYRKQVEVDCQQCMLEILDTAGTEQFTAMRDLYMKNGQGFALVYSITAQSTFNDLQDLREQILRVKDTEDVPMILVGNKCDLEDERVVGKEQGQNLARQWCNCAFLESSAKSKINVNEIFYDLVRQINRKTPVEKKKPKKKSCLLL'},
   {id:'RHOA', acc:'P61586', desc:'Transforming protein RhoA', seq:'MAAIRKKLVIVGDGACGKTCLLIVFSKDQFPEVYVPTVFENYVADIEVDGKQVELALWDTAGQEDYDRLRPLSYPDTDVILMCFSIDSPDSLENIPEKWTPEVKHFCPNVPIILVGNKKDLRNDEHTRRELAKMKQEPVKPEEGRDMANRIGAFGYMECSAKTKDGVREVFEMATRAALQARRGKKKSGCLVL'},
@@ -744,7 +742,10 @@ function validateGFF(text){
   if (rna){
     const exons=feats.filter(f=>f.type==='exon' && f.parent===rna.id).sort((x,y)=>x.a-y.a);
     const cds=feats.filter(f=>f.type==='CDS' && f.parent===rna.id).sort((x,y)=>x.a-y.a);
-    for (const c of cds) if (!exons.some(e => c.a>=e.a && c.b<=e.b)) errs.push([c.ln,`CDS ${fmt(c.a)}–${fmt(c.b)} does not fit inside any exon of ${esc(rna.id)}. Every CDS piece must lie inside an exon.`]);
+    for (const c of cds) if (!exons.some(e => c.a>=e.a && c.b<=e.b)) errs.push([c.ln,`CDS ${fmt(c.a)}–${fmt(c.b)} does not fit inside any exon attached to ${esc(rna.id)}. Every CDS piece must lie inside an exon, so also check the Parent of the exon that should contain it.`]);
+    exons.forEach((e,i)=>{ const r=MRNA[i]; if (r && (e.a!==r[0]||e.b!==r[1])) errs.push([e.ln,`Exon ${fmt(e.a)}–${fmt(e.b)} does not match the RNA-seq evidence for exon ${i+1} (${fmt(r[0])}–${fmt(r[1])}).`+(e.a===r[0]-1?' Off by one at the start: is this a 0-based (BED) coordinate?':'')]); });
+    if (exons.length!==MRNA.length) errs.push([rna.ln,`The mRNA has ${exons.length} exon${exons.length===1?'':'s'} attached, but the RNA-seq evidence supports ${MRNA.length}.`]);
+    if (exons.length && (rna.a!==exons[0].a || rna.b!==exons[exons.length-1].b)) errs.push([rna.ln,`The mRNA (${fmt(rna.a)}–${fmt(rna.b)}) should run exactly from the first exon start to the last exon end (${fmt(exons[0].a)}–${fmt(exons[exons.length-1].b)}).`]);
     for (let i=1;i<exons.length;i++) if (exons[i].a<=exons[i-1].b) errs.push([exons[i].ln,'This exon overlaps the previous one.']);
     let done=0;
     for (const c of cds){ const exp=(3-done%3)%3; if (c.phase!==exp) errs.push([c.ln,`Phase ${c.phase} is wrong. ${fmt(done)} coding bases come before this piece; ${fmt(done)} mod 3 = ${done%3}, so the phase should be ${exp}.`]); done+=c.b-c.a+1; }
@@ -777,13 +778,13 @@ const CHECKS = {
     {id:'r1hard', task:true, q:'Switch the sequence view to hard masking and look at an Alu.'},
     {id:'r1n', hint:'Set the identity slider back to 75% and count the orange Alu boxes, or read “Alu elements”.', q:'At 75% minimum identity, how many Alu elements does the scan find?', num:()=>DEF.alus.length, tol:0, why:'Two sit head-to-tail near 850–1,460 and one is on the minus strand near 3,800–4,060. The human genome has more than a million.'},
     {id:'r1pct', hint:'Use the default settings (75%, 14 bp) and read “Masked” under the chart.', q:'With the default settings, what percentage of the entry is masked?', num:()=>+(100*DEF.masked/LEN).toFixed(1), tol:0.02, unit:'%', why:'Genome-wide, about half of human DNA is repeat. This entry is gene-dense and GC-rich, so its share is much lower.'},
-    {id:'r1soft', hint:'Compare the two views. Which one throws the bases away?', q:'Why do most annotation pipelines soft-mask rather than hard-mask?', opts:['Hard-masked files take up more disk space','Lowercase keeps the bases: aligners and gene finders will not start a match in a repeat, but can still extend through one, so exons that contain repeat sequence are not lost','Soft masking deletes the repeats from the file','Gene finders cannot read the letter N'], a:1, why:'Soft masking hides repeats from seeding while keeping the sequence. Hard masking with N destroys it, so any real exon that overlaps a repeat is lost too.'},
+    {id:'r1soft', hint:'Compare the two views. Which one throws the bases away?', q:'Why do most annotation pipelines soft-mask rather than hard-mask?', opts:['Hard-masked files take up more disk space','Lowercase keeps the bases: aligners and gene finders will not seed a match in a repeat but can extend a match through one, so exons that contain repeat sequence are not lost','Soft masking deletes the repeats from the file','Gene finders cannot read the letter N'], a:1, why:'Soft masking hides repeats from seeding while keeping the sequence. Hard masking with N destroys it, so any real exon that overlaps a repeat is lost too.'},
     {id:'r1lrrc', hint:'Look at the “Overlaps” column for the first Alu. Are real exons ever made of repeat sequence?', q:'The first Alu overlaps an LRRC56 exon. What should you conclude?', opts:['The LRRC56 annotation must be wrong, so delete it','Repeats can form part of real exons, most often UTRs. Masking stops repeats from seeding false predictions, but real transcript evidence can still place an exon over a masked region','Alu elements are always protein-coding','The repeat scan has failed'], a:1, why:'Many human transcripts carry Alu sequence, usually in their 3′ UTRs. That is why the masking is soft and RNA evidence is allowed to override it.'},
   ],
   gff:[
     {id:'g2fix', task:true, q:'Fix all four errors so the file passes validation.'},
     {id:'g2phase', hint:'The first two CDS pieces are 111 and 179 bases. Take 290 mod 3, then apply the phase formula.', q:'What is the correct phase of the third CDS line (6,939–7,098)?', num:1, tol:0, why:'290 mod 3 = 2. One more base finishes the codon that was split by the intron, so skip 1 base: phase = 1.'},
-    {id:'g2vs', hint:'Intron phase counts the bases of the split codon that come before the intron. What does GFF phase count?', q:'In lab 2, intron 2 had phase 2. Here the CDS after it has phase 1. Why are they different?', opts:['One of them uses 0-based coordinates','They count opposite sides of the split codon. Intron phase counts the codon bases before the intron (2). CDS phase counts the bases to skip after it (1). The two add up to 3, or are both 0','GFF3 counts phase from the 3′ end of the gene','They describe different transcripts'], a:1, why:'Confusing the two is one of the commonest bugs in annotation files. GFF3 phase is always “bases to skip to the next codon start”.'},
+    {id:'g2vs', hint:'Intron phase counts the bases of the split codon that come before the intron. What does GFF phase count?', q:'In lab 2, the intron just before the third coding exon had phase 2. Here the CDS after that intron has phase 1. Why are they different?', opts:['One of them uses 0-based coordinates','They count opposite sides of the split codon. Intron phase counts the codon bases before the intron (2). CDS phase counts the bases to skip after it (1). The two add up to 3, or are both 0','GFF3 counts phase from the 3′ end of the gene','They describe different transcripts'], a:1, why:'Confusing the two is one of the commonest bugs in annotation files. GFF3 phase is always “bases to skip to the next codon start”.'},
     {id:'g2bed', hint:'BED starts count the gaps between bases from 0, so subtract 1 from the GFF start. The end stays the same.', q:'Exon 2 is 6,176–6,339 in GFF3. What is its start coordinate in a BED file?', num:6175, tol:0, why:'BED is 0-based and half-open: 6175–6339. The first error in the file was the reverse mistake, a BED start pasted into GFF.'},
   ],
   aed:[
@@ -791,7 +792,7 @@ const CHECKS = {
     {id:'a3b', hint:'Click model B with both evidence buttons on. Read the AED box, or work it out: SN = 570 / 1,070.', q:'What is the AED of model B (CDS only, no UTRs) with both kinds of evidence on?', num:()=>+aedOf(MODELS[1].exons,evidenceSegs(true,true)).aed.toFixed(3), tol:0.02, why:'SP = 1 (every base of B is supported), but SN = 570/1,070 ≈ 0.53 because the RNA-seq evidence also covers 500 bases of UTR that B leaves out.'},
     {id:'a3prot', hint:'Turn RNA-seq off. Which bases does the protein alignment cover?', q:'With protein evidence only, model B scores better than the RefSeq model A. Why?', opts:['Model A is wrong','A protein alignment covers only the coding exons, so it cannot support UTRs. The UTR bases of model A look like over-prediction','Protein evidence is always more reliable than RNA-seq','AED ignores UTRs'], a:1, why:'Each kind of evidence sees only part of a gene. Pipelines combine RNA-seq (for exon edges and UTRs) with proteins (for coding frame and function).'},
     {id:'a3c', hint:'Look at the orange box behind model C’s first exon.', q:'Model C starts with an extra exon at 3,861–3,990. Which step would have stopped it being predicted?', opts:['Adding more RNA-seq reads','Masking repeats before running the gene predictor: the exon lies inside an Alu','Using a different GFF3 source name','Raising the E-value threshold'], a:1, why:'Unmasked transposons contain ORF-like stretches and splice-site-like signals. They are a major source of false exons in unmasked genomes.'},
-    {id:'a3calc', hint:'SN = 600/1,000, SP = 600/800. AED = 1 − (SN + SP) / 2.', q:'A model is 800 bp, its evidence covers 1,000 bp, and they share 600 bp. What is the AED?', num:0.325, tol:0.01, why:'SN = 0.60, SP = 0.75, so AED = 1 − 0.675 = 0.325.'},
+    {id:'a3calc', hint:'SN = 600/1,000, SP = 600/800. AED = 1 − (SN + SP) / 2.', q:'A model is 800 bp, its evidence covers 1,000 bp, and they share 600 bp. What is the AED?', num:0.325, tol:0.02, why:'SN = 0.60, SP = 0.75, so AED = 1 − 0.675 = 0.325.'},
   ],
   blast:[
     {id:'b4aln', task:true, q:'Open the alignment with RHOA and find the P-loop (GxxxxGKS/T) near the start.'},
@@ -801,7 +802,7 @@ const CHECKS = {
   ],
   ortho:[
     {id:'o5drop', task:true, q:'Remove Hras from the mouse proteome and read the new verdict.'},
-    {id:'o5margin', hint:'With the full mouse proteome, subtract the second row’s bits from the first row’s bits in the forward table.', q:'In the forward search, by how many bits does the best mouse hit beat the second-best?', num:()=>{ const f=orthoRun(P01112,parseFasta(MOUSE_DEFAULT)).fwd; return +(f[0].bits-f[1].bits).toFixed(1); }, tol:0.01, unit:'bits', why:'Only the hypervariable C-terminus (~25 residues) separates the RAS paralogues, so the margin is modest. When forward margins are small, orthology calls lean on extra evidence such as gene order.'},
+    {id:'o5margin', hint:'With the full mouse proteome, subtract the second row’s bits from the first row’s bits in the forward table.', q:'In the forward search, by how many bits does the best mouse hit beat the second-best?', num:()=>{ const f=orthoRun(P01112,parseFasta(MOUSE_DEFAULT)).fwd; return +(f[0].bits-f[1].bits).toFixed(1); }, tol:0.01, unit:'bits', why:'Each bit doubles the odds, so a 51-bit margin is decisive here, helped by mouse Hras being 100% identical to the query. With more distant species the margins shrink, and orthology calls then lean on extra evidence such as gene order.'},
     {id:'o5why', hint:'With Hras removed, follow the arrows: where does the reverse search land?', q:'With Hras missing, the forward best hit becomes mouse Nras. Why is the model still not named after it?', opts:['Nras has a low E-value','Mouse Nras’s best hit in human is NRAS, not your model. The hits are not reciprocal, so Nras is a paralogue of your gene, not its orthologue','The query is too short','RBH only works for bacteria'], a:1, why:'This is the point of the reverse step. A missing gene in a draft proteome makes the closest paralogue the best forward hit, and only the reverse search exposes it.'},
     {id:'o5syn', hint:'Look back at the hero track: which gene sits right next to HRAS in this entry?', q:'Which extra evidence would best support HRAS ⇄ Hras orthology?', opts:['A higher bit score','Conserved gene order (synteny): LRRC56 sits next to HRAS in human and next to Hras in mouse','A longer query sequence','The same GC content'], a:1, why:'Neighbouring genes that stay together across species (synteny) are independent evidence for orthology. They are especially useful when paralogues are nearly identical.'},
     {id:'o5fish', hint:'Teleost fish went through an extra whole-genome duplication after they split from the lineage leading to mammals.', q:'Zebrafish has two HRAS genes, hrasa and hrasb. RBH can pair human HRAS with only one of them. How are the two fish genes related to HRAS?', opts:['Only the RBH partner is an orthologue; the other is unrelated','Both are co-orthologues of human HRAS: they come from the fish-specific genome duplication, after fish and mammals split. RBH misses 1:many cases, so tree-based methods such as Ensembl Compara or OrthoFinder handle them','hrasb is the orthologue of KRAS','They are pseudogenes'], a:1, why:'RBH assumes one partner per gene. After a lineage-specific duplication, orthology is one-to-many, and only a gene tree shows it.'},
@@ -815,9 +816,9 @@ const CHECKS = {
   ],
   publish:[
     {id:'p6copy', task:true, q:'Read through the generated record, then copy it.'},
-    {id:'p6esc', hint:'Look at the Note attribute on the CDS lines. Which characters have special meanings in column 9?', q:'Why is “86%” written as “86%25” in the record?', opts:['It is a typing error','GFF3 reserves ; = & , and % in column 9, so they must be percent-encoded. % becomes %25','It shows a 25% error bar','Column 9 cannot contain numbers'], a:1, why:'An unescaped “;” or “=” would split the attribute and silently corrupt the record. Validators flag unescaped reserved characters.'},
+    {id:'p6esc', hint:'Look at the Note attribute on the CDS lines. Which characters have special meanings in column 9?', q:'Why is “86%” written as “86%25” in the record?', opts:['It is a typing error','In column 9, ; = & and , have reserved meanings and % is the escape character, so all of them must be percent-encoded. % becomes %25','It shows a 25% error bar','Column 9 cannot contain numbers'], a:1, why:'An unescaped “;” or “=” would split the attribute and silently corrupt the record. Validators flag unescaped reserved characters.'},
     {id:'p6c', hint:'C = S + D. Divide by 3,354 and give a percentage.', q:'What is the BUSCO completeness (C) of draft 2, in %?', num:(3180+45)/3354*100, tol:0.005, unit:'%', why:'C = (3,180 + 45) / 3,354 = 96.2%. This is a good score for a vertebrate annotation.'},
-    {id:'p6d', hint:'Duplicated means found in two or more copies. These genes are expected in one.', q:'Draft 3 shows 46% duplicated BUSCOs. What is the most likely cause?', opts:['The annotation is unusually thorough','Both haplotypes of the diploid genome were kept in the assembly, so most genes are annotated twice. The fix is to purge the duplicate haplotigs','Many genes are missing','Bacterial contamination'], a:1, why:'High D usually points to a haplotype-redundant assembly. A recent whole-genome duplication can do it too (in salmon or many plants), which is why D is always interpreted with the biology in mind.'},
+    {id:'p6d', hint:'Duplicated means found in two or more copies. These genes are expected in one.', q:'Draft 3 shows 46.5% duplicated BUSCOs. What is the most likely cause?', opts:['The annotation is unusually thorough','Both haplotypes of the diploid genome were kept in the assembly, so most genes are annotated twice. The fix is to purge the duplicate haplotigs','Many genes are missing','Bacterial contamination'], a:1, why:'High D usually points to a haplotype-redundant assembly. A recent whole-genome duplication can do it too (in salmon or many plants), which is why D is always interpreted with the biology in mind.'},
   ],
 };
 const ALL = Object.values(CHECKS).flat();
@@ -841,6 +842,7 @@ function markDone(id){
   const box=document.querySelector(`.chk[data-id="${id}"]`); if (box) box.classList.add('done');
   renderPipeline();
 }
+const shuffleIdx=(id,n)=>{ let h=2166136261; for (const ch of id) h=Math.imul(h^ch.charCodeAt(0),16777619)>>>0; const a=[...Array(n).keys()]; for (let i=n-1;i>0;i--){ h=Math.imul(h^(h>>>13),2246822507)>>>0; const j=h%(i+1); [a[i],a[j]]=[a[j],a[i]]; } return a; }; // fixed per-question option order
 function renderChecks(){
   for (const sid in CHECKS){
     const wrap=document.querySelector(`.checks[data-station="${sid}"]`); wrap.innerHTML='';
@@ -850,7 +852,7 @@ function renderChecks(){
       if (!c.task){
         const fb=document.createElement('div'); fb.className='fb';
         if (c.opts){
-          c.opts.forEach((o,i) => { const lb=document.createElement('label'); lb.innerHTML=`<input type="radio" name="${c.id}" id="${c.id}-${i}" value="${i}"> <span>${o}</span>`; d.appendChild(lb); });
+          shuffleIdx(c.id,c.opts.length).forEach(i => { const o=c.opts[i]; const lb=document.createElement('label'); lb.innerHTML=`<input type="radio" name="${c.id}" id="${c.id}-${i}" value="${i}"> <span>${o}</span>`; d.appendChild(lb); });
           const b=document.createElement('button'); b.className='btn'; b.type='button'; b.textContent='Check'; d.appendChild(b); d.appendChild(fb);
           b.onclick=()=>{ const s=d.querySelector('input:checked'); if(!s){ fb.className='fb bad'; fb.textContent='Choose an answer first.'; return; }
             if (+s.value===c.a){ fb.className='fb ok'; fb.textContent='Correct. '+c.why; markDone(c.id); } else { fb.className='fb bad'; fb.textContent='Not quite. Hint: '+c.hint; } };
@@ -945,11 +947,11 @@ function runGFF(){
   const s=$('gffSummary');
   if (!errs.length && model && model.match){ s.className='status ok'; s.innerHTML=`Valid GFF3. The CDS is ${fmt(model.nt)} bases and translates to ${model.protein.length} amino acids, an exact match to UniProt P01112.`; markDone('g2fix'); }
   else { s.className='status bad'; s.innerHTML=`${errs.length} error${errs.length===1?'':'s'}${warns.length?`, ${warns.length} warning${warns.length===1?'':'s'}`:''}.`+(model?` Translation: ${model.protein.length} aa, ${model.match?'matches':'does not match'} P01112.`:''); }
-  const x=scale(6000,8400,110,990); let o='';
+  const x=scale(4900,8400,110,990); let o='';
   o+=`<text class="trk-lbl" x="0" y="18">Your model</text>`;
-  if (model) o+=geneModel(x,6,18,model.exons.filter(([a,b])=>b>=6000),model.cds,{cds:'mdl',utr:'mdl-utr'});
-  o+=`<text class="trk-lbl" x="0" y="46">RefSeq</text>`+geneModel(x,34,18,MRNA.filter(([a,b])=>b>=6000),CDS);
-  o+=ruler(x,6000,8400,62,400);
+  if (model) o+=geneModel(x,6,18,model.exons,model.cds,{cds:'mdl',utr:'mdl-utr'});
+  o+=`<text class="trk-lbl" x="0" y="46">RefSeq</text>`+geneModel(x,34,18,MRNA,CDS);
+  o+=ruler(x,4900,8400,62,500);
   $('gffSvg').innerHTML=o;
   runSearch(); renderRecord();
 }
@@ -964,7 +966,7 @@ const MODELS = [
   {k:'A', name:'A · RefSeq (evidence-built)', exons:MRNA, cds:CDS},
   {k:'B', name:'B · Ab initio, CDS only', exons:CDS, cds:CDS},
   {k:'C', name:'C · Ab initio, unmasked', exons:[ALU3,...CDS], cds:[ALU3,...CDS]},
-  {k:'D', name:'D · Intron 2 retained', exons:[[6229,6339],[6607,7098],[7796,7915]], cds:[[6229,6339],[6607,7098],[7796,7915]]},
+  {k:'D', name:'D · Intron 3 retained', exons:[[6229,6339],[6607,7098],[7796,7915]], cds:[[6229,6339],[6607,7098],[7796,7915]]},
 ];
 let ev={rna:true, prot:true}, mSel=0;
 function evidenceSegs(r,p){ return [...(r?MRNA:[]),...(p?CDS:[])]; }
@@ -1038,7 +1040,7 @@ function parseFasta(t){ const out=[]; let cur=null;
     else if (cur) cur.seq+=line.toUpperCase().replace(/[^A-Z]/g,''); }
   return out.filter(x=>x.seq.length>=20); }
 function orthoRun(query, mouse){
-  const hitList=(q,db)=>db.map(d=>{ const r=swProt(q,d.seq); return {...d, score:r.score, bits:bits(r.score), ident:r.cols?r.nid/r.cols:0}; }).sort((a,b)=>b.score-a.score);
+  const hitList=(q,db)=>db.map(d=>{ const r=swProt(q,d.seq); return {...d, score:r.score, bits:bits(r.score), ident:r.cols?r.nid/r.cols:0, cover:(r.qb-r.qa+1)/q.length}; }).sort((a,b)=>b.score-a.score);
   const fwd=hitList(query,mouse); if (!fwd.length) return {fwd, rev:[], rbh:false};
   const rev=hitList(fwd[0].seq,HUMAN_PROTEOME);
   const tie=(l)=>l.length>1 && Math.abs(l[0].score-l[1].score)<1e-9;
@@ -1053,7 +1055,7 @@ function runOrtho(){
   if (!mouse.length){ v.className='status bad'; v.textContent='The mouse proteome is empty. Press “Restore the UniProt sequences” or paste FASTA records.'; $('fwdRows').innerHTML=$('revRows').innerHTML=$('rbhFlow').innerHTML=''; ORTHO=null; return; }
   ORTHO=orthoRun(QUERY, mouse);
   const {fwd,rev,rbh}=ORTHO, b=fwd[0], r=rev[0];
-  const row=(h,i)=>`<tr class="${i===0?'best':''}"><td><b>${esc(h.id)}</b></td><td class="n">${h.bits.toFixed(1)}</td><td><span class="idbar" style="width:${Math.round(50*h.ident)}px"></span><span class="mono">${pct(h.ident)}</span></td></tr>`;
+  const row=(h,i)=>`<tr class="${i===0?'best':''}"><td><b>${esc(h.id)}</b></td><td class="n">${h.bits.toFixed(1)}</td><td><span class="idbar" style="width:${Math.round(50*h.ident)}px"></span><span class="mono">${pct(h.ident)}</span></td><td class="n">${pct(h.cover,0)}</td></tr>`;
   $('fwdRows').innerHTML=fwd.map(row).join('');
   $('revTitle').textContent=`2 · Reverse: mouse ${b.id} vs human`;
   $('revRows').innerHTML=rev.map(row).join('');
@@ -1093,7 +1095,7 @@ function runPattern(){
   patHits=scanAll(re);
   const dbN=patHits.filter(r=>!r.q && r.m.length).length, qN=patHits[0].m.length;
   msg.className='status'; msg.innerHTML=`Regular expression <code>${esc(re.source)}</code> · matches in the query: ${qN} · database proteins with a match: <b>${dbN} of ${DB.length}</b>.`;
-  if (patHits[0].m.some(m=>m.a===186 && m.b===189) && /\$$/.test(re.source)) markDone('d5scan');
+  if (patHits[0].m.some(m=>m.a===186 && m.b===189)){ if (/\$$/.test(re.source)) markDone('d5scan'); else msg.innerHTML+=' This matches the CaaX box. Anchor it to the C-terminus with <code>&gt;</code> to complete the task.'; }
   const maxL=Math.max(...patHits.map(r=>r.seq.length)), x=scale(0,maxL,110,880); let o='';
   patHits.forEach((r,i) => { const y=8+i*23;
     o+=`<text class="trk-lbl" x="0" y="${y+11}" style="${r.q?'fill:var(--accent)':''}">${esc(r.id)}</text><rect class="pbar" x="${x(0)}" y="${y+2}" width="${x(r.seq.length)-x(0)}" height="10" rx="2"/>`;
@@ -1128,7 +1130,7 @@ function renderRecord(){
   const L=[]; const row=(src,type,a,b,sc,st,ph,at)=>L.push(['NG_007666.1',src,type,a,b,sc,st,ph,at].join('\t'));
   L.push('##gff-version 3','##sequence-region NG_007666.1 1 10309',`# repeats: Alu identity ≥ ${$('aluId').value}%, simple repeats ≥ ${$('srLen').value} bp`);
   REP.all.forEach((r,i) => r.cls==='Alu'
-    ? row('lab-scan','dispersed_repeat',r.a,r.b,r.score,r.strand==='+'?'+':'-','.',`ID=rep-${i+1};Name=AluY;rpt_family=Alu;Note=${pe(Math.round(100*r.ident)+'% identity to consensus '+r.qa+'-'+r.qb)}`)
+    ? row('lab-scan','dispersed_repeat',r.a,r.b,r.score,r.strand==='+'?'+':'-','.',`ID=rep-${i+1};Name=Alu;rpt_family=Alu;Note=${pe('best match AluY consensus; '+Math.round(100*r.ident)+'% identity to consensus '+r.qa+'-'+r.qb)}`)
     : row('lab-scan','tandem_repeat',r.a,r.b,'.','+','.',`ID=rep-${i+1};rpt_unit_seq=${r.unit.toLowerCase()}`));
   L.push('# gene model'+(ok?' (from your Section 2 file)':' (reference: your Section 2 file does not pass yet)'));
   row('RefSeq','gene',ex[0][0],ex[ex.length-1][1],'.','+','.','ID=gene-HRAS;Name=HRAS;description=HRas proto-oncogene%2C GTPase;Dbxref=GeneID:3265,HGNC:HGNC:5173'+(ORTHO&&ORTHO.rbh?`;Note=${pe(`orthologue of mouse ${ORTHO.fwd[0].id} (reciprocal best hit)`)}`:''));

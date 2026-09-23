@@ -3,15 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<style>body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
-</head>
-<body>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>HRAS Sequencing &amp; Assembly Lab</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@112,700;112,800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
 <style>
 :root{
   --ground:#F2F2F6; --panel:#FFFFFF; --panel-2:#E9E9F0; --ink:#1A1B2C; --muted:#585A70;
@@ -323,7 +321,7 @@ footer.src ul{margin:0;padding-left:1.2em;display:grid;gap:4px}
       <p>Reads start at random positions, so some bases get read many times and some never. <b>Coverage</b> (depth) is the average number of reads covering each base:</p>
       <p class="formula">C = N · L / G   (N reads, L read length, G genome size)</p>
       <p>Random placement follows a Poisson distribution. The fraction of the genome left unread is about <span class="mono">e<sup>−C</sup></span> (Lander &amp; Waterman, 1988). At 1× you miss 37% of bases, and at 5× under 1%. Clinical genomes aim for 30×, so every base is read many times and real variants stand out from sequencing errors.</p>
-      <p>Try it on the 10,309-bp HRAS entry. Find the fewest reads that leave <b>no gaps</b>, then change the read length and see what happens.</p>
+      <p>Try it on the 10,309-bp HRAS entry. Find the fewest reads that leave <b>no gaps</b>, then change the read length and see what happens. (At 50 bp you may not reach zero gaps even with 800 reads. Why?)</p>
       <div class="checks" data-station="coverage"></div>
     </div>
     <div class="instrument">
@@ -362,7 +360,7 @@ footer.src ul{margin:0;padding-left:1.2em;display:grid;gap:4px}
         <div class="pool" id="pool"></div>
         <div class="status" id="olcMsg">Pick any read to start the contig.</div>
         <div class="scroll"><div class="layout" id="layout"></div></div>
-        <details><summary class="note" style="cursor:pointer">Show the overlap table (the "O" in OLC)</summary><div class="scroll" style="margin-top:8px"><table class="ovt" id="ovt"></table></div><p class="note" style="margin-top:6px">Row read's suffix overlapping column read's prefix, in bases (≥ 5 counted). Each row has one clear partner. That's the layout.</p></details>
+        <details><summary class="note" style="cursor:pointer">Show the overlap table (the "O" in OLC)</summary><div class="scroll" style="margin-top:8px"><table class="ovt" id="ovt"></table></div><p class="note" style="margin-top:6px">Row read's suffix overlapping column read's prefix, in bases (≥ 5 counted). Each row has one clear partner, except the last read, which nothing follows. That's the layout.</p></details>
       </div>
     </div>
   </div>
@@ -379,7 +377,7 @@ footer.src ul{margin:0;padding-left:1.2em;display:grid;gap:4px}
         <li>each <b>k-mer</b> is an edge from its prefix to its suffix.</li>
       </ul>
       <p>A walk that uses every edge exactly once (an <b>Eulerian path</b>) spells out the genome. It can be found in linear time. OLC's layout instead needs a path that visits every <em>read</em> once (a Hamiltonian path), which is computationally hard.</p>
-      <p>The catch is <b>repeats</b>. If a (k−1)-mer occurs twice in the genome, the two copies merge into one node and the graph gets a fork or a loop. Then several different walks use every edge, and the k-mers alone can't tell you which one is the real genome. Try a small k on the HRAS preset, where codons 7–9 are <span class="mono">GTG GTG GTG</span>.</p>
+      <p>The catch is <b>repeats</b>. If a (k−1)-mer occurs twice in the genome, the two copies merge into one node and the graph gets a fork or a loop. Often several different walks then use every edge, and the k-mers alone can't tell you which one is the real genome. Try a small k on the HRAS preset, where codons 7–9 are <span class="mono">GTG GTG GTG</span>.</p>
       <div class="checks" data-station="debruijn"></div>
     </div>
     <div class="instrument">
@@ -406,9 +404,9 @@ footer.src ul{margin:0;padding-left:1.2em;display:grid;gap:4px}
   <div class="st-head"><span class="st-num">6</span><div><p class="eyebrow">Section 6 · Finishing</p><h2>Repeats, long reads and N50</h2></div></div>
   <div class="st-grid">
     <div class="prose">
-      <p>About half the human genome is repeats. There are ~1.2 million <b>Alu</b> elements (~300 bp each). The HRAS entry has two of them back to back, at about positions 855–1,470. There are also tandem arrays like the <b>HRAS1 minisatellite</b>: a 28-bp unit repeated ~25 times over ~700 bp, just downstream of the gene.</p>
+      <p>About half the human genome is repeats. There are ~1.2 million <b>Alu</b> elements (~300 bp each). The HRAS entry has two of them back to back, at about positions 855–1,470. There are also tandem arrays like the <b>HRAS1 minisatellite</b>: a 28-bp unit repeated ~25 times over ~700 bp, just downstream of the gene (this section uses its 25 near-perfect units, 9,390–10,089; lab 3 annotates the whole array, including degenerate copies at each end, as 9,311–10,149).</p>
       <p>A read that falls entirely inside a repeat could have come from any copy. Short-read assemblers <b>collapse</b> such repeats into one copy and break the contig at each end. The fix is a read long enough to <b>span</b> the whole repeat and anchor in unique sequence on both sides.</p>
-      <p>That's why PacBio HiFi and Oxford Nanopore reads (10 kb to over 1 Mb) made the first truly complete, gap-free human genome possible: <b>T2T-CHM13</b> (2022).</p>
+      <p>That's why long reads, PacBio HiFi (15–25 kb, very accurate) and Oxford Nanopore (up to over 1 Mb), made the first gap-free sequence of every human autosome and the X chromosome possible: <b>T2T-CHM13</b> (2022; the Y chromosome followed in 2023).</p>
       <p>Assemblies are compared by <b>N50</b>. Sort contigs longest to shortest and add up their lengths. N50 is the length of the contig at which the running total first reaches half the assembly size. Higher is more contiguous.</p>
       <div class="checks" data-station="repeats"></div>
     </div>
@@ -448,13 +446,13 @@ footer.src ul{margin:0;padding-left:1.2em;display:grid;gap:4px}
     <div><dt>k-mer</dt><dd>A substring of length k. A sequence of length n has n − k + 1 of them.</dd></div>
     <div><dt>De Bruijn graph</dt><dd>Nodes are (k−1)-mers and edges are k-mers. An Eulerian path through it spells out the genome.</dd></div>
     <div><dt>N50</dt><dd>The contig length at which contigs of that length or longer make up half the assembly.</dd></div>
-    <div><dt>De novo vs reference-guided</dt><dd>Building a genome from reads alone, versus aligning reads to an existing genome (as in lab 3, the genome browser).</dd></div>
+    <div><dt>De novo vs reference-guided</dt><dd>Building a genome from reads alone, versus aligning reads to an existing genome (the BAM read tracks you meet in lab 3’s genome browser).</dd></div>
   </dl>
 
   <div class="prose" style="margin-top:28px">
     <p class="eyebrow">Next step</p><h2>Try it with real data</h2>
     <ol>
-      <li>Look up any organism in the <a href="https://www.ncbi.nlm.nih.gov/datasets/genome/" target="_blank" rel="noopener">NCBI Datasets genome browser</a>. Compare the <b>contig N50</b> of the old human reference GRCh38 with T2T-CHM13.</li>
+      <li>Look up any organism in the <a href="https://www.ncbi.nlm.nih.gov/datasets/genome/" target="_blank" rel="noopener">NCBI Datasets genome pages</a>. Compare the <b>contig N50</b> of the current reference GRCh38 with T2T-CHM13.</li>
       <li>Search the <a href="https://www.ncbi.nlm.nih.gov/sra" target="_blank" rel="noopener">Sequence Read Archive</a> for a bacterial genome. Is its FASTQ from Illumina, Nanopore or both? How long are the reads?</li>
       <li>Open a FASTQ file and decode a quality line. The character <code>I</code> is ASCII 73; subtract 33 and you get Q40.</li>
     </ol>
@@ -464,7 +462,7 @@ footer.src ul{margin:0;padding-left:1.2em;display:grid;gap:4px}
 <footer class="src">
   <p><b>About the data</b></p>
   <ul>
-    <li>All sequence is the 10,309-bp human HRAS genomic entry in this course's <code>triplets.txt</code>, the same entry and numbering used in all four BIO 116 labs. The coding sequence comes from the four coding exons aligned to HRAS p21 (UniProt P01112).</li>
+    <li>All sequence is the 10,309-bp human HRAS RefSeqGene entry (NG_007666.1) in this course's <code>triplets.txt</code>, the same entry and numbering used in all four BIO 116 labs. The coding sequence comes from the four coding exons aligned to HRAS p21 (UniProt P01112).</li>
     <li>The chromatogram, flow-cell images and quality scores are <b>simulated</b> to show how each instrument behaves. The G12V change (c.35G&gt;T) is a real, common HRAS hotspot mutation.</li>
     <li>Reads in Sections 3 and 6 start at random positions and have no errors. The entry sits inside chromosome 11, so reads can hang off either end; only the part on the entry is drawn and counted. Real reads also carry errors, which assemblers have to correct.</li>
   </ul>
@@ -507,7 +505,7 @@ const CHECKS = {
     {id:'s1run', task:true, q:'Run the capillary and read the sequence off the detector.'},
     {id:'s1q1', q:'Why does a chain stop growing once a ddNTP is added?', opts:['The ddNTP has no 3′-OH, so the next phosphodiester bond cannot form','The dye blocks polymerase from binding the template','ddNTPs pair with the wrong base and the strands separate','The primer is used up'], a:0, why:'A phosphodiester bond joins the 3′-OH of the last nucleotide to the phosphate of the next one. Without the 3′-OH there is nothing to attach to.'},
     {id:'s1peak', task:true, q:'In the tumour chromatogram, click the position that shows two overlapping peaks.'},
-    {id:'s1q2', q:'That position is c.35 in codon 12 (GGC). The trace shows G and T at equal height. What does the tumour carry?', opts:['Heterozygous c.35G>T, GGC→GTC, p.G12V','Homozygous c.35G>T, p.G12V','Heterozygous c.35G>A, p.G12D','A sequencing error; Sanger has no errors at this depth, so ignore it'], a:0, why:'Half the DNA molecules carry G and half T, so the caller reports the IUPAC code K (G or T). GTC encodes valine, so this is the activating G12V mutation, and the other allele is still normal.'},
+    {id:'s1q2', q:'That position is c.35 in codon 12 (GGC). The trace shows G and T at equal height. Assume the sample is almost entirely tumour cells. What does the tumour carry?', opts:['Heterozygous c.35G>T, GGC→GTC, p.G12V','Homozygous c.35G>T, p.G12V','Heterozygous c.35G>A, p.G12D','A sequencing artefact that can be ignored'], a:0, why:'Half the DNA molecules carry G and half T, so the caller reports the IUPAC code K (G or T). GTC encodes valine, so this is the activating G12V mutation, and the other allele is still normal.'},
   ],
   illumina:[
     {id:'s2run', task:true, q:'Run all 16 cycles on the flow cell.'},
@@ -524,7 +522,7 @@ const CHECKS = {
     {id:'s4q1', q:'Your 64-bp contig was built from 7 × 16 = 112 bases of reads. Why is the contig shorter?', opts:['Overlapping bases are shared between neighbouring reads and counted once in the contig','Some reads were discarded as low quality','The assembler trims 3′ ends','The contig is circular'], a:0, why:'Six overlaps totalling 48 bases: 112 − 48 = 64.'},
   ],
   debruijn:[
-    {id:'s5q1', q:'For the preset “HRAS codons 6–11”, what is the smallest k that gives exactly one possible genome?', num:() => dbgKmin, tol:0, why:'Below this k, some (k−1)-mers inside GTGGTGGTG occur more than once. They merge into shared nodes, the graph forks and loops, and more than one walk uses every edge.'},
+    {id:'s5q1', q:'For the preset “HRAS codons 6–11”, what is the smallest k that gives exactly one possible genome?', num:() => dbgKmin, tol:0, why:'At k = 3 the 2-mers inside GTGGTGGTG repeat, and the loop can be walked in several orders. From k = 4 the loop is still there, but because this widget knows each k-mer’s exact count (×n), only one walk fits. With real, approximate read depth you would need k ≥ 11, where no fork nodes remain.'},
     {id:'s5q2', q:'Why do real assemblers use k ≈ 31–127 rather than a very large k?', opts:['k must be shorter than the reads, and a longer k-mer is more likely to contain an error','Large k makes the graph have more forks','Eulerian paths only exist for odd k below 128','Memory use falls as k grows'], a:0, why:'Larger k resolves more repeats, but every k-mer must fit inside a read and be error-free. Assemblers balance the two, and SPAdes tries several k values.'},
   ],
   repeats:[
@@ -554,6 +552,7 @@ function markDone(id){
   const box = document.querySelector(`.chk[data-id="${id}"]`); if (box) box.classList.add('done');
   renderPipeline();
 }
+const shuffleIdx=(id,n)=>{ let h=2166136261; for (const ch of id) h=Math.imul(h^ch.charCodeAt(0),16777619)>>>0; const a=[...Array(n).keys()]; for (let i=n-1;i>0;i--){ h=Math.imul(h^(h>>>13),2246822507)>>>0; const j=h%(i+1); [a[i],a[j]]=[a[j],a[i]]; } return a; }; // fixed per-question option order
 function renderChecks(){
   for (const sid in CHECKS){
     const wrap = document.querySelector(`.checks[data-station="${sid}"]`); wrap.innerHTML='';
@@ -562,7 +561,7 @@ function renderChecks(){
       d.innerHTML = `<div class="q"><span class="box" aria-hidden="true"></span><span>${c.q}</span></div>`;
       if (!c.task){
         if (c.opts){
-          c.opts.forEach((o,i) => { const lb=document.createElement('label'); lb.innerHTML=`<input type="radio" name="${c.id}" id="${c.id}-${i}" value="${i}"> <span>${o}</span>`; d.appendChild(lb); });
+          shuffleIdx(c.id,c.opts.length).forEach(i => { const o=c.opts[i]; const lb=document.createElement('label'); lb.innerHTML=`<input type="radio" name="${c.id}" id="${c.id}-${i}" value="${i}"> <span>${o}</span>`; d.appendChild(lb); });
           const b=document.createElement('button'); b.className='btn'; b.type='button'; b.textContent='Check'; d.appendChild(b);
           const fb=document.createElement('div'); fb.className='fb'; d.appendChild(fb);
           b.onclick = () => { const s=d.querySelector('input:checked'); if(!s){ fb.className='fb bad'; fb.textContent='Choose an answer first.'; return; }
@@ -762,7 +761,7 @@ const OLC_T = CDS.slice(0,64);
 const OLC_STARTS = [0,9,17,26,33,41,48];
 const MINOV = 5;
 const olcReads = OLC_STARTS.map((p,i)=>({name:'', seq:OLC_T.slice(p,p+16), true:i}));
-{ const rnd=mulberry(3); const order=olcReads.map((_,i)=>i).sort(()=>rnd()-.5); order.forEach((ri,k)=>{ olcReads[ri].name='r'+(k+1); }); olcReads.sort((a,b)=>a.name.localeCompare(b.name)); }
+{ const rnd=mulberry(3); const order=olcReads.map((_,i)=>i); for (let i=order.length-1;i>0;i--){ const j=Math.floor(rnd()*(i+1)); [order[i],order[j]]=[order[j],order[i]]; } order.forEach((ri,k)=>{ olcReads[ri].name='r'+(k+1); }); olcReads.sort((a,b)=>a.name.localeCompare(b.name)); }
 function overlap(a,b){ for (let L=Math.min(a.length,b.length)-1;L>=MINOV;L--) if (a.slice(-L)===b.slice(0,L)) return L; return 0; }
 let placed=[]; // {r, off, ov}
 function olcContig(){ if(!placed.length) return ''; let s=placed[0].r.seq; for (let i=1;i<placed.length;i++) s+=placed[i].r.seq.slice(placed[i].ov); return s; }
@@ -786,6 +785,8 @@ function addRead(r){
   const c=olcContig(); const ov=overlap(c, r.seq);
   if (!ov){
     const rev = overlap(r.seq, placed[0].r.seq);
+    const anyRight = olcReads.some(q => !placed.some(p=>p.r===q) && overlap(c, q.seq));
+    if (!rev && !anyRight) return drawOLC(`Nothing extends your contig to the right any more, so the remaining reads belong to its left. Press Undo or Start over, and seed with a read whose start matches no other read's end.`, 'bad');
     return drawOLC(rev ? `<b>${r.name}</b> doesn't extend the right end, but its end overlaps the <em>start</em> of your contig by ${rev} bases. It belongs further left. Start over with a read that nothing extends to the left.` : `<b>${r.name}</b> has no overlap of ≥ ${MINOV} bases with the end of your contig. Look for a read that starts with the last few bases of <span class="mono">${c.slice(-8)}</span>.`, 'bad');
   }
   placed.push({r, off:c.length-ov, ov});
@@ -912,7 +913,7 @@ function drawRepeats(){
   }
   let repB=0, flB=0; for (const [s,e] of reads){ repB+=Math.max(0,Math.min(e,r1+1)-Math.max(s,r0)); flB+=Math.max(0,Math.min(e,r0)-Math.max(s,WIN[0]))+Math.max(0,Math.min(e,WIN[1])-Math.max(s,r1+1)); }
   const flDepth=flB/((r0-WIN[0])+(WIN[1]-r1-1)); const estUnits=repB/flDepth/28;
-  $('repStats').innerHTML=[['Reads',reads.length],['Inside repeat',counts.int],['Anchored one side',counts.anc],['Spanning',counts.spn],['Units implied by depth','≈ '+Math.round(estUnits)+' <span class="note">(true: 25)</span>']].map(([a,b])=>`<div><dt>${a}</dt><dd>${b}</dd></div>`).join('');
+  $('repStats').innerHTML=[['Reads',reads.length],['Inside repeat',counts.int],['Anchored one side',counts.anc],['Spanning',counts.spn],['Units implied by depth (noisy estimate)','≈ '+Math.round(estUnits)+' <span class="note">(true: 25)</span>']].map(([a,b])=>`<div><dt>${a}</dt><dd>${b}</dd></div>`).join('');
   const v=$('repVerdict');
   const need=(r1-r0+1)+2*ANCH;
   if (resolved){ v.className='status ok'; v.innerHTML=`Resolved. ${counts.spn} read${counts.spn>1?'s':''} run from unique sequence on the left, through all ~25 units, into unique sequence on the right, so the copy number can be counted directly.`; markDone('s6span'); }
