@@ -258,6 +258,9 @@ footer { margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--line);
 </style>
 
 <style>
+:root { --s1: #008A6A; --s2: #C0680A; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --s1: #2AA884; --s2: #CF7F2E; } }
+:root[data-theme="dark"] { --s1: #2AA884; --s2: #CF7F2E; }
 .btn { text-decoration: none; display: inline-block; }
 .tag.gb { background: var(--minus-soft); color: var(--minus); }
 .tag.warn { background: var(--accent-soft); color: var(--accent); }
@@ -273,6 +276,14 @@ section.step > h3 { margin-top: 12px; font-size: 1.3rem; }
 .genes { display: flex; flex-wrap: wrap; gap: 6px; }
 .gene-chip { font: 500 0.8rem/1 var(--mono); padding: 6px 9px; border-radius: 6px; background: var(--minus-soft); color: var(--ink); }
 .gene-chip i { font-style: italic; font-family: var(--body); font-weight: 600; margin-right: 6px; }
+.cu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 14px 20px; }
+.cu-fam { display: grid; gap: 3px; align-content: start; }
+.cu-aa { font: 600 0.8rem/1 var(--mono); color: var(--muted); border-bottom: 1px solid var(--line); padding-bottom: 3px; }
+.cu-row { display: grid; grid-template-columns: 2.6em 1fr 2.6em; gap: 6px; align-items: center; }
+.cu-codon { font: 500 0.78rem/1 var(--mono); }
+.cu-bars { display: grid; gap: 2px; }
+.cu-bar { display: block; height: 6px; border-radius: 0 3px 3px 0; min-width: 2px; }
+.cu-val { font: 400 0.62rem/1.15 var(--mono); color: var(--muted); text-align: right; font-variant-numeric: tabular-nums; }
 .check { display: inline-flex; gap: 6px; align-items: center; }
 .check input { accent-color: var(--primary); width: 16px; height: 16px; }
 </style>
@@ -288,6 +299,7 @@ section.step > h3 { margin-top: 12px; font-size: 1.3rem; }
       <a href="#s6" data-step="6"><span class="n">6</span>Translate</a>
       <a href="#s7" data-step="7"><span class="n">7</span>Upstream</a>
       <a href="#s8" data-step="8"><span class="n">8</span>Script</a>
+      <a href="#s9" data-step="9"><span class="n">9</span>Codon usage</a>
     </nav>
     <div class="seqpick">
       <span class="eyebrow">Sequence</span>
@@ -679,12 +691,13 @@ promoter_re = re.compile(<span class="s">"(?=("</span> + fuzzy(<span class="s">"
       <h2>Your ORF finder</h2>
     </div>
     <div class="prose">
-      <p>Write a script that reads the GenBank file <code>data/J01636_lac_operon.gb</code>, finds candidate genes of at least 100 codons on both strands, picks a start for each using the RBS, translates it, and compares every call with the annotated CDS features. Try it yourself first. The reference answer is in the drawer below.</p>
+      <p>Write a script that reads the GenBank file <code>data/J01636_lac_operon.gb</code>, finds candidate genes of at least 100 codons on both strands, picks a start for each using the RBS, translates it, and compares every call with the annotated CDS features. Try it yourself first. The minimal goal (both strands, overlaps, a length cutoff, translation) is <code>find_candidate_genes.py</code> in the course repository, about 40 lines of code. The full reference answer, with the RBS and the GenBank comparison, is in the drawer below.</p>
       <h3>Extensions</h3>
       <ul>
         <li><b>Score your finder.</b> Count true positives, false positives and missed genes against the annotation. Change <code>MIN_CODONS</code> and <code>STARTS</code> and see how the counts move.</li>
         <li><b>Another genome.</b> Download a GenBank record for another bacterial region from NCBI and load it with <b>Your own</b> in the top bar.</li>
         <li><b>GC content.</b> <code>triplets.txt</code> is about 66% GC and the lac record 53%. Stop codons are AT-rich. Predict which has more long ORFs by chance, then compare them in step 6.</li>
+        <li><b>Codon usage.</b> Step 9 (optional) scores each ORF against the other five reading frames.</li>
         <li><b>Named groups.</b> Rewrite the ORF pattern with <code>(?P&lt;start&gt;…)</code>, <code>(?P&lt;body&gt;…)</code> and <code>(?P&lt;stop&gt;…)</code> and print each part.</li>
       </ul>
       <div class="think">
@@ -791,6 +804,97 @@ if __name__ == "__main__":
 </pre>
       </div>
     </details>
+  </section>
+
+  <!-- STEP 9 -->
+  <section class="step" id="s9">
+    <div class="step-head">
+      <div class="step-num">9</div>
+      <div class="eyebrow">Optional · Codon usage</div>
+      <h2>Does it read like a gene?</h2>
+    </div>
+    <div class="step-grid">
+      <div class="prose">
+        <p>Most amino acids have several codons, and each genome prefers some of them. <i>E. coli</i> uses CTG for about half its leucines and almost never uses AGG for arginine. A real gene read in its own frame is full of preferred codons. The same DNA read in any other frame is not.</p>
+        <p>So score each ORF by the average log frequency of its codons, then read the same stretch of DNA in the five other frames and score those too. If the ORF is a gene, its own frame should win. Comparing with other frames of the same DNA keeps the base composition identical, so only the codon pattern differs.</p>
+        <pre class="code" data-copy>from collections import Counter
+import math
+
+SENSE = [a + b + c for a in <span class="s">"ACGT"</span> for b in <span class="s">"ACGT"</span> for c in <span class="s">"ACGT"</span>
+         if a + b + c not in (<span class="s">"TAA"</span>, <span class="s">"TAG"</span>, <span class="s">"TGA"</span>)]
+
+def codon_table(genes):
+    counts = Counter()
+    for g in genes:
+        counts.update(re.findall(r<span class="s">"[ACGT]{3}"</span>, g[3:-3]))   <span class="c"># skip start and stop</span>
+    total = sum(counts[c] + 1 for c in SENSE)                  <span class="c"># +1 so no codon has zero</span>
+    return {c: (counts[c] + 1) / total for c in SENSE}
+
+def score(table, dna):
+    codons = [c for c in re.findall(r<span class="s">"[ACGT]{3}"</span>, dna) if c in table]
+    return sum(math.log(table[c]) for c in codons) / len(codons)
+
+def six_frames(orf):
+    anti = reverse_complement(orf)
+    return {<span class="s">"own"</span>: orf, <span class="s">"+1"</span>: orf[1:], <span class="s">"+2"</span>: orf[2:],
+            <span class="s">"anti 0"</span>: anti, <span class="s">"anti 1"</span>: anti[1:], <span class="s">"anti 2"</span>: anti[2:]}
+
+<span class="c"># leave the gene being tested out of its own training set</span>
+table = codon_table([g for name, g in genes.items() if name != <span class="s">"lacY"</span>])
+scores = {f: score(table, dna) for f, dna in six_frames(genes[<span class="s">"lacY"</span>]).items()}</pre>
+        <p>For a genome-wide table, the <code>python_codon_tables</code> package includes the <a href="https://www.kazusa.or.jp/codon/cgi-bin/showcodon.cgi?species=83333" target="_blank" rel="noopener">Kazusa</a> table for <i>E. coli</i> K-12. It stores each codon's share of its amino acid, not its overall frequency.</p>
+        <pre class="code" data-copy>import python_codon_tables as pct   <span class="c"># pip install python_codon_tables</span>
+
+shares = pct.get_codons_table(<span class="s">"e_coli_316407"</span>)   <span class="c"># {'L': {'CTG': 0.5, ...}, ...}</span>
+genome = {codon: f for aa, family in shares.items() if aa != <span class="s">"*"</span>
+          for codon, f in family.items()}</pre>
+        <div class="think">
+          <div class="eyebrow">Predict, then check</div>
+          <ol>
+            <li>In the codon chart, which leucine codon dominates? Which arginine codons are rare, and why might that matter when <i>E. coli</i> is used to make a human protein?</li>
+            <li>Why compare with other frames of the same DNA rather than with random DNA?</li>
+            <li>Switch between the three tables. Which ORFs change verdict? Why does a table of shares within each amino acid lose information?</li>
+            <li>The − strand ORF at 6441–7118 is not annotated, yet it wins its own frame and has an RBS (step 7). What would you do next?</li>
+          </ol>
+          <label class="eyebrow" for="note9">Your notes</label>
+          <textarea id="note9" data-note="9"></textarea>
+          <details><summary>Discussion</summary><div>
+            <p>CTG is about half of all leucine codons; AGA and AGG are rare arginine codons. Human genes use them more often, and <i>E. coli</i> has little of the matching tRNAs, which is a classic cause of poor expression of foreign proteins.</p>
+            <p>Random DNA with the same GC content is a weak comparison: an antisense ORF inside a real gene has almost the same composition as the gene, so it can score just as well. Other frames of the same DNA share its composition exactly, so only the codon pattern is tested.</p>
+            <p>On the lac record, at 100 codons with alternative starts: the <b>lac frequency</b> table puts all 4 genes in their own frame and rejects 6 of the 7 unannotated ORFs. The <b>lac shares</b> table drops to 3 of 4 genes (<i>lacY</i> fails) and 5 of 7. The <b>genome shares</b> table gets 4 of 4 and 5 of 7, but <i>lacY</i> and <i>lacA</i> win by tiny margins (0.001 and 0.003). The antisense ORF at 5988–6299, inside <i>lacA</i>, passes with both share tables.</p>
+            <p>Share tables ignore how common each amino acid is, which also differs between frames, so they lose part of the signal. The lac-trained tables come from only three genes, so they are noisy; the genome table averages thousands, including genes transferred from other species. The ORF at 6441–7118 lies outside the four annotated genes, so it may be a real neighbouring gene the record does not describe. BLAST its protein from step 6 to find out.</p>
+          </div></details>
+        </div>
+      </div>
+    </div>
+    <div class="bench" id="codonBench">
+        <div class="bench-top">
+          <span class="lbl">Codon table</span>
+          <div class="seg" role="group" aria-label="Codon table" id="modelSeg">
+            <button type="button" data-model="lacFull" aria-pressed="true">lac genes, frequency</button>
+            <button type="button" data-model="lacShare" aria-pressed="false">lac genes, shares</button>
+            <button type="button" data-model="genome" aria-pressed="false"><i>E. coli</i> genome, shares</button>
+          </div>
+        </div>
+        <div class="controls">
+          <label for="cuMin">Minimum codons <b class="mono" id="cuMinOut">100</b></label>
+          <input type="range" id="cuMin" min="30" max="400" step="5" value="100">
+          <label class="check" for="cuAlt"><input type="checkbox" id="cuAlt" checked>Allow GTG and TTG starts</label>
+        </div>
+        <div class="status" id="cuStatus"></div>
+        <div class="tbl" style="max-height:340px"><table>
+          <thead><tr><th>Strand</th><th>Start–end</th><th>GenBank</th><th>Six frame scores</th><th>Verdict</th></tr></thead>
+          <tbody id="cuRows"></tbody>
+        </table></div>
+        <div class="legend"><span><i style="background:var(--s1)"></i>ORF's own frame</span><span><i style="background:var(--muted);opacity:.45"></i>other five frames (+1, +2, anti 0, anti 1, anti 2)</span><span>Bar height: score above the lowest frame. Hover a bar for its value.</span></div>
+        <p class="muted" style="font-size:.82rem" id="cuNote"></p>
+    </div>
+    <div class="bench">
+      <h3>Codon choices within each amino acid</h3>
+      <div class="legend"><span><i style="background:var(--s1)"></i>four lac genes (this record)</span><span><i style="background:var(--s2)"></i><em>E. coli</em> K-12 genome (Kazusa, taxid 316407)</span></div>
+      <div class="cu-grid" id="cuGrid"></div>
+      <p class="muted" style="font-size:.82rem">Each bar is the codon's share of its amino acid. Met and Trp have one codon each and are left out.</p>
+    </div>
   </section>
 
   <footer>
@@ -1259,6 +1363,91 @@ if __name__ == "__main__":
   [box35, box10].forEach(x => x.addEventListener("input", refreshPromoter));
   mm.addEventListener("input", refreshPromoter);
 
+  /* ---------- codon usage (step 9) ---------- */
+  const GENOME_SHARES = {"GCA":0.21,"GCC":0.27,"GCG":0.36,"GCT":0.16,"TGC":0.56,"TGT":0.44,"GAC":0.37,"GAT":0.63,"GAA":0.69,"GAG":0.31,"TTC":0.43,"TTT":0.57,"GGA":0.11,"GGC":0.41,"GGG":0.15,"GGT":0.34,"CAC":0.43,"CAT":0.57,"ATA":0.07,"ATC":0.42,"ATT":0.51,"AAA":0.76,"AAG":0.24,"CTA":0.04,"CTC":0.1,"CTG":0.5,"CTT":0.1,"TTA":0.13,"TTG":0.13,"ATG":1.0,"AAC":0.55,"AAT":0.45,"CCA":0.19,"CCC":0.12,"CCG":0.53,"CCT":0.16,"CAA":0.35,"CAG":0.65,"AGA":0.04,"AGG":0.02,"CGA":0.06,"CGC":0.4,"CGG":0.1,"CGT":0.38,"AGC":0.28,"AGT":0.15,"TCA":0.12,"TCC":0.15,"TCG":0.15,"TCT":0.15,"ACA":0.13,"ACC":0.44,"ACG":0.27,"ACT":0.16,"GTA":0.15,"GTC":0.22,"GTG":0.37,"GTT":0.26,"TGG":1.0,"TAC":0.43,"TAT":0.57};
+  const SENSE = Object.keys(CODE).filter(c => !STOPS.has(c));
+  const lacGenes = LAC.cds.map(c => ({ name: c.name, dna: c.strand === "+" ? LAC.seq.slice(c.start - 1, c.end) : rc(LAC.seq.slice(c.start - 1, c.end)) }));
+  function lacCounts(exclude) {
+    const n = {}; SENSE.forEach(c => n[c] = 0);
+    for (const g of lacGenes) {
+      if (g.name === exclude) continue;
+      for (let i = 3; i + 3 <= g.dna.length - 3; i += 3) { const c = g.dna.slice(i, i + 3); if (c in n) n[c]++; }
+    }
+    return n;
+  }
+  function tableFull(n) { let t = 0; SENSE.forEach(c => t += n[c] + 1); const o = {}; SENSE.forEach(c => o[c] = (n[c] + 1) / t); return o; }
+  function tableShare(n) {
+    const o = {};
+    SENSE.forEach(c => { let t = 0; SENSE.forEach(d => { if (CODE[d] === CODE[c]) t += n[d] + 1; }); o[c] = (n[c] + 1) / t; });
+    return o;
+  }
+  const GENOME_T = {}; SENSE.forEach(c => GENOME_T[c] = Math.max(GENOME_SHARES[c] || 0, 0.005));
+  function scoreDna(t, dna) {
+    let s = 0, k = 0;
+    for (let i = 0; i + 3 <= dna.length; i += 3) { const c = dna.slice(i, i + 3); if (c in t) { s += Math.log(t[c]); k++; } }
+    return k ? s / k : -Infinity;
+  }
+  const FRAME_NAMES = ["own", "+1", "+2", "anti 0", "anti 1", "anti 2"];
+  let cuModel = "lacFull";
+  const cuMin = document.getElementById("cuMin"), cuAlt = document.getElementById("cuAlt");
+  function tableFor(orfName) {
+    if (cuModel === "genome") return GENOME_T;
+    const n = lacCounts(state.key === "lac" ? orfName : null);
+    return cuModel === "lacFull" ? tableFull(n) : tableShare(n);
+  }
+  function refreshCodon() {
+    document.getElementById("cuMinOut").textContent = cuMin.value;
+    const hasAnn = state.rec.cds.length > 0;
+    const orfList = orfGroups(state.seq, +cuMin.value, cuAlt.checked).map(x => x.toOrf(x.g.starts[0])).sort((a, b) => a.fs - b.fs);
+    let gWin = 0, gTot = 0, nRej = 0, nTot = 0, wins = 0;
+    const rows = orfList.map(o => {
+      const a = hasAnn ? annot(o) : null;
+      const t = tableFor(a ? a.c.name : null);
+      const anti = rc(o.text);
+      const sc = [o.text, o.text.slice(1), o.text.slice(2), anti, anti.slice(1), anti.slice(2)].map(d => scoreDna(t, d));
+      const other = Math.max(...sc.slice(1)), win = sc[0] > other;
+      if (win) wins++;
+      if (a) { gTot++; if (win) gWin++; } else { nTot++; if (!win) nRej++; }
+      const lo = Math.min(...sc), hi = Math.max(...sc), span = hi - lo || 1;
+      const bars = sc.map((v, i) => {
+        const h = 2 + 30 * (v - lo) / span, x = i * 22 + (i > 2 ? 8 : 0);
+        return `<rect x="${x}" y="${34 - h}" width="16" height="${h}" rx="3" fill="${i === 0 ? "var(--s1)" : "var(--muted)"}" fill-opacity="${i === 0 ? 1 : 0.45}"><title>${FRAME_NAMES[i]}: ${v.toFixed(3)}</title></rect>`;
+      }).join("");
+      const svg = `<svg width="138" height="36" viewBox="0 0 138 36" role="img" aria-label="Frame scores: ${sc.map((v, i) => FRAME_NAMES[i] + " " + v.toFixed(3)).join(", ")}"><line x1="0" y1="34.5" x2="138" y2="34.5" stroke="var(--line)"/>${bars}</svg>`;
+      const best = FRAME_NAMES[sc.indexOf(Math.max(...sc))];
+      const verdict = win ? `<span class="tag ok">own frame wins by ${(sc[0] - other).toFixed(3)}</span>` : `<span class="tag bad">prefers ${best}</span>`;
+      return `<tr><td><span class="strandmark ${o.strand === "+" ? "p" : "m"}">${o.strand === "+" ? "+" : "−"}</span></td><td class="num">${fmt(o.fs + 1)}–${fmt(o.fe)}</td><td>${annotTag(o)}</td><td>${svg}</td><td>${verdict}</td></tr>`;
+    });
+    document.getElementById("cuRows").innerHTML = rows.join("") || `<tr><td colspan="5" class="muted">No ORFs this long.</td></tr>`;
+    document.getElementById("cuStatus").innerHTML = hasAnn
+      ? `<span class="pill ${gWin === gTot ? "ok" : "bad"}">Annotated genes that win their own frame: ${gWin} of ${gTot}</span><span class="pill ${nRej === nTot ? "ok" : ""}">Unannotated ORFs that prefer another frame: ${nRej} of ${nTot}</span>`
+      : `<span class="pill">Own frame wins for ${wins} of ${orfList.length} ORFs</span><span class="checkmsg">No annotation to compare with.</span>`;
+    document.getElementById("cuNote").textContent = cuModel === "genome"
+      ? "Genome table: each codon's share of its amino acid in E. coli K-12, from the Kazusa Codon Usage Database via python_codon_tables."
+      : (state.key === "lac" ? "Trained on the lac genes. Each annotated gene is scored with a table built from the other three." : "Trained on all four lac genes from the lac record.");
+  }
+  document.querySelectorAll("#modelSeg button").forEach(b => b.addEventListener("click", () => {
+    cuModel = b.dataset.model;
+    document.querySelectorAll("#modelSeg button").forEach(x => x.setAttribute("aria-pressed", String(x === b)));
+    refreshCodon();
+  }));
+  cuMin.addEventListener("input", refreshCodon);
+  cuAlt.addEventListener("change", refreshCodon);
+
+  (function codonChart() {
+    const lacS = tableShare(lacCounts(null));
+    const fams = {};
+    SENSE.forEach(c => { (fams[CODE[c]] = fams[CODE[c]] || []).push(c); });
+    const html = Object.keys(fams).sort().filter(aa => fams[aa].length > 1).map(aa => {
+      const rows = fams[aa].sort().map(c => {
+        const l = lacS[c], g = GENOME_SHARES[c] || 0;
+        return `<div class="cu-row"><span class="cu-codon">${c}</span><span class="cu-bars"><span class="cu-bar" style="width:${(l * 100).toFixed(1)}%;background:var(--s1)" title="${c}, lac genes: ${l.toFixed(2)}"></span><span class="cu-bar" style="width:${(g * 100).toFixed(1)}%;background:var(--s2)" title="${c}, E. coli genome: ${g.toFixed(2)}"></span></span><span class="cu-val">${l.toFixed(2)}<br>${g.toFixed(2)}</span></div>`;
+      }).join("");
+      return `<div class="cu-fam"><div class="cu-aa">${aa}</div>${rows}</div>`;
+    }).join("");
+    document.getElementById("cuGrid").innerHTML = html;
+  })();
+
   /* ---------- sequence choice ---------- */
   const customBox = document.getElementById("customBox");
   function showRecord() {
@@ -1274,7 +1463,7 @@ if __name__ == "__main__":
     customBox.hidden = key !== "custom";
     showRecord();
     updaters.forEach(u => u());
-    refreshOrfs(); refreshRbs(); refreshPromoter();
+    refreshOrfs(); refreshRbs(); refreshPromoter(); refreshCodon();
   }
   document.querySelectorAll("#seqSeg button").forEach(b => b.addEventListener("click", () => {
     setSeq(b.dataset.seq);

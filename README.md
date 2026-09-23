@@ -10,4 +10,12 @@ GenBank CDS annotation. Later steps search upstream for ribosome binding sites a
 promoters and measure how often those regexes match by chance. Students can also load their own
 GenBank or FASTA file.
 
-`orf_finder.py` is the reference solution: run `python3 orf_finder.py` from the repository root.
+Python, run from the repository root:
+
+- `find_candidate_genes.py` is the minimal goal students build: ORFs on both strands (with
+  overlaps), a length cutoff, and translation, in about 40 commented lines.
+- `orf_finder.py` is the full reference solution: alternative start codons, start choice by
+  ribosome binding site, and comparison with the GenBank annotation.
+
+Step 9 (optional) scores ORFs by codon usage. Its genome-wide *E. coli* K-12 table comes from the
+Kazusa Codon Usage Database via the `python_codon_tables` package (CC0).
