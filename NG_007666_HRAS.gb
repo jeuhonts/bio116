@@ -1,0 +1,378 @@
+LOCUS       NG_007666              10309 bp    DNA     linear   PRI 05-JUN-2026
+DEFINITION  Homo sapiens HRas proto-oncogene, GTPase (HRAS), RefSeqGene
+            (LRG_506) on chromosome 11.
+ACCESSION   NG_007666
+VERSION     NG_007666.1
+KEYWORDS    RefSeq; RefSeqGene.
+SOURCE      Homo sapiens (human)
+  ORGANISM  Homo sapiens
+            Eukaryota; Metazoa; Chordata; Craniata; Vertebrata; Euteleostomi;
+            Mammalia; Eutheria; Euarchontoglires; Primates; Haplorrhini;
+            Catarrhini; Hominidae; Homo.
+REFERENCE   1  (bases 1 to 10309)
+  AUTHORS   Gripp,K.W. and Weaver,K.N.
+  TITLE     HRAS-Related Costello Syndrome
+  JOURNAL   (in) Adam MP, Bick S, Mirzaa GM, Pagon RA, Wallace SE and Amemiya A
+            (Eds.);
+            GENEREVIEWS(R);
+            (1993)
+   PUBMED   20301680
+COMMENT     REVIEWED REFSEQ: This record has been curated by NCBI staff in
+            collaboration with Nazneen Rahman. The reference sequence was
+            derived from AC137894.5.
+            This sequence is a reference standard in the RefSeqGene project.
+            
+            Summary: This gene belongs to the Ras oncogene family, whose
+            members are related to the transforming genes of mammalian sarcoma
+            retroviruses. The products encoded by these genes function in
+            signal transduction pathways. These proteins can bind GTP and GDP,
+            and they have intrinsic GTPase activity. This protein undergoes a
+            continuous cycle of de- and re-palmitoylation, which regulates its
+            rapid exchange between the plasma membrane and the Golgi apparatus.
+            Mutations in this gene cause Costello syndrome, a disease
+            characterized by increased growth at the prenatal stage, growth
+            deficiency at the postnatal stage, predisposition to tumor
+            formation, cognitive disability, skin and musculoskeletal
+            abnormalities, distinctive facial appearance and cardiovascular
+            abnormalities. Defects in this gene are implicated in a variety of
+            cancers, including bladder cancer, follicular thyroid cancer, and
+            oral squamous cell carcinoma. Multiple transcript variants, which
+            encode different isoforms, have been identified for this gene.
+            [provided by RefSeq, Jul 2008].
+PRIMARY     REFSEQ_SPAN         PRIMARY_IDENTIFIER PRIMARY_SPAN        COMP
+            1-10309             AC137894.5         151930-162238       c
+FEATURES             Location/Qualifiers
+     source          1..10309
+                     /organism="Homo sapiens"
+                     /mol_type="genomic DNA"
+                     /db_xref="taxon:9606"
+                     /chromosome="11"
+                     /map="11p15.5"
+     gene            complement(<1..>10309)
+                     /gene="LRRC56"
+                     /gene_synonym="CILD39; DNAAF12; oda8"
+                     /note="leucine rich repeat containing 56"
+                     /db_xref="GeneID:115399"
+                     /db_xref="HGNC:HGNC:25430"
+                     /db_xref="MIM:618227"
+     mRNA            complement(join(<825..971,1691..1953,2946..3024))
+                     /gene="LRRC56"
+                     /gene_synonym="CILD39; DNAAF12; oda8"
+                     /product="leucine rich repeat containing 56, transcript
+                     variant 1"
+                     /transcript_id="NM_198075.4"
+                     /db_xref="GeneID:115399"
+                     /db_xref="HGNC:HGNC:25430"
+                     /db_xref="MIM:618227"
+     gene            4975..8309
+                     /gene="HRAS"
+                     /gene_synonym="C-BAS/HAS; C-H-RAS; C-HA-RAS1; CTLO;
+                     H-RASIDX; HAMSV; HRAS1; p21ras; RASH1"
+                     /note="HRas proto-oncogene, GTPase"
+                     /db_xref="GeneID:3265"
+                     /db_xref="HGNC:HGNC:5173"
+                     /db_xref="MIM:190020"
+     mRNA            join(4975..5135,6176..6339,6607..6785,6939..7098,
+                     7796..7920,8029..8309)
+                     /gene="HRAS"
+                     /gene_synonym="C-BAS/HAS; C-H-RAS; C-HA-RAS1; CTLO;
+                     H-RASIDX; HAMSV; HRAS1; p21ras; RASH1"
+                     /product="HRas proto-oncogene, GTPase, transcript variant
+                     1"
+                     /transcript_id="NM_005343.4"
+                     /db_xref="GeneID:3265"
+                     /db_xref="LRG:t1"
+                     /db_xref="HGNC:HGNC:5173"
+                     /db_xref="MIM:190020"
+     exon            4975..5135
+                     /gene="HRAS"
+                     /gene_synonym="C-BAS/HAS; C-H-RAS; C-HA-RAS1; CTLO;
+                     H-RASIDX; HAMSV; HRAS1; p21ras; RASH1"
+                     /inference="alignment:Splign:2.1.0"
+                     /number=1
+     exon            6176..6339
+                     /gene="HRAS"
+                     /gene_synonym="C-BAS/HAS; C-H-RAS; C-HA-RAS1; CTLO;
+                     H-RASIDX; HAMSV; HRAS1; p21ras; RASH1"
+                     /inference="alignment:Splign:2.1.0"
+                     /number=2
+     CDS             join(6229..6339,6607..6785,6939..7098,7796..7915)
+                     /gene="HRAS"
+                     /gene_synonym="C-BAS/HAS; C-H-RAS; C-HA-RAS1; CTLO;
+                     H-RASIDX; HAMSV; HRAS1; p21ras; RASH1"
+                     /EC_number="3.6.5.2"
+                     /note="isoform 1 is encoded by transcript variant 1;
+                     Ha-Ras1 proto-oncoprotein; Ras family small GTP binding
+                     protein H-Ras; Harvey rat sarcoma viral oncogene homolog;
+                     p19 H-RasIDX protein; transforming protein p21; GTPase
+                     HRas; GTP- and GDP-binding peptide B; transformation gene:
+                     oncogene HAMSV; c-has/bas p21 protein; v-Ha-ras Harvey rat
+                     sarcoma viral oncogene homolog; Harvey rat sarcoma viral
+                     oncoprotein"
+                     /codon_start=1
+                     /product="GTPase HRas isoform 1"
+                     /protein_id="NP_005334.1"
+                     /db_xref="CCDS:CCDS7698.1"
+                     /db_xref="GeneID:3265"
+                     /db_xref="LRG:p1"
+                     /db_xref="HGNC:HGNC:5173"
+                     /db_xref="MIM:190020"
+                     /translation="MTEYKLVVVGAGGVGKSALTIQLIQNHFVDEYDPTIEDSYRKQV
+                     VIDGETCLLDILDTAGQEEYSAMRDQYMRTGEGFLCVFAINNTKSFEDIHQYREQIKR
+                     VKDSDDVPMVLVGNKCDLAARTVESRQAQDLARSYGIPYIETSAKTRQGVEDAFYTLV
+                     REIRQHKLRKLNPPDESGPGCMSCKCVLS"
+     mat_peptide     join(6229..6339,6607..6785,6939..7098,7796..7903)
+                     /gene="HRAS"
+                     /gene_synonym="C-BAS/HAS; C-H-RAS; C-HA-RAS1; CTLO;
+                     H-RASIDX; HAMSV; HRAS1; p21ras; RASH1"
+                     /product="GTPase HRas. /id=PRO_0000042996"
+                     /note="propagated from UniProtKB/Swiss-Prot (P01112.1)"
+     misc_feature    6229..6231
+                     /gene="HRAS"
+                     /gene_synonym="C-BAS/HAS; C-H-RAS; C-HA-RAS1; CTLO;
+                     H-RASIDX; HAMSV; HRAS1; p21ras; RASH1"
+                     /note="N-acetylmethionine, in GTPase HRas, alternate.
+                     /evidence=ECO:0000269|Ref.12; propagated from
+                     UniProtKB/Swiss-Prot (P01112.1); acetylation site"
+     mat_peptide     join(6232..6339,6607..6785,6939..7098,7796..7903)
+                     /gene="HRAS"
+                     /gene_synonym="C-BAS/HAS; C-H-RAS; C-HA-RAS1; CTLO;
+                     H-RASIDX; HAMSV; HRAS1; p21ras; RASH1"
+                     /product="GTPase HRas, N-terminally processed.
+                     /id=PRO_0000326476"
+                     /note="propagated from UniProtKB/Swiss-Prot (P01112.1)"
+     misc_feature    6232..6234
+                     /gene="HRAS"
+                     /gene_synonym="C-BAS/HAS; C-H-RAS; C-HA-RAS1; CTLO;
+                     H-RASIDX; HAMSV; HRAS1; p21ras; RASH1"
+                     /note="N-acetylthreonine, in GTPase HRas, N-terminally
+                     processed. /evidence=ECO:0000269|Ref.12; propagated from
+                     UniProtKB/Swiss-Prot (P01112.1); acetylation site"
+     misc_feature    join(6322..6339,6607..6615)
+                     /gene="HRAS"
+                     /gene_synonym="C-BAS/HAS; C-H-RAS; C-HA-RAS1; CTLO;
+                     H-RASIDX; HAMSV; HRAS1; p21ras; RASH1"
+                     /note="propagated from UniProtKB/Swiss-Prot (P01112.1);
+                     Region: Effector region"
+     misc_feature    6331..6333
+                     /gene="HRAS"
+                     /gene_synonym="C-BAS/HAS; C-H-RAS; C-HA-RAS1; CTLO;
+                     H-RASIDX; HAMSV; HRAS1; p21ras; RASH1"
+                     /note="(Microbial infection) O-linked (Glc) threonine, by
+                     P.sordellii toxin TcsL.
+                     /evidence=ECO:0000269|PubMed:19744486,
+                     ECO:0000269|PubMed:8626575, ECO:0000269|PubMed:8626586,
+                     ECO:0000269|PubMed:9632667; propagated from
+                     UniProtKB/Swiss-Prot (P01112.1); glycosylation site"
+     misc_feature    7841..7900
+                     /gene="HRAS"
+                     /gene_synonym="C-BAS/HAS; C-H-RAS; C-HA-RAS1; CTLO;
+                     H-RASIDX; HAMSV; HRAS1; p21ras; RASH1"
+                     /note="propagated from UniProtKB/Swiss-Prot (P01112.1);
+                     Region: Hypervariable region"
+     misc_feature    7901..7903
+                     /gene="HRAS"
+                     /gene_synonym="C-BAS/HAS; C-H-RAS; C-HA-RAS1; CTLO;
+                     H-RASIDX; HAMSV; HRAS1; p21ras; RASH1"
+                     /note="Cysteine methyl ester.
+                     /evidence=ECO:0000269|PubMed:8626715; propagated from
+                     UniProtKB/Swiss-Prot (P01112.1); methylation site"
+     exon            6607..6785
+                     /gene="HRAS"
+                     /gene_synonym="C-BAS/HAS; C-H-RAS; C-HA-RAS1; CTLO;
+                     H-RASIDX; HAMSV; HRAS1; p21ras; RASH1"
+                     /inference="alignment:Splign:2.1.0"
+                     /number=3
+     exon            6939..7098
+                     /gene="HRAS"
+                     /gene_synonym="C-BAS/HAS; C-H-RAS; C-HA-RAS1; CTLO;
+                     H-RASIDX; HAMSV; HRAS1; p21ras; RASH1"
+                     /inference="alignment:Splign:2.1.0"
+                     /number=4
+     exon            7796..7920
+                     /gene="HRAS"
+                     /gene_synonym="C-BAS/HAS; C-H-RAS; C-HA-RAS1; CTLO;
+                     H-RASIDX; HAMSV; HRAS1; p21ras; RASH1"
+                     /inference="alignment:Splign:2.1.0"
+                     /number=5
+     exon            8029..8309
+                     /gene="HRAS"
+                     /gene_synonym="C-BAS/HAS; C-H-RAS; C-HA-RAS1; CTLO;
+                     H-RASIDX; HAMSV; HRAS1; p21ras; RASH1"
+                     /inference="alignment:Splign:2.1.0"
+                     /number=6
+ORIGIN      
+        1 ccaccccgag cctagagaag gctcctagct tggctgggcc tcatggggcc cttgtctgct
+       61 tagttccagc ctggagggcc tcacgctccc ctcccccagc cttggctcga ccccctctgc
+      121 ttcgtaggac accctccctg tgtttctgcc catcctcagg gtccatgcag ggagtgctgg
+      181 cttcaggcct ccccacctga ggcccacagg ggctgtgagc ctggggtgcc gggccagctg
+      241 ccggtggctg tggggctccc ggcactgcct caagctgtgg gctatgggtc cttctccacc
+      301 tgatggtctc tgagcctggg gtccaggatc aagtcccagg ccttccccta ccccagccct
+      361 gtgccagccg agccccttca cctgcaggca gctgccctct cctgctgtgg gtcaaacatc
+      421 caggcaagga ggtggcatgt accctcaggc agtacctgca agagtcagag tggcttcctg
+      481 gccaggttac tgtgcccatg ggagcctgga atgggccagg ctgaggtcac agcacctaga
+      541 ggtgagcaga tcagcccagg acctgactat ccacggaccc agctggcgag gaggaagaga
+      601 gtcaggtgtg tgaccgatgc tggggtacct ctgggtcccc caacacaatg cctgctgctc
+      661 atccaaatcc cacttccctc cttctccaca ggggtcctct cttgcaccct gttcttcctg
+      721 agcccctccc caggcctctg agggtattgg cccagtgtgt ccctctcttg catcccattc
+      781 ttcctaagcc cagtgtgtcc ctcgactacg tgcatcaggc ttacctggtg ttgcccctta
+      841 aagatgcaga cgtctggcgg ggcgcagtgg ctcacgcctg taatcccagc actttgggag
+      901 gccgcggcgg gcagatcacg aggtcaggag attgagacca tcctggctaa cacggtgaaa
+      961 ccctgtctct actaaaaata caaaaaaaaa aaaaaaaaaa ttagctggcg tggtggcagg
+     1021 tgcctgtagt cccagctact tgggaggctg aggcaggaga atgccatgaa cccgcgaggc
+     1081 ggagcttgca gtgagacaag atcgcgccac tgtcctccag cctgggcaac agagcaagac
+     1141 tctgtctcaa aaaaaaaaaa aaaaaaggct gggtgcggtg gctcacacct gtaatcccag
+     1201 cactttggga ggctgaggcg ggcagatcac aagatcagga gatcaagacc atcctggcta
+     1261 acgaggtgaa accccatctc tactaaagat acaaaaaaca tagttagcca ggcgtggtgg
+     1321 cggacgcctg tagtcccagc tacttgggag gctgaggctg gggaatggca tgaacccagg
+     1381 aggtggagct tgcagtgagc caagatggca ccactgcact ccagcctggg cgacagagag
+     1441 agactccatc tcaaaaaaca aacaaacaaa caaagatgca gacatctgcc tcggccccag
+     1501 gccctggaat catgagctcc aggcgtggag tgacaagtgt gctcggagcg tccagtgtcc
+     1561 tcctccctga ccaccttcat gtgtcttcag tctggacctg gactgatccc ctgactgcac
+     1621 tccccaccca gccttcccag atttatcttc ctgatgagac gagttccctt cggagccctg
+     1681 tgtgtcttac tacgtgttcg gttgagggcc tgcctcgccc cagagctgtg ggctgcacgt
+     1741 ggcctgcacg tggcctgcgt gctcctctgc tgtccacagt cgcaggaggg gatgctcaaa
+     1801 tatttgtcga aggaatccgt gaacaggcag atgcacatgt agccacttag aacgttctgg
+     1861 ccatggcttt tatctgttga ccacgtgtgg acactgaaga tgcatcctct ccatcccgtc
+     1921 tagagctgcc cctgtgccag gcgagttggc cggctgttga cagaggtggt gggtgggagt
+     1981 gttggagcgg ggcagtggct caggctctgg gtgcctcact ggcctggtct ggaaggtgac
+     2041 catgcaccaa ggatcaaaga agtgaagccc aaagcagaat ctcatggagt ttccagccca
+     2101 aatctccccc actgcctgcc tttctccagc cagtgcaagg ccccaggcct cacagcagga
+     2161 ccccaacact gcatcccccc aaagactctg gccacctcca tcccaggcct gccagcctcg
+     2221 agcctcatgg agggcgtgag ctggcggggt cacgggcagc ccctggacac ctatgggtga
+     2281 cactaagggc tgagtcagct acccttgtct cctctgtgcc caagagcccc aagcatcaga
+     2341 ctggtctgag ccccaaggcc tgggggtgca aggggttgga ggctgtggga tccaaagacc
+     2401 ccattgaact cccacctcag acactgcacc tagtgttctc acccaggcct gaacccatcc
+     2461 acacacttca cggccctgct cccaccctgt gtcccctctg caagccccca tgctccccaa
+     2521 attggtaact ggggggcctg tctccacacc cctgctagtg ccattccctg gtgggtagcc
+     2581 atcacctctg ggtcccctgc tgccctcgcc ccttcaccat gggggctcgg aaggcagagc
+     2641 ccgctcccct cctgagcccc accctggaac cctgagcacc ctgggtcatt gcctctgagt
+     2701 ctccctcagg ggcagggctt ggggcccctc ctgtctcctg acagggagcc ctttcagtgc
+     2761 agggccaggg ggtggtggag gcaagggtcc tcaggggacc agatctgaca tgcggggcca
+     2821 tcactgggtc cccgatggct gtgctgcttc gtccccgcgc ccacgcctcg gcgcaggttc
+     2881 cctcctggca ccggtcatag ggcgaggctt gcggctccca ccccaagggt gcgctcggct
+     2941 ctcacctgag ggctcagcct aggtgtccgg ccctggcagc tcggccctgg gcgccctcca
+     3001 cctccaggcg ctgtctccta ctccaggctg ttcttccggc cgccgcgggg ttgcggcctg
+     3061 ggcgccatag caacgggagc caggcctcat ttgaatacgc aaatatttat aagtcgccgg
+     3121 gggctcgggt tccgtgcggc tgagccacgc cccttagcaa cggtcgctag ggcggggcca
+     3181 cgtggactgg cacgtgcgtg ggcgcccctg ctgcgggcga tcccagggga aggtgacgcg
+     3241 ccaccaactc gagttgggtg ggcgcaggcg cgtcaggtgc cagcttcctg cggctccgtg
+     3301 cctgggccgt cgcgatgcac gtgtcgcgtt tcctcgcgat cctggcgctt cccacgcggg
+     3361 gcgggtaaag gcggtctctg ctggaggctc gcgcccacct ttcccaggtg gaagggtcgc
+     3421 ccctggggcc gaggcctgcc gtcctgacct tcggttggaa gtgaggccga cggcaaaagg
+     3481 aagcaccggg ggaagcgccc ccgaggacca ggaaacacac accggacgcc ggagcgcacc
+     3541 cgagtgcccg gcccgcggga cacgctgccg cccgccgtcc agtcgccgct tctcactcgc
+     3601 gttcatgcgt gtccgccccg agccgagctc tgactgcgac cgcgcggtgg acggacggca
+     3661 ggcgggaccc ccgggaccgc acgtgggtgg agccccgggt cagcagcgac cggcgcagga
+     3721 gggcgaggcg ggcgctggac tgggcagagg cagggtttgc ctgactgtaa aacgcctttt
+     3781 ttgttttgag acgaagtagc gctctgttgc ccagtgcagt ggcgcgattt cggctcaccg
+     3841 caacatccgc ctcccgggtt ccagcgattc tcctgcctca gcctcccgag tagctgggac
+     3901 tacaggcgcg cgccactgca gccgactaat tttttgtgtt tttagtagag acagggtttc
+     3961 atcatgttgg ccaggctggt cttgaactcc tgacctcaag taatccaccc gcttaggcct
+     4021 cccgaagtgc tgggattata ggcgtgagcc accgcgcccg gccctttttg ttttttaatg
+     4081 aggatgtatt tctgattcct ttgcaatttt aaaaaatgtt aaaaacatgt ctttttgggt
+     4141 ttgaaagagc taggatgtgc gtctatgtgc ttggggtgag ccctgggcac ttcgctcccc
+     4201 tgtggcaact tgtgggtacg gtttaactgg accacgctga gcttctgcag cgttggaacc
+     4261 tcaagtttgg ggggactggg cgggcagggt cgcctgccac gcaggcccga gaaagaggag
+     4321 agtggtggag ggggcgttct cacgcctggc cccagggcac acggctgcgc ccgccgcccg
+     4381 gaaccccacc ggggctgcaa gcgtcctcgg ggtgggttgc ggtgggagta ggggagctgg
+     4441 ggtgcgtggt ggtaggtggg gtgcgcggcc gctccacctg cgcggaaggg cagccgggca
+     4501 accggacccc gcggccaccc gggggccccc agctccgagc atcccgcctt ggtcccggcg
+     4561 gatcccagcc tttccccagc ccgtagcccc gggacctccg cggtgggcgg cgccgcgctg
+     4621 ccggcgcagg gagggcctct ggtgcaccgg caccgctgag tcgggttctc tcgccggcct
+     4681 gttcccggga gagcccgggg ccctgctcgg agatgccgcc ccgggccccc agacaccggc
+     4741 tccctggcct tcctcgagca accccgagct cggctccggt ctccagccaa gcccaacccc
+     4801 gagaggccgc ggccctactg gctccgcctc ccgcgttgct cccggaagcc ccgcccgacc
+     4861 gcggctcctg acagacgggc cgctcagcca accggggtgg ggcggggccc gatggcgcgc
+     4921 agccaatggt aggccgcgcc tggcagacgg acgggcgcgg ggcggggcgt gcgcaggccc
+     4981 gcccgagtct ccgccgcccg tgccctgcgc ccgcaacccg agccgcaccc gccgcggacg
+     5041 gagcccatgc gcggggcgaa ccgcgcgccc ccgcccccgc cccgccccgg cctcggcccc
+     5101 ggccctggcc ccgggggcag tcgcgcctgt gaacggtgag tgcgggcagg gatcggccgg
+     5161 gccgcgcgcc ctcctcgccc ccaggcggca gcaatacgcg cggcgcgggc cgggggcgcg
+     5221 gggccggcgg gcgtaagcgg cggcggcggc ggcggcggcg ggtgggtggg gccgggcggg
+     5281 gcccgcgggc acaggtgagc gggcgtcggg ggctgcggcg ggcgggggcc ccttcctccc
+     5341 tggggcctgc gggaatccgg gccccacccg tggcctcgcg ctgggcacgg tccccacgcc
+     5401 ggcgtacccg ggagcctcgg gcccggcgcc ctcacacccg ggggcgtctg ggaggaggcg
+     5461 gccgcggcca cggcacgccc gggcaccccc gattcagcat cacaggtcgc ggaccaggcc
+     5521 gggggcctca gccccagtgc cttttccctc tccgggtctc ccgcgccgct tctcggcccc
+     5581 ttcctgtcgc tcagtccctg cttcccagga gctcctctgt cttctccagc tttctgtggc
+     5641 tgaaagatgc ccccggttcc ccgccggggg tgcggggcgc tgcccgggtc tgccctcccc
+     5701 tcggcggcgc ctagtacgca gtaggcgctc agcaaatact tgtcggaggc accagcgccg
+     5761 cggggcctgc aggctggcac tagcctgccc gggcacgccg tggcgcgctc cgccgtggcc
+     5821 agacctgttc tggaggacgg taacctcagc cctcgggcgc ctccctttag cctttctgcc
+     5881 gacccagcag cttctaattt gggtgcgtgg ttgagagcgc tcagctgtca gccctgcctt
+     5941 tgagggctgg gtcccttttc ccatcactgg gtcattaaga gcaagtgggg gcgaggcgac
+     6001 agccctcccg cacgctgggt tgcagctgca caggtaggca cgctgcagtc cttgctgcct
+     6061 ggcgttgggg cccagggacc gctgtgggtt tgcccttcag atggccctgc cagcagctgc
+     6121 cctgtggggc ctggggctgg gcctgggcct ggctgagcag ggccctcctt ggcaggtggg
+     6181 gcaggagacc ctgtaggagg accccgggcc gcaggcccct gaggagcgat gacggaatat
+     6241 aagctggtgg tggtgggcgc cggcggtgtg ggcaagagtg cgctgaccat ccagctgatc
+     6301 cagaaccatt ttgtggacga atacgacccc actatagagg tgagcctggc gccgccgtcc
+     6361 aggtgccagc agctgctgcg ggcgagccca ggacacagcc aggatagggc tggctgcagc
+     6421 ccctggtccc ctgcatggtg ctgtggccct gtctcctgct tcctctagag gaggggagtc
+     6481 cctcgtctca gcaccccagg agaggagggg gcatgagggg catgagaggt accagggaga
+     6541 ggctggctgt gtgaactccc cccacggaag gtcctgaggg ggtccctgag ccctgtcctc
+     6601 ctgcaggatt cctaccggaa gcaggtggtc attgatgggg agacgtgcct gttggacatc
+     6661 ctggataccg ccggccagga ggagtacagc gccatgcggg accagtacat gcgcaccggg
+     6721 gagggcttcc tgtgtgtgtt tgccatcaac aacaccaagt cttttgagga catccaccag
+     6781 tacaggtgaa ccccgtgagg ctggcccggg agcccacgcc gcacaggtgg ggccaggccg
+     6841 gctgcgtcca ggcaggggcc tcctgtcctc tctgcgcatg tcctggatgc cgctgcgcct
+     6901 gcagcccccg tagccagctc tcgctttcca cctctcaggg agcagatcaa acgggtgaag
+     6961 gactcggatg acgtgcccat ggtgctggtg gggaacaagt gtgacctggc tgcacgcact
+     7021 gtggaatctc ggcaggctca ggacctcgcc cgaagctacg gcatccccta catcgagacc
+     7081 tcggccaaga cccggcaggt gaggcagctc tccaccccac agctagccag ggacccgccc
+     7141 cgccccgccc cagccaggga gcagcactca ctgaccctct cccttgacac agggcagccg
+     7201 ctctggctct agctccagct ccgggaccct ctgggacccc ccgggaccca tgtgacccag
+     7261 cggcccctcg cgctgtaagt ctcccgggac ggcagggcag tgagggaggc gagggccggg
+     7321 gtctgggctc acgccctgca gtcctgggcc gacacagctc cggggaaggc ggaggtcctt
+     7381 ggggagagct gccctgagcc aggccggagc ggtgaccctg gggcccggcc cctcttgtcc
+     7441 ccagagtgtc ccacgggcac ctgttggttc tgagtcttag tggggctact ggggacacgg
+     7501 gccgtagctg agtcgagagc tgggtgcagg gtggtcaaac cctggccaga cctggagttc
+     7561 aggagggccc cgggccaccc tgacctttga ggggctgctg tagcatgatg cgggtggccc
+     7621 tgggcacttc gagatggcca gagtccagct tcccgtgtgt gtggtgggcc tggggaagtg
+     7681 gctggtggag tcgggagctt cgggccaggc aaggcttgat cccacagcag ggagcccctc
+     7741 acccaggcag gcggccacag gccggtccct cctgatccca tccctccttt cccagggagt
+     7801 ggaggatgcc ttctacacgt tggtgcgtga gatccggcag cacaagctgc ggaagctgaa
+     7861 ccctcctgat gagagtggcc ccggctgcat gagctgcaag tgtgtgctct cctgacgcag
+     7921 gtgaggggga ctcccagggc ggccgccacg cccaccggat gaccccggct ccccgcccct
+     7981 gccggtctcc tggcctgcgg tcagcagcct cccttgtgcc ccgcccagca caagctcagg
+     8041 acatggaggt gccggatgca ggaaggaggt gcagacggaa ggaggaggaa ggaaggacgg
+     8101 aagcaaggaa ggaaggaagg gctgctggag cccagtcacc ccgggaccgt gggccgaggt
+     8161 gactgcagac cctcccaggg aggctgtgca cagactgtct tgaacatccc aaatgccacc
+     8221 ggaaccccag cccttagctc ccctcccagg cctctgtggg cccttgtcgg gcacagatgg
+     8281 gatcacagta aattattgga tggtcttgat cttggttttc ggctgagggt gggacacggt
+     8341 gcgcgtgtgg cctggcatga ggtatgtcgg aacctcaggc ctgtccagcc ctgggctctc
+     8401 catagccttt gggaggggga ggttgggaga ggccggtcag gggtctgggc tgtggtgctc
+     8461 tctcctcccg cctgccccag tgtccacggc ttctggcaga gagctctgga caagcaggca
+     8521 gatcataagg acagagagct tactgtgctt ctaccaacta ggagggcgtc ctggtcctcc
+     8581 agagggaggt ggtttcaggg gttggggatc tgtgccggtg gctctggtct ctgctgggag
+     8641 ccttcttggc ggtgagaggc atcacctttc ctgacttgct cccagcgtga aatgcacctg
+     8701 ccaagaatgg cagacatagg gaccccgcct cctgggcctt cacatgccca gttttcttcg
+     8761 gctctgtggc ctgaagcggt ctgtggacct tggaagtagg gctccagcac cgactggcct
+     8821 caggcctctg cctcattggt ggtcgggtag cggccagtag ggcgtgggag cctggccatc
+     8881 cctgcctcct ggagtggacg aggttggcag ctggtccgtc tgctcctgcc ccactctccc
+     8941 ccgcccctgc cctcacccta cccttgcccc acgcctgcct catggctggt tgctcttgga
+     9001 gcctggtagt gtcactggct cagccttgct gggtatacac aggctctgcc acccactctg
+     9061 ctccaagggg cttgccctgc cttgggccaa gttctaggtc tggccacagc cacagacagc
+     9121 tcagtcccct gtgtggtcat cctggcttct gctgggggcc cacagcgccc ctggtgcccc
+     9181 tcccctccca gggcccgggt tgaggctggg ccaggcccct ctgggacggg gacttgtgcc
+     9241 ctgtcagggt tccctatccc tgaggttggg ggagagctag cagggcatgc cgctggctgg
+     9301 ccagggctgc agggacactc ccccttttgt ccagggaata ccacactcgc ccttctctcc
+     9361 agcgaacacc acactcgccc ttctctccag gggacgccac actccccctt ctgtccaggg
+     9421 gacgccacac tcccccttct ctccagggga cgccacactc gcccttctct ccaggggacg
+     9481 ccacactcgc ccttctctcc aggggacgcc acactccccc ttctgtccag gggacgccac
+     9541 actcgccctt ctctccaggg gacgccacac tggcccttct ctccagggga cgccacactc
+     9601 ccccttctgt ccaggggacg ccacactccc ccttctctcc aggggacgcc acactccccc
+     9661 ttctctccag gggacgccac actggccctt ctctccaggg gacgccacac tcccccttct
+     9721 gtccagggga cgccacactc gcccttctct ccaggggacg ccacactcgc ccttctctcc
+     9781 aggggacgcc acactccccc ttctctccag gggacgccac actccccctt ctctccaggg
+     9841 gacgccacac tcccccttct ctccagggga cgccacactc ccccttctgt ccaggggacg
+     9901 ccacactcgc ccttctctcc aggggacgcc acactccccc ttctctccag gggacgccac
+     9961 actccccctt ctctccaggg gacgccacac tcccccttct gtccagggga cgccacactc
+    10021 gcccttctct ccaggggacg ccacactcgc ccttctctcc aggggacgcc acactcgccc
+    10081 ttctctccag gggacgccac acttgccctt ctgtccaggg aatgccacac tcccccttct
+    10141 ccccagcagc ctccgagtga ccagcttccc catcgataga cttcccgagg ccaggagccc
+    10201 tctagggctg ccgggtgcca ccctggctcc ttccacaccg tgctggtcac tgcctgctgg
+    10261 gggcgtcaga tgcaggtgac cctgtgcagg aggtatctct ggacctgcc
+//
+
