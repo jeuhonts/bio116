@@ -6,12 +6,12 @@ import re
 
 MIN_CODONS = 100   # codons between start and stop; shorter ORFs are mostly chance
 
-# Build the pattern from named pieces:  START  CODON{100,}  STOP
-START = "ATG"                                  # try "(?:ATG|GTG|TTG)" for alternative starts
-STOP = "(?:TAA|TAG|TGA)"
-CODON = "(?:(?!" + STOP + ")...)"              # any 3 bases that are not a stop codon
-# (?= ) is a lookahead: matches may overlap, so no ORF hides inside another; group 1 is the ORF
-ORF = re.compile("(?=(" + START + CODON + "{%d,}" % MIN_CODONS + STOP + "))")
+# ATG, then at least MIN_CODONS codons that are not stops, then a stop codon.
+#   (?!TAA|TAG|TGA)...   one codon (any 3 bases) that is not a stop,
+#                        so the ORF ends at the FIRST in-frame stop
+#   {%d,}                at least MIN_CODONS of those codons
+#   (?= )                lookahead: matches may overlap, so no ORF hides inside another
+ORF = re.compile(r"(?=(ATG(?:(?!TAA|TAG|TGA)...){%d,}(?:TAA|TAG|TGA)))" % MIN_CODONS)
 
 # Genetic code: codon -> amino acid (one-letter code, * = stop).
 # Laid out like the textbook table: each row varies the second base (T, C, A, G).
