@@ -205,7 +205,7 @@ table.fr td.best{background:var(--accent-soft);font-weight:700}
 .model .ex{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline;font-family:var(--mono);font-size:.82rem}
 .model .ph{color:var(--muted);font-size:.78rem;padding-left:14px}
 .prot{font:600 .84rem/1.6 var(--mono);letter-spacing:.06em;overflow-wrap:anywhere;background:var(--panel-2);padding:8px 10px;border-radius:6px}
-.prot .stop{background:var(--bad);color:#fff;border-radius:2px;padding:0 1px}
+.prot .stop{background:var(--bad);color:var(--panel);border-radius:2px;padding:0 1px}
 .prot .mm{color:var(--bad);text-decoration:underline}
 
 /* station 5 */
@@ -411,7 +411,7 @@ footer.src ul{margin:0;padding-left:1.2em;display:grid;gap:4px}
       </svg></div>
       <p>Our parser does the same search over candidate exons. Each exon's score is:</p>
       <p class="formula">w<sub>signal</sub>·(splice-site bits) + w<sub>content</sub>·(codon LLR) + exon penalty</p>
-      <p>Change the weights and watch the predicted structure change. Accuracy is measured two ways. <b>Sensitivity</b> (Sn) is the fraction of real coding bases or exons that were found. <b>Specificity</b> (Sp; in gene finding, the fraction of predictions that are right) tells you how much of the prediction is correct.</p>
+      <p>Change the weights and watch the predicted structure change. Accuracy is measured two ways. <b>Sensitivity</b> (Sn) is the fraction of real coding bases or exons that were found. <b>Specificity</b> (Sp) is the fraction of predicted coding bases or exons that are real. Gene finders call it specificity, but statisticians would call it precision.</p>
       <p class="formula">Sn = TP / (TP + FN)    Sp = TP / (TP + FP)</p>
       <div class="checks" data-station="parser"></div>
     </div>
@@ -579,19 +579,19 @@ const CHECKS = {
   ],
   signals:[
     {id:'s2find', task:true, q:'In the donor scanner, click the GT that is the real exon 2 donor (the exon ends at 6,339).'},
-    {id:'s2count', q:'How many GT dinucleotides are in the 2.3-kb window 6,100–8,400 (the histogram total)?', num:()=>DONORS.length, tol:0, why:'Only 4 of them are real HRAS donors. That is roughly one real site for every 30 candidates.'},
+    {id:'s2count', q:'How many GT dinucleotides are in the 2.3-kb window 6,100–8,400? (See the stats under the histogram.)', num:()=>DONORS.length, tol:0, why:'Only 4 of them are real HRAS donors. That is roughly one real site for every 30 candidates.'},
     {id:'s2thr', q:'Raise the threshold as high as it will go while all four real donors are still kept. How many decoy GTs still pass?', num:()=>{ const m=Math.floor(10*Math.min(...DONORS.filter(d=>d.real).map(d=>d.s)))/10; return DONORS.filter(d=>!d.real && d.s>=m-1e-9).length; }, tol:0, why:'There is no threshold that keeps every real donor and rejects all decoys. Signals alone cannot find exons.'},
     {id:'s2inv', q:'Which positions of the donor logo carry the full 2 bits of information?', opts:['+1 and +2: the invariant GT','−3 and −2','+5 and +6','None: every position is variable'], a:0, why:'Nearly every intron starts with GT, so those two positions are fixed. The rest are preferences. (A rare ~1% of introns use GC or AT–AC, and our simple matrix ignores them.)'},
   ],
   content:[
-    {id:'c3frame', q:'In which genomic frame (1, 2 or 3) is the last HRAS coding exon (7,796–7,915) read?', num:()=>cdsFrames[3], tol:0, why:'The first three coding exons are read in frame 1, but the intron before the last exon shifts the frame. Gene finders have to let the frame change at every intron.'},
+    {id:'c3frame', q:'In which genomic frame (1, 2 or 3) is the last HRAS coding exon (7,796–7,915) read?', num:()=>cdsFrames[3], tol:0, why:'The first three coding exons are read in frame 1 because the introns between them (267 and 153 bp) are multiples of 3. The intron before the last exon is 697 bp, one more than a multiple of 3, so the last exon is read in frame 2. Gene finders have to let the frame change at every intron.'},
     {id:'c3intron', q:'The introns score below zero in all three frames. Why?', opts:['Intron sequence has no codon structure, so its trinucleotides look like the background and include many stop and rare codons','Introns are removed before scoring','Introns are on the other strand','The window is too small to see introns'], a:0, why:'Only a translated frame is shaped by selection on codon use. Intron trinucleotides follow no frame and include stops, so every frame averages below zero.'},
     {id:'c3win', q:'What happens when you shrink the window to 60 bp?', opts:['The traces get noisier: short windows can call short exons but give more false peaks','The traces get smoother','Exons disappear because 60 bp is shorter than all exons','Nothing: window size does not matter'], a:0, why:'This is the content sensor\'s basic trade-off. Averaging over more codons lowers noise but blurs short exons and exact boundaries. That is why content sensors are combined with signal sensors.'},
   ],
   assemble:[
     {id:'a4build', task:true, q:'Assemble exons that translate to the complete 189-amino-acid HRAS protein.'},
     {id:'a4phase', q:'What is the phase of the intron just before the third coding exon (6,939–7,098)?', num:()=>intronPhases[1], tol:0, why:'The first two coding exons contain 111 + 179 = 290 bases. 290 = 96 × 3 + 2, so the intron falls after the second base of codon 97.'},
-    {id:'a4shift', q:'Adding candidate exon h (7,193–7,251, 59 bp) between the true exons ruins the protein. Why?', opts:['59 is not a multiple of 3, so every codon after it is read in the wrong frame','Exon h is on the minus strand','Exon h has no GT at its end','Exons shorter than 60 bp cannot be spliced'], a:0, why:'An inserted exon must keep the downstream exons in their frame. A 59-bp insert moves them two bases along, so everything after exon h is translated in the wrong frame. Try it: the protein matches HRAS only up to residue 150.'},
+    {id:'a4shift', q:'Adding candidate exon h (7,193–7,251, 59 bp) between the true exons ruins the protein. Why?', opts:['59 is not a multiple of 3, so every codon after it is read in the wrong frame','Exon h is on the minus strand','Exon h has no GT at its end','Exons shorter than 60 bp cannot be spliced'], a:0, why:'An inserted exon must keep the downstream exons in their frame. A 59-bp insert moves them two bases along, so everything after exon h is translated in the wrong frame. Try it: the protein stops matching HRAS right after exon g (about residue 150).'},
   ],
   parser:[
     {id:'p5exact', task:true, q:'Find settings where the parser predicts all four coding exons exactly (exon Sn = Sp = 100%).'},
@@ -723,7 +723,7 @@ function drawOrfs(){
 function selectOrf(i){
   orfSel=i; const r=ORFS[i];
   const where = r.hras ? 'It overlaps HRAS coding sequence, but it runs into an intron and does not cover the whole gene.'
-    : (r.a>8300 && r.a<10309 && r.strand==='+' ? 'It lies in the HRAS1 minisatellite downstream of the gene: a tandem repeat that happens to lack stops in this frame.'
+    : (r.a<10100 && r.b>9300 ? 'It lies in the HRAS1 minisatellite downstream of the gene (about 9,300–10,100): a tandem repeat whose unit happens to lack stops in this frame.'
     : (r.a<3100 ? 'It lies at the left end of the entry, in the LRRC56 and Alu-repeat region, not in HRAS.' : 'It is not part of any annotated coding sequence: a chance ORF.'));
   $('orfInfo').innerHTML=`<b>ORF ${i+1}</b>: ${r.strand==='+'?'plus':'minus'} strand, frame ${r.frame}, ${fmt(r.a)}–${fmt(r.b)}, ${r.aa} codons. ${where}`;
   if (i===0) markDone('o1sel');
@@ -783,7 +783,7 @@ function scoreMine(){
   let out;
   if (v.length!==9) out='Enter exactly 9 bases (A, C, G, T).';
   else if (v.slice(3,5)!=='GT') out='Positions +1 and +2 are not GT, so this cannot be a donor.';
-  else out=`${pwmScore(PWM_D,v).toFixed(1)} bits (maximum 13.6)`;
+  else out=`${pwmScore(PWM_D,v).toFixed(1)} bits (best possible ${PWM_D.reduce((t,q)=>t+Math.log2(Math.max(...Object.values(q))/.25),0).toFixed(1)})`;
   $('myDonorO').textContent=out;
 }
 $('myDonor').oninput=scoreMine;
@@ -813,7 +813,7 @@ function drawCodonGrid(){
   for (const f of B) for (const t of B) for (const s of B){
     const c=f+s+t, v=LLR[c], pct=Math.min(85,Math.abs(v)/2.8*85);
     const bg=`color-mix(in srgb, ${v>=0?'var(--accent)':'var(--neg)'} ${pct.toFixed(0)}%, var(--panel))`;
-    const fg=pct>50?(v>=0?'var(--accent-ink)':'#fff'):'var(--ink)';
+    const fg=pct>50?(v>=0?'var(--accent-ink)':'var(--panel)'):'var(--ink)';
     o+=`<div role="cell" style="background:${bg};color:${fg}"><span>${c} ${CODE[c]==='*'?'stop':CODE[c]}</span><small>${v>=0?'+':''}${v.toFixed(1)}</small></div>`;
   }
   $('cgrid').innerHTML=o;
@@ -987,7 +987,7 @@ function drawRNA(){
     const t0=Math.floor(rnd()*(mlen-L+1)); let prev=null;
     for (let t=t0;t<t0+L;t++){ const g=t2g(t); cov[g-E0]++; if (prev!==null && g!==prev+1){ const k=(prev+1)+'-'+(g-1); jc[k]=(jc[k]||0)+1; } prev=g; }
   }
-  JUNC=Object.entries(jc).map(([k,n])=>{ const [a,b]=k.split('-').map(Number); return {a,b,n}; });
+  JUNC=Object.entries(jc).map(([k,n])=>{ const [a,b]=k.split('-').map(Number); return {a,b,n}; }).sort((p,q)=>p.a-q.a);
   const x=scale(E0,E1,60,990), maxC=Math.max(...cov), yB=150, H=80;
   let o=`<text class="trk-lbl" x="52" y="${yB-H+8}" text-anchor="end">${Math.round(maxC)}</text><text class="trk-lbl" x="52" y="${yB}" text-anchor="end">0</text><text class="trk-lbl" x="52" y="${yB-H/2}" text-anchor="end">depth</text>`;
   let path=`M${x(E0)} ${yB}`; for (let p=E0;p<=E1;p+=5){ let m=0; for (let q=p;q<p+5&&q<=E1;q++) m=Math.max(m,cov[q-E0]); path+=` L${x(p).toFixed(1)} ${(yB-m/maxC*H).toFixed(1)}`; }
