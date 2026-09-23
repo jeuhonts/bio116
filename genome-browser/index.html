@@ -284,7 +284,7 @@ footer{margin-top:64px;color:var(--muted);font-size:.85rem;border-top:1px solid 
   </nav>
 </header>
 
-<section id="lab" class="lab" aria-label="Interactive genome browser and missions">
+<section id="lab" class="lab" aria-label="Interactive genome browser and practice questions">
   <div class="browser">
     <div class="loci" id="loci" role="tablist" aria-label="Example region">
       <button type="button" role="tab" data-locus="hras" aria-selected="true"><b>HRAS</b><span>RefSeqGene NG_007666.1 · 10.3 kb</span></button>
@@ -352,8 +352,8 @@ footer{margin-top:64px;color:var(--muted);font-size:.85rem;border-top:1px solid 
 
   <aside class="missions" aria-labelledby="m-title">
     <div class="m-top">
-      <span class="eyebrow">Guided practice</span>
-      <h2 id="m-title">Missions <span id="m-locus" style="font:500 .9rem var(--body);color:var(--muted);margin-left:4px"></span></h2>
+      <span class="eyebrow">Not graded · check as you go</span>
+      <h2 id="m-title">Practice <span id="m-locus" style="font:500 .9rem var(--body);color:var(--muted);margin-left:4px"></span></h2>
       <div class="progress" aria-hidden="true"><div id="mbar"></div></div>
       <div class="m-count"><span id="mcount"></span><button class="linkbtn" id="mreset" type="button">Reset progress</button></div>
     </div>
@@ -467,7 +467,7 @@ footer{margin-top:64px;color:var(--muted);font-size:.85rem;border-top:1px solid 
     <ul>
       <li>HRAS is on <b>chromosome 11</b> (11p15.5), on the <b>− strand</b>. The arrows point left, and exon 1 sits at the right-hand (higher-coordinate) end.</li>
       <li>Four of the six exons carry coding sequence. Exon 1 is non-coding (5′ UTR) and exon 6 is 3′ UTR, the same as NG_007666 in this lab.</li>
-      <li>The start codon reads <b>CAT</b> on the + strand, the same reverse complement you practised in Mission 8.</li>
+      <li>The start codon reads <b>CAT</b> on the + strand, the same reverse complement you practised in “Switch to genome orientation” (HRAS practice).</li>
       <li>G→T on the coding strand appears as <b>C→A</b> on chr11's + strand.</li>
     </ul>
   </details>
@@ -537,7 +537,7 @@ footer{margin-top:64px;color:var(--muted);font-size:.85rem;border-top:1px solid 
     <li><b>CpG island, minisatellite, GC and CpG tracks:</b> calculated in the page from the sequence.</li>
     <li><b>β-globin cluster:</b> GenBank U01317 (HUMHBB, 73,308 bp), saved in this repo as <code>U01317_beta_globin_cluster.gb</code>. Genes, exons, coding sequences, repeats and variant alleles come from its feature table. Every coding sequence translates exactly to the record's /translation, and every variant's normal base matches the sequence. Variant effects are calculated in the page. Descriptions add standard textbook context to the record's notes.</li>
   </ul>
-  <p style="margin-top:8px">Mission progress is saved in this browser only.</p></footer>
+  <p style="margin-top:8px">Practice progress is saved in this browser only.</p></footer>
 </div>
 
 <script src="loci.js"></script>
@@ -1244,7 +1244,7 @@ $('missions').addEventListener('submit', e => {
   else ok = q.check(f.querySelector('input[type=text]').value);
   showFeedback(m, ok);
   if (ok && !prog.q[m.id]){ prog.q[m.id] = true; save(); refreshMissionUI(); if (isDone(m)) advanceFrom(m); }
-  else if (ok && m.act && !prog.act[m.id]) { const fb = f.querySelector('.fb'); fb.textContent += ' Now finish the browser task above to complete this mission.'; }
+  else if (ok && m.act && !prog.act[m.id]) { const fb = f.querySelector('.fb'); fb.textContent += ' Now finish the browser task above to complete this practice question.'; }
 });
 let resetArmed = false;
 $('mreset').addEventListener('click', e => {
