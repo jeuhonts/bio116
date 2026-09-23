@@ -14,6 +14,8 @@ Python, run from the repository root:
 
 - `find_candidate_genes.py` is the minimal goal students build, starting from the FASTA file: ORFs on both strands (with
   overlaps), a length cutoff, and translation, with a written-out codon table and about 20 commented lines of code, no functions.
+- `find_candidate_genes_biopython.py` gives the same result with Biopython (`pip install biopython`):
+  translate the six frames, split at stops, take each piece from its first M.
 - `orf_finder.py` is the full reference solution: alternative start codons, start choice by
   ribosome binding site, and comparison with the GenBank annotation.
 
