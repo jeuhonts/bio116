@@ -458,6 +458,7 @@ footer.src ul{margin:0;padding-left:1.2em;display:grid;gap:4px}
         </div>
         <div class="scroll"><svg id="rnaSvg" viewBox="0 0 1000 256" style="min-width:640px;width:100%" role="img" aria-label="RNA-seq coverage and splice-junction arcs across HRAS, with the RefSeq transcript and the ab initio prediction below"></svg></div>
         <div class="legend"><span><i class="sw" style="background:var(--accent);opacity:.4"></i>read coverage</span><span>arcs = spliced reads (click one)</span><span><i class="sw" style="background:var(--ink)"></i>RefSeq CDS</span><span><i class="sw" style="background:var(--ink);opacity:.45"></i>RefSeq UTR</span><span><i class="sw" style="background:var(--accent)"></i>ab initio prediction</span></div>
+        <div class="status warn" id="rnaWarn" role="status" hidden></div>
         <div class="status" id="arcInfo">Click a junction arc to read off its intron.</div>
       </div>
     </div>
@@ -600,7 +601,7 @@ const CHECKS = {
     {id:'p5sn', q:'A prediction covers 600 coding bases, of which 500 are real. The true CDS is 570 bases. What is the nucleotide sensitivity, in %?', num:87.7, tol:0.01, unit:'%', why:'Sn = TP/(TP+FN) = 500/570 = 87.7%. (Sp = 500/600 = 83.3%.)'},
   ],
   evidence:[
-    {id:'e6click', task:true, q:'Click the junction arc that connects exon 1 (5′ UTR) to exon 2.'},
+    {id:'e6click', task:true, q:'Click the junction arc that connects exon 1 (5′ UTR) to exon 2. (No arc there? Add more reads.)'},
     {id:'e6len', q:'How long is intron 1 (from the GT after exon 1 to the AG before exon 2), in bp?', num:6175-5136+1, tol:0, unit:'bp', why:'Exon 1 ends at 5,135 and exon 2 begins at 6,176, so the intron is 5,136–6,175 = 1,040 bp.'},
     {id:'e6utr', q:'Why did no ab initio prediction include exon 1?', opts:['It is entirely 5′ UTR: no codons are translated, so neither the coding score nor an ATG start marks it','It has no GT donor','It is too long','It is on the minus strand'], a:0, why:'Ab initio predictors mostly find coding exons. Non-coding exons, UTRs and transcript ends usually need transcript evidence.'},
     {id:'e6cds', q:'What can RNA-seq alone NOT tell you?', opts:['Which ORF in the mature mRNA is translated, i.e. where the CDS starts and stops','Where the introns are','Which exons are expressed','How the exons are joined'], a:0, why:'Junction reads mark introns and exons. To find the protein you still need the ORF in the spliced transcript, plus protein homology or proteomics to confirm it.'},
@@ -1003,6 +1004,9 @@ function drawRNA(){
   for (const e of BEST) o+=`<rect class="pred" x="${x(e.a)}" y="${yB+51}" width="${Math.max(1,x(e.b+1)-x(e.a))}" height="14"/>`;
   o+=ruler(x,E0,E1,yB+80,500);
   $('rnaSvg').innerHTML=o;
+  const missing=MRNA.length-1-JUNC.length, noE1=!JUNC.some(j=>j.a===MRNA[0][1]+1);
+  $('rnaWarn').hidden=!missing;
+  if (missing) $('rnaWarn').textContent=`Only ${JUNC.length} of ${MRNA.length-1} junctions have a spliced read at this depth`+(noE1?', and the exon 1 → exon 2 arc is missing':'')+'. Raise Reads or Read length, or press Sequence again. Weakly covered junctions drop out of shallow RNA-seq data, which is why real annotation projects sequence deeply and pool samples.';
 }
 $('rnaSvg').addEventListener('click',e=>{ const t=e.target.closest('.arc-hit'); if(!t) return; const j=JUNC[+t.dataset.i]; arcSel=j.a;
   const gt=sub(j.a,j.a+1), ag=sub(j.b-1,j.b);
