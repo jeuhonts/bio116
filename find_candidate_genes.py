@@ -4,12 +4,14 @@ Run from the repository root:  python3 find_candidate_genes.py
 """
 import re
 
-MIN_CODONS = 100   # shorter ORFs are mostly chance
+MIN_CODONS = 100   # codons between start and stop; shorter ORFs are mostly chance
 
-# ATG, then any number of codons, then a stop codon. "..." is one codon (any 3 bases).
-#   *?     lazy: stop at the FIRST in-frame stop codon
-#   (?= )  lookahead: matches may overlap, so no ORF hides inside another
-ORF = re.compile(r"(?=(ATG(?:...)*?(?:TAA|TAG|TGA)))")
+# ATG, then at least MIN_CODONS codons that are not stops, then a stop codon.
+#   (?!TAA|TAG|TGA)...   one codon (any 3 bases) that is not a stop,
+#                        so the ORF ends at the FIRST in-frame stop
+#   {%d,}                at least MIN_CODONS of those codons
+#   (?= )                lookahead: matches may overlap, so no ORF hides inside another
+ORF = re.compile(r"(?=(ATG(?:(?!TAA|TAG|TGA)...){%d,}(?:TAA|TAG|TGA)))" % MIN_CODONS)
 
 # Genetic code: codon -> amino acid (one-letter code, * = stop).
 # Laid out like the textbook table: each row varies the second base (T, C, A, G).
@@ -49,8 +51,6 @@ for strand, dna in (("+", seq), ("-", other)):
         longest.setdefault(m.end(1), m.group(1))   # the first ORF found for a stop is the longest
 
     for end, orf in longest.items():
-        if len(orf) < 3 * MIN_CODONS:              # too short to count as a candidate gene
-            continue
         protein = "".join(CODE.get(orf[i:i + 3], "X") for i in range(0, len(orf) - 3, 3))   # skip the stop; X = unknown (e.g. N)
         # positions on the + strand, counting from 1 (the same numbering GenBank uses)
         first, last = (end - len(orf) + 1, end) if strand == "+" else (len(seq) - end + 1, len(seq) - end + len(orf))
