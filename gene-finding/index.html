@@ -138,7 +138,7 @@ svg text{font-family:var(--mono)}
 .intron-l{stroke:var(--intron);stroke-width:1}
 .hit{fill:transparent;cursor:pointer}
 
-/* station 1 */
+/* section 1 */
 .stopt{stroke:var(--muted);stroke-width:1;opacity:.35}
 .orf{fill:var(--accent);cursor:pointer}
 .orf.sel{fill:var(--warn)}
@@ -151,7 +151,7 @@ table.orfs tr{cursor:pointer}
 table.orfs tr:hover td{background:var(--accent-soft)}
 table.orfs tr.sel td{background:var(--accent-soft);font-weight:600}
 
-/* station 2 */
+/* section 2 */
 .anat .ex{fill:var(--ink)}
 .anat .in{fill:none;stroke:var(--intron);stroke-width:2}
 .anat .lbl{font-size:11px;fill:var(--ink);text-anchor:middle}
@@ -178,7 +178,7 @@ table.orfs tr.sel td{background:var(--accent-soft);font-weight:600}
 .realtx{font-size:10px;fill:var(--ok);text-anchor:middle}
 .thr{stroke:var(--bad);stroke-width:1.5;stroke-dasharray:4 3}
 
-/* station 3 */
+/* section 3 */
 .cgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:2px;font:600 .74rem var(--mono);max-width:560px}
 .cgrid > div{padding:3px 5px;border-radius:3px;display:flex;justify-content:space-between;gap:4px;font-variant-numeric:tabular-nums}
 .cgrid small{font-weight:400;opacity:.85}
@@ -192,7 +192,7 @@ table.fr th,table.fr td{padding:3px 8px;border:1px solid var(--line);text-align:
 table.fr th{color:var(--muted);font-weight:600;text-align:left}
 table.fr td.best{background:var(--accent-soft);font-weight:700}
 
-/* station 4 */
+/* section 4 */
 .cand{cursor:pointer}
 .cand rect.body{fill:var(--panel);stroke:var(--line-2);stroke-width:1.2}
 .cand.on rect.body{fill:var(--accent);stroke:var(--accent)}
@@ -208,7 +208,7 @@ table.fr td.best{background:var(--accent-soft);font-weight:700}
 .prot .stop{background:var(--bad);color:var(--panel);border-radius:2px;padding:0 1px}
 .prot .mm{color:var(--bad);text-decoration:underline}
 
-/* station 5 */
+/* section 5 */
 .hmm .st{fill:var(--panel);stroke:var(--ink);stroke-width:1.3}
 .hmm .st.exon{fill:var(--accent-soft);stroke:var(--accent)}
 .hmm .lb{font:600 11px var(--body);fill:var(--ink);text-anchor:middle}
@@ -217,7 +217,7 @@ table.fr td.best{background:var(--accent-soft);font-weight:700}
 .hmm .ah{fill:var(--line-2)}
 .tp{fill:var(--ok)}.fp{fill:var(--bad)}.fn{fill:var(--warn);opacity:.55}
 
-/* station 6 */
+/* section 6 */
 .covA{fill:var(--accent);opacity:.3}
 .covL{fill:none;stroke:var(--accent);stroke-width:1.2}
 .arc{fill:none;stroke:var(--ink);stroke-width:1.6;cursor:pointer}
@@ -246,7 +246,7 @@ footer.src ul{margin:0;padding-left:1.2em;display:grid;gap:4px}
 <header class="top">
   <p class="eyebrow">BIO 116 · Bioinformatics lab</p>
   <h1>Finding a gene in 10,309 bases of human DNA</h1>
-  <p class="lead">You have assembled the HRAS region and looked at it in a genome browser. Now take the annotation away. Where is the gene? A bacterial gene is usually one long open reading frame. A human gene is broken into short exons, separated by introns that can be many times longer. Work through the six stations to find HRAS the way a gene-prediction program does: look for signals, score coding potential, put the exons together, and then check the result against RNA evidence.</p>
+  <p class="lead">You have assembled the HRAS region and looked at it in a genome browser. Now take the annotation away. Where is the gene? A bacterial gene is usually one long open reading frame. A human gene is broken into short exons, separated by introns that can be many times longer. Work through the six sections to find HRAS the way a gene-prediction program does: look for signals, score coding potential, put the exons together, and then check the result against RNA evidence.</p>
   <div class="hero-strip" aria-label="Summary of the HRAS gene in this entry">
     <p class="eyebrow">The answer key, hidden from the programs</p>
     <div class="scroll"><svg id="heroSvg" viewBox="0 0 1000 64" style="min-width:560px;width:100%" role="img" aria-label="HRAS spans positions 4,975 to 8,309 of the entry: six exons, of which four carry the 570 coding bases"></svg></div>
@@ -256,9 +256,9 @@ footer.src ul{margin:0;padding-left:1.2em;display:grid;gap:4px}
   <div class="prog-row"><span id="progText">0 of 0 checks complete</span><button class="linkbtn" id="resetAll" type="button">Clear my progress</button><span id="resetConfirm" hidden>Clear all answers? <button class="linkbtn" id="resetYes" type="button">Yes, clear</button> · <button class="linkbtn" id="resetNo" type="button">Keep</button></span></div>
 </header>
 
-<!-- ================= STATION 1 ================= -->
+<!-- ================= SECTION 1 ================= -->
 <section class="station" id="orfs">
-  <div class="st-head"><span class="st-num">1</span><div><p class="eyebrow">Station 1 · The prokaryote approach</p><h2>Open reading frames: why "find the longest ORF" fails</h2></div></div>
+  <div class="st-head"><span class="st-num">1</span><div><p class="eyebrow">Section 1 · The prokaryote approach</p><h2>Open reading frames: why "find the longest ORF" fails</h2></div></div>
   <div class="st-grid">
     <div class="prose">
       <p>An <b>open reading frame</b> (ORF) is a stretch that starts with ATG and runs, codon by codon, to the first stop codon (TAA, TAG or TGA). DNA can be read in <b>six frames</b>: three offsets on each strand.</p>
@@ -280,9 +280,9 @@ footer.src ul{margin:0;padding-left:1.2em;display:grid;gap:4px}
   </div>
 </section>
 
-<!-- ================= STATION 2 ================= -->
+<!-- ================= SECTION 2 ================= -->
 <section class="station" id="signals">
-  <div class="st-head"><span class="st-num">2</span><div><p class="eyebrow">Station 2 · Signal sensors</p><h2>Splice sites: GT…AG and weight matrices</h2></div></div>
+  <div class="st-head"><span class="st-num">2</span><div><p class="eyebrow">Section 2 · Signal sensors</p><h2>Splice sites: GT…AG and weight matrices</h2></div></div>
   <div class="st-grid">
     <div class="prose">
       <p>The spliceosome recognises short sequence <b>signals</b> at intron boundaries. Almost every human intron starts with <b>GT</b> (the 5′ or donor site) and ends with <b>AG</b> (the 3′ or acceptor site). A branch-point A and a pyrimidine-rich tract sit just upstream of the AG.</p>
@@ -327,9 +327,9 @@ footer.src ul{margin:0;padding-left:1.2em;display:grid;gap:4px}
   </div>
 </section>
 
-<!-- ================= STATION 3 ================= -->
+<!-- ================= SECTION 3 ================= -->
 <section class="station" id="content">
-  <div class="st-head"><span class="st-num">3</span><div><p class="eyebrow">Station 3 · Content sensors</p><h2>Coding potential: codons are not used at random</h2></div></div>
+  <div class="st-head"><span class="st-num">3</span><div><p class="eyebrow">Section 3 · Content sensors</p><h2>Coding potential: codons are not used at random</h2></div></div>
   <div class="st-grid">
     <div class="prose">
       <p>Signals are short and noisy. <b>Content sensors</b> use the statistics of long stretches instead. Protein-coding DNA is read in triplets, and organisms prefer some codons for the same amino acid. Human genes use CTG for leucine 40% of the time and CTA only 7%.</p>
@@ -356,9 +356,9 @@ footer.src ul{margin:0;padding-left:1.2em;display:grid;gap:4px}
   </div>
 </section>
 
-<!-- ================= STATION 4 ================= -->
+<!-- ================= SECTION 4 ================= -->
 <section class="station" id="assemble">
-  <div class="st-head"><span class="st-num">4</span><div><p class="eyebrow">Station 4 · Gene structure</p><h2>Build the gene model yourself</h2></div></div>
+  <div class="st-head"><span class="st-num">4</span><div><p class="eyebrow">Section 4 · Gene structure</p><h2>Build the gene model yourself</h2></div></div>
   <div class="st-grid">
     <div class="prose">
       <p>A gene finder generates <b>candidate exons</b>: stretches bounded by good signals at both ends. There are four kinds:</p>
@@ -385,9 +385,9 @@ footer.src ul{margin:0;padding-left:1.2em;display:grid;gap:4px}
   </div>
 </section>
 
-<!-- ================= STATION 5 ================= -->
+<!-- ================= SECTION 5 ================= -->
 <section class="station" id="parser">
-  <div class="st-head"><span class="st-num">5</span><div><p class="eyebrow">Station 5 · Ab initio prediction</p><h2>Let the algorithm choose: GENSCAN-style parsing</h2></div></div>
+  <div class="st-head"><span class="st-num">5</span><div><p class="eyebrow">Section 5 · Ab initio prediction</p><h2>Let the algorithm choose: GENSCAN-style parsing</h2></div></div>
   <div class="st-grid">
     <div class="prose">
       <p>Programs like <b>GENSCAN</b> and <b>AUGUSTUS</b> describe a gene as a path through a hidden Markov model. Each state is intergenic, exon or intron, and the three intron states keep track of phase. The <b>Viterbi</b> algorithm (dynamic programming) finds the highest-scoring path, meaning the best gene structure, out of the huge number of possible exon combinations.</p>
@@ -434,9 +434,9 @@ footer.src ul{margin:0;padding-left:1.2em;display:grid;gap:4px}
   </div>
 </section>
 
-<!-- ================= STATION 6 ================= -->
+<!-- ================= SECTION 6 ================= -->
 <section class="station" id="evidence">
-  <div class="st-head"><span class="st-num">6</span><div><p class="eyebrow">Station 6 · Extrinsic evidence</p><h2>RNA-seq: letting the cell show you the exons</h2></div></div>
+  <div class="st-head"><span class="st-num">6</span><div><p class="eyebrow">Section 6 · Extrinsic evidence</p><h2>RNA-seq: letting the cell show you the exons</h2></div></div>
   <div class="st-grid">
     <div class="prose">
       <p>Ab initio predictors only see the genomic sequence. Modern annotation pipelines (Ensembl, RefSeq, <b>BRAKER</b>, <b>MAKER</b>) also use <b>evidence</b>:</p>
@@ -445,7 +445,7 @@ footer.src ul{margin:0;padding-left:1.2em;display:grid;gap:4px}
         <li><b>Protein homology</b>: similar proteins from other species.</li>
         <li><b>Conservation</b>: exons change more slowly than introns.</li>
       </ul>
-      <p>Here, RNA-seq reads are simulated from the real HRAS transcript (NM_005343), with some intronic reads from unspliced pre-mRNA added. Arcs join the ends of spliced reads, and the number on each arc is how many reads cross that junction. Compare the evidence with the ab initio prediction from Station 5 (best settings).</p>
+      <p>Here, RNA-seq reads are simulated from the real HRAS transcript (NM_005343), with some intronic reads from unspliced pre-mRNA added. Arcs join the ends of spliced reads, and the number on each arc is how many reads cross that junction. Compare the evidence with the ab initio prediction from Section 5 (best settings).</p>
       <p class="note">RNA-seq also reveals <b>alternative splicing</b>. HRAS makes a second protein, p19, by including an extra exon (IDX). Typical expression data would show that as an extra, weaker set of junctions.</p>
       <div class="checks" data-station="evidence"></div>
     </div>
@@ -499,8 +499,8 @@ footer.src ul{margin:0;padding-left:1.2em;display:grid;gap:4px}
   <ul>
     <li>All sequence is the 10,309-bp human HRAS RefSeqGene entry (NG_007666.1) in this course's <code>triplets.txt</code>. It has the same numbering as the genome browser and sequencing labs. The answer key is the RefSeq annotation: transcript NM_005343.4, CDS NP_005334.1 (UniProt P01112).</li>
     <li>Codon frequencies are the human codon-usage table from the Kazusa Codon Usage Database. Splice-site matrices use rounded, approximate frequencies from published human splice-site compilations. They are good enough to teach with, not to publish with.</li>
-    <li>The parser in Station 5 is a teaching simplification. It handles one gene on the forward strand, has no promoter, UTR or length models, and uses bit-scores, not trained HMM probabilities. GENSCAN and AUGUSTUS model all of these.</li>
-    <li>Station 6 reads are <b>simulated</b> without errors from the RefSeq exon coordinates. About 1 in 10 reads is drawn from unspliced pre-mRNA.</li>
+    <li>The parser in Section 5 is a teaching simplification. It handles one gene on the forward strand, has no promoter, UTR or length models, and uses bit-scores, not trained HMM probabilities. GENSCAN and AUGUSTUS model all of these.</li>
+    <li>Section 6 reads are <b>simulated</b> without errors from the RefSeq exon coordinates. About 1 in 10 reads is drawn from unspliced pre-mRNA.</li>
   </ul>
 </footer>
 </div>
@@ -526,7 +526,7 @@ const CDS  = [[6229,6339],[6607,6785],[6939,7098],[7796,7915]];
 const LRRC56 = [[825,971],[1691,1953],[2946,3024]];
 const P01112 = 'MTEYKLVVVGAGGVGKSALTIQLIQNHFVDEYDPTIEDSYRKQVVIDGETCLLDILDTAGQEEYSAMRDQYMRTGEGFLCVFAINNTKSFEDIHQYREQIKRVKDSDDVPMVLVGNKCDLAARTVESRQAQDLARSYGIPYIETSAKTRQGVEDAFYTLVREIRQHKLRKLNPPDESGPGCMSCKCVLS';
 const TRUE_DONORS = [6340,6786,7099,7921];
-const W0 = 6100, W1 = 8400;                        // coding window used in stations 2–5
+const W0 = 6100, W1 = 8400;                        // coding window used in sections 2–5
 const inCDS = p => CDS.some(([a,b]) => p>=a && p<=b);
 const cdsFrames = (() => { let done=0; return CDS.map(([a,b]) => { const off=(3-done%3)%3; done+=b-a+1; return frameOf(a+off); }); })();
 const intronPhases = (() => { let done=0; return CDS.slice(0,-1).map(([a,b]) => { done+=b-a+1; return done%3; }); })();
@@ -669,7 +669,7 @@ $('resetYes').onclick=()=>{ state={}; save(); renderChecks(); renderPipeline(); 
   o+=geneModel(x,18,18,MRNA,CDS);
   $('heroSvg').innerHTML=o; }
 
-// ================= station 1: ORFs =================
+// ================= section 1: ORFs =================
 ORFS = (() => {
   const out=[];
   for (const strand of ['+','-']){
@@ -733,7 +733,7 @@ function selectOrf(i){
 $('minOrf').oninput=drawOrfs;
 $('orfSvg').addEventListener('click',e=>{ const t=e.target.closest('.orf'); if(t) selectOrf(+t.dataset.i); });
 
-// ================= station 2: splice signals =================
+// ================= section 2: splice signals =================
 function drawLogos(){
   const col=(M,x0,w,labels,title)=>{
     let o=`<text class="trk-lbl" x="${x0}" y="12">${title}</text>`;
@@ -808,7 +808,7 @@ function drawHist(){
 }
 $('thr').oninput=drawHist;
 
-// ================= station 3: coding potential =================
+// ================= section 3: coding potential =================
 function drawCodonGrid(){
   const B='TCAG'; let o='';
   for (const f of B) for (const t of B) for (const s of B){
@@ -847,7 +847,7 @@ function drawFrameTable(){
 }
 $('win').oninput=drawFrames;
 
-// ================= station 4: build the model =================
+// ================= section 4: build the model =================
 const CANDS = [[6229,6339],[6304,6362],[6469,6528],[6607,6785],[6607,6704],[6905,6954],[6939,7098],[7193,7251],[7445,7479],[7796,7899],[7796,7915],[8029,8158],[8277,8326]]
   .map(([a,b],i)=>{ const atg=sub(a,a+2)==='ATG' && sub(a-2,a-1)!=='AG', stop=STOPS.has(sub(b-2,b)) && sub(b+1,b+2)!=='GT';
     return {id:'abcdefghijklm'[i], a, b, left: atg?'ATG':`AG ${acceptorScore(a).toFixed(1)}`, right: stop?'stop':`GT ${donorScore(b+1).toFixed(1)}`}; });
@@ -899,7 +899,7 @@ function evalModel(){
   msg.textContent=(problems.length?'Problems: '+problems.join('; ')+'. ':'A valid gene, but not HRAS. ')+`Your protein matches HRAS for its first ${same} of 189 residues.`+(same<189&&same>0?' Mismatches are underlined.':'');
 }
 
-// ================= station 5: parser =================
+// ================= section 5: parser =================
 function lowerBound(a,x){ let l=0,h=a.length; while(l<h){ const m=(l+h)>>1; if (a[m]<x) l=m+1; else h=m; } return l; }
 function parseGene(R0,R1,o){
   const {wS=1,wC=1,exonK=-6,minIntron=60,minExon=30,th=0}=o||{};
@@ -973,7 +973,7 @@ function runParser(){
 }
 ['wS','wC','exK','sTh'].forEach(k=>$(k).oninput=runParser);
 
-// ================= station 6: RNA-seq =================
+// ================= section 6: RNA-seq =================
 function mulberry32(a){ return ()=>{ a|=0; a=a+0x6D2B79F5|0; let t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
 let seed=7, arcSel=null, JUNC=[];
 const E0=4900, E1=8400;
