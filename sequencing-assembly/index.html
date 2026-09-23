@@ -227,14 +227,14 @@ footer.src ul{margin:0;padding-left:1.2em;display:grid;gap:4px}
 <header class="top">
   <p class="eyebrow">BIO 116 · Bioinformatics lab</p>
   <h1>From DNA molecules to a finished genome</h1>
-  <p class="lead">No sequencer reads a chromosome end to end. We shatter DNA into millions of pieces, read each piece, then rebuild the genome from the overlaps, the way you'd rebuild a shredded book. Work through the six stations in order. Each one uses the real human <b>HRAS</b> sequence from the genome browser lab.</p>
+  <p class="lead">No sequencer reads a chromosome end to end. We shatter DNA into millions of pieces, read each piece, then rebuild the genome from the overlaps, the way you'd rebuild a shredded book. Work through the six sections in order. Each one uses the real human <b>HRAS</b> sequence from the genome browser lab.</p>
   <ol class="pipeline" id="pipeline"></ol>
   <div class="prog-row"><span id="progText">0 of 0 checks complete</span><button class="linkbtn" id="resetAll" type="button">Clear my progress</button><span id="resetConfirm" hidden>Clear all answers? <button class="linkbtn" id="resetYes" type="button">Yes, clear</button> · <button class="linkbtn" id="resetNo" type="button">Keep</button></span></div>
 </header>
 
 <!-- ================= STATION 1 ================= -->
 <section class="station" id="sanger">
-  <div class="st-head"><span class="st-num">1</span><div><p class="eyebrow">Station 1 · First generation</p><h2>Sanger sequencing: stopping DNA synthesis on purpose</h2></div></div>
+  <div class="st-head"><span class="st-num">1</span><div><p class="eyebrow">Section 1 · First generation</p><h2>Sanger sequencing: stopping DNA synthesis on purpose</h2></div></div>
   <div class="st-grid">
     <div class="prose">
       <p>DNA polymerase copies a template starting from a <b>primer</b>. Sanger's trick (1977) was to add a small amount of <b>dideoxynucleotides</b> (ddNTPs). A ddNTP has no 3′-OH, so once polymerase adds one, the chain can't grow any further.</p>
@@ -262,7 +262,7 @@ footer.src ul{margin:0;padding-left:1.2em;display:grid;gap:4px}
 
 <!-- ================= STATION 2 ================= -->
 <section class="station" id="illumina">
-  <div class="st-head"><span class="st-num">2</span><div><p class="eyebrow">Station 2 · Short-read, massively parallel</p><h2>Illumina: sequencing by synthesis on a flow cell</h2></div></div>
+  <div class="st-head"><span class="st-num">2</span><div><p class="eyebrow">Section 2 · Short-read, massively parallel</p><h2>Illumina: sequencing by synthesis on a flow cell</h2></div></div>
   <div class="st-grid">
     <div class="prose">
       <p>The genome is sheared into ~300–500 bp fragments and adapters are ligated on (a <b>library</b>). Each fragment is copied in place on a glass <b>flow cell</b> into a <b>cluster</b> of ~1,000 identical molecules, so its signal is bright enough to photograph.</p>
@@ -290,7 +290,7 @@ footer.src ul{margin:0;padding-left:1.2em;display:grid;gap:4px}
 
 <!-- ================= STATION 3 ================= -->
 <section class="station" id="coverage">
-  <div class="st-head"><span class="st-num">3</span><div><p class="eyebrow">Station 3 · Shotgun sequencing</p><h2>Coverage: how many reads is enough?</h2></div></div>
+  <div class="st-head"><span class="st-num">3</span><div><p class="eyebrow">Section 3 · Shotgun sequencing</p><h2>Coverage: how many reads is enough?</h2></div></div>
   <div class="st-grid">
     <div class="prose">
       <p>Reads start at random positions, so some bases get read many times and some never. <b>Coverage</b> (depth) is the average number of reads covering each base:</p>
@@ -316,7 +316,7 @@ footer.src ul{margin:0;padding-left:1.2em;display:grid;gap:4px}
 
 <!-- ================= STATION 4 ================= -->
 <section class="station" id="olc">
-  <div class="st-head"><span class="st-num">4</span><div><p class="eyebrow">Station 4 · Assembly, method 1</p><h2>Overlap–layout–consensus: solve the jigsaw</h2></div></div>
+  <div class="st-head"><span class="st-num">4</span><div><p class="eyebrow">Section 4 · Assembly, method 1</p><h2>Overlap–layout–consensus: solve the jigsaw</h2></div></div>
   <div class="st-grid">
     <div class="prose">
       <p>Without a reference genome we have to assemble <b>de novo</b>. The classic approach, used for the first human genome drafts, has three steps:</p>
@@ -326,7 +326,7 @@ footer.src ul{margin:0;padding-left:1.2em;display:grid;gap:4px}
         <li><b>Consensus:</b> where reads stack, take the majority base. This outvotes random sequencing errors.</li>
       </ol>
       <p>The result is a <b>contig</b>, a continuous stretch of assembled sequence. Build one from these seven shuffled reads. Click a read to add it to the right-hand end of your contig. The assembler accepts it only if the reads overlap by at least 5 bases.</p>
-      <p class="note">Comparing all pairs grows as N², which is fine for 7 reads and painful for 800 million. That cost is why short-read assemblers moved to the graph in Station 5.</p>
+      <p class="note">Comparing all pairs grows as N², which is fine for 7 reads and painful for 800 million. That cost is why short-read assemblers moved to the graph in Section 5.</p>
       <div class="checks" data-station="olc"></div>
     </div>
     <div class="instrument">
@@ -343,7 +343,7 @@ footer.src ul{margin:0;padding-left:1.2em;display:grid;gap:4px}
 
 <!-- ================= STATION 5 ================= -->
 <section class="station" id="debruijn">
-  <div class="st-head"><span class="st-num">5</span><div><p class="eyebrow">Station 5 · Assembly, method 2</p><h2>De Bruijn graphs: assembling from k-mers</h2></div></div>
+  <div class="st-head"><span class="st-num">5</span><div><p class="eyebrow">Section 5 · Assembly, method 2</p><h2>De Bruijn graphs: assembling from k-mers</h2></div></div>
   <div class="st-grid">
     <div class="prose">
       <p>Short-read assemblers (Velvet, SPAdes, MEGAHIT) skip all-against-all comparison. They chop every read into overlapping words of length <b>k</b> (<b>k-mers</b>) and build a graph:</p>
@@ -376,7 +376,7 @@ footer.src ul{margin:0;padding-left:1.2em;display:grid;gap:4px}
 
 <!-- ================= STATION 6 ================= -->
 <section class="station" id="repeats">
-  <div class="st-head"><span class="st-num">6</span><div><p class="eyebrow">Station 6 · Finishing</p><h2>Repeats, long reads and N50</h2></div></div>
+  <div class="st-head"><span class="st-num">6</span><div><p class="eyebrow">Section 6 · Finishing</p><h2>Repeats, long reads and N50</h2></div></div>
   <div class="st-grid">
     <div class="prose">
       <p>About half the human genome is repeats. There are ~1.2 million <b>Alu</b> elements (~300 bp each). The HRAS entry has two of them back to back, at about positions 855–1,470. There are also tandem arrays like the <b>HRAS1 minisatellite</b>: a 28-bp unit repeated ~25 times over ~700 bp, just downstream of the gene.</p>
@@ -439,7 +439,7 @@ footer.src ul{margin:0;padding-left:1.2em;display:grid;gap:4px}
   <ul>
     <li>All sequence is the 10,309-bp human HRAS genomic entry in this course's <code>triplets.txt</code>, the same entry and numbering as the genome browser lab. The coding sequence comes from the four coding exons aligned to HRAS p21 (UniProt P01112).</li>
     <li>The chromatogram, flow-cell images and quality scores are <b>simulated</b> to show how each instrument behaves. The G12V change (c.35G&gt;T) is a real, common HRAS hotspot mutation.</li>
-    <li>Station 3 and 6 reads start at random positions and have no errors. The entry sits inside chromosome 11, so reads can hang off either end; only the part on the entry is drawn and counted. Real reads also carry errors, which assemblers have to correct.</li>
+    <li>Reads in Sections 3 and 6 start at random positions and have no errors. The entry sits inside chromosome 11, so reads can hang off either end; only the part on the entry is drawn and counted. Real reads also carry errors, which assemblers have to correct.</li>
   </ul>
 </footer>
 </div>
@@ -538,7 +538,7 @@ function renderChecks(){
           const b=document.createElement('button'); b.className='btn'; b.type='button'; b.textContent='Check'; d.appendChild(b);
           const fb=document.createElement('div'); fb.className='fb'; d.appendChild(fb);
           b.onclick = () => { const s=d.querySelector('input:checked'); if(!s){ fb.className='fb bad'; fb.textContent='Choose an answer first.'; return; }
-            if (+s.value===c.a){ fb.className='fb ok'; fb.textContent='Correct. '+c.why; markDone(c.id); } else { fb.className='fb bad'; fb.textContent='Not quite. Re-read the station text and try again.'; } };
+            if (+s.value===c.a){ fb.className='fb ok'; fb.textContent='Correct. '+c.why; markDone(c.id); } else { fb.className='fb bad'; fb.textContent='Not quite. Re-read the section text and try again.'; } };
           if (state[c.id]){ d.querySelector(`#${c.id}-${c.a}`).checked=true; fb.className='fb ok'; fb.textContent=c.why; }
         } else {
           const row=document.createElement('div'); row.className='row';
@@ -823,7 +823,7 @@ function drawDBG(){
   const branches=g.nodes.filter((_,i)=>(outDistinct.get(i)||0)>1||(inDistinct.get(i)||0)>1).length;
   $('dbgStats').innerHTML=[['k-mers in sequence',g.path.length],['Distinct k-mers (edges)',g.edges.size],['(k−1)-mer nodes',n],['Fork nodes',branches]].map(([a,b])=>`<div><dt>${a}</dt><dd>${b}</dd></div>`).join('');
   const v=$('dbgVerdict'), alts=$('alts'); alts.innerHTML='';
-  if (genomes.length===1){ v.className='status ok'; v.innerHTML=`Unique assembly. Only one walk uses every k-mer, and it spells the original sequence.`+([...g.edges.values()].some(e=>e.n>1)?` <span class="note">Only because we know each k-mer's exact count (the ×n labels). Real read depth gives only rough counts, so the number of trips around a loop stays uncertain; that's the problem in Station 6.</span>`:''); }
+  if (genomes.length===1){ v.className='status ok'; v.innerHTML=`Unique assembly. Only one walk uses every k-mer, and it spells the original sequence.`+([...g.edges.values()].some(e=>e.n>1)?` <span class="note">Only because we know each k-mer's exact count (the ×n labels). Real read depth gives only rough counts, so the number of trips around a loop stays uncertain; that's the problem in Section 6.</span>`:''); }
   else {
     v.className='status warn'; v.innerHTML=`${capped?'At least ':''}${genomes.length} different sequences use exactly these k-mers. The assembler can't tell which is real. Some examples, with differences from the truth highlighted:`;
     genomes.filter(x=>x!==seq).slice(0,4).forEach(gs=>{ const div=document.createElement('div'); div.innerHTML=gs.split('').map((b,i)=>b===seq[i]?`<span class="${b}">${b}</span>`:`<span class="d">${b}</span>`).join(''); alts.appendChild(div); });
