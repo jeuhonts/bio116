@@ -1,5 +1,5 @@
 <meta charset="utf-8">
-<title>Genome Browser Lab</title>
+<title>HRAS Genome Browser Lab</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=JetBrains+Mono:wght@400;600&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&display=swap">
@@ -245,8 +245,8 @@ footer{margin-top:64px;color:var(--muted);font-size:.85rem;border-top:1px solid 
 <div class="page">
 <header class="top">
   <span class="eyebrow">BIO 116 · Bioinformatics lab</span>
-  <h1>Genome Browser Lab <span class="coord">chr3:1,000,001-1,024,000 · teaching assembly bioU1</span></h1>
-  <p class="lead">A genome browser lines up many layers of evidence (genes, sequence, variants, conservation, expression) against one coordinate ruler. Learn to read one here in a small practice genome, then take those skills to UCSC, Ensembl and IGV.</p>
+  <h1>HRAS Genome Browser Lab <span class="coord">hras:1-10,309 · human HRAS genomic entry, coding strand</span></h1>
+  <p class="lead">A genome browser lines up layers of evidence (sequence, genes, variants, regulatory features) against one coordinate ruler. Learn to read one on the real sequence of <b>HRAS</b>, a RAS oncogene whose codon 12 mutation was the first cancer-causing point mutation found in a human gene. Then take those skills to UCSC, Ensembl and IGV.</p>
   <nav class="toc" aria-label="Sections">
     <a href="#lab">The lab</a><a href="#anatomy">Reading a gene model</a><a href="#coords">Two ways to count</a><a href="#formats">Files behind the tracks</a><a href="#real">Real browsers</a><a href="#hbb">Try it for real</a><a href="#glossary">Glossary</a>
   </nav>
@@ -257,7 +257,7 @@ footer{margin-top:64px;color:var(--muted);font-size:.85rem;border-top:1px solid 
     <div class="toolbar">
       <form id="posform" autocomplete="off">
         <label for="pos" class="eyebrow" style="align-self:center">Position</label>
-        <input id="pos" type="text" spellcheck="false" aria-label="Position or search term, for example chr3:1,005,000-1,006,000 or LUMN1">
+        <input id="pos" type="text" spellcheck="false" aria-label="Position or search term, for example hras:6,000-7,000, HRAS or G12V">
         <button class="btn primary" type="submit">Go</button>
       </form>
       <div class="btn-group" role="group" aria-label="Move">
@@ -317,7 +317,7 @@ footer{margin-top:64px;color:var(--muted);font-size:.85rem;border-top:1px solid 
       <span class="eyebrow">Guided practice</span>
       <h2 id="m-title">Missions</h2>
       <div class="progress" aria-hidden="true"><div id="mbar"></div></div>
-      <div class="m-count"><span id="mcount">0 of 10 complete</span><button class="linkbtn" id="mreset" type="button">Reset progress</button></div>
+      <div class="m-count"><span id="mcount">0 of 11 complete</span><button class="linkbtn" id="mreset" type="button">Reset progress</button></div>
     </div>
     <ol id="missions"></ol>
   </aside>
@@ -365,9 +365,9 @@ footer{margin-top:64px;color:var(--muted);font-size:.85rem;border-top:1px solid 
   </header>
   <div class="card convert">
     <div class="inputs">
-      <label for="cv-s">Browser start (1-based)<input id="cv-s" type="number" value="1002000"></label>
-      <label for="cv-e">Browser end (1-based)<input id="cv-e" type="number" value="1002005"></label>
-      <span style="font-size:.85rem;color:var(--muted);max-width:32ch">Try a range between 1,001,995 and 1,002,014. These bases are the start of LUMN1 exon 1.</span>
+      <label for="cv-s">Browser start (1-based)<input id="cv-s" type="number" value="6229"></label>
+      <label for="cv-e">Browser end (1-based)<input id="cv-e" type="number" value="6234"></label>
+      <span style="font-size:.85rem;color:var(--muted);max-width:32ch">Try a range between 6,219 and 6,238. The start codon ATG begins at 6,229.</span>
     </div>
     <div class="strip" id="strip"></div>
     <div class="out" id="cvout"></div>
@@ -413,23 +413,23 @@ footer{margin-top:64px;color:var(--muted);font-size:.85rem;border-top:1px solid 
 <section class="ref" id="hbb">
   <header>
     <span class="eyebrow">Transfer</span>
-    <h2>Try it for real: the sickle-cell variant</h2>
-    <p>Repeat the lab's moves on the human genome in the UCSC Genome Browser.</p>
+    <h2>Try it for real: HRAS in the human genome</h2>
+    <p>Repeat the lab's moves on the full human genome in the UCSC Genome Browser.</p>
   </header>
   <ol class="steps">
     <li>Open <a href="https://genome.ucsc.edu" target="_blank" rel="noopener">genome.ucsc.edu</a> and choose <b>Genome Browser</b>, assembly <b>Human GRCh38/hg38</b>.</li>
-    <li>Type <code>HBB</code> (β-globin) in the search box and pick the gene. Which chromosome is it on? Which way do the intron arrows point?</li>
-    <li>Set the gene track to <b>full</b>. How many exons does the main HBB transcript have?</li>
-    <li>Search <code>rs334</code>. Zoom until you can read bases and turn on a dbSNP track if it is hidden.</li>
-    <li>HBB's coding strand changes the codon <code>GAG</code> (Glu) to <code>GTG</code> (Val). What change do you expect to see on the + strand the browser displays?</li>
+    <li>Type <code>HRAS</code> in the search box and pick the gene. Which chromosome is it on? Which way do the intron arrows point?</li>
+    <li>Set the gene track to <b>full</b>. Find the exons with tall (coding) boxes and the exon with only a thin (UTR) box. Did this lab's entry include the UTRs?</li>
+    <li>Zoom to the start codon. What letters does the + strand show there?</li>
+    <li>G12V is <code>c.35G&gt;T</code> on HRAS's coding strand. What change should the + strand of chr11 show?</li>
   </ol>
   <details class="answer">
     <summary>Check your answers</summary>
     <ul>
-      <li>HBB is on <b>chromosome 11</b> (11p15.4), on the <b>− strand</b>. The arrows point left.</li>
-      <li>The canonical HBB transcript has <b>3 exons</b>.</li>
-      <li>rs334 changes glutamate to valine: HbS, traditionally “Glu6Val” and <code>p.Glu7Val</code> in HGVS, which counts the initial Met.</li>
-      <li>Because HBB is on the − strand, the coding change A→T shows on the + strand as <b>T→A</b>. That is the same reverse-complement step as Mission 6.</li>
+      <li>HRAS is on <b>chromosome 11</b> (11p15.5), on the <b>− strand</b>. The arrows point left, and exon 1 sits at the right-hand (higher-coordinate) end.</li>
+      <li>Four exons carry coding sequence. The first exon is non-coding (5′ UTR), and the last coding exon continues into the 3′ UTR. This lab drew only start codon to stop codon.</li>
+      <li>The start codon reads <b>CAT</b> on the + strand, the same reverse complement you practised in Mission 8.</li>
+      <li>G→T on the coding strand appears as <b>C→A</b> on chr11's + strand.</li>
     </ul>
   </details>
 </section>
@@ -452,76 +452,46 @@ footer{margin-top:64px;color:var(--muted);font-size:.85rem;border-top:1px solid 
   </dl>
 </section>
 
-<footer>BIO 116. The practice region, gene names (LUMN1, KTRB2, ORFA3) and variant IDs are simulated for teaching. The sequence is generated so that its genes, splice sites, translations and variant effects are internally consistent. Real-world facts are in “Try it for real”. Mission progress is saved in this browser only.</footer>
+<footer>BIO 116. <b>Where the data come from:</b>
+  <ul style="margin:6px 0 0;padding-left:1.2em;display:grid;gap:3px">
+    <li><b>Sequence:</b> the 10,309-bp human HRAS genomic entry in this course's <code>triplets.txt</code>, shown on the gene's coding strand. Positions are numbered within the entry, not on chr11.</li>
+    <li><b>Coding exons:</b> located by aligning the HRAS p21 protein (UniProt P01112, 189 aa) to the sequence. All four exons translate exactly and are joined by GT…AG introns. Exon 1 and the UTRs are not drawn because they can't be located from the protein.</li>
+    <li><b>Variants:</b> well-known HRAS changes from ClinVar and the literature, placed by their coding (c.) position. The page checks each reference base against the sequence and calculates the effect from the codon.</li>
+    <li><b>CpG island, repeat, GC and CpG tracks:</b> calculated in the page from the sequence.</li>
+  </ul>
+  <p style="margin-top:8px">Mission progress is saved in this browser only.</p></footer>
 </div>
 
 <script>
 (() => {
 'use strict';
-/* ================= teaching genome ================= */
-const CHR = 'chr3', OFF = 1000000, LEN = 24000, RS = OFF + 1, RE = OFF + LEN;
-const I = p => p - OFF - 1;
+/* ================= HRAS entry ================= */
+// Human HRAS genomic sequence on the gene's coding strand: the 10,309-bp entry in triplets.txt.
+const SEQ = 'CCACCCCGAGCCTAGAGAAGGCTCCTAGCTTGGCTGGGCCTCATGGGGCCCTTGTCTGCTTAGTTCCAGCCTGGAGGGCCTCACGCTCCCCTCCCCCAGCCTTGGCTCGACCCCCTCTGCTTCGTAGGACACCCTCCCTGTGTTTCTGCCCATCCTCAGGGTCCATGCAGGGAGTGCTGGCTTCAGGCCTCCCCACCTGAGGCCCACAGGGGCTGTGAGCCTGGGGTGCCGGGCCAGCTGCCGGTGGCTGTGGGGCTCCCGGCACTGCCTCAAGCTGTGGGCTATGGGTCCTTCTCCACCTGATGGTCTCTGAGCCTGGGGTCCAGGATCAAGTCCCAGGCCTTCCCCTACCCCAGCCCTGTGCCAGCCGAGCCCCTTCACCTGCAGGCAGCTGCCCTCTCCTGCTGTGGGTCAAACATCCAGGCAAGGAGGTGGCATGTACCCTCAGGCAGTACCTGCAAGAGTCAGAGTGGCTTCCTGGCCAGGTTACTGTGCCCATGGGAGCCTGGAATGGGCCAGGCTGAGGTCACAGCACCTAGAGGTGAGCAGATCAGCCCAGGACCTGACTATCCACGGACCCAGCTGGCGAGGAGGAAGAGAGTCAGGTGTGTGACCGATGCTGGGGTACCTCTGGGTCCCCCAACACAATGCCTGCTGCTCATCCAAATCCCACTTCCCTCCTTCTCCACAGGGGTCCTCTCTTGCACCCTGTTCTTCCTGAGCCCCTCCCCAGGCCTCTGAGGGTATTGGCCCAGTGTGTCCCTCTCTTGCATCCCATTCTTCCTAAGCCCAGTGTGTCCCTCGACTACGTGCATCAGGCTTACCTGGTGTTGCCCCTTAAAGATGCAGACGTCTGGCGGGGCGCAGTGGCTCACGCCTGTAATCCCAGCACTTTGGGAGGCCGCGGCGGGCAGATCACGAGGTCAGGAGATTGAGACCATCCTGGCTAACACGGTGAAACCCTGTCTCTACTAAAAATACAAAAAAAAAAAAAAAAAAATTAGCTGGCGTGGTGGCAGGTGCCTGTAGTCCCAGCTACTTGGGAGGCTGAGGCAGGAGAATGCCATGAACCCGCGAGGCGGAGCTTGCAGTGAGACAAGATCGCGCCACTGTCCTCCAGCCTGGGCAACAGAGCAAGACTCTGTCTCAAAAAAAAAAAAAAAAAAGGCTGGGTGCGGTGGCTCACACCTGTAATCCCAGCACTTTGGGAGGCTGAGGCGGGCAGATCACAAGATCAGGAGATCAAGACCATCCTGGCTAACGAGGTGAAACCCCATCTCTACTAAAGATACAAAAAACATAGTTAGCCAGGCGTGGTGGCGGACGCCTGTAGTCCCAGCTACTTGGGAGGCTGAGGCTGGGGAATGGCATGAACCCAGGAGGTGGAGCTTGCAGTGAGCCAAGATGGCACCACTGCACTCCAGCCTGGGCGACAGAGAGAGACTCCATCTCAAAAAACAAACAAACAAACAAAGATGCAGACATCTGCCTCGGCCCCAGGCCCTGGAATCATGAGCTCCAGGCGTGGAGTGACAAGTGTGCTCGGAGCGTCCAGTGTCCTCCTCCCTGACCACCTTCATGTGTCTTCAGTCTGGACCTGGACTGATCCCCTGACTGCACTCCCCACCCAGCCTTCCCAGATTTATCTTCCTGATGAGACGAGTTCCCTTCGGAGCCCTGTGTGTCTTACTACGTGTTCGGTTGAGGGCCTGCCTCGCCCCAGAGCTGTGGGCTGCACGTGGCCTGCACGTGGCCTGCGTGCTCCTCTGCTGTCCACAGTCGCAGGAGGGGATGCTCAAATATTTGTCGAAGGAATCCGTGAACAGGCAGATGCACATGTAGCCACTTAGAACGTTCTGGCCATGGCTTTTATCTGTTGACCACGTGTGGACACTGAAGATGCATCCTCTCCATCCCGTCTAGAGCTGCCCCTGTGCCAGGCGAGTTGGCCGGCTGTTGACAGAGGTGGTGGGTGGGAGTGTTGGAGCGGGGCAGTGGCTCAGGCTCTGGGTGCCTCACTGGCCTGGTCTGGAAGGTGACCATGCACCAAGGATCAAAGAAGTGAAGCCCAAAGCAGAATCTCATGGAGTTTCCAGCCCAAATCTCCCCCACTGCCTGCCTTTCTCCAGCCAGTGCAAGGCCCCAGGCCTCACAGCAGGACCCCAACACTGCATCCCCCCAAAGACTCTGGCCACCTCCATCCCAGGCCTGCCAGCCTCGAGCCTCATGGAGGGCGTGAGCTGGCGGGGTCACGGGCAGCCCCTGGACACCTATGGGTGACACTAAGGGCTGAGTCAGCTACCCTTGTCTCCTCTGTGCCCAAGAGCCCCAAGCATCAGACTGGTCTGAGCCCCAAGGCCTGGGGGTGCAAGGGGTTGGAGGCTGTGGGATCCAAAGACCCCATTGAACTCCCACCTCAGACACTGCACCTAGTGTTCTCACCCAGGCCTGAACCCATCCACACACTTCACGGCCCTGCTCCCACCCTGTGTCCCCTCTGCAAGCCCCCATGCTCCCCAAATTGGTAACTGGGGGGCCTGTCTCCACACCCCTGCTAGTGCCATTCCCTGGTGGGTAGCCATCACCTCTGGGTCCCCTGCTGCCCTCGCCCCTTCACCATGGGGGCTCGGAAGGCAGAGCCCGCTCCCCTCCTGAGCCCCACCCTGGAACCCTGAGCACCCTGGGTCATTGCCTCTGAGTCTCCCTCAGGGGCAGGGCTTGGGGCCCCTCCTGTCTCCTGACAGGGAGCCCTTTCAGTGCAGGGCCAGGGGGTGGTGGAGGCAAGGGTCCTCAGGGGACCAGATCTGACATGCGGGGCCATCACTGGGTCCCCGATGGCTGTGCTGCTTCGTCCCCGCGCCCACGCCTCGGCGCAGGTTCCCTCCTGGCACCGGTCATAGGGCGAGGCTTGCGGCTCCCACCCCAAGGGTGCGCTCGGCTCTCACCTGAGGGCTCAGCCTAGGTGTCCGGCCCTGGCAGCTCGGCCCTGGGCGCCCTCCACCTCCAGGCGCTGTCTCCTACTCCAGGCTGTTCTTCCGGCCGCCGCGGGGTTGCGGCCTGGGCGCCATAGCAACGGGAGCCAGGCCTCATTTGAATACGCAAATATTTATAAGTCGCCGGGGGCTCGGGTTCCGTGCGGCTGAGCCACGCCCCTTAGCAACGGTCGCTAGGGCGGGGCCACGTGGACTGGCACGTGCGTGGGCGCCCCTGCTGCGGGCGATCCCAGGGGAAGGTGACGCGCCACCAACTCGAGTTGGGTGGGCGCAGGCGCGTCAGGTGCCAGCTTCCTGCGGCTCCGTGCCTGGGCCGTCGCGATGCACGTGTCGCGTTTCCTCGCGATCCTGGCGCTTCCCACGCGGGGCGGGTAAAGGCGGTCTCTGCTGGAGGCTCGCGCCCACCTTTCCCAGGTGGAAGGGTCGCCCCTGGGGCCGAGGCCTGCCGTCCTGACCTTCGGTTGGAAGTGAGGCCGACGGCAAAAGGAAGCACCGGGGGAAGCGCCCCCGAGGACCAGGAAACACACACCGGACGCCGGAGCGCACCCGAGTGCCCGGCCCGCGGGACACGCTGCCGCCCGCCGTCCAGTCGCCGCTTCTCACTCGCGTTCATGCGTGTCCGCCCCGAGCCGAGCTCTGACTGCGACCGCGCGGTGGACGGACGGCAGGCGGGACCCCCGGGACCGCACGTGGGTGGAGCCCCGGGTCAGCAGCGACCGGCGCAGGAGGGCGAGGCGGGCGCTGGACTGGGCAGAGGCAGGGTTTGCCTGACTGTAAAACGCCTTTTTTGTTTTGAGACGAAGTAGCGCTCTGTTGCCCAGTGCAGTGGCGCGATTTCGGCTCACCGCAACATCCGCCTCCCGGGTTCCAGCGATTCTCCTGCCTCAGCCTCCCGAGTAGCTGGGACTACAGGCGCGCGCCACTGCAGCCGACTAATTTTTTGTGTTTTTAGTAGAGACAGGGTTTCATCATGTTGGCCAGGCTGGTCTTGAACTCCTGACCTCAAGTAATCCACCCGCTTAGGCCTCCCGAAGTGCTGGGATTATAGGCGTGAGCCACCGCGCCCGGCCCTTTTTGTTTTTTAATGAGGATGTATTTCTGATTCCTTTGCAATTTTAAAAAATGTTAAAAACATGTCTTTTTGGGTTTGAAAGAGCTAGGATGTGCGTCTATGTGCTTGGGGTGAGCCCTGGGCACTTCGCTCCCCTGTGGCAACTTGTGGGTACGGTTTAACTGGACCACGCTGAGCTTCTGCAGCGTTGGAACCTCAAGTTTGGGGGGACTGGGCGGGCAGGGTCGCCTGCCACGCAGGCCCGAGAAAGAGGAGAGTGGTGGAGGGGGCGTTCTCACGCCTGGCCCCAGGGCACACGGCTGCGCCCGCCGCCCGGAACCCCACCGGGGCTGCAAGCGTCCTCGGGGTGGGTTGCGGTGGGAGTAGGGGAGCTGGGGTGCGTGGTGGTAGGTGGGGTGCGCGGCCGCTCCACCTGCGCGGAAGGGCAGCCGGGCAACCGGACCCCGCGGCCACCCGGGGGCCCCCAGCTCCGAGCATCCCGCCTTGGTCCCGGCGGATCCCAGCCTTTCCCCAGCCCGTAGCCCCGGGACCTCCGCGGTGGGCGGCGCCGCGCTGCCGGCGCAGGGAGGGCCTCTGGTGCACCGGCACCGCTGAGTCGGGTTCTCTCGCCGGCCTGTTCCCGGGAGAGCCCGGGGCCCTGCTCGGAGATGCCGCCCCGGGCCCCCAGACACCGGCTCCCTGGCCTTCCTCGAGCAACCCCGAGCTCGGCTCCGGTCTCCAGCCAAGCCCAACCCCGAGAGGCCGCGGCCCTACTGGCTCCGCCTCCCGCGTTGCTCCCGGAAGCCCCGCCCGACCGCGGCTCCTGACAGACGGGCCGCTCAGCCAACCGGGGTGGGGCGGGGCCCGATGGCGCGCAGCCAATGGTAGGCCGCGCCTGGCAGACGGACGGGCGCGGGGCGGGGCGTGCGCAGGCCCGCCCGAGTCTCCGCCGCCCGTGCCCTGCGCCCGCAACCCGAGCCGCACCCGCCGCGGACGGAGCCCATGCGCGGGGCGAACCGCGCGCCCCCGCCCCCGCCCCGCCCCGGCCTCGGCCCCGGCCCTGGCCCCGGGGGCAGTCGCGCCTGTGAACGGTGAGTGCGGGCAGGGATCGGCCGGGCCGCGCGCCCTCCTCGCCCCCAGGCGGCAGCAATACGCGCGGCGCGGGCCGGGGGCGCGGGGCCGGCGGGCGTAAGCGGCGGCGGCGGCGGCGGCGGCGGGTGGGTGGGGCCGGGCGGGGCCCGCGGGCACAGGTGAGCGGGCGTCGGGGGCTGCGGCGGGCGGGGGCCCCTTCCTCCCTGGGGCCTGCGGGAATCCGGGCCCCACCCGTGGCCTCGCGCTGGGCACGGTCCCCACGCCGGCGTACCCGGGAGCCTCGGGCCCGGCGCCCTCACACCCGGGGGCGTCTGGGAGGAGGCGGCCGCGGCCACGGCACGCCCGGGCACCCCCGATTCAGCATCACAGGTCGCGGACCAGGCCGGGGGCCTCAGCCCCAGTGCCTTTTCCCTCTCCGGGTCTCCCGCGCCGCTTCTCGGCCCCTTCCTGTCGCTCAGTCCCTGCTTCCCAGGAGCTCCTCTGTCTTCTCCAGCTTTCTGTGGCTGAAAGATGCCCCCGGTTCCCCGCCGGGGGTGCGGGGCGCTGCCCGGGTCTGCCCTCCCCTCGGCGGCGCCTAGTACGCAGTAGGCGCTCAGCAAATACTTGTCGGAGGCACCAGCGCCGCGGGGCCTGCAGGCTGGCACTAGCCTGCCCGGGCACGCCGTGGCGCGCTCCGCCGTGGCCAGACCTGTTCTGGAGGACGGTAACCTCAGCCCTCGGGCGCCTCCCTTTAGCCTTTCTGCCGACCCAGCAGCTTCTAATTTGGGTGCGTGGTTGAGAGCGCTCAGCTGTCAGCCCTGCCTTTGAGGGCTGGGTCCCTTTTCCCATCACTGGGTCATTAAGAGCAAGTGGGGGCGAGGCGACAGCCCTCCCGCACGCTGGGTTGCAGCTGCACAGGTAGGCACGCTGCAGTCCTTGCTGCCTGGCGTTGGGGCCCAGGGACCGCTGTGGGTTTGCCCTTCAGATGGCCCTGCCAGCAGCTGCCCTGTGGGGCCTGGGGCTGGGCCTGGGCCTGGCTGAGCAGGGCCCTCCTTGGCAGGTGGGGCAGGAGACCCTGTAGGAGGACCCCGGGCCGCAGGCCCCTGAGGAGCGATGACGGAATATAAGCTGGTGGTGGTGGGCGCCGGCGGTGTGGGCAAGAGTGCGCTGACCATCCAGCTGATCCAGAACCATTTTGTGGACGAATACGACCCCACTATAGAGGTGAGCCTGGCGCCGCCGTCCAGGTGCCAGCAGCTGCTGCGGGCGAGCCCAGGACACAGCCAGGATAGGGCTGGCTGCAGCCCCTGGTCCCCTGCATGGTGCTGTGGCCCTGTCTCCTGCTTCCTCTAGAGGAGGGGAGTCCCTCGTCTCAGCACCCCAGGAGAGGAGGGGGCATGAGGGGCATGAGAGGTACCAGGGAGAGGCTGGCTGTGTGAACTCCCCCCACGGAAGGTCCTGAGGGGGTCCCTGAGCCCTGTCCTCCTGCAGGATTCCTACCGGAAGCAGGTGGTCATTGATGGGGAGACGTGCCTGTTGGACATCCTGGATACCGCCGGCCAGGAGGAGTACAGCGCCATGCGGGACCAGTACATGCGCACCGGGGAGGGCTTCCTGTGTGTGTTTGCCATCAACAACACCAAGTCTTTTGAGGACATCCACCAGTACAGGTGAACCCCGTGAGGCTGGCCCGGGAGCCCACGCCGCACAGGTGGGGCCAGGCCGGCTGCGTCCAGGCAGGGGCCTCCTGTCCTCTCTGCGCATGTCCTGGATGCCGCTGCGCCTGCAGCCCCCGTAGCCAGCTCTCGCTTTCCACCTCTCAGGGAGCAGATCAAACGGGTGAAGGACTCGGATGACGTGCCCATGGTGCTGGTGGGGAACAAGTGTGACCTGGCTGCACGCACTGTGGAATCTCGGCAGGCTCAGGACCTCGCCCGAAGCTACGGCATCCCCTACATCGAGACCTCGGCCAAGACCCGGCAGGTGAGGCAGCTCTCCACCCCACAGCTAGCCAGGGACCCGCCCCGCCCCGCCCCAGCCAGGGAGCAGCACTCACTGACCCTCTCCCTTGACACAGGGCAGCCGCTCTGGCTCTAGCTCCAGCTCCGGGACCCTCTGGGACCCCCCGGGACCCATGTGACCCAGCGGCCCCTCGCGCTGTAAGTCTCCCGGGACGGCAGGGCAGTGAGGGAGGCGAGGGCCGGGGTCTGGGCTCACGCCCTGCAGTCCTGGGCCGACACAGCTCCGGGGAAGGCGGAGGTCCTTGGGGAGAGCTGCCCTGAGCCAGGCCGGAGCGGTGACCCTGGGGCCCGGCCCCTCTTGTCCCCAGAGTGTCCCACGGGCACCTGTTGGTTCTGAGTCTTAGTGGGGCTACTGGGGACACGGGCCGTAGCTGAGTCGAGAGCTGGGTGCAGGGTGGTCAAACCCTGGCCAGACCTGGAGTTCAGGAGGGCCCCGGGCCACCCTGACCTTTGAGGGGCTGCTGTAGCATGATGCGGGTGGCCCTGGGCACTTCGAGATGGCCAGAGTCCAGCTTCCCGTGTGTGTGGTGGGCCTGGGGAAGTGGCTGGTGGAGTCGGGAGCTTCGGGCCAGGCAAGGCTTGATCCCACAGCAGGGAGCCCCTCACCCAGGCAGGCGGCCACAGGCCGGTCCCTCCTGATCCCATCCCTCCTTTCCCAGGGAGTGGAGGATGCCTTCTACACGTTGGTGCGTGAGATCCGGCAGCACAAGCTGCGGAAGCTGAACCCTCCTGATGAGAGTGGCCCCGGCTGCATGAGCTGCAAGTGTGTGCTCTCCTGACGCAGGTGAGGGGGACTCCCAGGGCGGCCGCCACGCCCACCGGATGACCCCGGCTCCCCGCCCCTGCCGGTCTCCTGGCCTGCGGTCAGCAGCCTCCCTTGTGCCCCGCCCAGCACAAGCTCAGGACATGGAGGTGCCGGATGCAGGAAGGAGGTGCAGACGGAAGGAGGAGGAAGGAAGGACGGAAGCAAGGAAGGAAGGAAGGGCTGCTGGAGCCCAGTCACCCCGGGACCGTGGGCCGAGGTGACTGCAGACCCTCCCAGGGAGGCTGTGCACAGACTGTCTTGAACATCCCAAATGCCACCGGAACCCCAGCCCTTAGCTCCCCTCCCAGGCCTCTGTGGGCCCTTGTCGGGCACAGATGGGATCACAGTAAATTATTGGATGGTCTTGATCTTGGTTTTCGGCTGAGGGTGGGACACGGTGCGCGTGTGGCCTGGCATGAGGTATGTCGGAACCTCAGGCCTGTCCAGCCCTGGGCTCTCCATAGCCTTTGGGAGGGGGAGGTTGGGAGAGGCCGGTCAGGGGTCTGGGCTGTGGTGCTCTCTCCTCCCGCCTGCCCCAGTGTCCACGGCTTCTGGCAGAGAGCTCTGGACAAGCAGGCAGATCATAAGGACAGAGAGCTTACTGTGCTTCTACCAACTAGGAGGGCGTCCTGGTCCTCCAGAGGGAGGTGGTTTCAGGGGTTGGGGATCTGTGCCGGTGGCTCTGGTCTCTGCTGGGAGCCTTCTTGGCGGTGAGAGGCATCACCTTTCCTGACTTGCTCCCAGCGTGAAATGCACCTGCCAAGAATGGCAGACATAGGGACCCCGCCTCCTGGGCCTTCACATGCCCAGTTTTCTTCGGCTCTGTGGCCTGAAGCGGTCTGTGGACCTTGGAAGTAGGGCTCCAGCACCGACTGGCCTCAGGCCTCTGCCTCATTGGTGGTCGGGTAGCGGCCAGTAGGGCGTGGGAGCCTGGCCATCCCTGCCTCCTGGAGTGGACGAGGTTGGCAGCTGGTCCGTCTGCTCCTGCCCCACTCTCCCCCGCCCCTGCCCTCACCCTACCCTTGCCCCACGCCTGCCTCATGGCTGGTTGCTCTTGGAGCCTGGTAGTGTCACTGGCTCAGCCTTGCTGGGTATACACAGGCTCTGCCACCCACTCTGCTCCAAGGGGCTTGCCCTGCCTTGGGCCAAGTTCTAGGTCTGGCCACAGCCACAGACAGCTCAGTCCCCTGTGTGGTCATCCTGGCTTCTGCTGGGGGCCCACAGCGCCCCTGGTGCCCCTCCCCTCCCAGGGCCCGGGTTGAGGCTGGGCCAGGCCCCTCTGGGACGGGGACTTGTGCCCTGTCAGGGTTCCCTATCCCTGAGGTTGGGGGAGAGCTAGCAGGGCATGCCGCTGGCTGGCCAGGGCTGCAGGGACACTCCCCCTTTTGTCCAGGGAATACCACACTCGCCCTTCTCTCCAGCGAACACCACACTCGCCCTTCTCTCCAGGGGACGCCACACTCCCCCTTCTGTCCAGGGGACGCCACACTCCCCCTTCTCTCCAGGGGACGCCACACTCGCCCTTCTCTCCAGGGGACGCCACACTCGCCCTTCTCTCCAGGGGACGCCACACTCCCCCTTCTGTCCAGGGGACGCCACACTCGCCCTTCTCTCCAGGGGACGCCACACTGGCCCTTCTCTCCAGGGGACGCCACACTCCCCCTTCTGTCCAGGGGACGCCACACTCCCCCTTCTCTCCAGGGGACGCCACACTCCCCCTTCTCTCCAGGGGACGCCACACTGGCCCTTCTCTCCAGGGGACGCCACACTCCCCCTTCTGTCCAGGGGACGCCACACTCGCCCTTCTCTCCAGGGGACGCCACACTCGCCCTTCTCTCCAGGGGACGCCACACTCCCCCTTCTCTCCAGGGGACGCCACACTCCCCCTTCTCTCCAGGGGACGCCACACTCCCCCTTCTCTCCAGGGGACGCCACACTCCCCCTTCTGTCCAGGGGACGCCACACTCGCCCTTCTCTCCAGGGGACGCCACACTCCCCCTTCTCTCCAGGGGACGCCACACTCCCCCTTCTCTCCAGGGGACGCCACACTCCCCCTTCTGTCCAGGGGACGCCACACTCGCCCTTCTCTCCAGGGGACGCCACACTCGCCCTTCTCTCCAGGGGACGCCACACTCGCCCTTCTCTCCAGGGGACGCCACACTTGCCCTTCTGTCCAGGGAATGCCACACTCCCCCTTCTCCCCAGCAGCCTCCGAGTGACCAGCTTCCCCATCGATAGACTTCCCGAGGCCAGGAGCCCTCTAGGGCTGCCGGGTGCCACCCTGGCTCCTTCCACACCGTGCTGGTCACTGCCTGCTGGGGGCGTCAGATGCAGGTGACCCTGTGCAGGAGGTATCTCTGGACCTGCC';
+const CHR = 'hras', LEN = SEQ.length, RS = 1, RE = LEN;
+const I = p => p - 1;
 const fmt = n => Math.round(n).toLocaleString('en-US');
-function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
-const rng = mulberry32(116);
 const COMP = {A:'T',T:'A',G:'C',C:'G'};
 const BASES = 'TCAG', AAS = 'FFLLSSSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG';
 const tr = c => AAS[BASES.indexOf(c[0])*16 + BASES.indexOf(c[1])*4 + BASES.indexOf(c[2])];
 const AA3 = {A:'Ala',R:'Arg',N:'Asn',D:'Asp',C:'Cys',Q:'Gln',E:'Glu',G:'Gly',H:'His',I:'Ile',L:'Leu',K:'Lys',M:'Met',F:'Phe',P:'Pro',S:'Ser',T:'Thr',W:'Trp',Y:'Tyr',V:'Val','*':'Stop'};
 const AAN = {A:'Alanine',R:'Arginine',N:'Asparagine',D:'Aspartate',C:'Cysteine',Q:'Glutamine',E:'Glutamate',G:'Glycine',H:'Histidine',I:'Isoleucine',L:'Leucine',K:'Lysine',M:'Methionine',F:'Phenylalanine',P:'Proline',S:'Serine',T:'Threonine',W:'Tryptophan',Y:'Tyrosine',V:'Valine'};
-function randBase(gc){ const r = rng(); if (r < gc) return rng() < .5 ? 'G' : 'C'; return rng() < .5 ? 'A' : 'T'; }
 const translate = s => { let o=''; for (let i=0;i+2<s.length;i+=3) o += tr(s.substr(i,3)); return o; };
+const seq = SEQ.split('');
 
-const seq = new Array(LEN);
-for (let i=0;i<LEN;i++) seq[i] = randBase(0.40);
-for (let p=1001450;p<=1002150;p++) seq[I(p)] = randBase(0.66);          // CpG island at the LUMN1 promoter
-for (let p=1001460;p<=1002090;p+=6+Math.floor(rng()*8)){ seq[I(p)]='C'; seq[I(p)+1]='G'; }
-
+// Coding exons found by aligning the HRAS p21 protein (UniProt P01112, 189 aa) to this sequence;
+// every intron starts GT and ends AG. Exon 1 of HRAS is non-coding and UTRs are not drawn.
 const GENES = [
-  {name:'LUMN1', strand:'+', txs:[
-    {id:'LUMN1-201', exons:[[1002000,1002250],[1003400,1003520],[1004800,1004889],[1006100,1006230],[1007500,1008200]], thick:[1002101,1007800]},
-    {id:'LUMN1-202', exons:[[1002000,1002250],[1003400,1003520],[1006100,1006230],[1007500,1008200]], thick:[1002101,1007800]}]},
-  {name:'KTRB2', strand:'-', txs:[
-    {id:'KTRB2-201', exons:[[1010500,1011300],[1012100,1012230],[1013000,1013140],[1014400,1014520],[1016600,1017000]], thick:[1010900,1016800]}]},
-  {name:'ORFA3', strand:'+', txs:[
-    {id:'ORFA3-201', exons:[[1019200,1019600],[1021000,1021900]], thick:[1019350,1021500]}]}
+  {name:'HRAS', strand:'+', txs:[
+    {id:'HRAS-p21', exons:[[6229,6339],[6607,6785],[6939,7098],[7796,7915]], thick:[6229,7915], exonOffset:1}]}
 ];
 const TX = [];
 for (const g of GENES) for (const t of g.txs){ t.gene=g.name; t.strand=g.strand; t.start=t.exons[0][0]; t.end=t.exons[t.exons.length-1][1]; TX.push(t); }
 function cdsPos(t){ const pos=[]; for (const [s,e] of t.exons) for (let p=s;p<=e;p++) if (p>=t.thick[0] && p<=t.thick[1]) pos.push(p); if (t.strand==='-') pos.reverse(); return pos; }
-function setT(p,b,strand){ seq[I(p)] = strand==='+' ? b : COMP[b]; }
 const getT = (p,strand) => strand==='+' ? seq[I(p)] : COMP[seq[I(p)]];
 const txOrder = t => t.strand==='+' ? t.exons.slice() : t.exons.slice().reverse();
-// trim CDS so its length is a multiple of 3 (moves the stop-codon end)
-for (const g of GENES){
-  const t = g.txs[0]; const r = cdsPos(t).length % 3;
-  for (const u of g.txs){ if (g.strand==='+') u.thick = [t.thick[0], t.thick[1]-r]; else u.thick = [t.thick[0]+r, t.thick[1]]; }
-}
-function writeSplice(t){
-  const ex = txOrder(t);
-  for (let k=0;k<ex.length-1;k++){
-    const a=ex[k], b=ex[k+1];
-    if (t.strand==='+'){ setT(a[1]+1,'G','+'); setT(a[1]+2,'T','+'); setT(b[0]-2,'A','+'); setT(b[0]-1,'G','+'); }
-    else { setT(a[0]-1,'G','-'); setT(a[0]-2,'T','-'); setT(b[1]+2,'A','-'); setT(b[1]+1,'G','-'); }
-  }
-}
-const STOPS = ['TAA','TAG','TGA'];
-function randCodon(){ for(;;){ const c = randBase(.5)+randBase(.5)+randBase(.5); if (tr(c)!=='*') return c; } }
 const cdsSeq = t => t.cds.map(p => getT(p,t.strand)).join('');
-function protOK(t){ const pr = translate(cdsSeq(t)); return pr[0]==='M' && pr.endsWith('*') && pr.indexOf('*')===pr.length-1; }
-for (const t of TX){ t.cds = cdsPos(t); t.cdsIdx = new Map(t.cds.map((p,i)=>[p,i])); }
-for (const g of GENES){
-  const main = g.txs[0];
-  for (let attempt=0; attempt<200; attempt++){
-    const n = main.cds.length/3; let s = 'ATG';
-    for (let k=1;k<n-1;k++) s += randCodon();
-    s += STOPS[Math.floor(rng()*3)];
-    main.cds.forEach((p,i) => setT(p,s[i],g.strand));
-    if (g.txs.every(protOK)) break;
-  }
-  g.txs.forEach(writeSplice);
-}
-for (const t of TX) t.protein = translate(cdsSeq(t));
+for (const t of TX){ t.cds = cdsPos(t); t.cdsIdx = new Map(t.cds.map((p,i)=>[p,i])); t.protein = translate(cdsSeq(t)); }
 
 /* ---- variants ---- */
 function effectOn(t,p,alt){
@@ -550,81 +520,62 @@ function classify(p,alt){
   effs.sort((a,b)=>SEV.indexOf(a.cls)-SEV.indexOf(b.cls));
   return {cls:effs[0].cls, effs};
 }
-const transition = b => ({A:'G',G:'A',C:'T',T:'C'})[b];
-const txById = id => TX.find(t => t.id===id);
-function findCodingSnp(tid, codon, want){
-  const t = txById(tid);
-  for (let k=codon; k<t.cds.length/3-1; k++){
-    for (const j of (want==='synonymous'?[2,0,1]:[0,1,2])){
-      const p = t.cds[k*3+j];
-      for (const b of 'ACGT'){
-        if (b===seq[I(p)]) continue;
-        if (classify(p,b).cls===want) return {pos:p, alt:b};
-      }
-    }
-  }
-}
-const ktrb = txById('KTRB2-201');
-const SNPS = [
-  {id:'rsB116-1', pos:1000720},
-  {id:'rsB116-2', pos:1002050},
-  {id:'rsB116-3', pos:1002790},
-  {id:'rsB116-4', ...findCodingSnp('LUMN1-201',130,'missense')},
-  {id:'rsB116-5', ...findCodingSnp('KTRB2-201',40,'synonymous')},
-  {id:'rsB116-6', pos:txOrder(ktrb)[1][0]-1},
-  {id:'rsB116-7', ...findCodingSnp('ORFA3-201',60,'nonsense')},
-  {id:'rsB116-8', pos:1009330},
-  {id:'rsB116-9', pos:1010700}
-].map(s => { s.ref = seq[I(s.pos)]; if (!s.alt) s.alt = transition(s.ref); s.eff = classify(s.pos,s.alt); return s; })
- .sort((a,b)=>a.pos-b.pos);
-const snpById = id => SNPS.find(s => s.id.toLowerCase()===id.toLowerCase());
+const txById = id => TX.find(t => t.id.toLowerCase()===String(id).toLowerCase());
+const HR = TX[0];
+// Well-known HRAS variants, placed by their coding (c.) position; the reference base is checked against the sequence.
+const VARS = [
+  {id:'rs12628', c:81, ref:'T', alt:'C', hgvs:'c.81T>C', note:'A common polymorphism. It changes the codon but not the amino acid.'},
+  {id:'G12S', c:34, ref:'G', alt:'A', hgvs:'c.34G>A', note:'Germline; the most frequent cause of Costello syndrome.'},
+  {id:'G12V', c:35, ref:'G', alt:'T', hgvs:'c.35G>T', note:'Somatic. The mutation in the T24 bladder carcinoma line, the first activating mutation found in a human oncogene (1982). It keeps RAS locked in its active, GTP-bound state.'},
+  {id:'G13C', c:37, ref:'G', alt:'T', hgvs:'c.37G>T', note:'Germline; reported in Costello syndrome.'},
+  {id:'Q61K', c:181, ref:'C', alt:'A', hgvs:'c.181C>A', note:'Somatic; found in thyroid and other cancers. Q61 is needed for GTP hydrolysis.'},
+  {id:'Q61L', c:182, ref:'A', alt:'T', hgvs:'c.182A>T', note:'Somatic; activating mutation seen in several cancers.'},
+  {id:'A146T', c:436, ref:'G', alt:'A', hgvs:'c.436G>A', note:'Germline; reported in Costello syndrome.'}
+];
+const SNPS = VARS.map(v => ({...v, pos:HR.cds[v.c-1]}))
+  .filter(v => { const ok = seq[I(v.pos)]===v.ref; if (!ok) console.warn('Reference mismatch for', v.id); return ok; })
+  .map(s => { s.eff = classify(s.pos,s.alt); return s; })
+  .sort((a,b)=>a.pos-b.pos);
+const snpById = id => SNPS.find(s => s.id.toLowerCase()===String(id).toLowerCase());
+
+/* ---- sequence features computed from the entry ---- */
+const FEATS = [
+  {id:'CpG island', kind:'cpg', s:2716, e:6069, cls:'w-gc',
+   desc:'Computed with the Takai–Jones rule: every 500-bp window here has ≥55% GC and a CpG observed/expected ratio ≥0.65. CpG islands usually mark promoters. This one covers the region upstream of the start codon, where HRAS’s promoter and non-coding exon 1 lie.'},
+  {id:'HRAS1 minisatellite', kind:'vntr', s:9311, e:10149, cls:'w-rna',
+   desc:'A tandem repeat of a 28-bp unit (…GGGGACGCCACACTCCCCCTTCTCTCCA…) about 30 times, 3′ of the gene. The number of repeats varies between people (a VNTR). Rare HRAS1 minisatellite alleles have been studied as cancer-risk markers.'}
+];
+const featById = id => FEATS.find(f => f.id.toLowerCase()===String(id).toLowerCase());
 
 /* ---- signal tracks ---- */
-const CNE = [1009000,1009200];
-const cons = new Float32Array(LEN), rna = new Float32Array(LEN), gc = new Float32Array(LEN);
-const knots = Array.from({length:Math.ceil(LEN/25)+2}, () => rng());
-for (let i=0;i<LEN;i++){ const k=Math.floor(i/25), f=(i%25)/25, v=knots[k]*(1-f)+knots[k+1]*f; cons[i]=0.04+0.24*v*v+0.06*rng(); }
-for (const g of GENES){
-  for (const t of g.txs) for (const [s,e] of t.exons) for (let p=s;p<=e;p++) cons[I(p)] = Math.max(cons[I(p)], 0.42+0.18*rng());
-  const m = g.txs[0];
-  m.cds.forEach((p,i) => { cons[I(p)] = i%3===2 ? 0.34+0.22*rng() : 0.8+0.18*rng(); });
-  for (const t of g.txs) for (const [s,e] of t.exons){ for (const p of [s-1,s-2,e+1,e+2]) if (p>t.start && p<t.end) cons[I(p)] = 0.88+0.1*rng(); }
-}
-for (let p=CNE[0];p<=CNE[1];p++){ const f=(p-CNE[0])/(CNE[1]-CNE[0]); cons[I(p)] = Math.max(cons[I(p)], 0.55+0.35*Math.sin(Math.PI*f)+0.08*rng()); }
-const rknots = Array.from({length:Math.ceil(LEN/40)+2}, () => rng());
-const smooth = i => { const k=Math.floor(i/40), f=(i%40)/40; return rknots[k]*(1-f)+rknots[k+1]*f; };
-const EXPR = {LUMN1:82, KTRB2:24, ORFA3:0};
-for (const g of GENES){
-  const lvl = EXPR[g.name]; if (!lvl) continue;
-  const t0 = g.txs[0];
-  for (let p=t0.start;p<=t0.end;p++) rna[I(p)] = lvl*0.03*(0.5+smooth(I(p)));
-  for (const t of g.txs) for (const [s,e] of t.exons) for (let p=s;p<=e;p++){
-    const shared = g.txs.every(u => u.exons.some(x => p>=x[0] && p<=x[1]));
-    rna[I(p)] = lvl*(shared?1:0.4)*(0.78+0.4*smooth(I(p)));
-  }
-}
-{ const pre = new Int32Array(LEN+1); for (let i=0;i<LEN;i++) pre[i+1]=pre[i]+(seq[i]==='G'||seq[i]==='C'?1:0);
-  for (let i=0;i<LEN;i++){ const a=Math.max(0,i-25), b=Math.min(LEN,i+25); gc[i]=(pre[b]-pre[a])/(b-a); } }
+const gc = new Float32Array(LEN), cpg = new Float32Array(LEN);
+{ const pre = new Int32Array(LEN+1), c = new Int32Array(LEN+1), g = new Int32Array(LEN+1), cg = new Int32Array(LEN+1);
+  for (let i=0;i<LEN;i++){ const b=seq[i]; pre[i+1]=pre[i]+(b==='G'||b==='C'?1:0); c[i+1]=c[i]+(b==='C'?1:0); g[i+1]=g[i]+(b==='G'?1:0); cg[i+1]=cg[i]+(b==='C'&&seq[i+1]==='G'?1:0); }
+  for (let i=0;i<LEN;i++){
+    let a=Math.max(0,i-25), b=Math.min(LEN,i+25); gc[i]=(pre[b]-pre[a])/(b-a);
+    a=Math.max(0,i-100); b=Math.min(LEN,i+100); const nc=c[b]-c[a], ng=g[b]-g[a];
+    cpg[i] = nc*ng ? (cg[b]-cg[a])*(b-a)/(nc*ng) : 0;
+  } }
 
 /* ================= browser state ================= */
 const view = {start:RS, end:RE};
-const DEFAULT_MODES = {seq:'full', trans:'plus', genes:'dense', snp:'dense', cons:'full', rna:'full', gc:'full'};
+const DEFAULT_MODES = {seq:'full', trans:'plus', genes:'full', feats:'full', snp:'dense', gc:'full', cpg:'full'};
 const modes = {...DEFAULT_MODES};
 const TRACKS = [
   {id:'seq', name:'Reference sequence (+ strand)', opts:[['hide','hide'],['full','show']]},
   {id:'trans', name:'Translation', opts:[['hide','hide'],['plus','+ strand frames'],['both','both strands']]},
-  {id:'genes', name:'Gene annotations (bioU Genes)', opts:[['hide','hide'],['dense','dense'],['full','full']]},
-  {id:'snp', name:'Common variants', opts:[['hide','hide'],['dense','dense'],['full','full']]},
-  {id:'cons', name:'Vertebrate conservation', opts:[['hide','hide'],['full','show']]},
-  {id:'rna', name:'RNA-seq coverage, liver', opts:[['hide','hide'],['full','show']]},
-  {id:'gc', name:'GC percent, 50-bp windows', opts:[['hide','hide'],['full','show']]}
+  {id:'genes', name:'HRAS coding exons', opts:[['hide','hide'],['dense','dense'],['full','full']]},
+  {id:'feats', name:'CpG island & repeats', opts:[['hide','hide'],['full','show']]},
+  {id:'snp', name:'HRAS variants', opts:[['hide','hide'],['dense','dense'],['full','full']]},
+  {id:'gc', name:'GC percent, 50-bp windows', opts:[['hide','hide'],['full','show']]},
+  {id:'cpg', name:'CpG observed/expected', opts:[['hide','hide'],['full','show']]}
 ];
 let selected = null, highlight = null;
 const clicked = new Set();
 
 const $ = id => document.getElementById(id);
 const svg = $('gb'), wrap = $('gbwrap'), posIn = $('pos'), msg = $('msg');
-const MIN_SPAN = 24;
+const MIN_SPAN = 20;
 
 function setView(s,e,opts={}){
   let span = Math.round(e-s+1);
@@ -706,7 +657,7 @@ function render(){
   }
   // genes
   if (modes.genes !== 'hide'){
-    header('Gene annotations (bioU Genes)');
+    header('HRAS coding exons (from protein alignment)');
     const drawTx = (t, ym, label, key) => {
       if (t.end < start || t.start > end) return;
       const x0=cl(X(t.start)), x1=cl(X(t.end+1));
@@ -744,9 +695,22 @@ function render(){
       if (!vis.length) note('No transcripts in this window.');
     }
   }
+  // computed sequence features
+  if (modes.feats !== 'hide'){
+    header('CpG island & repeats (computed from sequence)');
+    for (const f of FEATS){
+      if (f.e < start || f.s > end) continue;
+      const xa = cl(X(f.s)), xb = cl(X(f.e+1)), key = 'feat:'+f.id, tw = f.id.length*6.6+4;
+      o.push(`<g class="feat${selected===key?' sel':''}" data-f="${key}"><title>${f.id}: ${fmt(f.s)}-${fmt(f.e)}. Click for details.</title><rect class="hit" x="${xa}" y="${y}" width="${Math.max(8,xb-xa)}" height="28"/>`);
+      o.push(`<rect class="${f.cls} snp" x="${xa.toFixed(2)}" y="${y+15}" width="${Math.max(2,xb-xa).toFixed(2)}" height="10" rx="2"/>`);
+      o.push(`<text class="feat-lbl" x="${Math.max(2,Math.min(W-tw,xa)).toFixed(1)}" y="${y+11}">${f.id}</text></g>`);
+    }
+    if (!FEATS.some(f => f.e >= start && f.s <= end)) note('No computed features in this window.');
+    else y += 30;
+  }
   // variants
   if (modes.snp !== 'hide'){
-    header('Common variants (bioU SNPs)');
+    header('HRAS variants (ClinVar / literature)');
     const vis = SNPS.filter(s => s.pos>=start && s.pos<=end);
     const full = modes.snp==='full', lblEnd = [-1e9,-1e9];
     const top = full ? y+14 : y;
@@ -784,9 +748,8 @@ function render(){
     o.push(`<path class="${cls}" d="${d}"/>`);
     y += h + 6;
   };
-  if (modes.cons !== 'hide'){ header('Vertebrate conservation', '0 – 1'); wiggle(cons,'w-cons',0,1); }
-  if (modes.rna !== 'hide'){ header('RNA-seq coverage, liver', '0 – 120 reads'); wiggle(rna,'w-rna',0,120); }
-  if (modes.gc !== 'hide'){ header('GC percent, 50-bp windows', '20 – 80%'); wiggle(gc,'w-gc',0.2,0.8); }
+  if (modes.gc !== 'hide'){ header('GC percent, 50-bp windows', '30 – 90%'); wiggle(gc,'w-gc',0.3,0.9); }
+  if (modes.cpg !== 'hide'){ header('CpG observed/expected, 200-bp windows', '0 – 1.2'); wiggle(cpg,'w-cons',0,1.2); }
 
   const H = Math.max(y+4, 60);
   if (highlight && highlight[1] >= start && highlight[0] <= end){
@@ -805,7 +768,8 @@ function render(){
 function renderOverview(){
   const ov = $('ov'), W = ov.clientWidth || 600, s = W/LEN, o = [];
   o.push(`<rect class="ov-bg" x="0" y="6" width="${W}" height="12" rx="6"/>`);
-  for (const g of GENES){ const t=g.txs[0]; o.push(`<rect class="ov-gene" x="${(t.start-RS)*s}" y="9" width="${(t.end-t.start)*s}" height="6" rx="2"/>`); }
+  for (const f of FEATS) o.push(`<rect class="${f.cls}" opacity=".55" x="${(f.s-RS)*s}" y="10" width="${(f.e-f.s)*s}" height="4" rx="2"/>`);
+  for (const g of GENES){ const t=g.txs[0]; o.push(`<rect class="ov-gene" x="${(t.start-RS)*s}" y="8" width="${(t.end-t.start)*s}" height="8" rx="2"/>`); }
   const xa = (view.start-RS)*s, w = Math.max(3,(view.end-view.start+1)*s);
   o.push(`<rect class="ov-win" x="${xa.toFixed(1)}" y="2" width="${w.toFixed(1)}" height="20" rx="3"/>`);
   ov.setAttribute('viewBox', `0 0 ${W} 26`);
@@ -866,7 +830,7 @@ document.querySelectorAll('[data-move]').forEach(b => b.addEventListener('click'
 }));
 document.querySelectorAll('[data-zoom]').forEach(b => b.addEventListener('click', () => {
   const z = b.dataset.zoom;
-  if (z === 'all') setView(RS, RE);
+  if (z === 'all'){ highlight = null; setView(RS, RE); }
   else if (z === 'base'){ const c = (view.start+view.end)/2; setView(c-30, c+29); }
   else zoom(+z);
 }));
@@ -879,16 +843,18 @@ $('posform').addEventListener('submit', e => {
   if (!q) return;
   const g = GENES.find(g => g.name.toLowerCase()===q.toLowerCase());
   const t = txById(q.toUpperCase());
-  const s = snpById(q);
+  const s = snpById(q) || SNPS.find(v => v.hgvs.toLowerCase()===q.toLowerCase());
+  const ql = q.toLowerCase(), ft = FEATS.find(f => f.id.toLowerCase()===ql || (ql==='vntr' && f.kind==='vntr') || (ql==='minisatellite' && f.kind==='vntr') || (ql==='cpg' && f.kind==='cpg') || (ql==='cpg island' && f.kind==='cpg'));
+  if (ft){ gotoRange(ft.s,ft.e,.06,[ft.s,ft.e]); msg.textContent=''; return; }
   if (g){ const a=Math.min(...g.txs.map(t=>t.start)), b=Math.max(...g.txs.map(t=>t.end)); gotoRange(a,b,.06,[a,b]); msg.textContent=''; return; }
   if (t){ gotoRange(t.start,t.end,.06,[t.start,t.end]); msg.textContent=''; return; }
   if (s){ highlight=[s.pos,s.pos]; setView(s.pos-40, s.pos+39, {silent:true}); msg.textContent=''; return; }
-  const m = q.replace(/,/g,'').match(/^(?:(chr[\w]+)\s*:\s*)?(\d+)(?:\s*[-–]\s*(\d+))?$/i);
-  if (!m){ msg.textContent = `“${q}” didn't match anything. Try a gene (LUMN1, KTRB2, ORFA3), a variant (rsB116-4) or a position such as chr3:1,005,000-1,006,000.`; posIn.value = `${CHR}:${fmt(view.start)}-${fmt(view.end)}`; return; }
-  if (m[1] && m[1].toLowerCase() !== CHR){ msg.textContent = `This practice assembly only contains ${CHR}:${fmt(RS)}-${fmt(RE)}. Check the chromosome name.`; return; }
+  const m = q.replace(/,/g,'').match(/^(?:([\w.]+)\s*:\s*)?(\d+)(?:\s*[-–]\s*(\d+))?$/i);
+  if (!m){ msg.textContent = `“${q}” didn't match anything. Try HRAS, a variant (G12V, rs12628, c.35G>T), CpG, VNTR, or a position such as hras:6,000-7,000.`; posIn.value = `${CHR}:${fmt(view.start)}-${fmt(view.end)}`; return; }
+  if (m[1] && m[1].toLowerCase() !== CHR){ msg.textContent = `This entry only contains ${CHR}:${fmt(RS)}-${fmt(RE)}. Check the chromosome name.`; return; }
   let a = +m[2], b = m[3] ? +m[3] : null;
   if (b !== null && b < a) [a,b] = [b,a];
-  if ((b ?? a) < RS || a > RE){ msg.textContent = `${fmt(a)} is outside the practice region, ${CHR}:${fmt(RS)}-${fmt(RE)}.`; return; }
+  if ((b ?? a) < RS || a > RE){ msg.textContent = `${fmt(a)} is outside the HRAS entry, ${CHR}:${fmt(RS)}-${fmt(RE)}.`; return; }
   highlight = null;
   if (b === null) setView(a-50, a+49, {silent:true}); else setView(a, b, {silent:true});
   msg.textContent = '';
@@ -899,13 +865,14 @@ const loc = (a,b) => `${CHR}:${fmt(a)}-${fmt(b)}`;
 function txDetails(t){
   const ex = txOrder(t), plen = t.protein.length-1;
   const pr = t.protein.replace(/\*$/,'');
-  return `<h3>${t.id} <span style="font-weight:400;color:var(--muted)">· gene ${t.gene}</span></h3>
+  return `<h3>${t.gene} <span style="font-weight:400;color:var(--muted)">· GTPase HRas (p21), coding exons</span></h3>
   <dl class="kv"><dt>Location</dt><dd>${loc(t.start,t.end)}</dd><dt>Strand</dt><dd>${t.strand==='+'?'+ (forward)':'− (reverse)'}</dd>
-  <dt>Length</dt><dd>${fmt(t.end-t.start+1)} bp genomic</dd><dt>Exons</dt><dd>${t.exons.length}</dd>
+  <dt>Length</dt><dd>${fmt(t.end-t.start+1)} bp, start to stop codon</dd><dt>Coding exons</dt><dd>${t.exons.length} (exons ${1+(t.exonOffset||0)}–${t.exons.length+(t.exonOffset||0)})</dd>
   <dt>CDS</dt><dd>${loc(t.thick[0],t.thick[1])}</dd><dt>Protein</dt><dd>${plen} aa</dd></dl>
-  <div class="prot" aria-label="Protein sequence start">${pr.slice(0,60)}${pr.length>60?'…':''}</div>
-  <div><div class="panel-title" style="margin:4px 0 2px">Exons, numbered 5′ → 3′</div><ol class="exlist">${ex.map(e=>`<li>${fmt(e[0])}-${fmt(e[1])} <span style="color:var(--muted)">(${e[1]-e[0]+1} bp)</span></li>`).join('')}</ol></div>
-  <div class="actions"><button class="btn" data-go="${t.start}-${t.end}">Zoom to transcript</button><button class="btn" data-go="start:${t.id}">Zoom to start codon</button></div>`;
+  <div class="prot" aria-label="Protein sequence">${pr}</div>
+  <div><div class="panel-title" style="margin:4px 0 2px">Coding exons, numbered 5′ → 3′</div><ol class="exlist" start="${1+(t.exonOffset||0)}">${ex.map(e=>`<li>${fmt(e[0])}-${fmt(e[1])} <span style="color:var(--muted)">(${e[1]-e[0]+1} bp)</span></li>`).join('')}</ol></div>
+  <div class="actions"><button class="btn" data-go="${t.start}-${t.end}">Zoom to transcript</button><button class="btn" data-go="start:${t.id}">Zoom to start codon</button></div>
+  <p style="font-size:.85rem;color:var(--muted)">Exon 1 of HRAS is non-coding (5′ UTR), and the UTRs are not drawn here. Coding exons are numbered 2–5, as in clinical reports (G12 and G13 are in exon 2, Q61 in exon 3).</p>`;
 }
 function selectFeature(key){
   selected = key;
@@ -916,6 +883,10 @@ function selectFeature(key){
     const g = GENES.find(g => g.name===id);
     box.innerHTML = g.txs.length === 1 ? txDetails(g.txs[0]) :
       `<h3>${g.name}</h3><p>${g.txs.length} transcripts are merged on this line in dense mode. Set the gene track to <b>full</b> to see them separately.</p>` + txDetails(g.txs[0]);
+  } else if (kind === 'feat'){
+    const f = featById(id); clicked.add(f.id);
+    box.innerHTML = `<h3>${f.id}</h3><dl class="kv"><dt>Location</dt><dd>${loc(f.s,f.e)}</dd><dt>Length</dt><dd>${fmt(f.e-f.s+1)} bp</dd></dl><p style="font-size:.9rem">${f.desc}</p>
+      <div class="actions"><button class="btn" data-go="${f.s}-${f.e}">Zoom to feature</button></div>`;
   } else if (kind === 'snp'){
     const s = snpById(id); clicked.add(s.id);
     const main = s.eff.effs[0];
@@ -927,6 +898,8 @@ function selectFeature(key){
       if (main.tx.strand==='-') extra = `<p style="font-size:.85rem;color:var(--muted)">${main.tx.gene} is on the − strand, so the codon is shown reverse-complemented from the + strand letters in the sequence track.</p>`;
     }
     if (main && main.utr) rows += `<dt>Region</dt><dd>${main.utr}</dd>`;
+    rows = `<dt>HGVS</dt><dd>${s.hgvs}${main && main.codon ? ` (p.${AA3[main.aR]}${main.codon}${main.aR===main.aA?'=':AA3[main.aA]})` : ''}</dd>` + rows;
+    extra += `<p style="font-size:.9rem">${s.note}</p>`;
     box.innerHTML = `<h3>${s.id}</h3><span><span class="pill ${s.eff.cls}">${CLSNAME[s.eff.cls]}</span></span><dl class="kv">${rows}</dl>${extra}
       <div class="actions"><button class="btn" data-go="${s.pos-40}-${s.pos+39}">Zoom to base level</button></div>`;
   }
@@ -948,67 +921,76 @@ $('trksettings').addEventListener('change', e => { const s = e.target.closest('s
 $('trksettings').addEventListener('click', e => { if (e.target.id==='m-defaults'){ Object.assign(modes, DEFAULT_MODES); buildSettings(); schedule(); } });
 
 /* ================= missions ================= */
-const L1 = txById('LUMN1-201'), K2 = ktrb, O3 = txById('ORFA3-201');
 const inView = (a,b) => view.start <= a && view.end >= b;
 const spanNow = () => view.end-view.start+1;
-const aa2 = L1.protein[1];
-const aaOpts = [aa2, ...['L','G','S','K','P','V','T'].filter(a=>a!==aa2).slice(0,3)].sort().map(a=>`${AAN[a]} (${AA3[a]})`);
-const snp4 = snpById('rsB116-4');
+const aa2 = HR.protein[1];
+const aaOpts = [aa2, ...['L','G','S','K','P','V'].filter(a=>a!==aa2).slice(0,3)].sort().map(a=>`${AAN[a]} (${AA3[a]})`);
+const secondCodon = cdsSeq(HR).slice(3,6);
+const g12v = snpById('G12V'), rs = snpById('rs12628'), cpgF = FEATS[0], vntr = FEATS[1];
+const g12Opts = ['Serine','Valine','Cysteine','Aspartate'];
 const effOpts = ['Synonymous','Missense','Stop gained (nonsense)','Intronic'];
-const effAns = {synonymous:0, missense:1, nonsense:2, intron:3}[snp4.eff.cls];
-const secondCodon = cdsSeq(L1).slice(3,6);
+const effAns = {synonymous:0, missense:1, nonsense:2, intron:3}[rs.eff.cls];
+const n1213 = SNPS.filter(v => v.c>=34 && v.c<=39).length;
+const donor = HR.exons[0][1];
 const norm = s => s.toUpperCase().replace(/[\s,]/g,'');
 const MISSIONS = [
   {id:'goto', title:'Jump to a location',
-   body:`Every place in a genome has an address: chromosome, colon, start-end. Type <code>chr3:1,005,000-1,006,000</code> into the Position box and press Go.`,
-   task:'Window shows chr3:1,005,000-1,006,000', act:() => Math.abs(view.start-1005000)<=2 && Math.abs(view.end-1006000)<=2,
-   q:{text:'How many base pairs wide is that window?', type:'text', check:v=>norm(v)==='1001'||norm(v)==='1001BP', ok:'Right: 1,006,000 − 1,005,000 + 1 = 1,001. Browser coordinates are 1-based and inclusive, so both end bases count.'},
+   body:`Every place in a sequence has an address: sequence name, colon, start-end. Type <code>hras:6,000-7,000</code> into the Position box and press Go.`,
+   task:'Window shows hras:6,000-7,000', act:() => Math.abs(view.start-6000)<=2 && Math.abs(view.end-7000)<=2,
+   q:{text:'How many base pairs wide is that window?', type:'text', check:v=>norm(v)==='1001'||norm(v)==='1001BP', ok:'Right: 7,000 − 6,000 + 1 = 1,001. Browser coordinates are 1-based and inclusive, so both end bases count.'},
    hint:'Commas are optional. The readout at the right of the toolbar shows the window width.'},
   {id:'search', title:'Search by gene name',
-   body:`You rarely know coordinates by heart. Type the gene symbol <code>KTRB2</code> into the same box.`,
-   task:'KTRB2 fills the window', act:() => inView(K2.start,K2.end) && spanNow() < 10000,
-   q:{text:'Which strand is KTRB2 on?', type:'choice', opts:['+ (forward)','− (reverse)'], ans:1, ok:'Correct. The arrowheads on its intron lines point left (‹), toward lower coordinates. Clicking the gene also tells you.'},
-   hint:'Look at the small arrowheads on the thin lines between exons.'},
-  {id:'mode', title:'Change a track’s display mode',
-   body:`The gene track starts in <em>dense</em> mode, which merges every transcript onto one line. Under <b>Track settings</b>, set <b>Gene annotations</b> to <em>full</em>.`,
-   task:'Gene track set to full', act:() => modes.genes==='full',
-   q:{text:'How many transcripts (isoforms) are annotated for LUMN1?', type:'text', check:v=>norm(v)==='2'||norm(v)==='TWO', ok:'Yes, two: LUMN1-201 and LUMN1-202. In dense mode you couldn’t tell they were different.'},
-   hint:'In full mode each transcript gets its own row and a label like LUMN1-201.'},
-  {id:'skip', title:'Spot the skipped exon',
-   body:`Compare LUMN1-201 and LUMN1-202 in full mode. Exons are numbered from the 5′ end of the transcript.`,
-   q:{text:'Which exon of LUMN1-201 is missing from LUMN1-202?', type:'choice', opts:['Exon 1','Exon 2','Exon 3','Exon 4','Exon 5'], ans:2, ok:'Exon 3 is skipped in LUMN1-202 (alternative splicing). The RNA-seq track shows lower coverage on exon 3 than on its neighbours, because only some transcripts include it.'},
-   hint:'Click each transcript. The Details panel lists its exons in order.'},
+   body:`You rarely know coordinates by heart. Type the gene symbol <code>HRAS</code> into the same box.`,
+   task:'HRAS fills the window', act:() => inView(HR.start,HR.end) && spanNow() < 4000,
+   q:{text:'How many exons contain HRAS coding sequence?', type:'text', check:v=>norm(v)==='4'||norm(v)==='FOUR', ok:'Yes, four coding exons. They encode the 189-amino-acid p21 protein. HRAS also has a non-coding first exon, so clinical reports call these exons 2–5.'},
+   hint:'Count the tall boxes, or click the gene and read the Details panel.'},
   {id:'base', title:'Zoom to base level',
-   body:`Search <code>LUMN1</code>, click the gene, then press <b>Zoom to start codon</b>. Or zoom in manually until letters appear.`,
-   task:'Window under 120 bp that includes LUMN1’s start codon', act:() => spanNow()<=120 && inView(L1.thick[0], L1.thick[0]+5),
-   q:{text:'Use the translation track. Which amino acid does LUMN1’s second codon encode?', type:'choice', opts:aaOpts, ans:aaOpts.indexOf(`${AAN[aa2]} (${AA3[aa2]})`), ok:`Right. The codon after ATG is ${secondCodon}, which encodes ${AAN[aa2]}. The green M marks the start methionine.`},
+   body:`Click the HRAS gene, then press <b>Zoom to start codon</b>. Or zoom in manually until letters appear.`,
+   task:'Window under 120 bp that includes the start codon', act:() => spanNow()<=120 && inView(HR.thick[0], HR.thick[0]+5),
+   q:{text:'Use the translation track. Which amino acid does HRAS’s second codon encode?', type:'choice', opts:aaOpts, ans:aaOpts.indexOf(`${AAN[aa2]} (${AA3[aa2]})`), ok:`Right. The codon after ATG is ${secondCodon}, which encodes ${AAN[aa2]}. HRAS begins M-T-E-Y-K-L-V-V-V-G-A-G-G-V-G-K…`},
    hint:'Find the green M in the frame that lines up with the tall CDS box. The next box to its right is codon 2.'},
-  {id:'minus', title:'Read the minus strand',
-   body:`The sequence track always shows the + strand, read left to right. Now go to the start codon of <code>KTRB2</code>, a − strand gene.`,
-   task:'Window under 120 bp that includes KTRB2’s start codon', act:() => spanNow()<=120 && inView(K2.thick[1]-2, K2.thick[1]),
-   q:{text:'Reading the + strand left to right, which three letters sit at KTRB2’s start codon?', type:'text', check:v=>norm(v)==='CAT', ok:'Yes, CAT. The gene reads 5′-ATG-3′ from right to left on the − strand, and its reverse complement on the + strand is CAT. Set Translation to “both strands” to see its M in a − frame.'},
-   hint:'Reverse-complement ATG: reverse it (GTA), then swap A↔T and G↔C.'},
-  {id:'variant', title:'Interpret a variant',
-   body:`Search for <code>rsB116-4</code> and click the variant tick in the Common variants track.`,
-   task:'Clicked rsB116-4', act:() => clicked.has('rsB116-4'),
-   q:{text:'What is the predicted effect of rsB116-4 on LUMN1?', type:'choice', opts:effOpts, ans:effAns, ok:(() => { const m=snp4.eff.effs[0]; return m.codon ? `Correct. The codon changes ${m.ref} → ${m.altC}, replacing ${AAN[m.aR]||m.aR} with ${AAN[m.aA]||'a stop'}.` : 'Correct.'; })()},
+  {id:'splice', title:'Find a splice site',
+   body:`Zoom to the right-hand end of the first coding exon (exon 2), where intron 2 begins.`,
+   task:'Window under 120 bp that spans the exon 2 / intron 2 boundary', act:() => spanNow()<=120 && inView(donor-1, donor+2),
+   q:{text:'Which two bases begin the intron?', type:'text', check:v=>norm(v)==='GT'||norm(v)==='GU', ok:'Yes, GT (GU in the RNA). Almost every intron starts with GT and ends with AG, and all three HRAS introns in this entry follow that rule.'},
+   hint:`Exon 2 ends at base ${fmt(donor)}. Type hras:${donor-30}-${donor+30} to go straight there.`},
+  {id:'hotspot', title:'Expand a track',
+   body:`The variant track starts in <em>dense</em> mode, with no labels. Under <b>Track settings</b>, set <b>HRAS variants</b> to <em>full</em>, then zoom in on codons 12 and 13 (search <code>G12V</code>).`,
+   task:'Variant track set to full, zoomed in on codons 12-13', act:() => modes.snp==='full' && spanNow()<=300 && inView(HR.cds[33], HR.cds[38]),
+   q:{text:'How many of the variants in this track fall in codons 12 and 13?', type:'text', check:v=>norm(v)===String(n1213), ok:`Yes, ${n1213}. Glycines 12 and 13 sit in the P-loop that binds GTP. They are the most frequently mutated codons in RAS genes.`},
+   hint:'In full mode each variant is labelled. Look for names starting with G12 and G13.'},
+  {id:'g12v', title:'Interpret an oncogenic variant',
+   body:`Click the <code>G12V</code> variant, the change found in the T24 bladder cancer cell line.`,
+   task:'Clicked G12V', act:() => clicked.has('G12V'),
+   q:{text:'The codon changes GGC → GTC. Which amino acid replaces glycine 12?', type:'choice', opts:g12Opts, ans:g12Opts.indexOf(AAN[g12v.eff.effs[0].aA]), ok:'Valine. This single base change (c.35G>T) locks HRAS in its active GTP-bound state. In 1982 it became the first cancer-causing point mutation identified in a human gene.'},
+   hint:'Read the Amino acid row in the Details panel, or translate GTC yourself.'},
+  {id:'syn', title:'A change that changes nothing?',
+   body:`Search for <code>rs12628</code> and click the variant.`,
+   task:'Clicked rs12628', act:() => clicked.has('rs12628'),
+   q:{text:'What is the predicted effect of rs12628 on the HRAS protein?', type:'choice', opts:effOpts, ans:effAns, ok:'Synonymous. CAT and CAC both encode histidine 27, so the protein is unchanged. That is why this variant can be common in healthy people.'},
    hint:'The variant’s colour gives it away too. Check the legend under the browser.'},
-  {id:'expr', title:'Read a signal track',
-   body:`The RNA-seq track shows how many sequencing reads cover each base in liver tissue. Zoom out to the whole region (<b>All</b>).`,
-   q:{text:'Which gene shows no RNA-seq coverage in this sample?', type:'choice', opts:['LUMN1','KTRB2','ORFA3'], ans:2, ok:'ORFA3 has an intact open reading frame but no reads. It isn’t expressed in liver, which shows that expression depends on tissue and condition.'},
-   hint:'Look for a gene model with a flat purple track beneath it.'},
-  {id:'cne', title:'Find conservation outside genes',
-   body:`Scan the conservation track across the region. One tall peak sits between genes. Zoom in on it.`,
-   task:'Window under 2,500 bp centred on that peak', act:() => spanNow()<=2500 && inView((CNE[0]+CNE[1])/2,(CNE[0]+CNE[1])/2) && modes.cons!=='hide',
-   q:{text:'No gene is annotated there. What is the most likely explanation?', type:'choice', opts:['Random noise: conservation only matters in exons','A likely regulatory element, such as an enhancer','Repetitive DNA that evolution ignores'], ans:1, ok:'Right. Conserved non-coding elements often act as enhancers or other regulatory DNA. Selection has kept them because they do something.'},
-   hint:'The peak is between LUMN1 and KTRB2. Drag across the ruler above it to zoom straight there.'},
+  {id:'minus', title:'Switch to genome orientation',
+   body:`This entry shows HRAS on its coding strand. In the GRCh38 human genome, HRAS lies on the <b>− strand</b> of chromosome 11, so UCSC shows you the other strand. Set <b>Translation</b> to <em>both strands</em> and zoom to the start codon.`,
+   task:'Both-strand translation shown at the start codon', act:() => modes.trans==='both' && spanNow()<=120 && inView(HR.thick[0], HR.thick[0]+2),
+   q:{text:'Read on chromosome 11’s + strand, left to right, which three letters represent the ATG start codon?', type:'text', check:v=>norm(v)==='CAT', ok:'Yes, CAT: the reverse complement of ATG. In the UCSC Genome Browser you would see CAT on chr11, with HRAS’s arrows pointing left.'},
+   hint:'Reverse-complement ATG: reverse it (GTA), then swap A↔T and G↔C.'},
+  {id:'cpg', title:'Find the promoter’s CpG island',
+   body:`Look at the <b>CpG observed/expected</b> track and the <b>CpG island & repeats</b> track. Click the CpG island.`,
+   task:'Clicked the CpG island', act:() => clicked.has('CpG island'),
+   q:{text:'Where does the CpG island sit relative to the coding exons?', type:'choice', opts:['Upstream (5′) of the start codon, around the promoter','Inside the coding exons','Downstream (3′), past the stop codon'], ans:0, ok:'Right. CpG islands usually mark promoters, and HRAS’s promoter and non-coding exon 1 lie in this upstream island. CpG dinucleotides elsewhere are depleted because methylated C mutates to T over evolutionary time.'},
+   hint:'Zoom out (All) and compare the island’s position with the tall gene boxes.'},
+  {id:'vntr', title:'Measure a tandem repeat',
+   body:`Downstream of HRAS sits the HRAS1 minisatellite (search <code>VNTR</code>). Zoom in until you can read the bases inside it.`,
+   task:'Window under 400 bp inside the minisatellite, with the sequence track on', act:() => spanNow()<=400 && view.start>=vntr.s && view.end<=vntr.e && modes.seq!=='hide',
+   q:{text:'How many base pairs long is the repeating unit?', type:'text', check:v=>norm(v)==='28'||norm(v)==='28BP', ok:'28 bp. People carry different numbers of copies of this unit, which is why it is called a variable number tandem repeat (VNTR).'},
+   hint:'Find GGGGACGCCACA and count the bases until it appears again. The ruler helps.'},
   {id:'bed', title:'Convert BED coordinates',
    body:`Files count positions differently. BED is 0-based and half-open, while the browser is 1-based and inclusive. See <a href="#coords">Two ways to count</a>.`,
-   q:{text:'A BED line reads chr3  1001999  1002250  LUMN1_exon1. What is the first base in browser coordinates?', type:'text', check:v=>norm(v)==='1002000', ok:'Yes: add 1 to a BED start and keep the end. The exon is chr3:1,002,000-1,002,250. Compare it with LUMN1-201’s exon 1 in the Details panel.'},
+   q:{text:'A BED line reads hras  6228  6339  HRAS_exon2. What is the first base in browser coordinates?', type:'text', check:v=>norm(v)==='6229', ok:'Yes: add 1 to a BED start and keep the end. The exon is hras:6,229-6,339, which begins with the A of the ATG start codon.'},
    hint:'BED’s start number is the fence just before the first base.'}
 ];
 
-const STORE = 'bio116-genome-browser-missions-v1';
+const STORE = 'bio116-hras-browser-missions-v1';
 let prog = {act:{}, q:{}};
 try { const s = JSON.parse(localStorage.getItem(STORE)); if (s && s.act && s.q) prog = s; } catch(e){}
 const save = () => { try { localStorage.setItem(STORE, JSON.stringify(prog)); } catch(e){} };
@@ -1079,7 +1061,7 @@ $('mreset').addEventListener('click', e => {
 });
 
 /* ================= coordinate converter ================= */
-const S0 = 1001995, S1 = 1002014;
+const S0 = 6219, S1 = 6238;
 function renderConvert(){
   let a = parseInt($('cv-s').value,10), b = parseInt($('cv-e').value,10);
   const out = $('cvout');
