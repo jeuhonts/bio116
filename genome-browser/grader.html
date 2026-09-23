@@ -1,0 +1,219 @@
+<meta charset="utf-8">
+<title>Exercise Grader</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=JetBrains+Mono:wght@400;600&family=Source+Sans+3:wght@400;600;700&display=swap">
+<style>
+:root{
+  --ground:#F2F4F1; --panel:#FFFFFF; --panel-2:#E8ECE8; --ink:#17221E; --muted:#55645E;
+  --line:#D3DBD5; --line-2:#B7C2BB;
+  --accent:#2B3A94; --accent-ink:#FFFFFF; --accent-soft:#E2E5F6;
+  --hl:rgba(236,190,52,.2); --hl-solid:#D9A816;
+  --nA:#23904A; --nC:#2E68B8; --nG:#C47508; --nT:#C63A33;
+  --cons:#2B3A94; --rna:#7B3F9E; --gc:#66762A;
+  --aa-met:#23904A; --aa-stop:#C63A33; --aa-a:#E6EBE7; --aa-b:#D4DCD6;
+  --v-non:#8E1B2E; --v-mis:#D1453B; --v-spl:#D98A1B; --v-syn:#23904A; --v-utr:#2E68B8; --v-oth:#7D8A84;
+  --ok:#1F7F41; --bad:#B8332C;
+  --display:'Bricolage Grotesque','Avenir Next','Segoe UI',system-ui,sans-serif;
+  --body:'Source Sans 3','Segoe UI',system-ui,-apple-system,sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --ground:#0F1513; --panel:#161E1B; --panel-2:#1E2824; --ink:#E3EBE6; --muted:#98A7A0;
+    --line:#2A3531; --line-2:#3C4A44;
+    --accent:#9CA8F4; --accent-ink:#10163A; --accent-soft:#232A52;
+    --hl:rgba(236,190,52,.17); --hl-solid:#E9C04A;
+    --nA:#5CC77E; --nC:#6FA3EA; --nG:#E9A646; --nT:#EE7068;
+    --cons:#9CA8F4; --rna:#C38EE3; --gc:#B5C465;
+    --aa-met:#3E9F5F; --aa-stop:#C8534B; --aa-a:#222C28; --aa-b:#2D3934;
+    --v-non:#E0526A; --v-mis:#EE7068; --v-spl:#E9A646; --v-syn:#5CC77E; --v-utr:#6FA3EA; --v-oth:#8C9A93;
+    --ok:#5CC77E; --bad:#EE7068;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --ground:#0F1513; --panel:#161E1B; --panel-2:#1E2824; --ink:#E3EBE6; --muted:#98A7A0;
+  --line:#2A3531; --line-2:#3C4A44;
+  --accent:#9CA8F4; --accent-ink:#10163A; --accent-soft:#232A52;
+  --hl:rgba(236,190,52,.17); --hl-solid:#E9C04A;
+  --nA:#5CC77E; --nC:#6FA3EA; --nG:#E9A646; --nT:#EE7068;
+  --cons:#9CA8F4; --rna:#C38EE3; --gc:#B5C465;
+  --aa-met:#3E9F5F; --aa-stop:#C8534B; --aa-a:#222C28; --aa-b:#2D3934;
+  --v-non:#E0526A; --v-mis:#EE7068; --v-spl:#E9A646; --v-syn:#5CC77E; --v-utr:#6FA3EA; --v-oth:#8C9A93;
+  --ok:#5CC77E; --bad:#EE7068;
+}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--ground);color:var(--ink);font:15px/1.5 var(--body);padding-inline:clamp(16px,3vw,40px);padding-block:32px 64px}
+.page{max-width:1200px;margin:0 auto;display:grid;gap:20px}
+h1,h2{font-family:var(--display);margin:0;line-height:1.1;text-wrap:balance}
+h1{font-size:clamp(1.8rem,4vw,2.6rem);font-weight:800;letter-spacing:-.02em}
+h2{font-size:1.2rem}
+p{margin:0}
+.eyebrow{font:600 .75rem/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.lead{color:var(--muted);max-width:75ch}
+code{font-family:var(--mono);font-size:.86em;background:var(--panel-2);padding:.05em .3em;border-radius:4px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px;display:grid;gap:10px}
+.drop{border:2px dashed var(--line-2);border-radius:10px;padding:26px 16px;text-align:center;background:var(--panel);display:grid;gap:8px;justify-items:center}
+.drop.over{border-color:var(--accent);background:var(--accent-soft)}
+.btn{border:1px solid var(--line-2);background:var(--panel);border-radius:6px;padding:6px 12px;cursor:pointer;font:inherit;color:inherit}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.stats{display:flex;flex-wrap:wrap;gap:8px 24px;font-size:.9rem;color:var(--muted)}
+.stats b{color:var(--ink);font-variant-numeric:tabular-nums}
+.tablewrap{overflow-x:auto;background:var(--panel);border:1px solid var(--line);border-radius:10px}
+table{border-collapse:collapse;width:100%;min-width:760px;font-size:.92rem}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:600 .7rem var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);background:var(--panel-2)}
+td.num{font-variant-numeric:tabular-nums;font-family:var(--mono)}
+tr.stu{cursor:pointer}
+tr.stu:hover td{background:var(--panel-2)}
+.flag{display:inline-block;font:600 .7rem var(--body);padding:2px 7px;border-radius:99px;margin:1px 4px 1px 0;background:var(--panel-2);color:var(--muted)}
+.flag.bad{background:var(--bad);color:#fff}
+.flag.warn{background:var(--v-spl);color:#fff}
+.detail td{background:var(--panel-2)}
+.detail table{min-width:0;font-size:.86rem;background:var(--panel);border-radius:8px}
+.ok{color:var(--ok);font-weight:700}.no{color:var(--bad);font-weight:700}.na{color:var(--muted)}
+.written{white-space:pre-wrap;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 12px;max-width:75ch}
+input.ws{width:4.5em;padding:4px 6px;border:1px solid var(--line-2);border-radius:5px;background:var(--panel);font:inherit;color:inherit}
+.key input{padding:6px 9px;border:1px solid var(--line-2);border-radius:6px;background:var(--panel);font:inherit;color:inherit;width:14em}
+.muted{color:var(--muted);font-size:.88rem}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+</style>
+
+<div class="page">
+  <header style="display:grid;gap:10px">
+    <span class="eyebrow">BIO 116 · Genome Browser Lab · instructor only</span>
+    <h1>Exercise grader</h1>
+    <p class="lead">Drop the students' <code>BIO116-genome-browser-*.json</code> files here. The grader rebuilds each student's questions from their ID, scores the auto-graded parts, and flags files that were edited after saving or where the student tried to paste. Files are read in this browser only and are not uploaded anywhere. Don't share this page with students: it shows the answer keys.</p>
+  </header>
+
+  <label class="drop" id="drop" for="files">
+    <b>Drop submission files here</b>
+    <span class="muted">or choose them from your computer (you can pick many at once)</span>
+    <input type="file" id="files" accept=".json,application/json" multiple>
+  </label>
+
+  <div class="card" id="summary" hidden>
+    <div class="row" style="justify-content:space-between">
+      <h2>Submissions</h2>
+      <div class="row"><button class="btn" type="button" id="clear">Clear all</button><button class="btn primary" type="button" id="csv">Export grades (CSV)</button></div>
+    </div>
+    <div class="stats" id="stats"></div>
+    <p class="muted">Click a row to see each answer against the key and to read the written answer. Enter the written score (0–4) in the table; it is included in the CSV.</p>
+  </div>
+  <div class="tablewrap" id="tablewrap" hidden><table><thead><tr><th>Student</th><th>ID</th><th>Submitted</th><th>Auto</th><th>Written /4</th><th>Total</th><th>Flags</th></tr></thead><tbody id="rows"></tbody></table></div>
+  <div id="msg" class="muted" role="status" aria-live="polite"></div>
+
+  <div class="card key">
+    <h2>Look up an answer key</h2>
+    <p class="muted">Type any student ID to see that student's questions and answers, for example to check a regrade request.</p>
+    <form class="row" id="keyform" autocomplete="off"><input id="keyid" type="text" aria-label="Student ID" spellcheck="false"><button class="btn" type="submit">Show key</button></form>
+    <div id="keyout"></div>
+  </div>
+</div>
+
+<script src="loci.js"></script>
+<script src="exercise.js"></script>
+<script>
+(() => {
+'use strict';
+const EX = window.GBExercise, $ = id => document.getElementById(id);
+const esc = t => String(t ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
+const subs = new Map();   // studentId -> {sub, result, written, file}
+let open = null;
+
+function ingest(file){
+  return file.text().then(txt => {
+    let sub;
+    try { sub = JSON.parse(txt); } catch(e){ return `${file.name}: not a valid submission file.`; }
+    if (!sub || sub.app !== 'bio116-genome-browser-exercise' || !sub.studentId) return `${file.name}: not a BIO 116 genome browser submission.`;
+    const result = EX.score(sub), prev = subs.get(sub.studentId);
+    if (prev && new Date(prev.sub.submittedAt) > new Date(sub.submittedAt)) return `${file.name}: older than the file already loaded for ${sub.studentId}; kept the newer one.`;
+    subs.set(sub.studentId, {sub, result, written: prev?.written ?? '', file:file.name});
+    return null;
+  });
+}
+async function addFiles(list){
+  const notes = (await Promise.all([...list].map(ingest))).filter(Boolean);
+  $('msg').textContent = notes.join(' ');
+  render();
+}
+$('files').addEventListener('change', e => { addFiles(e.target.files); e.target.value = ''; });
+const drop = $('drop');
+drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('over'); });
+drop.addEventListener('dragleave', () => drop.classList.remove('over'));
+drop.addEventListener('drop', e => { e.preventDefault(); drop.classList.remove('over'); addFiles(e.dataTransfer.files); });
+
+function flags(s){
+  const f = [];
+  if (!s.result.sealOk) f.push('<span class="flag bad" title="The file content does not match its submission code">edited after saving</span>');
+  if (!s.result.versionOk) f.push('<span class="flag warn">different exercise version</span>');
+  if (s.sub.pasteAttempts > 0) f.push(`<span class="flag warn" title="Paste or drop attempts blocked in the answer boxes">${s.sub.pasteAttempts} paste attempt${s.sub.pasteAttempts>1?'s':''}</span>`);
+  const mins = (new Date(s.sub.submittedAt) - new Date(s.sub.startedAt)) / 60000;
+  if (mins >= 0 && mins < 10) f.push(`<span class="flag" title="Time from getting the questions to submitting">${Math.round(mins)} min</span>`);
+  return f.join('') || '<span class="na">none</span>';
+}
+const total = s => s.result.got + (Number(s.written) || 0);
+function detail(s){
+  const rows = s.result.rows.map(r => `<tr><td>${esc(r.title)}</td><td>${esc(r.label)}</td><td><code>${esc(r.given) || '<span class=na>blank</span>'}</code></td><td><code>${esc(r.key)}</code></td><td>${r.ok===true?'<span class=ok>✓</span>':r.ok===false?'<span class=no>✗</span>':'<span class=na>—</span>'}</td></tr>`).join('');
+  const w = s.sub.answers?.q7?.text || '';
+  const q7 = EX.generate(s.sub.studentId).questions.find(q => q.id==='q7');
+  return `<div style="display:grid;gap:10px"><div class="tablewrap"><table><thead><tr><th>Question</th><th>Part</th><th>Answer</th><th>Key</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>
+    <div><b>Written question:</b> ${esc(q7.prompt)}</div><div class="written">${esc(w) || '<span class=na>blank</span>'}</div>
+    <p class="muted">File: ${esc(s.file)} · started ${esc(new Date(s.sub.startedAt).toLocaleString())} · submission code <code>${esc(s.sub.seal)}</code></p></div>`;
+}
+function render(){
+  const list = [...subs.values()].sort((a,b) => String(a.sub.name).localeCompare(String(b.sub.name)));
+  $('summary').hidden = $('tablewrap').hidden = !list.length;
+  if (!list.length){ $('rows').innerHTML = ''; return; }
+  const max = list[0].result.max;
+  const mean = list.reduce((t,s) => t + s.result.got, 0) / list.length;
+  $('stats').innerHTML = `<span><b>${list.length}</b> submissions</span><span>mean auto score <b>${mean.toFixed(1)} / ${max}</b></span><span><b>${list.filter(s => !s.result.sealOk).length}</b> edited files</span><span><b>${list.filter(s => s.sub.pasteAttempts>0).length}</b> with paste attempts</span>`;
+  $('rows').innerHTML = list.map(s => {
+    const id = s.sub.studentId;
+    return `<tr class="stu" data-id="${esc(id)}" tabindex="0" aria-expanded="${open===id}"><td>${esc(s.sub.name)}</td><td class="num">${esc(id)}</td><td>${esc(new Date(s.sub.submittedAt).toLocaleString())}</td><td class="num">${s.result.got} / ${s.result.max}</td>
+      <td><input class="ws" type="number" min="0" max="4" step="0.5" value="${esc(s.written)}" data-id="${esc(id)}" aria-label="Written score for ${esc(s.sub.name)}" id="ws-${esc(id)}"></td><td class="num">${total(s)} / ${s.result.max + 4}</td><td>${flags(s)}</td></tr>`
+      + (open===id ? `<tr class="detail"><td colspan="7">${detail(s)}</td></tr>` : '');
+  }).join('');
+}
+$('rows').addEventListener('click', e => {
+  if (e.target.closest('input')) return;
+  const tr = e.target.closest('tr.stu'); if (!tr) return;
+  open = open===tr.dataset.id ? null : tr.dataset.id; render();
+});
+$('rows').addEventListener('keydown', e => { if ((e.key==='Enter' || e.key===' ') && e.target.matches('tr.stu')){ e.preventDefault(); e.target.click(); } });
+$('rows').addEventListener('change', e => {
+  const i = e.target.closest('input.ws'); if (!i) return;
+  const s = subs.get(i.dataset.id); s.written = i.value === '' ? '' : Math.max(0, Math.min(4, Number(i.value))); render();
+});
+let clearArmed = false;
+$('clear').addEventListener('click', e => {
+  if (!clearArmed){ clearArmed = true; e.target.textContent = 'Click again to clear'; setTimeout(() => { clearArmed = false; e.target.textContent = 'Clear all'; }, 4000); return; }
+  subs.clear(); open = null; clearArmed = false; e.target.textContent = 'Clear all'; $('msg').textContent = ''; render();
+});
+$('csv').addEventListener('click', async () => {
+  const q = v => `"${String(v ?? '').replace(/"/g,'""')}"`;
+  const list = [...subs.values()].sort((a,b) => String(a.sub.name).localeCompare(String(b.sub.name)));
+  const partCols = list[0].result.rows.filter(r => r.ok !== null).map(r => `${r.q}.${r.part}`);
+  const head = ['name','student_id','submitted_at','auto_score','auto_max','written_score','total','edited_after_saving','paste_attempts', ...partCols];
+  const lines = [head.join(',')].concat(list.map(s => [q(s.sub.name), q(s.sub.studentId), q(s.sub.submittedAt), s.result.got, s.result.max, s.written, total(s), s.result.sealOk?'no':'yes', s.sub.pasteAttempts,
+    ...s.result.rows.filter(r => r.ok !== null).map(r => r.ok ? 1 : 0)].join(',')));
+  const text = lines.join('\n'), filename = 'BIO116-genome-browser-grades.csv';
+  try {
+    const dl = window.claude?.use ? await window.claude.use('downloads') : null;
+    if (dl) await dl.save({filename, data:text});
+    else { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], {type:'text/csv'})); a.download = filename; document.body.appendChild(a); a.click(); a.remove(); }
+    $('msg').textContent = `Saved ${filename}.`;
+  } catch(err){ $('msg').textContent = err?.code==='declined' ? 'The CSV was not saved.' : 'This view can’t save files. Open the grader in a browser tab and try again.'; }
+});
+$('keyform').addEventListener('submit', e => {
+  e.preventDefault();
+  const id = $('keyid').value; if (!EX.normId(id)) return;
+  const res = EX.score({studentId:id, answers:{}});
+  $('keyout').innerHTML = `<div class="tablewrap"><table><thead><tr><th>Question</th><th>Part</th><th>Key</th></tr></thead><tbody>${res.rows.map(r => `<tr><td>${esc(r.title)}</td><td>${esc(r.label)}</td><td><code>${esc(r.key)}</code></td></tr>`).join('')}</tbody></table></div>`;
+});
+})();
+</script>
