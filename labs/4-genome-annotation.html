@@ -410,7 +410,7 @@ footer.src ul{margin:0;padding-left:1.2em;display:grid;gap:4px}
         <li><b>Reverse:</b> search that hit back against your own species' proteome.</li>
         <li>If the reverse best hit is the protein you started with, the pair is an RBH and very probably orthologous.</li>
       </ol>
-      <p>Here the other species is the house mouse. Mouse and human diverged about 90 million years ago, long after the RAS genes duplicated. So each human RAS gene should have exactly one mouse partner.</p>
+      <p>Here the other species is the house mouse. Mouse and human diverged about 90 million years ago, long after the RAS genes duplicated. So each human RAS gene should have exactly one mouse partner. Mouse Hras (UniProt Q61411) is identical to human HRAS at all 189 residues, a sign of how tightly this protein is constrained.</p>
       <p>A draft annotation can be missing genes. To see how RBH protects against that, press <b>Remove Hras from the mouse proteome</b>.</p>
       <div class="checks" data-station="ortho"></div>
     </div>
@@ -425,7 +425,7 @@ footer.src ul{margin:0;padding-left:1.2em;display:grid;gap:4px}
         <div class="status" id="rbhVerdict"></div>
         <details class="mouse-edit">
           <summary>Edit the mouse proteome (FASTA)</summary>
-          <p class="note">The mouse sequences start as <b>stand-ins</b>: copies of the matching human proteins, because mouse and human RAS proteins differ at only a few positions. For real data, paste the mouse sequences from UniProt (Hras Q61411, Kras P32883, Nras P08556, Rap1a P62835, Rhoa Q9QUI0) over them and press Run. Keep the names after “&gt;” so the page can match them up.</p>
+          <p class="note"><b>Hras</b> is the real mouse record, UniProt Q61411. The other four are <b>stand-ins</b>: copies of the matching human proteins. For real data, paste the mouse sequences from UniProt (Kras P32883, isoform 4B; Nras P08556; Rap1a P62835; Rhoa Q9QUI0) over them and press Run. Keep the names after “&gt;” so the page can match them up.</p>
           <textarea class="gff" id="mouseFasta" spellcheck="false" aria-label="Mouse proteome in FASTA format" style="min-height:12em;white-space:pre-wrap;overflow-wrap:anywhere"></textarea>
           <div class="presets"><button class="btn primary" type="button" id="mouseRun">Run the check again</button><button class="btn" type="button" id="mouseReset">Restore stand-ins</button></div>
         </details>
@@ -534,7 +534,7 @@ footer.src ul{margin:0;padding-left:1.2em;display:grid;gap:4px}
     <li>Repeats are found in the page. Alus come from a Smith–Waterman alignment (match +2, mismatch −3, gap −5) of the AluY consensus from Dfam/Repbase, entered by hand. Simple repeats are tandem runs with a period of 1–6 bp. This finds the same kinds of element as RepeatMasker but is not identical to its output.</li>
     <li>Database proteins are human KRAS (P01116-2, isoform 4B), NRAS (P01111), RAP1A (P62834), RHOA (P61586), RAB5A (P20339), RAN (P62826) and myoglobin (P02144). They were typed in from UniProt records for teaching, so check them against UniProt before reusing them. E-values use the published BLOSUM62 gapped constants for gap costs 11/1 (λ = 0.267, K = 0.041).</li>
     <li>HRAS motif and region boundaries follow UniProt P01112 and the Ras literature. The Pfam PF00071 domain boundary is approximate. The GO terms are real terms from the HRAS record, but the evidence codes shown are for the exercise.</li>
-    <li>The mouse proteome in Section 5 starts as stand-ins: copies of the human RAS, RAP1A and RHOA sequences, used because the real mouse sequences could not be fetched when the page was built. Mouse and human RAS proteins differ at only a few positions, so the check gives the same answer; paste the UniProt mouse sequences into the editor to run it on real data.</li>
+    <li>In the Section 5 mouse proteome, Hras is the UniProt record Q61411 (RASH_MOUSE, 189 aa). Kras, Nras, Rap1a and Rhoa are stand-ins, copies of the human sequences, because the mouse records could not be fetched when the page was built. Mouse and human RAS proteins differ at only a few positions, so the check gives the same answer; paste the UniProt mouse sequences into the editor to run it on real data.</li>
     <li>In Section 3, the protein evidence is an idealised alignment covering the RefSeq CDS, and models B–D are constructed teaching examples. The BUSCO results in Section 7 are simulated.</li>
   </ul>
 </footer>
@@ -1032,8 +1032,9 @@ $('dbSize').oninput=drawHits;
 
 // ================= section 5: orthology =================
 const HUMAN_PROTEOME = [{id:'HRAS', acc:'P01112', desc:'GTPase HRas', seq:P01112}, ...DB];
-const STANDIN = {Hras:['Q61411','HRAS'], Kras:['P32883','KRAS'], Nras:['P08556','NRAS'], Rap1a:['P62835','RAP1A'], Rhoa:['Q9QUI0','RHOA']};
-const MOUSE_DEFAULT = Object.entries(STANDIN).map(([m,[acc,h]]) => `>${m} mouse ${acc} (stand-in: human ${h} sequence)\n${HUMAN_PROTEOME.find(x=>x.id===h).seq.match(/.{1,60}/g).join('\n')}`).join('\n');
+const MOUSE_HRAS = `>Hras sp|Q61411|RASH_MOUSE GTPase HRas OS=Mus musculus OX=10090 GN=Hras PE=1 SV=2\nMTEYKLVVVGAGGVGKSALTIQLIQNHFVDEYDPTIEDSYRKQVVIDGETCLLDILDTAG\nQEEYSAMRDQYMRTGEGFLCVFAINNTKSFEDIHQYREQIKRVKDSDDVPMVLVGNKCDL\nAARTVESRQAQDLARSYGIPYIETSAKTRQGVEDAFYTLVREIRQHKLRKLNPPDESGPG\nCMSCKCVLS`; // real UniProt record, supplied by the instructor
+const STANDIN = {Kras:['P32883','KRAS'], Nras:['P08556','NRAS'], Rap1a:['P62835','RAP1A'], Rhoa:['Q9QUI0','RHOA']};
+const MOUSE_DEFAULT = MOUSE_HRAS+'\n'+Object.entries(STANDIN).map(([m,[acc,h]]) => `>${m} mouse ${acc} (stand-in: human ${h} sequence)\n${HUMAN_PROTEOME.find(x=>x.id===h).seq.match(/.{1,60}/g).join('\n')}`).join('\n');
 function parseFasta(t){ const out=[]; let cur=null;
   for (const line of t.split(/\r?\n/)){ if (line.startsWith('>')){ const h=line.slice(1).trim(); cur={id:h.split(/\s+/)[0]||'unnamed', desc:h, seq:''}; out.push(cur); }
     else if (cur) cur.seq+=line.toUpperCase().replace(/[^A-Z]/g,''); }
