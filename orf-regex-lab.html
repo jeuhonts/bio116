@@ -691,7 +691,7 @@ promoter_re = re.compile(<span class="s">"(?=("</span> + fuzzy(<span class="s">"
       <h2>Your ORF finder</h2>
     </div>
     <div class="prose">
-      <p>Write a script that reads the GenBank file <code>data/J01636_lac_operon.gb</code>, finds candidate genes of at least 100 codons on both strands, picks a start for each using the RBS, translates it, and compares every call with the annotated CDS features. Try it yourself first. The minimal goal (both strands, overlaps, a length cutoff, translation) is <code>find_candidate_genes.py</code> in the course repository, about 40 lines of code. The full reference answer, with the RBS and the GenBank comparison, is in the drawer below.</p>
+      <p>Write a script that reads the GenBank file <code>data/J01636_lac_operon.gb</code>, finds candidate genes of at least 100 codons on both strands, picks a start for each using the RBS, translates it, and compares every call with the annotated CDS features. Try it yourself first. The minimal goal (both strands, overlaps, a length cutoff, translation) is <code>find_candidate_genes.py</code> in the course repository, about 20 lines of code. The full reference answer, with the RBS and the GenBank comparison, is in the drawer below.</p>
       <h3>Extensions</h3>
       <ul>
         <li><b>Score your finder.</b> Count true positives, false positives and missed genes against the annotation. Change <code>MIN_CODONS</code> and <code>STARTS</code> and see how the counts move.</li>
