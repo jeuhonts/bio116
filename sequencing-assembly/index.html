@@ -1,0 +1,904 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>HRAS Sequencing &amp; Assembly Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@112,700;112,800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+:root{
+  --ground:#F2F2F6; --panel:#FFFFFF; --panel-2:#E9E9F0; --ink:#1A1B2C; --muted:#585A70;
+  --line:#D8D9E4; --line-2:#B9BBCB;
+  --accent:#7A2E5E; --accent-ink:#FFFFFF; --accent-soft:#F3E3EC;
+  --nA:#23904A; --nC:#2E68B8; --nG:#C47508; --nT:#C63A33;
+  --ok:#1F7F41; --bad:#B8332C; --warn:#B7700A;
+  --gap:rgba(198,58,51,.14); --rep:#8B8DA3;
+  --display:'Archivo','Arial Narrow','Segoe UI',system-ui,sans-serif;
+  --body:'Atkinson Hyperlegible','Segoe UI',system-ui,-apple-system,sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --ground:#11111C; --panel:#191A28; --panel-2:#222334; --ink:#E6E6F0; --muted:#A0A1B6;
+    --line:#2C2D40; --line-2:#44465C;
+    --accent:#E59AC4; --accent-ink:#2A0E1F; --accent-soft:#3A2031;
+    --nA:#5CC77E; --nC:#6FA3EA; --nG:#E9A646; --nT:#EE7068;
+    --ok:#5CC77E; --bad:#EE7068; --warn:#E9A646;
+    --gap:rgba(238,112,104,.18); --rep:#8A8CA6;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --ground:#11111C; --panel:#191A28; --panel-2:#222334; --ink:#E6E6F0; --muted:#A0A1B6;
+  --line:#2C2D40; --line-2:#44465C;
+  --accent:#E59AC4; --accent-ink:#2A0E1F; --accent-soft:#3A2031;
+  --nA:#5CC77E; --nC:#6FA3EA; --nG:#E9A646; --nT:#EE7068;
+  --ok:#5CC77E; --bad:#EE7068; --warn:#E9A646;
+  --gap:rgba(238,112,104,.18); --rep:#8A8CA6;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--ground);color:var(--ink);font:16px/1.58 var(--body);padding-inline:clamp(16px,3vw,40px);padding-block:0 72px}
+.page{max-width:1240px;margin:0 auto}
+a{color:var(--accent);text-underline-offset:2px}
+code,.mono{font-family:var(--mono);font-size:.86em}
+code{background:var(--panel-2);padding:.08em .35em;border-radius:4px}
+h1,h2,h3{font-family:var(--display);font-stretch:112%;text-wrap:balance;margin:0;line-height:1.1}
+h2{font-size:clamp(1.45rem,2.6vw,1.95rem);font-weight:800;letter-spacing:-.01em}
+h3{font-size:1.05rem;font-weight:700}
+p{margin:0}
+button,input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.eyebrow{font:600 .74rem/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.A{color:var(--nA)}.C{color:var(--nC)}.G{color:var(--nG)}.T{color:var(--nT)}
+.seqtxt{font:600 .92rem/1.5 var(--mono);letter-spacing:.06em;overflow-wrap:anywhere}
+
+/* header */
+header.top{display:grid;gap:16px;padding-block:44px 24px}
+header.top h1{font-size:clamp(2.2rem,5.4vw,3.7rem);font-weight:800;letter-spacing:-.02em;max-width:16ch}
+header.top .lead{font-size:1.1rem;color:var(--muted);max-width:68ch}
+.pipeline{list-style:none;margin:8px 0 0;padding:0;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:0;border:1px solid var(--line);border-radius:10px;background:var(--panel);overflow:hidden}
+@media (max-width:860px){.pipeline{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:480px){.pipeline{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.pipeline li{border-right:1px solid var(--line)}
+.pipeline li:last-child{border-right:0}
+@media (max-width:860px){.pipeline li{border-bottom:1px solid var(--line)}}
+.pipeline a{display:grid;gap:4px;padding:12px 14px;text-decoration:none;color:var(--ink);height:100%}
+.pipeline a:hover{background:var(--accent-soft)}
+.pipeline .n{font:600 .72rem var(--mono);color:var(--muted);display:flex;justify-content:space-between;gap:6px;align-items:center}
+.pipeline .t{font-weight:700;font-size:.95rem;line-height:1.25}
+.pipeline .bar{height:4px;border-radius:99px;background:var(--panel-2);overflow:hidden}
+.pipeline .bar > i{display:block;height:100%;width:0;background:var(--ok);transition:width .4s}
+.prog-row{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;font:.85rem var(--mono);color:var(--muted)}
+.linkbtn{background:none;border:0;padding:0;color:var(--muted);text-decoration:underline;cursor:pointer;font-size:.85rem}
+
+/* stations */
+.station{margin-top:64px;display:grid;gap:20px;scroll-margin-top:16px}
+.st-head{display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:end;border-bottom:2px solid var(--ink);padding-bottom:12px}
+.st-num{font:800 clamp(2.6rem,6vw,4rem)/.8 var(--display);font-stretch:112%;color:var(--accent)}
+.st-head .eyebrow{margin-bottom:6px}
+.st-grid{display:grid;grid-template-columns:minmax(0,34ch) minmax(0,1fr);gap:28px;align-items:start}
+@media (max-width:980px){.st-grid{grid-template-columns:minmax(0,1fr)}}
+.prose{display:grid;gap:12px;max-width:66ch}
+.prose ul,.prose ol{margin:0;padding-left:1.2em;display:grid;gap:4px}
+.formula{font-family:var(--mono);font-size:.9rem;background:var(--panel-2);padding:8px 10px;border-radius:6px}
+.instrument{background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden;min-width:0}
+.inst-head{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;padding:10px 14px;background:var(--panel-2);border-bottom:1px solid var(--line)}
+.inst-head .eyebrow{margin-right:auto}
+.inst-body{padding:14px;display:grid;gap:14px}
+.inst-body + .inst-head{border-top:1px solid var(--line)}
+.btn{border:1px solid var(--line-2);background:var(--panel);border-radius:6px;padding:6px 11px;cursor:pointer;line-height:1.2;font-size:.9rem;white-space:nowrap}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:700}
+.btn.primary:hover{filter:brightness(1.08);color:var(--accent-ink)}
+.btn:disabled{opacity:.45;cursor:default;filter:none;color:inherit;border-color:var(--line-2)}
+.ctl{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;font-size:.9rem}
+.ctl label{display:flex;gap:8px;align-items:center}
+.ctl input[type=range]{width:160px;accent-color:var(--accent)}
+.ctl output{font:600 .85rem var(--mono);min-width:6ch;font-variant-numeric:tabular-nums}
+.ctl select,.ctl input[type=text]{padding:5px 8px;border:1px solid var(--line-2);border-radius:6px;background:var(--panel);font-size:.88rem}
+.ctl input[type=text]{font-family:var(--mono);min-width:0;flex:1 1 220px}
+.scroll{overflow-x:auto}
+svg{display:block}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.stats > div{background:var(--panel);padding:8px 10px;display:grid;gap:2px}
+.stats dt{font-size:.75rem;color:var(--muted)}
+.stats dd{margin:0;font:600 1.05rem var(--mono);font-variant-numeric:tabular-nums}
+.note{font-size:.86rem;color:var(--muted)}
+.status{font-size:.92rem;padding:8px 10px;border-radius:6px;background:var(--panel-2)}
+.status.ok{color:var(--ok)}.status.bad{color:var(--bad)}.status.warn{color:var(--warn)}
+.legend{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:.8rem;color:var(--muted);align-items:center}
+.sw{display:inline-block;width:10px;height:10px;border-radius:2px;vertical-align:-1px;margin-right:5px}
+
+/* checks */
+.checks{display:grid;gap:10px;margin-top:6px}
+.chk{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 12px;display:grid;gap:8px;font-size:.93rem}
+.chk .q{font-weight:700;display:grid;grid-template-columns:18px 1fr;gap:8px;align-items:start}
+.chk .box{width:16px;height:16px;border-radius:4px;border:2px solid var(--line-2);margin-top:3px;display:grid;place-items:center}
+.chk.done .box{background:var(--ok);border-color:var(--ok)}
+.chk.done .box::after{content:"";width:4px;height:8px;border:solid #fff;border-width:0 2px 2px 0;transform:translateY(-1px) rotate(45deg)}
+.chk.task .q{font-weight:400}
+.chk.task:not(.done) .q{color:var(--muted)}
+.chk label{display:flex;gap:8px;align-items:baseline;cursor:pointer;padding-left:26px}
+.chk .row{display:flex;gap:6px;flex-wrap:wrap;padding-left:26px}
+.chk input[type=text]{flex:1;min-width:0;padding:5px 8px;border:1px solid var(--line-2);border-radius:6px;background:var(--panel);font-family:var(--mono);font-size:.88rem}
+.fb{font-size:.88rem;padding-left:26px}
+.fb:empty{display:none}
+.fb.ok{color:var(--ok)}.fb.bad{color:var(--bad)}
+.chk .btn{justify-self:start;margin-left:26px}
+.chk .row .btn{margin-left:0}
+
+/* station 1: capillary */
+.cap{position:relative;display:grid;grid-template-columns:minmax(0,1fr) 64px;gap:10px}
+.tube{position:relative;background:var(--panel-2);border-radius:6px;overflow:hidden}
+.frag{position:absolute;left:8px;height:14px;display:flex;align-items:center;transition:transform .9s cubic-bezier(.5,0,.2,1)}
+@media (prefers-reduced-motion:reduce){.frag{transition:none}}
+.frag .body{height:6px;background:var(--line-2);border-radius:3px 0 0 3px}
+.frag .primer{height:6px;background:var(--muted);width:22px;border-radius:3px 0 0 3px}
+.frag .dd{width:12px;height:12px;border-radius:50%}
+.frag .len{font:.66rem var(--mono);color:var(--muted);margin-left:6px}
+.detector{display:grid;align-content:start;gap:0;font:600 .9rem/14px var(--mono);text-align:center;border-left:2px dashed var(--line-2);padding-top:6px}
+.detector span{height:14px}
+.read-out{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline}
+.chrom-sel{fill:var(--accent);opacity:.12}
+.chrom-call{font:600 11px var(--mono);text-anchor:middle}
+.chrom-num{font:10px var(--mono);fill:var(--muted);text-anchor:middle}
+.chrom-hit{fill:transparent;cursor:pointer}
+.chrom-hit:hover{fill:var(--accent);fill-opacity:.07}
+
+/* station 2: flow cell */
+.fc-wrap{display:grid;grid-template-columns:minmax(0,300px) minmax(0,1fr);gap:14px;align-items:start}
+@media (max-width:640px){.fc-wrap{grid-template-columns:minmax(0,1fr)}}
+.tile{background:#07070d;border-radius:8px;width:100%;max-width:100%;aspect-ratio:3/2}
+.tile-lbl{font:10px var(--mono);fill:#9a9ab0}
+.clu-id{font:600 10px var(--mono);fill:#e8e8f0;text-anchor:middle}
+table.reads{border-collapse:collapse;width:100%;font-size:.85rem}
+table.reads th{font:600 .7rem var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);text-align:left;padding:4px 6px;border-bottom:1px solid var(--line)}
+table.reads td{padding:3px 6px;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
+table.reads td.rd{font:600 .82rem var(--mono);letter-spacing:.05em;white-space:nowrap}
+table.reads tr.sel td{background:var(--accent-soft)}
+.qbar{display:inline-block;height:8px;border-radius:2px;vertical-align:0;margin-right:6px}
+.qlow{opacity:.45}
+
+/* station 3 */
+.pile-read{fill:var(--accent);opacity:.75}
+.cov-area{fill:var(--accent);opacity:.25}
+.cov-line{fill:none;stroke:var(--accent);stroke-width:1.2}
+.gapband{fill:var(--gap)}
+.gapmark{fill:var(--bad)}
+.axis-t{font:10px var(--mono);fill:var(--muted)}
+.axis-l{stroke:var(--line-2)}
+.exon{fill:var(--ink)}
+.trk-lbl{font:600 10px var(--body);fill:var(--muted)}
+
+/* station 4 */
+.pool{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font:600 .84rem var(--mono);letter-spacing:.04em;border:1px solid var(--line-2);background:var(--panel);border-radius:6px;padding:5px 8px;cursor:pointer;display:grid;gap:2px;text-align:left}
+.chip small{font:600 .66rem var(--mono);color:var(--muted);letter-spacing:.08em}
+.chip:hover{border-color:var(--accent)}
+.chip.used{opacity:.3;cursor:default;border-style:dashed}
+.layout{font:600 .88rem/1.5 var(--mono);letter-spacing:.04em;white-space:pre;background:var(--panel-2);padding:10px 12px;border-radius:6px;min-height:3.2em}
+.layout .ov{background:var(--accent-soft);border-radius:2px}
+.layout .rid{color:var(--muted);font-weight:400}
+.layout .cons{border-top:1px solid var(--line-2);display:inline-block;padding-top:2px;margin-top:2px}
+table.ovt{border-collapse:collapse;font:.8rem var(--mono);font-variant-numeric:tabular-nums}
+table.ovt th,table.ovt td{padding:3px 8px;border:1px solid var(--line);text-align:center}
+table.ovt th{color:var(--muted);font-weight:600}
+table.ovt td.hi{background:var(--accent-soft);font-weight:700}
+
+/* station 5 */
+.dbg-node{fill:var(--panel);stroke:var(--ink);stroke-width:1.2}
+.dbg-node.branch{stroke:var(--warn);stroke-width:2.4}
+.dbg-lbl{font:600 11px var(--mono);fill:var(--ink);text-anchor:middle}
+.dbg-edge{fill:none;stroke:var(--line-2);stroke-width:1.5}
+.dbg-edge.on{stroke:var(--accent);stroke-width:3}
+.dbg-mult{font:600 10px var(--mono);fill:var(--warn);text-anchor:middle}
+.arrowhead{fill:var(--line-2)}
+.arrowhead.on{fill:var(--accent)}
+.spell{font:600 1rem var(--mono);letter-spacing:.08em;min-height:1.6em;overflow-wrap:anywhere}
+.alts{display:grid;gap:4px;font:600 .85rem var(--mono);letter-spacing:.05em}
+.alts .d{background:var(--gap);color:var(--bad);border-radius:2px}
+
+/* station 6 */
+.r-int{fill:var(--rep)}
+.r-anc{fill:var(--warn)}
+.r-spn{fill:var(--ok)}
+.unit{fill:var(--rep);opacity:.55}
+.flank{fill:var(--ink);opacity:.8}
+.asm-lbl{font:600 11px var(--body);fill:var(--ink)}
+.asm-sub{font:10px var(--mono);fill:var(--muted)}
+
+/* reference */
+.ref{margin-top:80px;display:grid;gap:18px}
+.tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--panel)}
+table.cmp{border-collapse:collapse;width:100%;min-width:720px;font-size:.9rem}
+table.cmp th,table.cmp td{padding:9px 12px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line)}
+table.cmp thead th{font:600 .72rem var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);background:var(--panel-2)}
+table.cmp tbody th{font-family:var(--display);font-stretch:112%;font-size:.98rem}
+table.cmp tr:last-child > *{border-bottom:0}
+dl.gloss{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px 28px;margin:0}
+dl.gloss dt{font-weight:700}
+dl.gloss dd{margin:2px 0 0;color:var(--muted);font-size:.93rem}
+footer.src{margin-top:64px;padding-top:16px;border-top:1px solid var(--line);font-size:.85rem;color:var(--muted);display:grid;gap:6px;max-width:80ch}
+footer.src ul{margin:0;padding-left:1.2em;display:grid;gap:4px}
+</style>
+
+<div class="page">
+<header class="top">
+  <p class="eyebrow">BIO 116 · Bioinformatics lab</p>
+  <h1>From DNA molecules to a finished genome</h1>
+  <p class="lead">No sequencer reads a chromosome end to end. We shatter DNA into millions of pieces, read each piece, then rebuild the genome from the overlaps, the way you'd rebuild a shredded book. Work through the six stations in order. Each one uses the real human <b>HRAS</b> sequence from the genome browser lab.</p>
+  <ol class="pipeline" id="pipeline"></ol>
+  <div class="prog-row"><span id="progText">0 of 0 checks complete</span><button class="linkbtn" id="resetAll" type="button">Clear my progress</button><span id="resetConfirm" hidden>Clear all answers? <button class="linkbtn" id="resetYes" type="button">Yes, clear</button> · <button class="linkbtn" id="resetNo" type="button">Keep</button></span></div>
+</header>
+
+<!-- ================= STATION 1 ================= -->
+<section class="station" id="sanger">
+  <div class="st-head"><span class="st-num">1</span><div><p class="eyebrow">Station 1 · First generation</p><h2>Sanger sequencing: stopping DNA synthesis on purpose</h2></div></div>
+  <div class="st-grid">
+    <div class="prose">
+      <p>DNA polymerase copies a template starting from a <b>primer</b>. Sanger's trick (1977) was to add a small amount of <b>dideoxynucleotides</b> (ddNTPs). A ddNTP has no 3′-OH, so once polymerase adds one, the chain can't grow any further.</p>
+      <p>Each copy stops at a random position, so the tube ends up holding fragments of <em>every</em> length. Each fragment ends in a ddNTP carrying a coloured dye. Capillary electrophoresis sorts the fragments by size, shortest first, and a laser reads the colour of each fragment's last base.</p>
+      <p>Sanger reads are ~800 bp long and ~99.99% accurate. They are still the clinical gold standard for checking a single gene, like looking for the HRAS <b>G12V</b> mutation in a tumour.</p>
+      <div class="checks" data-station="sanger"></div>
+    </div>
+    <div class="instrument">
+      <div class="inst-head"><span class="eyebrow">Capillary run · first 16 nt of HRAS coding sequence</span>
+        <label class="ctl"><span class="note">ddNTPs</span><select id="ddMix"><option value="ACGT">all four, dye-labelled</option><option value="A">ddATP only (1977 style)</option></select></label>
+        <button class="btn primary" id="runCap" type="button">Run capillary</button></div>
+      <div class="inst-body">
+        <p class="note">Every bar is one terminated copy: primer (grey), new DNA, then the dye-labelled ddNTP (dot). They start in random order. Run the capillary and read the colours as they pass the detector.</p>
+        <div class="cap"><div class="tube" id="tube"></div><div class="detector" id="detector" aria-label="Detector readout"></div></div>
+        <div class="read-out"><span class="eyebrow">Read</span><span class="seqtxt" id="capRead">—</span></div>
+      </div>
+      <div class="inst-head"><span class="eyebrow">Tumour sample chromatogram · HRAS c.1–c.60</span><span class="note" id="chromInfo">Click a peak to inspect it</span></div>
+      <div class="inst-body">
+        <div class="scroll"><svg id="chrom" height="170" role="img" aria-label="Sanger chromatogram of HRAS coding positions 1 to 60 with coloured peaks for A, C, G and T"></svg></div>
+        <div class="legend"><span><i class="sw" style="background:var(--nA)"></i>A</span><span><i class="sw" style="background:var(--nC)"></i>C</span><span><i class="sw" style="background:var(--nG)"></i>G</span><span><i class="sw" style="background:var(--nT)"></i>T</span><span>Scroll sideways for the whole trace.</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= STATION 2 ================= -->
+<section class="station" id="illumina">
+  <div class="st-head"><span class="st-num">2</span><div><p class="eyebrow">Station 2 · Short-read, massively parallel</p><h2>Illumina: sequencing by synthesis on a flow cell</h2></div></div>
+  <div class="st-grid">
+    <div class="prose">
+      <p>The genome is sheared into ~300–500 bp fragments and adapters are ligated on (a <b>library</b>). Each fragment is copied in place on a glass <b>flow cell</b> into a <b>cluster</b> of ~1,000 identical molecules, so its signal is bright enough to photograph.</p>
+      <p>Each <b>cycle</b>, the sequencer adds all four nucleotides, each with its own dye and a <em>reversible</em> terminator. Every strand adds exactly one base. A camera images the tile, then the dye and the block are cleaved off. One cycle = one base, for billions of clusters at once.</p>
+      <p>Over time some molecules in a cluster fall a cycle behind (<b>phasing</b>) or jump ahead. The colour gets muddier and the base caller trusts it less. That confidence is the <b>Phred quality score</b>:</p>
+      <p class="formula">Q = −10 · log₁₀(P<sub>error</sub>)   Q20 = 1 in 100 · Q30 = 1 in 1,000</p>
+      <div class="checks" data-station="illumina"></div>
+    </div>
+    <div class="instrument">
+      <div class="inst-head"><span class="eyebrow" id="cycleLbl">Cycle 0 of 16 · simulated tile</span>
+        <button class="btn primary" id="nextCycle" type="button">Next cycle</button>
+        <button class="btn" id="runAll" type="button">Run all 16</button>
+        <button class="btn" id="resetFc" type="button">Reset</button></div>
+      <div class="inst-body">
+        <div class="fc-wrap">
+          <svg class="tile" id="tile" viewBox="0 0 300 200" role="img" aria-label="Flow cell tile image: each cluster glows in the colour of the base it incorporated this cycle"></svg>
+          <div class="scroll"><table class="reads"><thead><tr><th>Cluster</th><th>Read so far</th><th>Mean Q</th></tr></thead><tbody id="readRows"></tbody></table></div>
+        </div>
+        <div class="legend"><span><i class="sw" style="background:var(--nA)"></i>A dye</span><span><i class="sw" style="background:var(--nC)"></i>C dye</span><span><i class="sw" style="background:var(--nG)"></i>G dye</span><span><i class="sw" style="background:var(--nT)"></i>T dye</span><span>Faded letters are below Q20.</span></div>
+        <p class="note" id="fcNote">Each cluster is one DNA fragment from the HRAS entry. Press <b>Next cycle</b> to add one base to every cluster.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= STATION 3 ================= -->
+<section class="station" id="coverage">
+  <div class="st-head"><span class="st-num">3</span><div><p class="eyebrow">Station 3 · Shotgun sequencing</p><h2>Coverage: how many reads is enough?</h2></div></div>
+  <div class="st-grid">
+    <div class="prose">
+      <p>Reads start at random positions, so some bases get read many times and some never. <b>Coverage</b> (depth) is the average number of reads covering each base:</p>
+      <p class="formula">C = N · L / G   (N reads, L read length, G genome size)</p>
+      <p>Random placement follows a Poisson distribution. The fraction of the genome left unread is about <span class="mono">e<sup>−C</sup></span> (Lander &amp; Waterman, 1988). At 1× you miss 37% of bases, and at 5× under 1%. Clinical genomes aim for 30×, so every base is read many times and real variants stand out from sequencing errors.</p>
+      <p>Try it on the 10,309-bp HRAS entry. Find the fewest reads that leave <b>no gaps</b>, then change the read length and see what happens.</p>
+      <div class="checks" data-station="coverage"></div>
+    </div>
+    <div class="instrument">
+      <div class="inst-head"><span class="eyebrow">Shotgun simulator · HRAS entry, 10,309 bp</span><button class="btn primary" id="shear" type="button">Shear &amp; sequence again</button></div>
+      <div class="inst-body">
+        <div class="ctl">
+          <label for="rlen">Read length <input type="range" id="rlen" min="50" max="1500" step="50" value="150"><output id="rlenO">150 bp</output></label>
+          <label for="rnum">Reads <input type="range" id="rnum" min="10" max="800" step="10" value="120"><output id="rnumO">120</output></label>
+        </div>
+        <div class="scroll"><svg id="pile" viewBox="0 0 1000 250" style="min-width:620px;width:100%" role="img" aria-label="Read pileup and coverage depth along the HRAS entry, with uncovered gaps shaded red"></svg></div>
+        <dl class="stats" id="covStats"></dl>
+        <div class="legend"><span><i class="sw" style="background:var(--ink)"></i>HRAS coding exons</span><span><i class="sw" style="background:var(--accent);opacity:.75"></i>reads</span><span><i class="sw" style="background:var(--bad)"></i>gap (depth 0)</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= STATION 4 ================= -->
+<section class="station" id="olc">
+  <div class="st-head"><span class="st-num">4</span><div><p class="eyebrow">Station 4 · Assembly, method 1</p><h2>Overlap–layout–consensus: solve the jigsaw</h2></div></div>
+  <div class="st-grid">
+    <div class="prose">
+      <p>Without a reference genome we have to assemble <b>de novo</b>. The classic approach, used for the first human genome drafts, has three steps:</p>
+      <ol>
+        <li><b>Overlap:</b> compare every read with every other and find where the end (suffix) of one matches the start (prefix) of another.</li>
+        <li><b>Layout:</b> chain the reads by their overlaps into an ordered path.</li>
+        <li><b>Consensus:</b> where reads stack, take the majority base. This outvotes random sequencing errors.</li>
+      </ol>
+      <p>The result is a <b>contig</b>, a continuous stretch of assembled sequence. Build one from these seven shuffled reads. Click a read to add it to the right-hand end of your contig. The assembler accepts it only if the reads overlap by at least 5 bases.</p>
+      <p class="note">Comparing all pairs grows as N², which is fine for 7 reads and painful for 800 million. That cost is why short-read assemblers moved to the graph in Station 5.</p>
+      <div class="checks" data-station="olc"></div>
+    </div>
+    <div class="instrument">
+      <div class="inst-head"><span class="eyebrow">Read pool · 16-nt reads</span><button class="btn" id="olcUndo" type="button">Undo</button><button class="btn" id="olcReset" type="button">Start over</button></div>
+      <div class="inst-body">
+        <div class="pool" id="pool"></div>
+        <div class="status" id="olcMsg">Pick any read to start the contig.</div>
+        <div class="scroll"><div class="layout" id="layout"></div></div>
+        <details><summary class="note" style="cursor:pointer">Show the overlap table (the "O" in OLC)</summary><div class="scroll" style="margin-top:8px"><table class="ovt" id="ovt"></table></div><p class="note" style="margin-top:6px">Row read's suffix overlapping column read's prefix, in bases (≥ 5 counted). Each row has one clear partner. That's the layout.</p></details>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= STATION 5 ================= -->
+<section class="station" id="debruijn">
+  <div class="st-head"><span class="st-num">5</span><div><p class="eyebrow">Station 5 · Assembly, method 2</p><h2>De Bruijn graphs: assembling from k-mers</h2></div></div>
+  <div class="st-grid">
+    <div class="prose">
+      <p>Short-read assemblers (Velvet, SPAdes, MEGAHIT) skip all-against-all comparison. They chop every read into overlapping words of length <b>k</b> (<b>k-mers</b>) and build a graph:</p>
+      <ul>
+        <li>each <b>node</b> is a (k−1)-mer,</li>
+        <li>each <b>k-mer</b> is an edge from its prefix to its suffix.</li>
+      </ul>
+      <p>A walk that uses every edge exactly once (an <b>Eulerian path</b>) spells out the genome. Unlike the path OLC needs, it can be found quickly.</p>
+      <p>The catch is <b>repeats</b>. If a (k−1)-mer occurs twice in the genome, the two copies merge into one node and the graph gets a fork or a loop. Then several different walks use every edge, and the k-mers alone can't tell you which one is the real genome. Try a small k on the HRAS preset, where codons 10–12 are <span class="mono">GTG GTG GTG</span>.</p>
+      <div class="checks" data-station="debruijn"></div>
+    </div>
+    <div class="instrument">
+      <div class="inst-head"><span class="eyebrow">De Bruijn graph builder</span><button class="btn primary" id="walk" type="button">Walk the path</button></div>
+      <div class="inst-body">
+        <div class="ctl">
+          <label for="dbgPreset">Sequence <select id="dbgPreset"><option value="CTGGTGGTGGTGGGCGCC">HRAS codons 6–12</option><option value="TAATGCCATGGGATGTT">Textbook example</option><option value="ATGACGGAATATAAGCTG">HRAS codons 1–6 (no repeats)</option><option value="custom">Type my own…</option></select></label>
+          <label for="kSlider">k <input type="range" id="kSlider" min="3" max="12" value="3" style="width:120px"><output id="kO">3</output></label>
+        </div>
+        <div class="ctl" id="customRow" hidden><input type="text" id="dbgCustom" maxlength="40" spellcheck="false" aria-label="Custom DNA sequence, 8 to 40 bases" placeholder="8–40 bases of A, C, G, T"><button class="btn" id="dbgApply" type="button">Build graph</button></div>
+        <div class="scroll"><svg id="dbg" height="230" role="img" aria-label="De Bruijn graph: (k-1)-mer nodes in order of first appearance, k-mer edges as arrows; arcs above are edges that loop back to an earlier node"></svg></div>
+        <div class="spell" id="spell" aria-live="polite"></div>
+        <dl class="stats" id="dbgStats"></dl>
+        <div class="status" id="dbgVerdict"></div>
+        <div class="alts" id="alts"></div>
+        <div class="legend"><span><svg width="18" height="12" aria-hidden="true"><circle cx="9" cy="6" r="5" class="dbg-node branch"/></svg>fork: a repeated (k−1)-mer</span><span><b class="mono" style="color:var(--warn)">×2</b> k-mer seen twice</span><span>arcs above loop back to an earlier node</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= STATION 6 ================= -->
+<section class="station" id="repeats">
+  <div class="st-head"><span class="st-num">6</span><div><p class="eyebrow">Station 6 · Finishing</p><h2>Repeats, long reads and N50</h2></div></div>
+  <div class="st-grid">
+    <div class="prose">
+      <p>About half the human genome is repeats. There are ~1.2 million <b>Alu</b> elements (~300 bp each). The HRAS entry has two of them, near positions 880 and 1,190. There are also tandem arrays like the <b>HRAS1 minisatellite</b>: a 28-bp unit repeated ~25 times over ~700 bp, just downstream of the gene.</p>
+      <p>A read that falls entirely inside a repeat could have come from any copy. Short-read assemblers <b>collapse</b> such repeats into one copy and break the contig at each end. The fix is a read long enough to <b>span</b> the whole repeat and anchor in unique sequence on both sides.</p>
+      <p>That's why PacBio HiFi and Oxford Nanopore reads (10 kb to over 1 Mb) made the first truly complete, gap-free human genome possible: <b>T2T-CHM13</b> (2022).</p>
+      <p>Assemblies are compared by <b>N50</b>. Sort contigs longest to shortest and add up their lengths. N50 is the length of the contig at which the running total first reaches half the assembly size. Higher is more contiguous.</p>
+      <div class="checks" data-station="repeats"></div>
+    </div>
+    <div class="instrument">
+      <div class="inst-head"><span class="eyebrow">HRAS1 minisatellite · entry positions 8,600–10,309</span><button class="btn primary" id="reseq" type="button">Sequence again</button></div>
+      <div class="inst-body">
+        <div class="ctl"><label for="lrLen">Read length <input type="range" id="lrLen" min="100" max="2000" step="50" value="150"><output id="lrLenO">150 bp</output></label><span class="note">~15× coverage of this window</span></div>
+        <div class="scroll"><svg id="rep" viewBox="0 0 1000 300" style="min-width:620px;width:100%" role="img" aria-label="Minisatellite region with unique flanks, reads classified as inside the repeat, anchored in one flank, or spanning it, and the resulting assembly"></svg></div>
+        <div class="legend"><span><i class="sw" style="background:var(--rep)"></i>read inside repeat</span><span><i class="sw" style="background:var(--warn)"></i>anchored on one side</span><span><i class="sw" style="background:var(--ok)"></i>spans the whole repeat</span></div>
+        <dl class="stats" id="repStats"></dl>
+        <div class="status" id="repVerdict"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= REFERENCE ================= -->
+<section class="ref" id="compare">
+  <div class="prose"><p class="eyebrow">Reference</p><h2>Choosing a sequencing technology</h2><p>Every technology trades read length, accuracy and cost. Real genome projects often combine them: long reads to span repeats and build the scaffold, short reads or HiFi to polish the bases, and Hi-C to order contigs into chromosomes.</p></div>
+  <div class="tbl-wrap"><table class="cmp">
+    <thead><tr><th scope="col">Technology</th><th scope="col">How it reads</th><th scope="col">Read length</th><th scope="col">Per-base accuracy</th><th scope="col">Best for</th></tr></thead>
+    <tbody>
+      <tr><th scope="row">Sanger</th><td>Dye-terminator chain termination + capillary</td><td class="mono">500–1,000 bp</td><td class="mono">~99.99%</td><td>Checking one gene or variant; confirming NGS calls</td></tr>
+      <tr><th scope="row">Illumina</th><td>Reversible-terminator sequencing by synthesis on clusters</td><td class="mono">50–300 bp (paired)</td><td class="mono">&gt;99.9% (Q30+)</td><td>Resequencing, exomes, RNA-seq, variant calling, cheapest per base</td></tr>
+      <tr><th scope="row">PacBio HiFi</th><td>One polymerase watched in real time; a circular template is read many times</td><td class="mono">15–25 kb</td><td class="mono">~99.9%</td><td>De novo assembly, structural variants, phasing haplotypes</td></tr>
+      <tr><th scope="row">Oxford Nanopore</th><td>Ionic current changes as one strand threads through a protein pore</td><td class="mono">10 kb to &gt;1 Mb</td><td class="mono">~99% (improving)</td><td>Spanning huge repeats and centromeres, portable field sequencing, direct methylation</td></tr>
+    </tbody></table></div>
+
+  <div class="prose" style="margin-top:28px"><p class="eyebrow">Reference</p><h2>Key terms</h2></div>
+  <dl class="gloss">
+    <div><dt>Read</dt><dd>The sequence a machine reports for one DNA fragment.</dd></div>
+    <div><dt>Paired-end reads</dt><dd>Both ends of one fragment read, a known distance apart. The pairing helps place reads across repeats.</dd></div>
+    <div><dt>Coverage (depth)</dt><dd>Average number of reads covering a base: C = NL/G.</dd></div>
+    <div><dt>Phred quality (Q)</dt><dd>−10·log₁₀ of the error probability. Q30 means a 1 in 1,000 chance the base is wrong.</dd></div>
+    <div><dt>Contig</dt><dd>A gap-free stretch of assembled sequence.</dd></div>
+    <div><dt>Scaffold</dt><dd>Contigs ordered and oriented using pairs or long-range data, with gaps (N's) of estimated size between them.</dd></div>
+    <div><dt>k-mer</dt><dd>A substring of length k. A sequence of length n has n − k + 1 of them.</dd></div>
+    <div><dt>De Bruijn graph</dt><dd>Nodes are (k−1)-mers and edges are k-mers. An Eulerian path through it spells out the genome.</dd></div>
+    <div><dt>N50</dt><dd>The contig length at which contigs of that length or longer make up half the assembly.</dd></div>
+    <div><dt>De novo vs reference-guided</dt><dd>Building a genome from reads alone, versus aligning reads to an existing genome (as in the genome browser lab).</dd></div>
+  </dl>
+
+  <div class="prose" style="margin-top:28px">
+    <p class="eyebrow">Next step</p><h2>Try it with real data</h2>
+    <ol>
+      <li>Look up any organism in the <a href="https://www.ncbi.nlm.nih.gov/datasets/genome/" target="_blank" rel="noopener">NCBI Datasets genome browser</a>. Compare the <b>contig N50</b> of the old human reference GRCh38 with T2T-CHM13.</li>
+      <li>Search the <a href="https://www.ncbi.nlm.nih.gov/sra" target="_blank" rel="noopener">Sequence Read Archive</a> for a bacterial genome. Is its FASTQ from Illumina, Nanopore or both? How long are the reads?</li>
+      <li>Open a FASTQ file and decode a quality line. The character <code>I</code> is ASCII 73; subtract 33 and you get Q40.</li>
+    </ol>
+  </div>
+</section>
+
+<footer class="src">
+  <p><b>About the data</b></p>
+  <ul>
+    <li>All sequence is the 10,309-bp human HRAS genomic entry in this course's <code>triplets.txt</code>, the same entry and numbering as the genome browser lab. The coding sequence comes from the four coding exons aligned to HRAS p21 (UniProt P01112).</li>
+    <li>The chromatogram, flow-cell images and quality scores are <b>simulated</b> to show how each instrument behaves. The G12V change (c.35G&gt;T) is a real, common HRAS hotspot mutation.</li>
+    <li>Station 3 and 6 reads are drawn at random start positions without errors. Real reads also carry errors, which assemblers have to correct.</li>
+  </ul>
+</footer>
+</div>
+
+<script>
+// Human HRAS genomic entry from triplets.txt (10,309 bp, coding strand), same numbering as the genome browser lab.
+const SEQ='CCACCCCGAGCCTAGAGAAGGCTCCTAGCTTGGCTGGGCCTCATGGGGCCCTTGTCTGCTTAGTTCCAGCCTGGAGGGCCTCACGCTCCCCTCCCCCAGCCTTGGCTCGACCCCCTCTGCTTCGTAGGACACCCTCCCTGTGTTTCTGCCCATCCTCAGGGTCCATGCAGGGAGTGCTGGCTTCAGGCCTCCCCACCTGAGGCCCACAGGGGCTGTGAGCCTGGGGTGCCGGGCCAGCTGCCGGTGGCTGTGGGGCTCCCGGCACTGCCTCAAGCTGTGGGCTATGGGTCCTTCTCCACCTGATGGTCTCTGAGCCTGGGGTCCAGGATCAAGTCCCAGGCCTTCCCCTACCCCAGCCCTGTGCCAGCCGAGCCCCTTCACCTGCAGGCAGCTGCCCTCTCCTGCTGTGGGTCAAACATCCAGGCAAGGAGGTGGCATGTACCCTCAGGCAGTACCTGCAAGAGTCAGAGTGGCTTCCTGGCCAGGTTACTGTGCCCATGGGAGCCTGGAATGGGCCAGGCTGAGGTCACAGCACCTAGAGGTGAGCAGATCAGCCCAGGACCTGACTATCCACGGACCCAGCTGGCGAGGAGGAAGAGAGTCAGGTGTGTGACCGATGCTGGGGTACCTCTGGGTCCCCCAACACAATGCCTGCTGCTCATCCAAATCCCACTTCCCTCCTTCTCCACAGGGGTCCTCTCTTGCACCCTGTTCTTCCTGAGCCCCTCCCCAGGCCTCTGAGGGTATTGGCCCAGTGTGTCCCTCTCTTGCATCCCATTCTTCCTAAGCCCAGTGTGTCCCTCGACTACGTGCATCAGGCTTACCTGGTGTTGCCCCTTAAAGATGCAGACGTCTGGCGGGGCGCAGTGGCTCACGCCTGTAATCCCAGCACTTTGGGAGGCCGCGGCGGGCAGATCACGAGGTCAGGAGATTGAGACCATCCTGGCTAACACGGTGAAACCCTGTCTCTACTAAAAATACAAAAAAAAAAAAAAAAAAATTAGCTGGCGTGGTGGCAGGTGCCTGTAGTCCCAGCTACTTGGGAGGCTGAGGCAGGAGAATGCCATGAACCCGCGAGGCGGAGCTTGCAGTGAGACAAGATCGCGCCACTGTCCTCCAGCCTGGGCAACAGAGCAAGACTCTGTCTCAAAAAAAAAAAAAAAAAAGGCTGGGTGCGGTGGCTCACACCTGTAATCCCAGCACTTTGGGAGGCTGAGGCGGGCAGATCACAAGATCAGGAGATCAAGACCATCCTGGCTAACGAGGTGAAACCCCATCTCTACTAAAGATACAAAAAACATAGTTAGCCAGGCGTGGTGGCGGACGCCTGTAGTCCCAGCTACTTGGGAGGCTGAGGCTGGGGAATGGCATGAACCCAGGAGGTGGAGCTTGCAGTGAGCCAAGATGGCACCACTGCACTCCAGCCTGGGCGACAGAGAGAGACTCCATCTCAAAAAACAAACAAACAAACAAAGATGCAGACATCTGCCTCGGCCCCAGGCCCTGGAATCATGAGCTCCAGGCGTGGAGTGACAAGTGTGCTCGGAGCGTCCAGTGTCCTCCTCCCTGACCACCTTCATGTGTCTTCAGTCTGGACCTGGACTGATCCCCTGACTGCACTCCCCACCCAGCCTTCCCAGATTTATCTTCCTGATGAGACGAGTTCCCTTCGGAGCCCTGTGTGTCTTACTACGTGTTCGGTTGAGGGCCTGCCTCGCCCCAGAGCTGTGGGCTGCACGTGGCCTGCACGTGGCCTGCGTGCTCCTCTGCTGTCCACAGTCGCAGGAGGGGATGCTCAAATATTTGTCGAAGGAATCCGTGAACAGGCAGATGCACATGTAGCCACTTAGAACGTTCTGGCCATGGCTTTTATCTGTTGACCACGTGTGGACACTGAAGATGCATCCTCTCCATCCCGTCTAGAGCTGCCCCTGTGCCAGGCGAGTTGGCCGGCTGTTGACAGAGGTGGTGGGTGGGAGTGTTGGAGCGGGGCAGTGGCTCAGGCTCTGGGTGCCTCACTGGCCTGGTCTGGAAGGTGACCATGCACCAAGGATCAAAGAAGTGAAGCCCAAAGCAGAATCTCATGGAGTTTCCAGCCCAAATCTCCCCCACTGCCTGCCTTTCTCCAGCCAGTGCAAGGCCCCAGGCCTCACAGCAGGACCCCAACACTGCATCCCCCCAAAGACTCTGGCCACCTCCATCCCAGGCCTGCCAGCCTCGAGCCTCATGGAGGGCGTGAGCTGGCGGGGTCACGGGCAGCCCCTGGACACCTATGGGTGACACTAAGGGCTGAGTCAGCTACCCTTGTCTCCTCTGTGCCCAAGAGCCCCAAGCATCAGACTGGTCTGAGCCCCAAGGCCTGGGGGTGCAAGGGGTTGGAGGCTGTGGGATCCAAAGACCCCATTGAACTCCCACCTCAGACACTGCACCTAGTGTTCTCACCCAGGCCTGAACCCATCCACACACTTCACGGCCCTGCTCCCACCCTGTGTCCCCTCTGCAAGCCCCCATGCTCCCCAAATTGGTAACTGGGGGGCCTGTCTCCACACCCCTGCTAGTGCCATTCCCTGGTGGGTAGCCATCACCTCTGGGTCCCCTGCTGCCCTCGCCCCTTCACCATGGGGGCTCGGAAGGCAGAGCCCGCTCCCCTCCTGAGCCCCACCCTGGAACCCTGAGCACCCTGGGTCATTGCCTCTGAGTCTCCCTCAGGGGCAGGGCTTGGGGCCCCTCCTGTCTCCTGACAGGGAGCCCTTTCAGTGCAGGGCCAGGGGGTGGTGGAGGCAAGGGTCCTCAGGGGACCAGATCTGACATGCGGGGCCATCACTGGGTCCCCGATGGCTGTGCTGCTTCGTCCCCGCGCCCACGCCTCGGCGCAGGTTCCCTCCTGGCACCGGTCATAGGGCGAGGCTTGCGGCTCCCACCCCAAGGGTGCGCTCGGCTCTCACCTGAGGGCTCAGCCTAGGTGTCCGGCCCTGGCAGCTCGGCCCTGGGCGCCCTCCACCTCCAGGCGCTGTCTCCTACTCCAGGCTGTTCTTCCGGCCGCCGCGGGGTTGCGGCCTGGGCGCCATAGCAACGGGAGCCAGGCCTCATTTGAATACGCAAATATTTATAAGTCGCCGGGGGCTCGGGTTCCGTGCGGCTGAGCCACGCCCCTTAGCAACGGTCGCTAGGGCGGGGCCACGTGGACTGGCACGTGCGTGGGCGCCCCTGCTGCGGGCGATCCCAGGGGAAGGTGACGCGCCACCAACTCGAGTTGGGTGGGCGCAGGCGCGTCAGGTGCCAGCTTCCTGCGGCTCCGTGCCTGGGCCGTCGCGATGCACGTGTCGCGTTTCCTCGCGATCCTGGCGCTTCCCACGCGGGGCGGGTAAAGGCGGTCTCTGCTGGAGGCTCGCGCCCACCTTTCCCAGGTGGAAGGGTCGCCCCTGGGGCCGAGGCCTGCCGTCCTGACCTTCGGTTGGAAGTGAGGCCGACGGCAAAAGGAAGCACCGGGGGAAGCGCCCCCGAGGACCAGGAAACACACACCGGACGCCGGAGCGCACCCGAGTGCCCGGCCCGCGGGACACGCTGCCGCCCGCCGTCCAGTCGCCGCTTCTCACTCGCGTTCATGCGTGTCCGCCCCGAGCCGAGCTCTGACTGCGACCGCGCGGTGGACGGACGGCAGGCGGGACCCCCGGGACCGCACGTGGGTGGAGCCCCGGGTCAGCAGCGACCGGCGCAGGAGGGCGAGGCGGGCGCTGGACTGGGCAGAGGCAGGGTTTGCCTGACTGTAAAACGCCTTTTTTGTTTTGAGACGAAGTAGCGCTCTGTTGCCCAGTGCAGTGGCGCGATTTCGGCTCACCGCAACATCCGCCTCCCGGGTTCCAGCGATTCTCCTGCCTCAGCCTCCCGAGTAGCTGGGACTACAGGCGCGCGCCACTGCAGCCGACTAATTTTTTGTGTTTTTAGTAGAGACAGGGTTTCATCATGTTGGCCAGGCTGGTCTTGAACTCCTGACCTCAAGTAATCCACCCGCTTAGGCCTCCCGAAGTGCTGGGATTATAGGCGTGAGCCACCGCGCCCGGCCCTTTTTGTTTTTTAATGAGGATGTATTTCTGATTCCTTTGCAATTTTAAAAAATGTTAAAAACATGTCTTTTTGGGTTTGAAAGAGCTAGGATGTGCGTCTATGTGCTTGGGGTGAGCCCTGGGCACTTCGCTCCCCTGTGGCAACTTGTGGGTACGGTTTAACTGGACCACGCTGAGCTTCTGCAGCGTTGGAACCTCAAGTTTGGGGGGACTGGGCGGGCAGGGTCGCCTGCCACGCAGGCCCGAGAAAGAGGAGAGTGGTGGAGGGGGCGTTCTCACGCCTGGCCCCAGGGCACACGGCTGCGCCCGCCGCCCGGAACCCCACCGGGGCTGCAAGCGTCCTCGGGGTGGGTTGCGGTGGGAGTAGGGGAGCTGGGGTGCGTGGTGGTAGGTGGGGTGCGCGGCCGCTCCACCTGCGCGGAAGGGCAGCCGGGCAACCGGACCCCGCGGCCACCCGGGGGCCCCCAGCTCCGAGCATCCCGCCTTGGTCCCGGCGGATCCCAGCCTTTCCCCAGCCCGTAGCCCCGGGACCTCCGCGGTGGGCGGCGCCGCGCTGCCGGCGCAGGGAGGGCCTCTGGTGCACCGGCACCGCTGAGTCGGGTTCTCTCGCCGGCCTGTTCCCGGGAGAGCCCGGGGCCCTGCTCGGAGATGCCGCCCCGGGCCCCCAGACACCGGCTCCCTGGCCTTCCTCGAGCAACCCCGAGCTCGGCTCCGGTCTCCAGCCAAGCCCAACCCCGAGAGGCCGCGGCCCTACTGGCTCCGCCTCCCGCGTTGCTCCCGGAAGCCCCGCCCGACCGCGGCTCCTGACAGACGGGCCGCTCAGCCAACCGGGGTGGGGCGGGGCCCGATGGCGCGCAGCCAATGGTAGGCCGCGCCTGGCAGACGGACGGGCGCGGGGCGGGGCGTGCGCAGGCCCGCCCGAGTCTCCGCCGCCCGTGCCCTGCGCCCGCAACCCGAGCCGCACCCGCCGCGGACGGAGCCCATGCGCGGGGCGAACCGCGCGCCCCCGCCCCCGCCCCGCCCCGGCCTCGGCCCCGGCCCTGGCCCCGGGGGCAGTCGCGCCTGTGAACGGTGAGTGCGGGCAGGGATCGGCCGGGCCGCGCGCCCTCCTCGCCCCCAGGCGGCAGCAATACGCGCGGCGCGGGCCGGGGGCGCGGGGCCGGCGGGCGTAAGCGGCGGCGGCGGCGGCGGCGGCGGGTGGGTGGGGCCGGGCGGGGCCCGCGGGCACAGGTGAGCGGGCGTCGGGGGCTGCGGCGGGCGGGGGCCCCTTCCTCCCTGGGGCCTGCGGGAATCCGGGCCCCACCCGTGGCCTCGCGCTGGGCACGGTCCCCACGCCGGCGTACCCGGGAGCCTCGGGCCCGGCGCCCTCACACCCGGGGGCGTCTGGGAGGAGGCGGCCGCGGCCACGGCACGCCCGGGCACCCCCGATTCAGCATCACAGGTCGCGGACCAGGCCGGGGGCCTCAGCCCCAGTGCCTTTTCCCTCTCCGGGTCTCCCGCGCCGCTTCTCGGCCCCTTCCTGTCGCTCAGTCCCTGCTTCCCAGGAGCTCCTCTGTCTTCTCCAGCTTTCTGTGGCTGAAAGATGCCCCCGGTTCCCCGCCGGGGGTGCGGGGCGCTGCCCGGGTCTGCCCTCCCCTCGGCGGCGCCTAGTACGCAGTAGGCGCTCAGCAAATACTTGTCGGAGGCACCAGCGCCGCGGGGCCTGCAGGCTGGCACTAGCCTGCCCGGGCACGCCGTGGCGCGCTCCGCCGTGGCCAGACCTGTTCTGGAGGACGGTAACCTCAGCCCTCGGGCGCCTCCCTTTAGCCTTTCTGCCGACCCAGCAGCTTCTAATTTGGGTGCGTGGTTGAGAGCGCTCAGCTGTCAGCCCTGCCTTTGAGGGCTGGGTCCCTTTTCCCATCACTGGGTCATTAAGAGCAAGTGGGGGCGAGGCGACAGCCCTCCCGCACGCTGGGTTGCAGCTGCACAGGTAGGCACGCTGCAGTCCTTGCTGCCTGGCGTTGGGGCCCAGGGACCGCTGTGGGTTTGCCCTTCAGATGGCCCTGCCAGCAGCTGCCCTGTGGGGCCTGGGGCTGGGCCTGGGCCTGGCTGAGCAGGGCCCTCCTTGGCAGGTGGGGCAGGAGACCCTGTAGGAGGACCCCGGGCCGCAGGCCCCTGAGGAGCGATGACGGAATATAAGCTGGTGGTGGTGGGCGCCGGCGGTGTGGGCAAGAGTGCGCTGACCATCCAGCTGATCCAGAACCATTTTGTGGACGAATACGACCCCACTATAGAGGTGAGCCTGGCGCCGCCGTCCAGGTGCCAGCAGCTGCTGCGGGCGAGCCCAGGACACAGCCAGGATAGGGCTGGCTGCAGCCCCTGGTCCCCTGCATGGTGCTGTGGCCCTGTCTCCTGCTTCCTCTAGAGGAGGGGAGTCCCTCGTCTCAGCACCCCAGGAGAGGAGGGGGCATGAGGGGCATGAGAGGTACCAGGGAGAGGCTGGCTGTGTGAACTCCCCCCACGGAAGGTCCTGAGGGGGTCCCTGAGCCCTGTCCTCCTGCAGGATTCCTACCGGAAGCAGGTGGTCATTGATGGGGAGACGTGCCTGTTGGACATCCTGGATACCGCCGGCCAGGAGGAGTACAGCGCCATGCGGGACCAGTACATGCGCACCGGGGAGGGCTTCCTGTGTGTGTTTGCCATCAACAACACCAAGTCTTTTGAGGACATCCACCAGTACAGGTGAACCCCGTGAGGCTGGCCCGGGAGCCCACGCCGCACAGGTGGGGCCAGGCCGGCTGCGTCCAGGCAGGGGCCTCCTGTCCTCTCTGCGCATGTCCTGGATGCCGCTGCGCCTGCAGCCCCCGTAGCCAGCTCTCGCTTTCCACCTCTCAGGGAGCAGATCAAACGGGTGAAGGACTCGGATGACGTGCCCATGGTGCTGGTGGGGAACAAGTGTGACCTGGCTGCACGCACTGTGGAATCTCGGCAGGCTCAGGACCTCGCCCGAAGCTACGGCATCCCCTACATCGAGACCTCGGCCAAGACCCGGCAGGTGAGGCAGCTCTCCACCCCACAGCTAGCCAGGGACCCGCCCCGCCCCGCCCCAGCCAGGGAGCAGCACTCACTGACCCTCTCCCTTGACACAGGGCAGCCGCTCTGGCTCTAGCTCCAGCTCCGGGACCCTCTGGGACCCCCCGGGACCCATGTGACCCAGCGGCCCCTCGCGCTGTAAGTCTCCCGGGACGGCAGGGCAGTGAGGGAGGCGAGGGCCGGGGTCTGGGCTCACGCCCTGCAGTCCTGGGCCGACACAGCTCCGGGGAAGGCGGAGGTCCTTGGGGAGAGCTGCCCTGAGCCAGGCCGGAGCGGTGACCCTGGGGCCCGGCCCCTCTTGTCCCCAGAGTGTCCCACGGGCACCTGTTGGTTCTGAGTCTTAGTGGGGCTACTGGGGACACGGGCCGTAGCTGAGTCGAGAGCTGGGTGCAGGGTGGTCAAACCCTGGCCAGACCTGGAGTTCAGGAGGGCCCCGGGCCACCCTGACCTTTGAGGGGCTGCTGTAGCATGATGCGGGTGGCCCTGGGCACTTCGAGATGGCCAGAGTCCAGCTTCCCGTGTGTGTGGTGGGCCTGGGGAAGTGGCTGGTGGAGTCGGGAGCTTCGGGCCAGGCAAGGCTTGATCCCACAGCAGGGAGCCCCTCACCCAGGCAGGCGGCCACAGGCCGGTCCCTCCTGATCCCATCCCTCCTTTCCCAGGGAGTGGAGGATGCCTTCTACACGTTGGTGCGTGAGATCCGGCAGCACAAGCTGCGGAAGCTGAACCCTCCTGATGAGAGTGGCCCCGGCTGCATGAGCTGCAAGTGTGTGCTCTCCTGACGCAGGTGAGGGGGACTCCCAGGGCGGCCGCCACGCCCACCGGATGACCCCGGCTCCCCGCCCCTGCCGGTCTCCTGGCCTGCGGTCAGCAGCCTCCCTTGTGCCCCGCCCAGCACAAGCTCAGGACATGGAGGTGCCGGATGCAGGAAGGAGGTGCAGACGGAAGGAGGAGGAAGGAAGGACGGAAGCAAGGAAGGAAGGAAGGGCTGCTGGAGCCCAGTCACCCCGGGACCGTGGGCCGAGGTGACTGCAGACCCTCCCAGGGAGGCTGTGCACAGACTGTCTTGAACATCCCAAATGCCACCGGAACCCCAGCCCTTAGCTCCCCTCCCAGGCCTCTGTGGGCCCTTGTCGGGCACAGATGGGATCACAGTAAATTATTGGATGGTCTTGATCTTGGTTTTCGGCTGAGGGTGGGACACGGTGCGCGTGTGGCCTGGCATGAGGTATGTCGGAACCTCAGGCCTGTCCAGCCCTGGGCTCTCCATAGCCTTTGGGAGGGGGAGGTTGGGAGAGGCCGGTCAGGGGTCTGGGCTGTGGTGCTCTCTCCTCCCGCCTGCCCCAGTGTCCACGGCTTCTGGCAGAGAGCTCTGGACAAGCAGGCAGATCATAAGGACAGAGAGCTTACTGTGCTTCTACCAACTAGGAGGGCGTCCTGGTCCTCCAGAGGGAGGTGGTTTCAGGGGTTGGGGATCTGTGCCGGTGGCTCTGGTCTCTGCTGGGAGCCTTCTTGGCGGTGAGAGGCATCACCTTTCCTGACTTGCTCCCAGCGTGAAATGCACCTGCCAAGAATGGCAGACATAGGGACCCCGCCTCCTGGGCCTTCACATGCCCAGTTTTCTTCGGCTCTGTGGCCTGAAGCGGTCTGTGGACCTTGGAAGTAGGGCTCCAGCACCGACTGGCCTCAGGCCTCTGCCTCATTGGTGGTCGGGTAGCGGCCAGTAGGGCGTGGGAGCCTGGCCATCCCTGCCTCCTGGAGTGGACGAGGTTGGCAGCTGGTCCGTCTGCTCCTGCCCCACTCTCCCCCGCCCCTGCCCTCACCCTACCCTTGCCCCACGCCTGCCTCATGGCTGGTTGCTCTTGGAGCCTGGTAGTGTCACTGGCTCAGCCTTGCTGGGTATACACAGGCTCTGCCACCCACTCTGCTCCAAGGGGCTTGCCCTGCCTTGGGCCAAGTTCTAGGTCTGGCCACAGCCACAGACAGCTCAGTCCCCTGTGTGGTCATCCTGGCTTCTGCTGGGGGCCCACAGCGCCCCTGGTGCCCCTCCCCTCCCAGGGCCCGGGTTGAGGCTGGGCCAGGCCCCTCTGGGACGGGGACTTGTGCCCTGTCAGGGTTCCCTATCCCTGAGGTTGGGGGAGAGCTAGCAGGGCATGCCGCTGGCTGGCCAGGGCTGCAGGGACACTCCCCCTTTTGTCCAGGGAATACCACACTCGCCCTTCTCTCCAGCGAACACCACACTCGCCCTTCTCTCCAGGGGACGCCACACTCCCCCTTCTGTCCAGGGGACGCCACACTCCCCCTTCTCTCCAGGGGACGCCACACTCGCCCTTCTCTCCAGGGGACGCCACACTCGCCCTTCTCTCCAGGGGACGCCACACTCCCCCTTCTGTCCAGGGGACGCCACACTCGCCCTTCTCTCCAGGGGACGCCACACTGGCCCTTCTCTCCAGGGGACGCCACACTCCCCCTTCTGTCCAGGGGACGCCACACTCCCCCTTCTCTCCAGGGGACGCCACACTCCCCCTTCTCTCCAGGGGACGCCACACTGGCCCTTCTCTCCAGGGGACGCCACACTCCCCCTTCTGTCCAGGGGACGCCACACTCGCCCTTCTCTCCAGGGGACGCCACACTCGCCCTTCTCTCCAGGGGACGCCACACTCCCCCTTCTCTCCAGGGGACGCCACACTCCCCCTTCTCTCCAGGGGACGCCACACTCCCCCTTCTCTCCAGGGGACGCCACACTCCCCCTTCTGTCCAGGGGACGCCACACTCGCCCTTCTCTCCAGGGGACGCCACACTCCCCCTTCTCTCCAGGGGACGCCACACTCCCCCTTCTCTCCAGGGGACGCCACACTCCCCCTTCTGTCCAGGGGACGCCACACTCGCCCTTCTCTCCAGGGGACGCCACACTCGCCCTTCTCTCCAGGGGACGCCACACTCGCCCTTCTCTCCAGGGGACGCCACACTTGCCCTTCTGTCCAGGGAATGCCACACTCCCCCTTCTCCCCAGCAGCCTCCGAGTGACCAGCTTCCCCATCGATAGACTTCCCGAGGCCAGGAGCCCTCTAGGGCTGCCGGGTGCCACCCTGGCTCCTTCCACACCGTGCTGGTCACTGCCTGCTGGGGGCGTCAGATGCAGGTGACCCTGTGCAGGAGGTATCTCTGGACCTGCC';
+const G = SEQ.length;
+const EXONS = [[6229,6339],[6607,6785],[6939,7098],[7796,7915]];
+const CDS = EXONS.map(([a,b]) => SEQ.slice(a-1,b)).join('');
+const VNTR = [9390, 10089];
+const BASES = 'ACGT';
+const cssv = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const baseVar = b => `var(--n${b})`;
+const $ = id => document.getElementById(id);
+const NS = 'http://www.w3.org/2000/svg';
+function el(tag, attrs={}, text){ const e=document.createElementNS(NS,tag); for (const k in attrs) e.setAttribute(k,attrs[k]); if (text!=null) e.textContent=text; return e; }
+function mulberry(seed){ return function(){ seed|=0; seed=seed+0x6D2B79F5|0; let t=Math.imul(seed^seed>>>15,1|seed); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
+const colorSeq = s => s.split('').map(b => BASES.includes(b) ? `<span class="${b}">${b}</span>` : `<span>${b}</span>`).join('');
+const fmt = n => n.toLocaleString('en-US');
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const CODE = {TTT:'F',TTC:'F',TTA:'L',TTG:'L',CTT:'L',CTC:'L',CTA:'L',CTG:'L',ATT:'I',ATC:'I',ATA:'I',ATG:'M',GTT:'V',GTC:'V',GTA:'V',GTG:'V',TCT:'S',TCC:'S',TCA:'S',TCG:'S',CCT:'P',CCC:'P',CCA:'P',CCG:'P',ACT:'T',ACC:'T',ACA:'T',ACG:'T',GCT:'A',GCC:'A',GCA:'A',GCG:'A',TAT:'Y',TAC:'Y',TAA:'*',TAG:'*',CAT:'H',CAC:'H',CAA:'Q',CAG:'Q',AAT:'N',AAC:'N',AAA:'K',AAG:'K',GAT:'D',GAC:'D',GAA:'E',GAG:'E',TGT:'C',TGC:'C',TGA:'*',TGG:'W',CGT:'R',CGC:'R',CGA:'R',CGG:'R',AGT:'S',AGC:'S',AGA:'R',AGG:'R',GGT:'G',GGC:'G',GGA:'G',GGG:'G'};
+const translate = s => { let p=''; for (let i=0;i+3<=s.length;i+=3) p+=CODE[s.slice(i,i+3)]||'X'; return p; };
+
+/* ================= progress & checks ================= */
+const STATIONS = [
+  {id:'sanger', t:'Sanger sequencing'},
+  {id:'illumina', t:'Illumina SBS'},
+  {id:'coverage', t:'Coverage'},
+  {id:'olc', t:'Overlap assembly'},
+  {id:'debruijn', t:'De Bruijn graphs'},
+  {id:'repeats', t:'Repeats & N50'},
+];
+let dbgKmin = null; // filled in by station 5
+const CHECKS = {
+  sanger:[
+    {id:'s1run', task:true, q:'Run the capillary and read the sequence off the detector.'},
+    {id:'s1q1', q:'Why does a chain stop growing once a ddNTP is added?', opts:['The ddNTP has no 3′-OH, so the next phosphodiester bond cannot form','The dye blocks polymerase from binding the template','ddNTPs pair with the wrong base and the strands separate','The primer is used up'], a:0, why:'A phosphodiester bond joins the 3′-OH of the last nucleotide to the phosphate of the next one. Without the 3′-OH there is nothing to attach to.'},
+    {id:'s1peak', task:true, q:'In the tumour chromatogram, click the position that shows two overlapping peaks.'},
+    {id:'s1q2', q:'That position is c.35 in codon 12 (GGC). The trace shows G and T at equal height. What does the tumour carry?', opts:['Heterozygous c.35G>T, GGC→GTC, p.G12V','Homozygous c.35G>T, p.G12V','Heterozygous c.35G>A, p.G12D','A sequencing error; Sanger has no errors at this depth, so ignore it'], a:0, why:'Half the DNA molecules carry G and half T, so the caller reports the IUPAC code K (G or T). GTC encodes valine, so this is the activating G12V mutation, and the other allele is still normal.'},
+  ],
+  illumina:[
+    {id:'s2run', task:true, q:'Run all 16 cycles on the flow cell.'},
+    {id:'s2q1', q:'Which cluster should you trust least by cycle 16, and why?', opts:['Cluster 7: its colour mixes with the previous base as molecules fall out of step (phasing)','Cluster 1: it is at the edge of the tile','All clusters are equally reliable because each base is imaged','Cluster 10: it has the most G bases'], a:0, why:'In a phased cluster more molecules lag every cycle, so each image mixes two bases and the quality score falls.'},
+    {id:'s2q2', q:'A base is called at Q30. It has a 1 in how many chance of being wrong?', num:1000, tol:0, why:'Q = −10·log₁₀(P) → P = 10^(−30/10) = 10⁻³ = 1 in 1,000.'},
+  ],
+  coverage:[
+    {id:'s3gap', task:true, q:'Get every base of the HRAS entry covered (zero gaps).'},
+    {id:'s3q1', q:'How many 150-bp reads give 30× coverage of a 3.1-Gb human genome? (answer in millions)', num:620, tol:0.03, unit:'million', why:'N = C·G/L = 30 × 3,100,000,000 / 150 = 620,000,000 reads, or 310 million pairs for paired-end.'},
+    {id:'s3q2', q:'At 3× coverage, about what fraction of the genome is never read?', opts:['~5% (e⁻³)','~33% (1/3)','0%, because 3 × genome size was sequenced','~0.1%'], a:0, why:'Lander–Waterman: the uncovered fraction ≈ e^(−C) = e^(−3) ≈ 0.05.'},
+  ],
+  olc:[
+    {id:'s4done', task:true, q:'Assemble all seven reads into one contig.'},
+    {id:'s4q1', q:'Your 64-bp contig was built from 7 × 16 = 112 bases of reads. Why is the contig shorter?', opts:['Overlapping bases are shared between neighbouring reads and counted once in the contig','Some reads were discarded as low quality','The assembler trims 3′ ends','The contig is circular'], a:0, why:'Six overlaps totalling 48 bases: 112 − 48 = 64.'},
+  ],
+  debruijn:[
+    {id:'s5q1', q:'For the preset “HRAS codons 6–12”, what is the smallest k that gives exactly one possible genome?', num:() => dbgKmin, tol:0, why:'Below this k, some (k−1)-mer inside GTGGTGGTGG repeats. The graph gets a loop, and walks around it a different number of times still use every edge.'},
+    {id:'s5q2', q:'Why do real assemblers use k ≈ 31–127 rather than a very large k?', opts:['k must be shorter than the reads, and a longer k-mer is more likely to contain an error','Large k makes the graph have more forks','Eulerian paths only exist for odd k below 128','Memory use falls as k grows'], a:0, why:'Larger k resolves more repeats, but every k-mer must fit inside a read and be error-free. Assemblers balance the two, and SPAdes tries several k values.'},
+  ],
+  repeats:[
+    {id:'s6span', task:true, q:'Choose a read length that spans the whole minisatellite and gives one contig.'},
+    {id:'s6q1', q:'An assembly has contigs of 80, 70, 50, 40, 30, 20 and 10 kb. What is its N50 in kb?', num:70, tol:0, unit:'kb', why:'Total = 300 kb, half = 150 kb. Running total: 80, then 150 when the 70-kb contig is added. N50 = 70 kb.'},
+    {id:'s6q2', q:'In a short-read assembly, the reads inside a collapsed repeat have ~25× the depth of their flanks. What does that tell you?', opts:['The repeat unit is present in about 25 copies that were stacked on one contig','Those bases were sequenced with higher quality','The flanks were deleted in this genome','Nothing: depth is random'], a:0, why:'Reads from every copy pile onto the single collapsed copy, so its depth scales with copy number. Assemblers use this to flag collapsed repeats.'},
+  ],
+};
+const ALL = Object.values(CHECKS).flat();
+let state = {};
+try { state = JSON.parse(localStorage.getItem('bio116-seqasm')||'{}') || {}; } catch(e){ state = {}; }
+const save = () => { try { localStorage.setItem('bio116-seqasm', JSON.stringify(state)); } catch(e){} };
+
+function renderPipeline(){
+  const ol = $('pipeline'); ol.innerHTML='';
+  STATIONS.forEach((s,i) => {
+    const cs = CHECKS[s.id]; const d = cs.filter(c => state[c.id]).length;
+    const li = document.createElement('li');
+    li.innerHTML = `<a href="#${s.id}"><span class="n"><span>${i+1}</span><span>${d}/${cs.length}</span></span><span class="t">${s.t}</span><span class="bar"><i style="width:${100*d/cs.length}%"></i></span></a>`;
+    ol.appendChild(li);
+  });
+  const done = ALL.filter(c => state[c.id]).length;
+  $('progText').textContent = `${done} of ${ALL.length} checks complete` + (done===ALL.length ? ' · lab finished' : '');
+}
+function markDone(id){
+  if (state[id]) return; state[id]=true; save();
+  const box = document.querySelector(`.chk[data-id="${id}"]`); if (box) box.classList.add('done');
+  renderPipeline();
+}
+function renderChecks(){
+  for (const sid in CHECKS){
+    const wrap = document.querySelector(`.checks[data-station="${sid}"]`); wrap.innerHTML='';
+    CHECKS[sid].forEach(c => {
+      const d = document.createElement('div'); d.className = 'chk' + (c.task?' task':'') + (state[c.id]?' done':''); d.dataset.id=c.id;
+      d.innerHTML = `<div class="q"><span class="box" aria-hidden="true"></span><span>${c.q}</span></div>`;
+      if (!c.task){
+        if (c.opts){
+          c.opts.forEach((o,i) => { const lb=document.createElement('label'); lb.innerHTML=`<input type="radio" name="${c.id}" id="${c.id}-${i}" value="${i}"> <span>${o}</span>`; d.appendChild(lb); });
+          const b=document.createElement('button'); b.className='btn'; b.type='button'; b.textContent='Check'; d.appendChild(b);
+          const fb=document.createElement('div'); fb.className='fb'; d.appendChild(fb);
+          b.onclick = () => { const s=d.querySelector('input:checked'); if(!s){ fb.className='fb bad'; fb.textContent='Choose an answer first.'; return; }
+            if (+s.value===c.a){ fb.className='fb ok'; fb.textContent='Correct. '+c.why; markDone(c.id); } else { fb.className='fb bad'; fb.textContent='Not quite. Re-read the station text and try again.'; } };
+          if (state[c.id]){ d.querySelector(`#${c.id}-${c.a}`).checked=true; fb.className='fb ok'; fb.textContent=c.why; }
+        } else {
+          const row=document.createElement('div'); row.className='row';
+          row.innerHTML=`<input type="text" id="${c.id}-in" inputmode="decimal" aria-label="Your answer${c.unit?' in '+c.unit:''}" placeholder="${c.unit?c.unit:'number'}"><button class="btn" type="button">Check</button>`;
+          d.appendChild(row); const fb=document.createElement('div'); fb.className='fb'; d.appendChild(fb);
+          const go = () => { const v=parseFloat(row.querySelector('input').value.replace(/,/g,'')); const ans = typeof c.num==='function' ? c.num() : c.num;
+            if (isNaN(v)){ fb.className='fb bad'; fb.textContent='Enter a number.'; return; }
+            const ok = c.tol ? Math.abs(v-ans)/ans <= c.tol : v===ans;
+            if (ok){ fb.className='fb ok'; fb.textContent='Correct. '+c.why; markDone(c.id); } else { fb.className='fb bad'; fb.textContent= typeof c.num==='function' ? 'Not yet. Move the k slider and watch the verdict under the graph.' : 'Not quite. Check your arithmetic and units.'; } };
+          row.querySelector('button').onclick=go; row.querySelector('input').onkeydown=e=>{ if(e.key==='Enter') go(); };
+          if (state[c.id]){ row.querySelector('input').value = typeof c.num==='function' ? c.num() : c.num; fb.className='fb ok'; fb.textContent=c.why; }
+        }
+      }
+      wrap.appendChild(d);
+    });
+  }
+}
+$('resetAll').onclick = () => { $('resetConfirm').hidden=false; $('resetAll').hidden=true; };
+$('resetNo').onclick = () => { $('resetConfirm').hidden=true; $('resetAll').hidden=false; };
+$('resetYes').onclick = () => { state={}; save(); renderChecks(); renderPipeline(); $('resetConfirm').hidden=true; $('resetAll').hidden=false; };
+
+/* ================= STATION 1: capillary ================= */
+const SANGER = CDS.slice(0,16);
+let capOrder = [], capRan = false;
+function buildCap(){
+  const mix = $('ddMix').value; const tube=$('tube'), det=$('detector');
+  tube.innerHTML=''; det.innerHTML=''; $('capRead').textContent='—'; capRan=false;
+  const frags = []; for (let i=1;i<=SANGER.length;i++) if (mix.includes(SANGER[i-1])) frags.push(i);
+  const rnd = mulberry(7 + mix.length); capOrder = frags.slice().sort(() => rnd()-.5);
+  const rowH=16; tube.style.height = (SANGER.length*rowH+12)+'px'; det.style.height = tube.style.height;
+  const maxW = 100; // percent budget
+  capOrder.forEach((len,i) => {
+    const f=document.createElement('div'); f.className='frag'; f.dataset.len=len;
+    f.style.top = (6 + i*rowH)+'px';
+    f.innerHTML = `<span class="primer"></span><span class="body" style="width:calc(${len/SANGER.length*maxW*0.62}% + 4px)"></span><span class="dd" style="background:${baseVar(SANGER[len-1])}"></span><span class="len">${len+20} nt</span>`;
+    f.style.width='100%';
+    tube.appendChild(f);
+  });
+  for (let i=0;i<SANGER.length;i++){ const s=document.createElement('span'); det.appendChild(s); }
+}
+function runCap(){
+  const rowH=16; const frags=[...$('tube').children];
+  const sorted = capOrder.slice().sort((a,b)=>a-b);
+  frags.forEach((f,i) => { const len=+f.dataset.len; const target = sorted.indexOf(len); f.style.transform = `translateY(${(target-i)*rowH}px)`; });
+  const det=$('detector').children; const mix=$('ddMix').value;
+  [...det].forEach(s => s.textContent='');
+  const delay = reduced ? 0 : 950;
+  setTimeout(() => {
+    sorted.forEach((len,j) => { det[j].innerHTML = `<span class="${SANGER[len-1]}">${SANGER[len-1]}</span>`; });
+    if (mix==='ACGT'){ $('capRead').innerHTML = colorSeq(SANGER) + ' <span class="note">5′→3′ of the new strand. Translate ATG ACG GAA TAT AAG C… = M T E Y K, the start of HRAS.</span>'; markDone('s1run'); }
+    else { $('capRead').innerHTML = SANGER.split('').map((b,i)=> b==='A'?`<span class="A">A</span>`:'<span style="color:var(--line-2)">·</span>').join('') + ' <span class="note">One lane only shows where the A\'s are. Sanger ran four lanes (A, C, G, T) side by side on a slab gel.</span>'; }
+    capRan=true;
+  }, delay);
+}
+$('ddMix').onchange = buildCap;
+$('runCap').onclick = () => { if (capRan) { buildCap(); requestAnimationFrame(()=>requestAnimationFrame(runCap)); } else runCap(); };
+
+/* chromatogram */
+const CHR = CDS.slice(0,60), HET = 34; // c.35, 0-based 34
+function drawChrom(sel){
+  const svg=$('chrom'); svg.innerHTML=''; const dx=16, W=CHR.length*dx+20, H=170, base=150, top=30;
+  svg.setAttribute('viewBox',`0 0 ${W} ${H}`); svg.setAttribute('width',W);
+  const rnd=mulberry(42); const peaks={A:[],C:[],G:[],T:[]};
+  for (let i=0;i<CHR.length;i++){
+    const x=10+dx*i+dx/2+(rnd()-.5)*3; const h=0.62+rnd()*0.38;
+    if (i===HET){ peaks.G.push([x-1,0.5]); peaks.T.push([x+1,0.47]); }
+    else peaks[CHR[i]].push([x,h]);
+    // low background noise from another channel
+    const nb=BASES[Math.floor(rnd()*4)]; if (nb!==CHR[i]) peaks[nb].push([x+(rnd()-.5)*4,0.04+rnd()*0.05]);
+  }
+  if (sel!=null) svg.appendChild(el('rect',{x:10+dx*sel,y:0,width:dx,height:H,class:'chrom-sel'}));
+  for (const b of BASES){
+    let d=''; for (let x=4;x<=W-4;x+=1.5){ let y=0; for (const [px,h] of peaks[b]) y+=h*Math.exp(-((x-px)**2)/(2*3.4*3.4)); d += (d?'L':'M')+x.toFixed(1)+' '+(base - y*(base-top)).toFixed(1); }
+    svg.appendChild(el('path',{d,fill:'none',stroke:baseVar(b),'stroke-width':1.6}));
+  }
+  svg.appendChild(el('line',{x1:4,x2:W-4,y1:base,y2:base,class:'axis-l'}));
+  for (let i=0;i<CHR.length;i++){
+    const x=10+dx*i+dx/2; const call = i===HET ? 'K' : CHR[i];
+    const t=el('text',{x,y:18,class:'chrom-call'},call); t.style.fill = i===HET ? 'var(--ink)' : baseVar(call); svg.appendChild(t);
+    if ((i+1)%5===0 || i===0) svg.appendChild(el('text',{x,y:H-4,class:'chrom-num'},i+1));
+    const hit=el('rect',{x:10+dx*i,y:0,width:dx,height:H,class:'chrom-hit',tabindex:0,role:'button','aria-label':`Position c.${i+1}`});
+    hit.onclick=()=>pickPeak(i); hit.onkeydown=e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); pickPeak(i);} };
+    svg.appendChild(hit);
+  }
+}
+function pickPeak(i){
+  drawChrom(i);
+  const codon=Math.floor(i/3)+1, cod=CHR.slice((codon-1)*3,(codon-1)*3+3), pos=i%3+1;
+  const info=$('chromInfo');
+  if (i===HET){ info.innerHTML=`<b>c.35</b>, codon 12 (GGC), position 2: two peaks, G + T. Called <b>K</b>.`; markDone('s1peak'); }
+  else info.innerHTML=`c.${i+1}, codon ${codon} (${cod} → ${CODE[cod]}), position ${pos}: one clean <b class="${CHR[i]}">${CHR[i]}</b> peak`;
+}
+
+/* ================= STATION 2: flow cell ================= */
+const NCL=10, NCYC=16, PHASED=6; // cluster 7 (index 6)
+const fcRnd = mulberry(11);
+const clusters = Array.from({length:NCL},(_,j)=>{
+  const start = 200 + Math.floor(fcRnd()*(G-400));
+  return {id:j+1, start, seq:SEQ.slice(start,start+NCYC), x:0, y:0};
+});
+{ // positions, spread out
+  const rnd=mulberry(5); const pts=[];
+  for (const c of clusters){ let x,y,tries=0; do { x=24+rnd()*252; y=30+rnd()*150; tries++; } while (tries<200 && pts.some(p=>Math.hypot(p[0]-x,p[1]-y)<46)); pts.push([x,y]); c.x=x; c.y=y; }
+}
+let cyc=0;
+function lagFrac(j,c){ return j===PHASED ? Math.min(0.46, 0.012*Math.pow(c,1.35)) : 0.0006*c; }
+function qOf(j,c){ const f=lagFrac(j,c); const p=f*0.9+0.00025; return Math.max(2, Math.round(-10*Math.log10(p))); }
+function drawTile(){
+  const svg=$('tile'); svg.innerHTML='';
+  svg.appendChild(el('text',{x:8,y:14,class:'tile-lbl'}, cyc? `tile 1101 · cycle ${cyc} image` : 'tile 1101 · before cycle 1'));
+  const defs=el('defs'); svg.appendChild(defs);
+  for (const b of BASES){ const g=el('radialGradient',{id:'glow'+b}); g.appendChild(el('stop',{offset:'0%','stop-color':cssv('--n'+b)||'#fff','stop-opacity':1})); g.appendChild(el('stop',{offset:'55%','stop-color':cssv('--n'+b)||'#fff','stop-opacity':.55})); g.appendChild(el('stop',{offset:'100%','stop-color':cssv('--n'+b)||'#fff','stop-opacity':0})); defs.appendChild(g); }
+  clusters.forEach((c,j) => {
+    if (!cyc){ svg.appendChild(el('circle',{cx:c.x,cy:c.y,r:9,fill:'#2a2a3a'})); }
+    else {
+      const b=c.seq[cyc-1], f=lagFrac(j,cyc), prev = cyc>1 ? c.seq[cyc-2] : b;
+      svg.appendChild(el('circle',{cx:c.x,cy:c.y,r:17,fill:`url(#glow${b})`,opacity:(1-f).toFixed(2)}));
+      if (f>0.02) svg.appendChild(el('circle',{cx:c.x+2,cy:c.y+1,r:15,fill:`url(#glow${prev})`,opacity:(f*1.6).toFixed(2)}));
+    }
+    svg.appendChild(el('text',{x:c.x,y:c.y+30,class:'clu-id'}, c.id));
+  });
+}
+function drawReads(){
+  const tb=$('readRows'); tb.innerHTML='';
+  clusters.forEach((c,j) => {
+    const qs=[]; let html='';
+    for (let i=1;i<=cyc;i++){ const q=qOf(j,i); qs.push(q); html += `<span class="${c.seq[i-1]}${q<20?' qlow':''}" title="cycle ${i}: Q${q}">${c.seq[i-1]}</span>`; }
+    const mq = qs.length ? Math.round(qs.reduce((a,b)=>a+b,0)/qs.length) : null;
+    const tr=document.createElement('tr'); if (j===PHASED && cyc>=10) tr.className='sel';
+    tr.innerHTML = `<td class="mono">${c.id}</td><td class="rd">${html||'<span class="note">—</span>'}</td><td class="mono">${mq==null?'—':`<span class="qbar" style="width:${mq*1.3}px;background:${mq>=30?'var(--ok)':mq>=20?'var(--warn)':'var(--bad)'}"></span>Q${mq}`}</td>`;
+    tb.appendChild(tr);
+  });
+  $('cycleLbl').textContent = `Cycle ${cyc} of ${NCYC} · simulated tile`;
+  $('nextCycle').disabled = $('runAll').disabled = cyc>=NCYC;
+  if (cyc>=NCYC){
+    $('fcNote').innerHTML = `Done: 10 reads × 16 bases. Each maps back to the HRAS entry, e.g. cluster 1 → positions ${fmt(clusters[0].start+1)}–${fmt(clusters[0].start+NCYC)}, cluster 7 → ${fmt(clusters[6].start+1)}–${fmt(clusters[6].start+NCYC)}. Cluster 7's late bases are faded: its image mixes the current base with the previous one.`;
+    markDone('s2run');
+  } else if (cyc) $('fcNote').innerHTML = `Cycle ${cyc}: every cluster added one base. Watch cluster 7's colour get muddier as its molecules fall out of step.`;
+}
+let runTimer=null;
+$('nextCycle').onclick = () => { if (cyc<NCYC){ cyc++; drawTile(); drawReads(); } };
+$('runAll').onclick = () => { clearInterval(runTimer); if (reduced){ cyc=NCYC; drawTile(); drawReads(); return; } runTimer=setInterval(()=>{ if (cyc>=NCYC){ clearInterval(runTimer); return; } cyc++; drawTile(); drawReads(); },220); };
+$('resetFc').onclick = () => { clearInterval(runTimer); cyc=0; drawTile(); drawReads(); $('fcNote').innerHTML='Each cluster is one DNA fragment from the HRAS entry. Press <b>Next cycle</b> to add one base to every cluster.'; };
+
+/* ================= STATION 3: coverage ================= */
+let covSeed = 1;
+function drawCoverage(){
+  const L=+$('rlen').value, N=+$('rnum').value; $('rlenO').textContent=L+' bp'; $('rnumO').textContent=N;
+  const rnd=mulberry(covSeed*977+L); const reads=[];
+  for (let i=0;i<N;i++){ const s=Math.floor(rnd()*(G-L+1)); reads.push([s,s+L]); }
+  reads.sort((a,b)=>a[0]-b[0]);
+  const depth=new Int32Array(G+1); for (const [s,e] of reads){ depth[s]++; depth[e]--; }
+  for (let i=1;i<=G;i++) depth[i]+=depth[i-1];
+  let covered=0; const gaps=[]; let gs=-1;
+  for (let i=0;i<G;i++){ if (depth[i]>0){ covered++; if (gs>=0){ gaps.push([gs,i]); gs=-1; } } else if (gs<0) gs=i; }
+  if (gs>=0) gaps.push([gs,G]);
+  const svg=$('pile'); svg.innerHTML=''; const X0=40, X1=990, sx=v=>X0+(v/G)*(X1-X0);
+  // exons
+  svg.appendChild(el('text',{x:0,y:14,class:'trk-lbl'},'HRAS'));
+  svg.appendChild(el('line',{x1:sx(EXONS[0][0]),x2:sx(EXONS[3][1]),y1:10,y2:10,class:'axis-l'}));
+  for (const [a,b] of EXONS) svg.appendChild(el('rect',{x:sx(a),y:4,width:Math.max(2,sx(b)-sx(a)),height:12,class:'exon'}));
+  // gaps
+  for (const [a,b] of gaps) svg.appendChild(el('rect',{x:sx(a),y:22,width:Math.max(1.5,sx(b)-sx(a)),height:186,class:'gapband'}));
+  // pileup
+  const rows=[]; const rowH=4, maxRows=24, top=24; let hidden=0;
+  for (const [s,e] of reads){ let r=rows.findIndex(end=>end < s-G*0.004); if (r<0){ if (rows.length<maxRows){ rows.push(e); r=rows.length-1; } else { hidden++; continue; } } else rows[r]=e;
+    svg.appendChild(el('rect',{x:sx(s),y:top+r*(rowH+1),width:Math.max(1,sx(e)-sx(s)),height:rowH,class:'pile-read'})); }
+  if (hidden) svg.appendChild(el('text',{x:X1,y:top+maxRows*(rowH+1)+10,class:'axis-t','text-anchor':'end'},`+${hidden} more reads not drawn`));
+  // coverage track
+  const cy0=205, cyH=40; const bins=250; let maxD=1; const bd=[];
+  for (let b=0;b<bins;b++){ const a=Math.floor(b*G/bins), z=Math.floor((b+1)*G/bins); let s=0,mn=1e9; for (let i=a;i<z;i++){ s+=depth[i]; if(depth[i]<mn) mn=depth[i]; } bd.push([s/(z-a),mn]); maxD=Math.max(maxD,s/(z-a)); }
+  let d=`M${X0} ${cy0+cyH}`; bd.forEach(([v],b)=>{ d+=`L${(X0+(b+.5)*(X1-X0)/bins).toFixed(1)} ${(cy0+cyH-v/maxD*cyH).toFixed(1)}`; }); d+=`L${X1} ${cy0+cyH}Z`;
+  svg.appendChild(el('path',{d,class:'cov-area'}));
+  svg.appendChild(el('path',{d:d.replace(/Z$/,''),class:'cov-line'}));
+  svg.appendChild(el('text',{x:0,y:cy0+10,class:'trk-lbl'},'depth'));
+  svg.appendChild(el('text',{x:0,y:cy0+22,class:'axis-t'},`max ${Math.round(maxD)}×`));
+  for (const [a,b] of gaps) svg.appendChild(el('rect',{x:sx(a),y:cy0+cyH-3,width:Math.max(1.5,sx(b)-sx(a)),height:5,class:'gapmark'}));
+  svg.appendChild(el('line',{x1:X0,x2:X1,y1:cy0+cyH+2,y2:cy0+cyH+2,class:'axis-l'}));
+  for (let t=0;t<=10000;t+=2000){ svg.appendChild(el('text',{x:sx(t),y:cy0+cyH+2+12,class:'axis-t','text-anchor':t===0?'start':'middle'},fmt(t))); }
+  // stats
+  const C=N*L/G; const pct=covered/G*100;
+  $('covStats').innerHTML = [
+    ['Bases sequenced', fmt(N*L)], ['Coverage C = NL/G', C.toFixed(1)+'×'], ['Bases covered', pct.toFixed(pct>99.9&&pct<100?2:1)+'%'],
+    ['Gaps', gaps.length], ['Predicted uncovered, e^−C', (Math.exp(-C)*100).toFixed(C>5?2:1)+'%']
+  ].map(([k,v])=>`<div><dt>${k}</dt><dd>${v}</dd></div>`).join('');
+  if (gaps.length===0) markDone('s3gap');
+}
+$('rlen').oninput=drawCoverage; $('rnum').oninput=drawCoverage;
+$('shear').onclick=()=>{ covSeed++; drawCoverage(); };
+
+/* ================= STATION 4: OLC ================= */
+const OLC_T = CDS.slice(0,64);
+const OLC_STARTS = [0,9,17,26,33,41,48];
+const MINOV = 5;
+const olcReads = OLC_STARTS.map((p,i)=>({name:'', seq:OLC_T.slice(p,p+16), true:i}));
+{ const rnd=mulberry(3); const order=olcReads.map((_,i)=>i).sort(()=>rnd()-.5); order.forEach((ri,k)=>{ olcReads[ri].name='r'+(k+1); }); olcReads.sort((a,b)=>a.name.localeCompare(b.name)); }
+function overlap(a,b){ for (let L=Math.min(a.length,b.length)-1;L>=MINOV;L--) if (a.slice(-L)===b.slice(0,L)) return L; return 0; }
+let placed=[]; // {r, off, ov}
+function olcContig(){ if(!placed.length) return ''; let s=placed[0].r.seq; for (let i=1;i<placed.length;i++) s+=placed[i].r.seq.slice(placed[i].ov); return s; }
+function drawOLC(msg, cls){
+  const pool=$('pool'); pool.innerHTML='';
+  olcReads.forEach(r => { const used=placed.some(p=>p.r===r); const b=document.createElement('button'); b.type='button'; b.className='chip'+(used?' used':''); b.disabled=used;
+    b.innerHTML=`<small>${r.name}</small><span>${colorSeq(r.seq)}</span>`; b.setAttribute('aria-label',`Read ${r.name}: ${r.seq}`); b.onclick=()=>addRead(r); pool.appendChild(b); });
+  const lay=$('layout');
+  if (!placed.length){ lay.innerHTML='<span class="rid">Your contig will appear here, one read per row.</span>'; }
+  else {
+    const lines=[]; placed.forEach((p,i)=>{ const pad=' '.repeat(p.off); const ovPart = i? `<span class="ov">${colorSeq(p.r.seq.slice(0,p.ov))}</span>`:''; const rest = colorSeq(p.r.seq.slice(i?p.ov:0));
+      lines.push(`<span class="rid">${p.r.name.padEnd(4)}</span>${pad}${ovPart}${rest}`); });
+    const c=olcContig(); lines.push(`<span class="rid">cons</span><span class="cons">${colorSeq(c)}</span>`);
+    lay.innerHTML=lines.join('\n');
+  }
+  $('olcMsg').className='status'+(cls?' '+cls:''); $('olcMsg').innerHTML=msg;
+  $('olcUndo').disabled=!placed.length;
+}
+function addRead(r){
+  if (!placed.length){ placed.push({r,off:0,ov:0}); return drawOLC(`Seeded the contig with <b>${r.name}</b>. Now find a read whose start matches this read's end.`); }
+  const c=olcContig(); const ov=overlap(c, r.seq);
+  if (!ov){
+    const rev = overlap(r.seq, placed[0].r.seq);
+    return drawOLC(rev ? `<b>${r.name}</b> doesn't extend the right end, but its end overlaps the <em>start</em> of your contig by ${rev} bases. It belongs further left. Start over with a read that nothing extends to the left.` : `<b>${r.name}</b> has no overlap of ≥ ${MINOV} bases with the end of your contig. Look for a read that starts with the last few bases of <span class="mono">${c.slice(-8)}</span>.`, 'bad');
+  }
+  placed.push({r, off:c.length-ov, ov});
+  const done = placed.length===olcReads.length;
+  if (done && olcContig()===OLC_T){
+    drawOLC(`One contig, ${OLC_T.length} bp. Translated: <b class="mono">${translate(OLC_T)}</b>, the first 21 amino acids of HRAS p21 (G12 is the 12th letter).`, 'ok'); markDone('s4done');
+  } else drawOLC(`Added <b>${r.name}</b>: ${ov}-base overlap (shaded). Contig is now ${olcContig().length} bp.`);
+}
+$('olcUndo').onclick=()=>{ placed.pop(); drawOLC(placed.length?'Removed the last read.':'Pick any read to start the contig.'); };
+$('olcReset').onclick=()=>{ placed=[]; drawOLC('Pick any read to start the contig.'); };
+(function(){ const t=$('ovt'); let h='<tr><th></th>'+olcReads.map(r=>`<th>${r.name}</th>`).join('')+'</tr>';
+  olcReads.forEach(a=>{ h+=`<tr><th>${a.name}</th>`+olcReads.map(b=>{ const o=a===b?0:overlap(a.seq,b.seq); return `<td class="${o?'hi':''}">${a===b?'—':o||'·'}</td>`; }).join('')+'</tr>'; }); t.innerHTML=h; })();
+
+/* ================= STATION 5: de Bruijn ================= */
+let dbgSeq = $('dbgPreset').value, walkTimer=null;
+function buildDBG(seq,k){
+  const nodes=[], idx=new Map(), edges=new Map(); // key "u>v|kmer"
+  const node = s => { if(!idx.has(s)){ idx.set(s,nodes.length); nodes.push(s);} return idx.get(s); };
+  const path=[];
+  for (let i=0;i+k<=seq.length;i++){ const km=seq.slice(i,i+k); const u=node(km.slice(0,-1)), v=node(km.slice(1)); const key=km; if(!edges.has(key)) edges.set(key,{u,v,km,n:0}); edges.get(key).n++; path.push(key); }
+  return {nodes,edges,path};
+}
+function enumerate(g, limit=40, budget=300000){
+  const out=new Map(), inn=new Map(); for (const e of g.edges.values()){ out.set(e.u,(out.get(e.u)||0)+e.n); inn.set(e.v,(inn.get(e.v)||0)+e.n); }
+  let start = g.edges.get(g.path[0]).u;
+  for (let i=0;i<g.nodes.length;i++) if ((out.get(i)||0)-(inn.get(i)||0)===1){ start=i; break; }
+  const adj=new Map(); for (const e of g.edges.values()){ if(!adj.has(e.u)) adj.set(e.u,[]); adj.get(e.u).push(e); }
+  const total=g.path.length; const res=new Set(); let steps=0, capped=false;
+  const cnt=new Map([...g.edges.values()].map(e=>[e.km,e.n]));
+  (function dfs(u,s,used){ if (res.size>=limit || steps>budget){ capped=true; return; } steps++;
+    if (used===total){ res.add(s); return; }
+    for (const e of adj.get(u)||[]){ const c=cnt.get(e.km); if(!c) continue; cnt.set(e.km,c-1); dfs(e.v, s+e.km.slice(-1), used+1); cnt.set(e.km,c); if (res.size>=limit) { capped=true; return; } }
+  })(start, g.nodes[start], 0);
+  return {genomes:[...res], capped};
+}
+function drawDBG(){
+  clearInterval(walkTimer); $('spell').textContent='';
+  const k=+$('kSlider').value; $('kO').textContent=k;
+  const seq=dbgSeq; const svg=$('dbg'); svg.innerHTML='';
+  if (k>=seq.length){ $('dbgVerdict').className='status warn'; $('dbgVerdict').textContent=`k must be shorter than the sequence (${seq.length} bases).`; $('dbgStats').innerHTML=''; $('alts').innerHTML=''; return; }
+  const g=buildDBG(seq,k);
+  const lblW=(k-1)*7.3+14, sp=Math.max(58,lblW+22), n=g.nodes.length, W=n*sp+30, H=230, cy=128;
+  svg.setAttribute('viewBox',`0 0 ${W} ${H}`); svg.setAttribute('width',W);
+  const defs=el('defs'); for (const on of ['','on']){ const m=el('marker',{id:'ah'+on,viewBox:'0 0 10 10',refX:9,refY:5,markerWidth:7,markerHeight:7,orient:'auto-start-reverse'}); m.appendChild(el('path',{d:'M0 0L10 5L0 10z',class:'arrowhead'+(on?' on':'')})); defs.appendChild(m); } svg.appendChild(defs);
+  const nx=i=>20+sp*i+sp/2;
+  const outDistinct=new Map(), inDistinct=new Map();
+  for (const e of g.edges.values()){ outDistinct.set(e.u,(outDistinct.get(e.u)||0)+1); inDistinct.set(e.v,(inDistinct.get(e.v)||0)+1); }
+  const edgeEls=new Map();
+  for (const e of g.edges.values()){
+    const x1=nx(e.u), x2=nx(e.v); let d, lx, ly;
+    const hw=lblW/2+2;
+    if (e.u===e.v){ d=`M${x1-8} ${cy-13} C${x1-26} ${cy-60} ${x1+26} ${cy-60} ${x1+8} ${cy-13}`; lx=x1; ly=cy-52; }
+    else if (e.v===e.u+1){ d=`M${x1+hw} ${cy} L${x2-hw} ${cy}`; lx=(x1+x2)/2; ly=cy-6; }
+    else { const up = e.v<e.u; const span=Math.abs(x2-x1); const h=Math.min(100, 26+span*0.22)*(up?-1:1); const y0=cy+(up?-13:13);
+      d=`M${x1} ${y0} C${x1} ${y0+h} ${x2} ${y0+h} ${x2} ${y0}`; lx=(x1+x2)/2; ly=y0+h*0.75+(up?-4:12); }
+    const p=el('path',{d,class:'dbg-edge','marker-end':'url(#ah)'}); svg.appendChild(p); edgeEls.set(e.km,p);
+    if (e.n>1) svg.appendChild(el('text',{x:lx,y:ly,class:'dbg-mult'},'×'+e.n));
+  }
+  g.nodes.forEach((s,i)=>{ const br=(outDistinct.get(i)||0)>1||(inDistinct.get(i)||0)>1;
+    svg.appendChild(el('rect',{x:nx(i)-lblW/2,y:cy-12,width:lblW,height:24,rx:12,class:'dbg-node'+(br?' branch':'')}));
+    svg.appendChild(el('text',{x:nx(i),y:cy+4,class:'dbg-lbl'},s)); });
+  const {genomes,capped}=enumerate(g);
+  const branches=g.nodes.filter((_,i)=>(outDistinct.get(i)||0)>1||(inDistinct.get(i)||0)>1).length;
+  $('dbgStats').innerHTML=[['k-mers in sequence',g.path.length],['Distinct k-mers (edges)',g.edges.size],['(k−1)-mer nodes',n],['Fork nodes',branches]].map(([a,b])=>`<div><dt>${a}</dt><dd>${b}</dd></div>`).join('');
+  const v=$('dbgVerdict'), alts=$('alts'); alts.innerHTML='';
+  if (genomes.length===1){ v.className='status ok'; v.innerHTML=`Unique assembly. Only one walk uses every k-mer, and it spells the original sequence.`+([...g.edges.values()].some(e=>e.n>1)?` <span class="note">Only because we know each k-mer's exact count (the ×n labels). Real read depth gives only rough counts, so the number of trips around a loop stays uncertain; that's the problem in Station 6.</span>`:''); }
+  else {
+    v.className='status warn'; v.innerHTML=`${capped?'At least ':''}${genomes.length} different sequences use exactly these k-mers. The assembler can't tell which is real. Some examples, with differences from the truth highlighted:`;
+    genomes.filter(x=>x!==seq).slice(0,4).forEach(gs=>{ const div=document.createElement('div'); div.innerHTML=gs.split('').map((b,i)=>b===seq[i]?`<span class="${b}">${b}</span>`:`<span class="d">${b}</span>`).join(''); alts.appendChild(div); });
+  }
+  $('walk').onclick=()=>{
+    clearInterval(walkTimer); edgeEls.forEach(p=>{ p.classList.remove('on'); p.setAttribute('marker-end','url(#ah)'); });
+    let i=0, s=g.nodes[g.edges.get(g.path[0]).u];
+    const step=()=>{ if (i>=g.path.length){ clearInterval(walkTimer); $('spell').innerHTML=colorSeq(s)+' <span class="note">← every edge used once</span>'; return; }
+      const km=g.path[i++]; s+=km.slice(-1); const p=edgeEls.get(km); p.classList.add('on'); p.setAttribute('marker-end','url(#ahon)'); $('spell').innerHTML=colorSeq(s); };
+    $('spell').innerHTML=colorSeq(s);
+    if (reduced){ while(i<g.path.length) step(); step(); } else walkTimer=setInterval(step,380);
+  };
+}
+function computeKmin(seq){ for (let k=3;k<seq.length;k++){ if (enumerate(buildDBG(seq,k),2).genomes.length===1) return k; } return seq.length; }
+dbgKmin = computeKmin('CTGGTGGTGGTGGGCGCC');
+function setKmax(){ const s=$('kSlider'); s.max=Math.min(12,dbgSeq.length-1); if (+s.value>+s.max) s.value=s.max; }
+$('kSlider').oninput=drawDBG;
+$('dbgPreset').onchange=()=>{ const v=$('dbgPreset').value; $('customRow').hidden = v!=='custom'; if (v!=='custom'){ dbgSeq=v; setKmax(); drawDBG(); } else $('dbgCustom').focus(); };
+const applyCustom=()=>{ const s=$('dbgCustom').value.toUpperCase().replace(/[^ACGT]/g,''); if (s.length<8){ $('dbgVerdict').className='status bad'; $('dbgVerdict').textContent='Enter at least 8 bases using only A, C, G and T.'; return; } dbgSeq=s.slice(0,40); $('dbgCustom').value=dbgSeq; setKmax(); drawDBG(); };
+$('dbgApply').onclick=applyCustom; $('dbgCustom').onkeydown=e=>{ if(e.key==='Enter') applyCustom(); };
+
+/* ================= STATION 6: repeats ================= */
+const WIN=[8600, G], ANCH=30; let repSeed=1;
+function drawRepeats(){
+  const L=+$('lrLen').value; $('lrLenO').textContent=L+' bp';
+  const span=WIN[1]-WIN[0]; const N=Math.max(8, Math.round(15*span/L));
+  const rnd=mulberry(repSeed*131+L); const reads=[];
+  for (let i=0;i<N;i++){ const s=WIN[0]-L+1+Math.floor(rnd()*(span+L-1)); const a=Math.max(WIN[0],s), b=Math.min(WIN[1],s+L); if (b-a>=40) reads.push([s,s+L]); }
+  reads.sort((a,b)=>a[0]-b[0]);
+  const [r0,r1]=VNTR; const cls = ([s,e]) => (s<=r0-ANCH && e>=r1+ANCH) ? 'spn' : (s>=r0 && e<=r1) ? 'int' : ((s<=r0-ANCH && e>r0) || (e>=r1+ANCH && s<r1)) ? 'anc' : 'uni';
+  const svg=$('rep'); svg.innerHTML=''; const X0=10, X1=990, sx=v=>X0+(Math.min(Math.max(v,WIN[0]),WIN[1])-WIN[0])/span*(X1-X0);
+  svg.appendChild(el('text',{x:X0,y:14,class:'trk-lbl'},'genome'));
+  svg.appendChild(el('rect',{x:sx(WIN[0]),y:20,width:sx(r0)-sx(WIN[0]),height:10,class:'flank'}));
+  svg.appendChild(el('rect',{x:sx(r1),y:20,width:sx(WIN[1])-sx(r1),height:10,class:'flank'}));
+  for (let u=r0;u<r1;u+=28) svg.appendChild(el('rect',{x:sx(u)+.5,y:18,width:Math.max(1,sx(u+28)-sx(u)-1.2),height:14,class:'unit'}));
+  svg.appendChild(el('text',{x:(sx(r0)+sx(r1))/2,y:46,class:'asm-sub','text-anchor':'middle'},`minisatellite ${fmt(r0)}–${fmt(r1)} · ${r1-r0+1} bp · 28-bp units`));
+  svg.appendChild(el('text',{x:sx(WIN[0]),y:46,class:'asm-sub'},fmt(WIN[0])));
+  svg.appendChild(el('text',{x:X1,y:46,class:'asm-sub','text-anchor':'end'},fmt(WIN[1])));
+  const rows=[]; const top=56, rh=5, maxRows=22; let counts={spn:0,int:0,anc:0,uni:0}; let intBases=0;
+  for (const r of reads){ const c=cls(r); counts[c]++; if (c==='int') intBases+=r[1]-r[0];
+    let row=rows.findIndex(end=>end<r[0]-20); if (row<0){ if (rows.length>=maxRows) continue; rows.push(r[1]); row=rows.length-1; } else rows[row]=r[1];
+    svg.appendChild(el('rect',{x:sx(r[0]),y:top+row*(rh+2),width:Math.max(1,sx(r[1])-sx(r[0])),height:rh,class:c==='uni'?'flank':'r-'+c,opacity:c==='uni'?.35:1})); }
+  // assembly outcome
+  const ay=250; svg.appendChild(el('text',{x:X0,y:ay-12,class:'asm-lbl'},'Assembly result'));
+  const resolved=counts.spn>0;
+  if (resolved){
+    svg.appendChild(el('rect',{x:sx(WIN[0]),y:ay,width:sx(r0)-sx(WIN[0]),height:12,class:'flank'}));
+    for (let u=r0;u<r1;u+=28) svg.appendChild(el('rect',{x:sx(u)+.5,y:ay-1,width:Math.max(1,sx(u+28)-sx(u)-1.2),height:14,class:'r-spn',opacity:.8}));
+    svg.appendChild(el('rect',{x:sx(r1),y:ay,width:sx(WIN[1])-sx(r1),height:12,class:'flank'}));
+    svg.appendChild(el('text',{x:X0,y:ay+30,class:'asm-sub'},`1 contig, ${fmt(span+1)} bp: the full repeat array, correct copy number`));
+  } else {
+    const cw=sx(r0+56)-sx(r0);
+    svg.appendChild(el('rect',{x:sx(WIN[0]),y:ay,width:sx(r0)-sx(WIN[0])-6,height:12,class:'flank'}));
+    svg.appendChild(el('rect',{x:sx(r0)+10,y:ay-1,width:cw,height:14,class:'r-int'}));
+    svg.appendChild(el('text',{x:sx(r0)+cw+18,y:ay+10,class:'asm-sub'},'← collapsed repeat, floating; copy number unknown'));
+    svg.appendChild(el('rect',{x:sx(r1)+6,y:ay,width:sx(WIN[1])-sx(r1)-6,height:12,class:'flank'}));
+    svg.appendChild(el('text',{x:X0,y:ay+30,class:'asm-sub'},`contig 1 (${fmt(r0-WIN[0])} bp) · gap · contig 2 (${fmt(WIN[1]-r1)} bp)`));
+  }
+  let repB=0, flB=0; for (const [s,e] of reads){ repB+=Math.max(0,Math.min(e,r1+1)-Math.max(s,r0)); flB+=Math.max(0,Math.min(e,r0)-Math.max(s,WIN[0]))+Math.max(0,Math.min(e,WIN[1])-Math.max(s,r1+1)); }
+  const flDepth=flB/((r0-WIN[0])+(WIN[1]-r1-1)); const estUnits=repB/flDepth/28;
+  $('repStats').innerHTML=[['Reads',reads.length],['Inside repeat',counts.int],['Anchored one side',counts.anc],['Spanning',counts.spn],['Units implied by depth','≈ '+Math.round(estUnits)+' <span class="note">(true: 25)</span>']].map(([a,b])=>`<div><dt>${a}</dt><dd>${b}</dd></div>`).join('');
+  const v=$('repVerdict');
+  const need=(r1-r0+1)+2*ANCH;
+  if (resolved){ v.className='status ok'; v.innerHTML=`Resolved. ${counts.spn} read${counts.spn>1?'s':''} run from unique sequence on the left, through all ~25 units, into unique sequence on the right, so the copy number can be counted directly.`; markDone('s6span'); }
+  else if (L>=need){ v.className='status warn'; v.innerHTML=`Your reads are long enough (≥ ${need} bp), but none happened to start in the right place this time. Press <b>Sequence again</b>.`; }
+  else { v.className='status bad'; v.innerHTML=`Unresolved. ${L}-bp reads can't span a ${r1-r0+1}-bp repeat plus ${ANCH} bp of anchor on each side (${need} bp needed). Reads inside the repeat look identical, so the assembler stacks them on one copy.`; }
+}
+$('lrLen').oninput=drawRepeats; $('reseq').onclick=()=>{ repSeed++; drawRepeats(); };
+
+/* ================= init ================= */
+renderChecks(); renderPipeline();
+buildCap(); drawChrom(null);
+drawTile(); drawReads();
+drawCoverage(); drawOLC('Pick any read to start the contig.');
+setKmax(); drawDBG(); drawRepeats();
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>drawTile());
+new MutationObserver(()=>drawTile()).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+</script>
