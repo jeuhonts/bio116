@@ -12,6 +12,8 @@ GenBank or FASTA file.
 
 Python, run from the repository root:
 
+- `find_orfs_beginner.py` does the same in five numbered steps with only loops, lists and an
+  explicit codon dictionary: read FASTA, complement, regex, search both strands, translate.
 - `find_candidate_genes.py` is the minimal goal students build, starting from the FASTA file: ORFs on both strands (with
   overlaps), a length cutoff, and translation, with a written-out codon table and about 20 commented lines of code, no functions.
 - `find_candidate_genes_biopython.py` gives the same result with Biopython (`pip install biopython`):
