@@ -10,14 +10,21 @@ import re
 # A FASTA file has one header line that starts with ">",
 # followed by lines of sequence. We skip the header and join the rest.
 
+# "with" opens the file and closes it again automatically at the end of the block.
+# readlines() gives a list of strings, one per line, each ending in "\n".
+with open("data/J01636_lac_operon.fasta") as fasta_file:
+    lines = fasta_file.readlines()
+
+print("Lines in the file:", len(lines))
+print("First line:", lines[0].strip())
+
 sequence = ""
-fasta_file = open("data/J01636_lac_operon.fasta")
-for line in fasta_file:
-    line = line.strip()              # remove the newline at the end
+for line in lines:
+    line = line.strip()              # remove the "\n" at the end
     if line.startswith(">"):         # header line: skip it
         continue
     sequence = sequence + line.upper()
-fasta_file.close()
+# (For a whole genome, collect the lines in a list and use "".join(list) instead: it is much faster.)
 
 print("Sequence length:", len(sequence), "bases")
 

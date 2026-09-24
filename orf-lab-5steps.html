@@ -336,22 +336,28 @@ tr.skipped td { color: var(--muted); }
     </div>
     <div class="step-grid">
       <div class="prose">
-        <p>A FASTA file has one header line that starts with <code>&gt;</code>, then the sequence split over many lines. The program reads the file line by line, skips the header, and joins the other lines into one string.</p>
-        <pre class="code" data-copy>sequence = <span class="s">""</span>
-fasta_file = open(<span class="s">"data/J01636_lac_operon.fasta"</span>)
-for line in fasta_file:
-    line = line.strip()              <span class="c"># remove the newline at the end</span>
+        <p>A FASTA file has one header line that starts with <code>&gt;</code>, then the sequence split over many lines. The program reads all the lines into a list, then goes through the list: it skips the header and joins the other lines into one string.</p>
+        <p><code>with</code> opens the file and closes it again automatically at the end of the indented block. <code>readlines()</code> returns a list of strings, one per line, and each still ends in <code>"\n"</code>.</p>
+        <pre class="code" data-copy>with open(<span class="s">"data/J01636_lac_operon.fasta"</span>) as fasta_file:
+    lines = fasta_file.readlines()
+
+print(<span class="s">"Lines in the file:"</span>, len(lines))
+print(<span class="s">"First line:"</span>, lines[0].strip())
+
+sequence = <span class="s">""</span>
+for line in lines:
+    line = line.strip()              <span class="c"># remove the "\n" at the end</span>
     if line.startswith(<span class="s">"&gt;"</span>):         <span class="c"># header line: skip it</span>
         continue
     sequence = sequence + line.upper()
-fasta_file.close()
+<span class="c"># (For a whole genome, collect the lines in a list and use "".join(list) instead: it is much faster.)</span>
 
 print(<span class="s">"Sequence length:"</span>, len(sequence), <span class="s">"bases"</span>)</pre>
         <div class="think">
           <div class="eyebrow">Predict, then check</div>
           <ol>
             <li>What would happen to the sequence if you forgot to skip the header line?</li>
-            <li>Why is <code>.strip()</code> needed? What is at the end of every line in a file?</li>
+            <li>Look at <code>lines[0]</code> and <code>lines[1]</code> in the panel. What is at the end of each? Why is <code>.strip()</code> needed?</li>
             <li>Try the other versions of the file on the right. Which ones break the program, and at which step?</li>
           </ol>
           <label class="eyebrow" for="note1">Your notes</label>
@@ -639,14 +645,21 @@ import re
 # A FASTA file has one header line that starts with "&gt;",
 # followed by lines of sequence. We skip the header and join the rest.
 
+# "with" opens the file and closes it again automatically at the end of the block.
+# readlines() gives a list of strings, one per line, each ending in "\n".
+with open("data/J01636_lac_operon.fasta") as fasta_file:
+    lines = fasta_file.readlines()
+
+print("Lines in the file:", len(lines))
+print("First line:", lines[0].strip())
+
 sequence = ""
-fasta_file = open("data/J01636_lac_operon.fasta")
-for line in fasta_file:
-    line = line.strip()              # remove the newline at the end
+for line in lines:
+    line = line.strip()              # remove the "\n" at the end
     if line.startswith("&gt;"):         # header line: skip it
         continue
     sequence = sequence + line.upper()
-fasta_file.close()
+# (For a whole genome, collect the lines in a list and use "".join(list) instead: it is much faster.)
 
 print("Sequence length:", len(sequence), "bases")
 
@@ -811,9 +824,15 @@ for i in range(len(orfs)):
   const state = { variant: "lac", text: LAC_FASTA, sequence: "", rc: "", error: null, orfs: [], strands: [], starts: [], all: [] };
 
   /* ---------- the five steps, written like the Python ---------- */
+  function readlines(text) {            // like Python: split after each "\n", keeping it
+    text = text.replace(/\r\n?/g, "\n");   // Python's text mode turns Windows "\r\n" into "\n"
+    const out = []; let i = 0;
+    while (i < text.length) { const j = text.indexOf("\n", i); if (j < 0) { out.push(text.slice(i)); break; } out.push(text.slice(i, j + 1)); i = j + 1; }
+    return out;
+  }
   function step1(text) {
     let sequence = "";
-    for (let line of text.split("\n")) {
+    for (let line of readlines(text)) {
       line = line.trim();
       if (line.startsWith(">")) continue;
       sequence = sequence + line.toUpperCase();
@@ -883,8 +902,11 @@ for i in range(len(orfs)):
       const t = v && v.show ? v.show(l) : l;
       return l.startsWith(">") ? `<span class="hdr">${esc(t)}</span>` : esc(t);
     }).join("\n");
-    const s = state.sequence;
-    let out = `Sequence length: ${s.length} bases\n\nsequence[0:60]   ${s.slice(0, 60)}\nsequence[-60:]   ${s.slice(-60)}`;
+    const s = state.sequence, fileLines = readlines(state.text);
+    const rep = x => "'" + x.replace(/\\/g, "\\\\").replace(/\r/g, "\\r").replace(/\n/g, "\\n").replace(/'/g, "\\'") + "'";
+    const cut = x => x.length > 60 ? x.slice(0, 60) + "…" : x;
+    let out = `len(lines)       ${fileLines.length}\nlines[0]         ${esc(cut(rep(fileLines[0] || "")))}\nlines[1]         ${esc(cut(rep(fileLines[1] || "")))}\n\n` +
+              `Sequence length: ${s.length} bases\nsequence[0:60]   ${s.slice(0, 60)}\nsequence[-60:]   ${s.slice(-60)}`;
     const odd = [...new Set(s.replace(/[ACGT]/g, ""))];
     if (odd.length) out += `\n\n<span class="err">Not A, C, G or T: ${odd.map(pyrepr).join(" ")}</span>`;
     else if (state.variant === "two") out += `\n\n<span class="err">No error, but the second record was glued onto the end.</span>`;
@@ -909,7 +931,7 @@ for i in range(len(orfs)):
     const s = state.sequence, L = s.length, view = document.getElementById("strandView"), out = document.getElementById("s2out");
     if (state.error) {
       view.innerHTML = `<span class="lbl">Step 2 stopped at position ${state.error.index + 1}: ${esc(pyrepr(s[state.error.index]))}</span>`;
-      out.innerHTML = `<span class="err">Traceback (most recent call last):\n  File "find_orfs_beginner.py", line 36, in &lt;module&gt;\n    complement = complement + pairs[base]\n${esc(state.error.msg)}</span>`;
+      out.innerHTML = `<span class="err">Traceback (most recent call last):\n  File "find_orfs_beginner.py", line 43, in &lt;module&gt;\n    complement = complement + pairs[base]\n${esc(state.error.msg)}</span>`;
       return;
     }
     win.max = Math.max(1, L - 59);
@@ -1071,8 +1093,9 @@ for i in range(len(orfs)):
   document.getElementById("stepReset").addEventListener("click", reset);
   document.getElementById("runAll").addEventListener("click", () => {
     const o = document.getElementById("progOut");
-    let text = `$ python3 find_orfs_beginner.py\nSequence length: ${state.sequence.length} bases\n`;
-    if (state.error) { o.innerHTML = esc(text) + `<span class="err">Traceback (most recent call last):\n  File "find_orfs_beginner.py", line 36, in &lt;module&gt;\n    complement = complement + pairs[base]\n${esc(state.error.msg)}</span>`; return; }
+    const ls = readlines(state.text);
+    let text = `$ python3 find_orfs_beginner.py\nLines in the file: ${ls.length}\nFirst line: ${(ls[0] || "").trim()}\nSequence length: ${state.sequence.length} bases\n`;
+    if (state.error) { o.innerHTML = esc(text) + `<span class="err">Traceback (most recent call last):\n  File "find_orfs_beginner.py", line 43, in &lt;module&gt;\n    complement = complement + pairs[base]\n${esc(state.error.msg)}</span>`; return; }
     text += `ORFs found: ${state.orfs.length}\n`;
     for (let i = 0; i < state.orfs.length; i++) {
       const t = translate(state.orfs[i]);
