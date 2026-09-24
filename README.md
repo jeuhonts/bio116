@@ -1,6 +1,13 @@
 # bio116
 Bioinformatics
 
+## Five-Step ORF Finder
+
+`orf-lab-5steps.html` is a shorter, beginner version of the lab built around
+`find_orfs_beginner.py`: (1) read the FASTA file, (2) make the complementary strand, (3) build the
+ORF regex, (4) search both strands and keep the longest ORFs in lists, (5) translate with an
+explicit codon dictionary, then check the results against GenBank.
+
 ## Regex ORF Lab
 
 `orf-regex-lab.html` is an interactive workshop page (open it in a browser). Students build Python

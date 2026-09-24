@@ -1,0 +1,1122 @@
+<title>Five-Step ORF Finder</title>
+<meta name="description" content="Bio116: build a beginner Python ORF finder in five steps on the E. coli lac operon.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,750&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+<style>
+:root {
+  --bg: #F2F5F1;
+  --surface: #FFFFFF;
+  --surface-2: #E6ECE6;
+  --ink: #17231F;
+  --muted: #56675F;
+  --line: #CBD7CF;
+  --primary: #0B7A62;
+  --primary-ink: #FFFFFF;
+  --primary-soft: #C9EADC;
+  --minus: #3E5C76;
+  --minus-soft: #D3DFEA;
+  --accent: #C2185B;
+  --accent-soft: #F9D5E3;
+  --ok: #1D7A3A;
+  --ok-soft: #D6EFDC;
+  --bad: #B3261E;
+  --bad-soft: #F7DAD7;
+  --code-bg: #16211D;
+  --code-ink: #DCE8E2;
+  --code-dim: #8FA69B;
+  --code-str: #9FE0C4;
+  --radius: 10px;
+  --display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", sans-serif;
+  --body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #0E1512; --surface: #151F1B; --surface-2: #1D2A25; --ink: #E2ECE7; --muted: #95A89F;
+    --line: #2B3B34; --primary: #43C9A5; --primary-ink: #05221A; --primary-soft: #174235;
+    --minus: #93B6D8; --minus-soft: #1F3447; --accent: #F2709E; --accent-soft: #4A1D2E;
+    --ok: #61CB7E; --ok-soft: #173821; --bad: #F2887F; --bad-soft: #4A1D1A;
+    --code-bg: #09100D; --code-ink: #DCE8E2; --code-dim: #7F978B; --code-str: #8FD9B8;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0E1512; --surface: #151F1B; --surface-2: #1D2A25; --ink: #E2ECE7; --muted: #95A89F;
+  --line: #2B3B34; --primary: #43C9A5; --primary-ink: #05221A; --primary-soft: #174235;
+  --minus: #93B6D8; --minus-soft: #1F3447; --accent: #F2709E; --accent-soft: #4A1D2E;
+  --ok: #61CB7E; --ok-soft: #173821; --bad: #F2887F; --bad-soft: #4A1D1A;
+  --code-bg: #09100D; --code-ink: #DCE8E2; --code-dim: #7F978B; --code-str: #8FD9B8;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--ink);
+  font: 400 16px/1.6 var(--body);
+  padding-inline: 16px; padding-block: 0 64px;
+}
+.wrap { max-width: 1040px; margin: 0 auto; }
+h1, h2, h3 { font-family: var(--display); text-wrap: balance; line-height: 1.12; margin: 0; }
+h1 { font-size: clamp(2.2rem, 6vw, 3.6rem); font-weight: 750; letter-spacing: -0.02em; }
+h2 { font-size: clamp(1.5rem, 3.4vw, 2rem); font-weight: 750; letter-spacing: -0.01em; }
+h3 { font-size: 1.1rem; font-weight: 600; }
+p { margin: 0; max-width: 68ch; }
+code, .mono { font-family: var(--mono); font-size: 0.92em; }
+p code, li code, td code, summary code {
+  background: var(--surface-2); padding: 0.05em 0.35em; border-radius: 4px; white-space: nowrap;
+}
+a { color: var(--primary); }
+.eyebrow { font: 600 0.75rem/1 var(--body); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.muted { color: var(--muted); }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+/* ---------- top bar ---------- */
+.bar {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 10;
+  margin-inline: -16px; padding: 10px 16px;
+  background: color-mix(in srgb, var(--bg) 92%, transparent);
+  backdrop-filter: blur(8px); border-bottom: 1px solid var(--line);
+}
+.bar .wrap { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; justify-content: space-between; }
+.steps-nav { display: flex; flex-wrap: wrap; gap: 6px; }
+.steps-nav a {
+  display: inline-flex; align-items: center; gap: 6px; text-decoration: none;
+  font: 500 0.8rem/1 var(--body); color: var(--ink);
+  padding: 6px 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface);
+}
+.steps-nav a .n { font-family: var(--mono); color: var(--muted); }
+.steps-nav a.done { border-color: var(--ok); background: var(--ok-soft); }
+.steps-nav a.done .n::after { content: " ✓"; color: var(--ok); }
+.seqpick { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--surface); }
+.seg button {
+  font: 500 0.8rem/1 var(--body); color: var(--ink); background: transparent; border: 0;
+  padding: 8px 10px; cursor: pointer; border-right: 1px solid var(--line);
+}
+.seg button:last-child { border-right: 0; }
+.seg button[aria-pressed="true"] { background: var(--primary); color: var(--primary-ink); }
+.seg button .sz { font-family: var(--mono); opacity: 0.8; margin-left: 4px; }
+
+/* ---------- hero ---------- */
+header.hero { padding-block: 48px 28px; display: grid; gap: 18px; }
+.hero .lede { font-size: 1.12rem; }
+.strand-art {
+  font-family: var(--mono); font-size: clamp(0.62rem, 1.9vw, 0.95rem); line-height: 1.5;
+  overflow-x: auto; white-space: pre; padding: 14px 16px; border-radius: var(--radius);
+  background: var(--surface); border: 1px solid var(--line);
+}
+.strand-art .st { color: var(--primary); font-weight: 500; }
+.strand-art .sp { color: var(--accent); font-weight: 500; }
+.strand-art .rbs { text-decoration: underline 2px var(--minus); text-underline-offset: 3px; }
+.strand-art .aa { color: var(--muted); }
+
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; }
+.fact { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; display: grid; gap: 4px; align-content: start; }
+.fact b { font-family: var(--mono); font-weight: 500; color: var(--primary); font-size: 1.05rem; }
+.fact span { font-size: 0.92rem; color: var(--muted); }
+
+.custom-seq { display: grid; gap: 8px; margin-top: 14px; }
+.custom-seq textarea { font-family: var(--mono); font-size: 0.85rem; }
+
+/* ---------- steps ---------- */
+section.step { padding-block: 44px 8px; border-top: 1px solid var(--line); margin-top: 36px; display: grid; gap: 18px; scroll-margin-top: 110px; }
+.step-head { display: grid; grid-template-columns: auto 1fr; gap: 4px 16px; align-items: baseline; }
+.step-num {
+  grid-row: span 2; font: 750 clamp(2.4rem, 6vw, 3.4rem)/1 var(--display); color: var(--primary);
+  font-variant-numeric: tabular-nums;
+}
+.step-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+@media (max-width: 820px) { .step-grid { grid-template-columns: minmax(0, 1fr); } }
+.prose { display: grid; gap: 12px; }
+.prose ul { margin: 0; padding-left: 1.2em; display: grid; gap: 4px; }
+
+.think {
+  border: 1px dashed var(--accent); border-radius: var(--radius); padding: 14px 16px; display: grid; gap: 10px;
+  background: color-mix(in srgb, var(--accent-soft) 35%, var(--surface));
+}
+.think .eyebrow { color: var(--accent); }
+.think ol { margin: 0; padding-left: 1.3em; display: grid; gap: 6px; }
+.think textarea {
+  width: 100%; min-height: 72px; resize: vertical; font: 400 0.92rem/1.5 var(--body);
+  color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px;
+}
+details { border-top: 1px solid var(--line); padding-top: 8px; }
+details summary { cursor: pointer; font-weight: 600; font-size: 0.92rem; color: var(--primary); }
+details > div { padding-top: 8px; display: grid; gap: 8px; font-size: 0.95rem; }
+
+pre.code {
+  margin: 0; position: relative; background: var(--code-bg); color: var(--code-ink);
+  border-radius: var(--radius); padding: 14px 16px; overflow-x: auto;
+  font: 400 0.84rem/1.55 var(--mono);
+}
+pre.code .c { color: var(--code-dim); font-style: italic; }
+pre.code .s { color: var(--code-str); }
+.copy {
+  position: absolute; top: 8px; right: 8px; font: 500 0.72rem/1 var(--body);
+  color: var(--code-ink); background: transparent; border: 1px solid var(--code-dim);
+  border-radius: 6px; padding: 5px 8px; cursor: pointer;
+}
+
+/* ---------- regex bench ---------- */
+.bench {
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 14px; display: grid; gap: 10px; box-shadow: 0 1px 0 var(--line);
+}
+.bench-top { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.bench label.lbl { font: 600 0.72rem/1 var(--body); letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+.pat {
+  display: flex; align-items: center; flex: 1 1 260px; min-width: 0;
+  border: 1.5px solid var(--line); border-radius: 8px; background: var(--bg);
+  font-family: var(--mono);
+}
+.pat:focus-within { border-color: var(--primary); }
+.pat span { padding-left: 10px; color: var(--muted); font-size: 0.85rem; white-space: nowrap; }
+.pat input {
+  flex: 1; min-width: 0; border: 0; background: transparent; color: var(--ink);
+  font: 500 0.95rem/1 var(--mono); padding: 10px 4px; outline: none;
+}
+.pat input:focus-visible { outline: none; }
+.strand-seg button { padding: 7px 9px; font-family: var(--mono); }
+.presets { display: flex; flex-wrap: wrap; gap: 6px; }
+.presets button, .btn {
+  font: 500 0.78rem/1.2 var(--body); color: var(--ink); cursor: pointer;
+  background: var(--surface-2); border: 1px solid var(--line); border-radius: 6px; padding: 5px 9px;
+}
+.presets button:hover, .btn:hover { border-color: var(--primary); }
+.presets button.trap { border-color: var(--accent); color: var(--accent); background: transparent; }
+.status { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 0.88rem; }
+.pill { font: 600 0.75rem/1 var(--body); padding: 5px 9px; border-radius: 999px; background: var(--surface-2); color: var(--ink); font-variant-numeric: tabular-nums; }
+.pill.ok { background: var(--ok-soft); color: var(--ok); }
+.pill.bad { background: var(--bad-soft); color: var(--bad); }
+.pill.err { background: var(--bad-soft); color: var(--bad); }
+.checkmsg { color: var(--muted); }
+.seqview {
+  font: 400 0.8rem/1.75 var(--mono); word-break: break-all; white-space: pre-wrap;
+  max-height: 170px; overflow-y: auto; padding: 8px 10px; background: var(--bg);
+  border-radius: 8px; border: 1px solid var(--line); letter-spacing: 0.02em;
+}
+.seqview .h1 { background: var(--primary-soft); }
+.seqview .h2 { background: var(--primary); color: var(--primary-ink); }
+.seqview .m1 { box-shadow: inset 0 -3px 0 var(--minus); background: var(--minus-soft); }
+.seqview .m2 { box-shadow: inset 0 -3px 0 var(--minus); background: var(--minus); color: var(--bg); }
+.seqview .hm { background: var(--primary-soft); box-shadow: inset 0 -3px 0 var(--minus); }
+.legend { display: flex; flex-wrap: wrap; gap: 12px; font-size: 0.75rem; color: var(--muted); }
+.legend i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; vertical-align: -2px; margin-right: 4px; }
+.tbl { max-height: 210px; overflow: auto; border: 1px solid var(--line); border-radius: 8px; }
+table { border-collapse: collapse; width: 100%; font-size: 0.82rem; font-variant-numeric: tabular-nums; }
+th, td { text-align: left; padding: 5px 8px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+th { position: sticky; top: 0; background: var(--surface-2); font-weight: 600; font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+td.num { text-align: right; font-family: var(--mono); }
+td .snip { font-family: var(--mono); color: var(--muted); }
+.tag { font: 600 0.7rem/1 var(--body); padding: 3px 6px; border-radius: 4px; }
+.tag.ok { background: var(--ok-soft); color: var(--ok); }
+.tag.bad { background: var(--bad-soft); color: var(--bad); }
+.strandmark { font-family: var(--mono); font-weight: 600; }
+.strandmark.p { color: var(--primary); }
+.strandmark.m { color: var(--minus); }
+
+/* ---------- translation ---------- */
+.orf-list tbody tr { cursor: pointer; }
+.orf-list tbody tr:hover { background: var(--surface-2); }
+.orf-list tbody tr[aria-selected="true"] { background: var(--primary-soft); }
+.controls { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; font-size: 0.9rem; }
+.controls input[type=range] { accent-color: var(--primary); width: 160px; }
+.codons { display: flex; flex-wrap: wrap; gap: 4px; max-height: 300px; overflow-y: auto; padding: 2px; }
+.cod {
+  display: grid; justify-items: center; gap: 1px; min-width: 38px; padding: 4px 3px;
+  border-radius: 6px; background: var(--bg); border: 1px solid var(--line);
+}
+.cod .n { font: 400 0.72rem/1.1 var(--mono); color: var(--muted); }
+.cod .a { font: 600 0.95rem/1.1 var(--mono); }
+.cod.start { border-color: var(--primary); background: var(--primary-soft); }
+.cod.stop { border-color: var(--accent); background: var(--accent-soft); }
+.cod.stop .a { color: var(--accent); }
+.protein {
+  font: 400 0.85rem/1.6 var(--mono); word-break: break-all; background: var(--bg);
+  border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px;
+}
+.frames { display: grid; gap: 6px; }
+.frames div { font: 400 0.82rem/1.5 var(--mono); word-break: break-all; }
+.frames b { color: var(--muted); font-weight: 500; margin-right: 6px; }
+.frames .stop { color: var(--accent); font-weight: 600; }
+.frames .met { color: var(--primary); font-weight: 600; }
+textarea.dna {
+  width: 100%; min-height: 64px; resize: vertical; font: 400 0.85rem/1.5 var(--mono);
+  color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px;
+}
+.btn { text-decoration: none; display: inline-block; }
+input.boxin {
+  width: 7.5em; font: 500 0.95rem/1 var(--mono); letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--ink); background: var(--bg); border: 1.5px solid var(--line); border-radius: 8px; padding: 8px 10px;
+}
+input.boxin:focus { border-color: var(--primary); outline: none; }
+pre.genre { white-space: pre-wrap; word-break: break-all; max-height: 120px; overflow-y: auto; font-size: 0.76rem; }
+section.step > h3 { margin-top: 12px; font-size: 1.3rem; }
+footer { margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--line); font-size: 0.85rem; color: var(--muted); display: grid; gap: 6px; }
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+</style>
+
+<style>
+.btn { text-decoration: none; display: inline-block; }
+.tag.gb { background: var(--minus-soft); color: var(--minus); }
+.tag.warn { background: var(--accent-soft); color: var(--accent); }
+.tag.skip { background: var(--surface-2); color: var(--muted); }
+.outline { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; }
+.outline a { display: grid; gap: 2px; text-decoration: none; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
+.outline a b { font: 750 1.6rem/1 var(--display); color: var(--primary); }
+.outline a span { font-size: 0.9rem; }
+.outline a:hover { border-color: var(--primary); }
+.fasta { font: 400 0.8rem/1.6 var(--mono); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; white-space: pre; overflow-x: auto; max-height: 190px; overflow-y: auto; }
+.fasta .hdr { background: var(--accent-soft); color: var(--accent); }
+.term { margin: 0; background: var(--code-bg); color: var(--code-ink); border-radius: var(--radius); padding: 12px 14px; font: 400 0.8rem/1.55 var(--mono); white-space: pre-wrap; word-break: break-all; max-height: 360px; overflow-y: auto; }
+.term .err { color: #FF9A9A; }
+.term .ok { color: var(--code-str); }
+.strands { font: 400 0.82rem/1.5 var(--mono); overflow-x: auto; white-space: pre; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; }
+.strands .lbl { color: var(--muted); }
+.strands .pair { color: var(--muted); }
+.strands .hi { background: var(--primary-soft); }
+.explain { background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; font-size: 0.92rem; display: grid; gap: 6px; }
+.explain b.step { font-family: var(--mono); color: var(--primary); }
+.presets button.active { background: var(--primary); color: var(--primary-ink); border-color: var(--primary); }
+.presets.trap-row button { border-style: dashed; }
+.variants { display: flex; flex-wrap: wrap; gap: 6px; }
+.variants button { font: 500 0.8rem/1.2 var(--body); color: var(--ink); cursor: pointer; background: var(--surface-2); border: 1px solid var(--line); border-radius: 6px; padding: 6px 10px; }
+.variants button[aria-pressed="true"] { background: var(--primary); color: var(--primary-ink); border-color: var(--primary); }
+.codegrid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 3px; font: 400 0.74rem/1.3 var(--mono); }
+.codegrid span { background: var(--bg); border: 1px solid var(--line); border-radius: 4px; padding: 2px 4px; white-space: nowrap; }
+.codegrid span.cur { background: var(--primary); color: var(--primary-ink); border-color: var(--primary); }
+.codegrid span.stopc { color: var(--accent); }
+.vars { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; font: 400 0.85rem/1.4 var(--mono); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; }
+.vars dt { color: var(--muted); }
+.vars dd { margin: 0; word-break: break-all; }
+.orfpick { display: flex; flex-wrap: wrap; gap: 6px; }
+.orfpick button { font: 500 0.8rem/1 var(--mono); cursor: pointer; color: var(--ink); background: var(--surface-2); border: 1px solid var(--line); border-radius: 6px; padding: 7px 9px; }
+.orfpick button[aria-pressed="true"] { background: var(--primary); color: var(--primary-ink); border-color: var(--primary); }
+.lists { margin: 0; font: 400 0.8rem/1.6 var(--mono); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; overflow-x: auto; white-space: pre; }
+tr.skipped td { color: var(--muted); }
+.wide { display: grid; gap: 14px; }
+</style>
+
+<div class="bar">
+  <div class="wrap">
+    <nav class="steps-nav" aria-label="Steps" id="stepsNav">
+      <a href="#s1" data-step="1"><span class="n">1</span>Read FASTA</a>
+      <a href="#s2" data-step="2"><span class="n">2</span>Complement</a>
+      <a href="#s3" data-step="3"><span class="n">3</span>Regex</a>
+      <a href="#s4" data-step="4"><span class="n">4</span>Search</a>
+      <a href="#s5" data-step="5"><span class="n">5</span>Translate</a>
+      <a href="#check" data-step="6"><span class="n">✓</span>Check</a>
+      <a href="#more"><span class="n">+</span>Extensions</a>
+    </nav>
+  </div>
+</div>
+
+<main class="wrap">
+  <header class="hero">
+    <div class="eyebrow">Bio116 · Bioinformatics workshop</div>
+    <h1>Five-Step ORF Finder</h1>
+    <p class="lede">Write a short Python program that finds candidate genes (open reading frames) in the <i>E. coli</i> lac operon and translates them. Each step on this page builds one section of the program, in order. By the end you will have written <code>find_orfs_beginner.py</code>.</p>
+    <nav class="outline" aria-label="Program outline">
+      <a href="#s1"><b>1</b><span>Read a FASTA file and extract the sequence</span></a>
+      <a href="#s2"><b>2</b><span>Make the complementary strand</span></a>
+      <a href="#s3"><b>3</b><span>Write a regex that finds ORFs</span></a>
+      <a href="#s4"><b>4</b><span>Search both strands, keep the longest ORFs in lists</span></a>
+      <a href="#s5"><b>5</b><span>Translate each ORF with the genetic code</span></a>
+    </nav>
+    <p class="muted">Input: <code>data/J01636_lac_operon.fasta</code>, the lac operon from GenBank J01636.1 (7,477 bp). It contains four genes: <i>lacI</i>, <i>lacZ</i>, <i>lacY</i> and <i>lacA</i>. Everything on this page runs the same steps as the Python program, on the same sequence.</p>
+  </header>
+
+  <!-- STEP 1 -->
+  <section class="step" id="s1">
+    <div class="step-head">
+      <div class="step-num">1</div>
+      <div class="eyebrow">Read the FASTA file</div>
+      <h2>From file to one long string</h2>
+    </div>
+    <div class="step-grid">
+      <div class="prose">
+        <p>A FASTA file has one header line that starts with <code>&gt;</code>, then the sequence split over many lines. The program reads the file line by line, skips the header, and joins the other lines into one string.</p>
+        <pre class="code" data-copy>sequence = <span class="s">""</span>
+fasta_file = open(<span class="s">"data/J01636_lac_operon.fasta"</span>)
+for line in fasta_file:
+    line = line.strip()              <span class="c"># remove the newline at the end</span>
+    if line.startswith(<span class="s">"&gt;"</span>):         <span class="c"># header line: skip it</span>
+        continue
+    sequence = sequence + line.upper()
+fasta_file.close()
+
+print(<span class="s">"Sequence length:"</span>, len(sequence), <span class="s">"bases"</span>)</pre>
+        <div class="think">
+          <div class="eyebrow">Predict, then check</div>
+          <ol>
+            <li>What would happen to the sequence if you forgot to skip the header line?</li>
+            <li>Why is <code>.strip()</code> needed? What is at the end of every line in a file?</li>
+            <li>Try the other versions of the file on the right. Which ones break the program, and at which step?</li>
+          </ol>
+          <label class="eyebrow" for="note1">Your notes</label>
+          <textarea id="note1" data-note="1"></textarea>
+          <details><summary>Discussion</summary><div>
+            <p>Without skipping the header, its letters (<code>J01636.1 E.COLI…</code>) would become part of the sequence. Every line ends with a newline character, and <code>.strip()</code> removes it, along with the <code>\r</code> in files saved on Windows. <code>.upper()</code> handles lowercase files. Spaces, numbers, U or N in the sequence get through step 1 but crash step 2, because the pairing dictionary has no entry for them. Two records in one file are joined without any error, which is the most dangerous case: the program runs but the answer is wrong.</p>
+          </div></details>
+        </div>
+      </div>
+      <div class="bench">
+        <span class="lbl">The file</span>
+        <div class="variants" id="variants" role="group" aria-label="Choose a version of the file"></div>
+        <div class="fasta" id="fastaView" aria-label="FASTA file contents"></div>
+        <span class="lbl">What step 1 produces</span>
+        <pre class="term" id="s1out"></pre>
+        <div class="custom-seq">
+          <label for="ownFasta" class="muted" style="font-size:.88rem">Or paste your own FASTA file:</label>
+          <textarea id="ownFasta" class="dna" rows="3" placeholder=">my_sequence&#10;ATGAAACGC..."></textarea>
+          <div class="controls"><button type="button" class="btn" id="useOwn">Use my file</button><input type="file" id="ownFile" accept=".fa,.fasta,.fna,.txt"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STEP 2 -->
+  <section class="step" id="s2">
+    <div class="step-head">
+      <div class="step-num">2</div>
+      <div class="eyebrow">The complementary strand</div>
+      <h2>Pair every base, then read it backwards</h2>
+    </div>
+    <div class="step-grid">
+      <div class="prose">
+        <p>DNA has two strands. Each base pairs with a partner, A with T and C with G, and the two strands run in opposite directions. Genes can be on either strand, so the program needs both.</p>
+        <p>A dictionary stores the pairs. The loop looks up each base's partner, then <code>[::-1]</code> reverses the result so the other strand also reads 5′ to 3′, the direction the ribosome reads.</p>
+        <pre class="code" data-copy>pairs = {<span class="s">"A"</span>: <span class="s">"T"</span>, <span class="s">"T"</span>: <span class="s">"A"</span>, <span class="s">"C"</span>: <span class="s">"G"</span>, <span class="s">"G"</span>: <span class="s">"C"</span>}
+
+complement = <span class="s">""</span>
+for base in sequence:
+    complement = complement + pairs[base]
+
+reverse_complement = complement[::-1]    <span class="c"># [::-1] reverses a string</span></pre>
+        <div class="think">
+          <div class="eyebrow">Predict, then check</div>
+          <ol>
+            <li>Where in <code>reverse_complement</code> do the first bases of <code>sequence</code> end up? Move the slider to check.</li>
+            <li>If you searched <code>complement</code> without reversing it, would you find the genes on the other strand? Why not?</li>
+            <li>What does <code>pairs[base]</code> do when <code>base</code> is <code>"N"</code>?</li>
+          </ol>
+          <label class="eyebrow" for="note2">Your notes</label>
+          <textarea id="note2" data-note="2"></textarea>
+          <details><summary>Discussion</summary><div>
+            <p>The first base of <code>sequence</code> pairs with the <em>last</em> base of <code>reverse_complement</code>. The complement on its own reads 3′ to 5′, so a gene on that strand would appear backwards (a start codon ATG would read GTA) and the regex would never find it. A letter that is not a key in the dictionary raises <code>KeyError</code> and stops the program.</p>
+          </div></details>
+        </div>
+      </div>
+      <div class="bench">
+        <label class="lbl" for="winPos">Window on the sequence <b class="mono" id="winOut">1–60</b></label>
+        <input type="range" id="winPos" min="1" max="7418" step="1" value="1" style="accent-color:var(--primary)">
+        <div class="strands" id="strandView" aria-label="Sequence, complement and reverse complement"></div>
+        <pre class="term" id="s2out"></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- STEP 3 -->
+  <section class="step" id="s3">
+    <div class="step-head">
+      <div class="step-num">3</div>
+      <div class="eyebrow">A regular expression for ORFs</div>
+      <h2>Build the pattern one piece at a time</h2>
+    </div>
+    <div class="step-grid">
+      <div class="prose">
+        <p>An ORF is a start codon, then codons, then a stop codon, all in the same reading frame. Click the buttons <b>a</b> to <b>f</b> in order. Each adds one idea, and the bench shows what that pattern finds on the lac sequence. The <b>ORF check</b> column tests each match: length divisible by 3, ATG first, a stop last, no stop in between.</p>
+        <pre class="code" data-copy><span class="c">#   ATG                        start codon</span>
+<span class="c">#   (?:(?!TAA|TAG|TGA)...)     one codon (any 3 bases) that is NOT a stop codon</span>
+<span class="c">#   {100,}                     at least 100 of those codons</span>
+<span class="c">#   (?:TAA|TAG|TGA)            stop codon: the first one in the same frame</span>
+<span class="c">#   (?=( ... ))                lookahead: lets ORFs overlap, so none are missed;</span>
+<span class="c">#                              the ORF itself is saved in group 1</span>
+
+orf_pattern = r<span class="s">"(?=(ATG(?:(?!TAA|TAG|TGA)...){100,}(?:TAA|TAG|TGA)))"</span></pre>
+        <div class="think">
+          <div class="eyebrow">Predict, then check</div>
+          <ol>
+            <li>After <b>c</b>, some matches fail the ORF check. Why does <code>...</code> keep the reading frame, but not stop at the right stop?</li>
+            <li>After <b>e</b>, is <i>lacI</i> (a GenBank gene) in the table? Compare with <b>f</b>.</li>
+            <li>Try the dashed "common mistakes" buttons. What goes wrong in each?</li>
+          </ol>
+          <label class="eyebrow" for="note3">Your notes</label>
+          <textarea id="note3" data-note="3"></textarea>
+          <details><summary>Discussion</summary><div>
+            <p><code>...</code> moves three bases at a time, so the stop is always in frame, but in <b>c</b> the lazy <code>*?</code> is the only thing that makes it stop at the <em>first</em> stop. In <b>d</b> the "not a stop" check does that job, so the length can be added safely in <b>e</b>. Without the lookahead, a regex search continues from the end of each match, so any ATG inside a match is never tried: the ORF at 12–329 hides the ATG at 202 where the <i>lacI</i> ORF begins. The lookahead in <b>f</b> matches without using up bases, so every ATG gets its turn.</p>
+          </div></details>
+        </div>
+      </div>
+      <div class="bench" id="rxBench">
+        <div class="bench-top">
+          <label class="lbl" for="rxPat">Regex bench</label>
+          <div class="seg strand-seg" role="group" aria-label="Strand" id="rxStrand">
+            <button type="button" data-strand="+" aria-pressed="true" title="sequence">+</button>
+            <button type="button" data-strand="-" aria-pressed="false" title="reverse_complement">−</button>
+          </div>
+        </div>
+        <div class="presets" id="rxSteps"></div>
+        <div class="presets trap-row" id="rxTraps"></div>
+        <div class="explain" id="rxExplain"></div>
+        <div class="pat"><span>r"</span><input id="rxPat" spellcheck="false" autocomplete="off" autocapitalize="off" aria-label="Regular expression"><span style="padding-right:10px">"</span></div>
+        <div class="status"><span class="pill" id="rxCount"></span><span class="pill" id="rxCheck"></span><span class="checkmsg" id="rxMsg"></span></div>
+        <div class="seqview" id="rxView" aria-label="Sequence with matches highlighted"></div>
+        <div class="tbl"><table><thead><tr><th>#</th><th>Start–end</th><th>Codons</th><th>ORF check</th><th>GenBank</th></tr></thead><tbody id="rxRows"></tbody></table></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STEP 4 -->
+  <section class="step" id="s4">
+    <div class="step-head">
+      <div class="step-num">4</div>
+      <div class="eyebrow">Search both strands</div>
+      <h2>Keep the longest ORF for each stop codon</h2>
+    </div>
+    <div class="step-grid">
+      <div class="prose">
+        <p>The lookahead finds every ATG that starts an ORF, including ATGs <em>inside</em> a longer ORF in the same frame. Those end at the same stop codon, so they are shorter copies of the same ORF. Matches come in order from left to right, so the first ORF for each stop is the longest. The program remembers the stop positions it has used in the list <code>stops_seen</code> and skips repeats.</p>
+        <p>The results go into three lists that line up: item <code>i</code> of <code>orfs</code>, <code>strands</code> and <code>starts</code> all describe the same ORF.</p>
+        <pre class="code" data-copy>orfs = []        <span class="c"># the ORF sequences</span>
+strands = []     <span class="c"># "+" or "-" for each ORF</span>
+starts = []      <span class="c"># start position of each ORF on its strand (counting from 1)</span>
+
+for strand in [<span class="s">"+"</span>, <span class="s">"-"</span>]:
+    if strand == <span class="s">"+"</span>:
+        dna = sequence
+    else:
+        dna = reverse_complement
+
+    stops_seen = []                          <span class="c"># stop positions already used on this strand</span>
+    for match in re.finditer(orf_pattern, dna):
+        orf = match.group(1)
+        stop_position = match.end(1)
+        if stop_position in stops_seen:      <span class="c"># a shorter ORF inside one we already have</span>
+            continue
+        stops_seen.append(stop_position)
+
+        orfs.append(orf)
+        strands.append(strand)
+        starts.append(match.start(1) + 1)
+
+print(<span class="s">"ORFs found:"</span>, len(orfs))</pre>
+        <div class="think">
+          <div class="eyebrow">Predict, then check</div>
+          <ol>
+            <li>How many matches does the lookahead return, and how many ORFs are kept? Why is <i>lacZ</i>'s stop codon listed so many times?</li>
+            <li>Why is <code>stops_seen</code> emptied for each strand?</li>
+            <li>Why add 1 to <code>match.start(1)</code>?</li>
+          </ol>
+          <label class="eyebrow" for="note4">Your notes</label>
+          <textarea id="note4" data-note="4"></textarea>
+          <details><summary>Discussion</summary><div>
+            <p><i>lacZ</i> is over 3,000 bases long and has many ATGs in its own frame; each still has at least 100 codons before the same stop, so each one matches. Only the first, most upstream one is kept. Positions on the two strands are counted separately, so a stop position on one strand says nothing about the other. Python counts from 0, but biologists and GenBank count from 1. The inner ATGs are not useless: they are the other possible start codons, which matters when a gene does not start at the first ATG.</p>
+          </div></details>
+        </div>
+      </div>
+      <div class="bench">
+        <span class="lbl">Every match from <code>re.finditer</code>, in order</span>
+        <div class="status" id="s4status"></div>
+        <div class="tbl" style="max-height:320px"><table><thead><tr><th>Strand</th><th>match.start(1)+1</th><th>stop_position</th><th>Codons</th><th>What happens</th></tr></thead><tbody id="s4rows"></tbody></table></div>
+        <span class="lbl">The three lists after the loop</span>
+        <pre class="lists" id="s4lists"></pre>
+        <pre class="term" id="s4out"></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- STEP 5 -->
+  <section class="step" id="s5">
+    <div class="step-head">
+      <div class="step-num">5</div>
+      <div class="eyebrow">Translate</div>
+      <h2>One codon at a time</h2>
+    </div>
+    <div class="step-grid">
+      <div class="prose">
+        <p>The genetic code is a dictionary: each codon is a key, and its amino acid (one-letter code) is the value. <code>*</code> means stop. The loop goes through the lists with an index <code>i</code>, and steps through each ORF three bases at a time.</p>
+        <pre class="code" data-copy>genetic_code = {
+    <span class="s">"TTT"</span>: <span class="s">"F"</span>,  <span class="s">"TCT"</span>: <span class="s">"S"</span>,  <span class="s">"TAT"</span>: <span class="s">"Y"</span>,  <span class="s">"TGT"</span>: <span class="s">"C"</span>,
+    <span class="c"># ... all 64 codons, laid out like the textbook table ...</span>
+    <span class="s">"GTG"</span>: <span class="s">"V"</span>,  <span class="s">"GCG"</span>: <span class="s">"A"</span>,  <span class="s">"GAG"</span>: <span class="s">"E"</span>,  <span class="s">"GGG"</span>: <span class="s">"G"</span>,
+}
+
+for i in range(len(orfs)):
+    orf = orfs[i]
+
+    protein = <span class="s">""</span>
+    for position in range(0, len(orf), 3):   <span class="c"># step through the ORF one codon at a time</span>
+        codon = orf[position:position + 3]
+        protein = protein + genetic_code[codon]
+
+    print()
+    print(<span class="s">"ORF"</span>, i + 1, <span class="s">"on strand"</span>, strands[i], <span class="s">"starting at"</span>, starts[i])
+    print(<span class="s">"  length:"</span>, len(orf), <span class="s">"bases,"</span>, len(protein) - 1, <span class="s">"amino acids"</span>)
+    print(<span class="s">"  protein:"</span>, protein)</pre>
+        <div class="think">
+          <div class="eyebrow">Predict, then check</div>
+          <ol>
+            <li>Step through the first few codons of ORF 3. Which protein is it? (Its first residues are MTMITDSL.)</li>
+            <li>Why does the program print <code>len(protein) - 1</code> amino acids?</li>
+            <li>What would happen if an ORF contained the letter N?</li>
+          </ol>
+          <label class="eyebrow" for="note5">Your notes</label>
+          <textarea id="note5" data-note="5"></textarea>
+          <details><summary>Discussion</summary><div>
+            <p>ORF 3 is <i>lacZ</i>, β-galactosidase. The last character of every protein is <code>*</code>, the stop codon, which is not an amino acid, so it is not counted. A codon with N is not a key in <code>genetic_code</code>, so the lookup raises <code>KeyError</code>; <code>genetic_code.get(codon, "X")</code> would write X instead.</p>
+          </div></details>
+        </div>
+      </div>
+      <div class="bench">
+        <span class="lbl">Step through the loop</span>
+        <div class="orfpick" id="orfPick" role="group" aria-label="Choose an ORF"></div>
+        <div class="controls">
+          <button type="button" class="btn" id="stepNext">Next codon</button>
+          <button type="button" class="btn" id="stepEnd">Run to the end</button>
+          <button type="button" class="btn" id="stepReset">Start again</button>
+        </div>
+        <dl class="vars" id="loopVars"></dl>
+        <div class="codegrid" id="codeGrid" aria-label="Genetic code table"></div>
+        <div class="controls"><button type="button" class="btn" id="runAll">Run the whole program</button></div>
+        <pre class="term" id="progOut">Click "Run the whole program" to see what python3 find_orfs_beginner.py prints.</pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- CHECK -->
+  <section class="step" id="check">
+    <div class="step-head">
+      <div class="step-num">✓</div>
+      <div class="eyebrow">Check your results</div>
+      <h2>Which ORFs are genes?</h2>
+    </div>
+    <div class="wide">
+      <p>GenBank lists four genes in this sequence. Compare them with the program's ORFs. For ORFs on the − strand, the page converts the position to GenBank's numbering so you can compare them.</p>
+      <div class="genes" id="geneChips"></div>
+      <div class="tbl" style="max-height:none"><table><thead><tr><th>ORF</th><th>Strand</th><th>starts[i]</th><th>GenBank numbering</th><th>Amino acids</th><th>GenBank gene</th><th>Check it</th></tr></thead><tbody id="checkRows"></tbody></table></div>
+      <div class="think">
+        <div class="eyebrow">Think about it</div>
+        <ol>
+          <li>Two genes are found exactly. Which two are found too short, and what do their GenBank start codons have in common?</li>
+          <li>Four ORFs are not annotated genes. Three are on the − strand, inside real genes. Are they likely to be real?</li>
+          <li>Use the BLAST links. What evidence would convince you an ORF is a real gene?</li>
+        </ol>
+        <label class="eyebrow" for="note6">Your notes</label>
+        <textarea id="note6" data-note="6"></textarea>
+        <details><summary>Discussion</summary><div>
+          <p><i>lacI</i> starts with GTG and <i>lacA</i> with TTG. Bacteria use these alternative start codons for some genes, and a regex that looks only for ATG cannot find them; it finds the next ATG in the same frame instead. The − strand ORFs are antisense to real genes: a long gene often hides long ORFs on the opposite strand, and they are not genes. A BLASTp hit to a known protein is the strongest single piece of evidence.</p>
+        </div></details>
+      </div>
+    </div>
+  </section>
+
+  <!-- EXTENSIONS -->
+  <section class="step" id="more">
+    <div class="step-head">
+      <div class="step-num">+</div>
+      <div class="eyebrow">Optional</div>
+      <h2>Extensions</h2>
+    </div>
+    <div class="facts">
+      <div class="fact"><b>Alternative starts</b><span>Change <code>ATG</code> to <code>(?:ATG|GTG|TTG)</code>. What happens to <i>lacI</i> and <i>lacA</i>, and what goes wrong?</span></div>
+      <div class="fact"><b>Why the lookahead</b><span>The <a href="https://claude.ai/artifact/DPs68y4hAfkRUJ2xrR4Ys1" target="_blank" rel="noopener">lac ORF map</a> compares this regex with two versions found online that have no lookahead.</span></div>
+      <div class="fact"><b>Evidence upstream</b><span>Ribosome binding sites, promoters and codon usage, in the <a href="https://claude.ai/artifact/U8KkPc9uwugSb3E2rzKm21#s7" target="_blank" rel="noopener">full Regex ORF Lab</a>.</span></div>
+      <div class="fact"><b>GenBank numbering</b><span>Add one <code>if</code> to step 4 so − strand ORFs are reported in GenBank's numbering: <code>len(sequence) - end + 1</code>.</span></div>
+    </div>
+    <details>
+      <summary>The whole program: find_orfs_beginner.py</summary>
+      <div><pre class="code" data-copy># Find candidate genes (ORFs) in the lac operon and translate them.
+# Run from the repository root:  python3 find_orfs_beginner.py
+
+import re
+
+
+# ------------------------------------------------------------------
+# Step 1: Read the FASTA file and extract the sequence
+# ------------------------------------------------------------------
+# A FASTA file has one header line that starts with "&gt;",
+# followed by lines of sequence. We skip the header and join the rest.
+
+sequence = ""
+fasta_file = open("data/J01636_lac_operon.fasta")
+for line in fasta_file:
+    line = line.strip()              # remove the newline at the end
+    if line.startswith("&gt;"):         # header line: skip it
+        continue
+    sequence = sequence + line.upper()
+fasta_file.close()
+
+print("Sequence length:", len(sequence), "bases")
+
+
+# ------------------------------------------------------------------
+# Step 2: Derive the complementary strand
+# ------------------------------------------------------------------
+# Each base pairs with its partner: A-T and C-G.
+# The other strand runs in the opposite direction, so after
+# complementing we reverse it to read it 5' to 3' like the first strand.
+
+pairs = {"A": "T", "T": "A", "C": "G", "G": "C"}
+
+complement = ""
+for base in sequence:
+    complement = complement + pairs[base]
+
+reverse_complement = complement[::-1]    # [::-1] reverses a string
+
+
+# ------------------------------------------------------------------
+# Step 3: A regular expression that finds ORFs
+# ------------------------------------------------------------------
+#   ATG                        start codon
+#   (?:(?!TAA|TAG|TGA)...)     one codon (any 3 bases) that is NOT a stop codon
+#   {100,}                     at least 100 of those codons
+#   (?:TAA|TAG|TGA)            stop codon: the first one in the same frame
+#   (?=( ... ))                lookahead: lets ORFs overlap, so none are missed;
+#                              the ORF itself is saved in group 1
+
+orf_pattern = r"(?=(ATG(?:(?!TAA|TAG|TGA)...){100,}(?:TAA|TAG|TGA)))"
+
+
+# ------------------------------------------------------------------
+# Step 4: Search both strands and keep the longest ORF for each stop codon
+# ------------------------------------------------------------------
+# The lookahead also finds shorter ORFs that start at an ATG inside a
+# longer one and end at the same stop codon. Matches come in order from
+# left to right, so the first ORF we see for each stop is the longest.
+
+orfs = []        # the ORF sequences
+strands = []     # "+" or "-" for each ORF
+starts = []      # start position of each ORF on its strand (counting from 1)
+
+for strand in ["+", "-"]:
+    if strand == "+":
+        dna = sequence
+    else:
+        dna = reverse_complement
+
+    stops_seen = []                          # stop positions already used on this strand
+    for match in re.finditer(orf_pattern, dna):
+        orf = match.group(1)
+        stop_position = match.end(1)
+        if stop_position in stops_seen:      # a shorter ORF inside one we already have
+            continue
+        stops_seen.append(stop_position)
+
+        orfs.append(orf)
+        strands.append(strand)
+        starts.append(match.start(1) + 1)
+
+print("ORFs found:", len(orfs))
+
+
+# ------------------------------------------------------------------
+# Step 5: Translate each ORF with the genetic code
+# ------------------------------------------------------------------
+# Genetic code: codon -&gt; amino acid (one-letter code, * = stop).
+# Laid out like the textbook table.
+
+genetic_code = {
+    "TTT": "F",  "TCT": "S",  "TAT": "Y",  "TGT": "C",
+    "TTC": "F",  "TCC": "S",  "TAC": "Y",  "TGC": "C",
+    "TTA": "L",  "TCA": "S",  "TAA": "*",  "TGA": "*",
+    "TTG": "L",  "TCG": "S",  "TAG": "*",  "TGG": "W",
+
+    "CTT": "L",  "CCT": "P",  "CAT": "H",  "CGT": "R",
+    "CTC": "L",  "CCC": "P",  "CAC": "H",  "CGC": "R",
+    "CTA": "L",  "CCA": "P",  "CAA": "Q",  "CGA": "R",
+    "CTG": "L",  "CCG": "P",  "CAG": "Q",  "CGG": "R",
+
+    "ATT": "I",  "ACT": "T",  "AAT": "N",  "AGT": "S",
+    "ATC": "I",  "ACC": "T",  "AAC": "N",  "AGC": "S",
+    "ATA": "I",  "ACA": "T",  "AAA": "K",  "AGA": "R",
+    "ATG": "M",  "ACG": "T",  "AAG": "K",  "AGG": "R",
+
+    "GTT": "V",  "GCT": "A",  "GAT": "D",  "GGT": "G",
+    "GTC": "V",  "GCC": "A",  "GAC": "D",  "GGC": "G",
+    "GTA": "V",  "GCA": "A",  "GAA": "E",  "GGA": "G",
+    "GTG": "V",  "GCG": "A",  "GAG": "E",  "GGG": "G",
+}
+
+for i in range(len(orfs)):
+    orf = orfs[i]
+
+    protein = ""
+    for position in range(0, len(orf), 3):   # step through the ORF one codon at a time
+        codon = orf[position:position + 3]
+        protein = protein + genetic_code[codon]
+
+    print()
+    print("ORF", i + 1, "on strand", strands[i], "starting at", starts[i])
+    print("  length:", len(orf), "bases,", len(protein) - 1, "amino acids")
+    print("  protein:", protein)
+</pre></div>
+    </details>
+  </section>
+
+  <footer>
+    <div>Bio116 Bioinformatics · Five-Step ORF Finder</div>
+    <div>Sequence: GenBank <a href="https://www.ncbi.nlm.nih.gov/nuccore/J01636.1" target="_blank" rel="noopener">J01636.1</a>, <i>E. coli</i> lactose operon, 7,477 bp. The program is <code>find_orfs_beginner.py</code> in the course repository; the input file is <code>data/J01636_lac_operon.fasta</code>.</div>
+  </footer>
+</main>
+
+<script>
+(() => {
+  "use strict";
+  const LAC_FASTA = ">J01636.1 E.coli lactose operon with lacI, lacZ, lacY and lacA genes\nGACACCATCGAATGGCGCAAAACCTTTCGCGGTATGGCATGATAGCGCCCGGAAGAGAGTCAATTCAGGG\nTGGTGAATGTGAAACCAGTAACGTTATACGATGTCGCAGAGTATGCCGGTGTCTCTTATCAGACCGTTTC\nCCGCGTGGTGAACCAGGCCAGCCACGTTTCTGCGAAAACGCGGGAAAAAGTGGAAGCGGCGATGGCGGAG\nCTGAATTACATTCCCAACCGCGTGGCACAACAACTGGCGGGCAAACAGTCGTTGCTGATTGGCGTTGCCA\nCCTCCAGTCTGGCCCTGCACGCGCCGTCGCAAATTGTCGCGGCGATTAAATCTCGCGCCGATCAACTGGG\nTGCCAGCGTGGTGGTGTCGATGGTAGAACGAAGCGGCGTCGAAGCCTGTAAAGCGGCGGTGCACAATCTT\nCTCGCGCAACGCGTCAGTGGGCTGATCATTAACTATCCGCTGGATGACCAGGATGCCATTGCTGTGGAAG\nCTGCCTGCACTAATGTTCCGGCGTTATTTCTTGATGTCTCTGACCAGACACCCATCAACAGTATTATTTT\nCTCCCATGAAGACGGTACGCGACTGGGCGTGGAGCATCTGGTCGCATTGGGTCACCAGCAAATCGCGCTG\nTTAGCGGGCCCATTAAGTTCTGTCTCGGCGCGTCTGCGTCTGGCTGGCTGGCATAAATATCTCACTCGCA\nATCAAATTCAGCCGATAGCGGAACGGGAAGGCGACTGGAGTGCCATGTCCGGTTTTCAACAAACCATGCA\nAATGCTGAATGAGGGCATCGTTCCCACTGCGATGCTGGTTGCCAACGATCAGATGGCGCTGGGCGCAATG\nCGCGCCATTACCGAGTCCGGGCTGCGCGTTGGTGCGGATATCTCGGTAGTGGGATACGACGATACCGAAG\nACAGCTCATGTTATATCCCGCCGTCAACCACCATCAAACAGGATTTTCGCCTGCTGGGGCAAACCAGCGT\nGGACCGCTTGCTGCAACTCTCTCAGGGCCAGGCGGTGAAGGGCAATCAGCTGTTGCCCGTCTCACTGGTG\nAAAAGAAAAACCACCCTGGCGCCCAATACGCAAACCGCCTCTCCCCGCGCGTTGGCCGATTCATTAATGC\nAGCTGGCACGACAGGTTTCCCGACTGGAAAGCGGGCAGTGAGCGCAACGCAATTAATGTGAGTTAGCTCA\nCTCATTAGGCACCCCAGGCTTTACACTTTATGCTTCCGGCTCGTATGTTGTGTGGAATTGTGAGCGGATA\nACAATTTCACACAGGAAACAGCTATGACCATGATTACGGATTCACTGGCCGTCGTTTTACAACGTCGTGA\nCTGGGAAAACCCTGGCGTTACCCAACTTAATCGCCTTGCAGCACATCCCCCTTTCGCCAGCTGGCGTAAT\nAGCGAAGAGGCCCGCACCGATCGCCCTTCCCAACAGTTGCGCAGCCTGAATGGCGAATGGCGCTTTGCCT\nGGTTTCCGGCACCAGAAGCGGTGCCGGAAAGCTGGCTGGAGTGCGATCTTCCTGAGGCCGATACTGTCGT\nCGTCCCCTCAAACTGGCAGATGCACGGTTACGATGCGCCCATCTACACCAACGTAACCTATCCCATTACG\nGTCAATCCGCCGTTTGTTCCCACGGAGAATCCGACGGGTTGTTACTCGCTCACATTTAATGTTGATGAAA\nGCTGGCTACAGGAAGGCCAGACGCGAATTATTTTTGATGGCGTTAACTCGGCGTTTCATCTGTGGTGCAA\nCGGGCGCTGGGTCGGTTACGGCCAGGACAGTCGTTTGCCGTCTGAATTTGACCTGAGCGCATTTTTACGC\nGCCGGAGAAAACCGCCTCGCGGTGATGGTGCTGCGTTGGAGTGACGGCAGTTATCTGGAAGATCAGGATA\nTGTGGCGGATGAGCGGCATTTTCCGTGACGTCTCGTTGCTGCATAAACCGACTACACAAATCAGCGATTT\nCCATGTTGCCACTCGCTTTAATGATGATTTCAGCCGCGCTGTACTGGAGGCTGAAGTTCAGATGTGCGGC\nGAGTTGCGTGACTACCTACGGGTAACAGTTTCTTTATGGCAGGGTGAAACGCAGGTCGCCAGCGGCACCG\nCGCCTTTCGGCGGTGAAATTATCGATGAGCGTGGTGGTTATGCCGATCGCGTCACACTACGTCTGAACGT\nCGAAAACCCGAAACTGTGGAGCGCCGAAATCCCGAATCTCTATCGTGCGGTGGTTGAACTGCACACCGCC\nGACGGCACGCTGATTGAAGCAGAAGCCTGCGATGTCGGTTTCCGCGAGGTGCGGATTGAAAATGGTCTGC\nTGCTGCTGAACGGCAAGCCGTTGCTGATTCGAGGCGTTAACCGTCACGAGCATCATCCTCTGCATGGTCA\nGGTCATGGATGAGCAGACGATGGTGCAGGATATCCTGCTGATGAAGCAGAACAACTTTAACGCCGTGCGC\nTGTTCGCATTATCCGAACCATCCGCTGTGGTACACGCTGTGCGACCGCTACGGCCTGTATGTGGTGGATG\nAAGCCAATATTGAAACCCACGGCATGGTGCCAATGAATCGTCTGACCGATGATCCGCGCTGGCTACCGGC\nGATGAGCGAACGCGTAACGCGAATGGTGCAGCGCGATCGTAATCACCCGAGTGTGATCATCTGGTCGCTG\nGGGAATGAATCAGGCCACGGCGCTAATCACGACGCGCTGTATCGCTGGATCAAATCTGTCGATCCTTCCC\nGCCCGGTGCAGTATGAAGGCGGCGGAGCCGACACCACGGCCACCGATATTATTTGCCCGATGTACGCGCG\nCGTGGATGAAGACCAGCCCTTCCCGGCTGTGCCGAAATGGTCCATCAAAAAATGGCTTTCGCTACCTGGA\nGAGACGCGCCCGCTGATCCTTTGCGAATACGCCCACGCGATGGGTAACAGTCTTGGCGGTTTCGCTAAAT\nACTGGCAGGCGTTTCGTCAGTATCCCCGTTTACAGGGCGGCTTCGTCTGGGACTGGGTGGATCAGTCGCT\nGATTAAATATGATGAAAACGGCAACCCGTGGTCGGCTTACGGCGGTGATTTTGGCGATACGCCGAACGAT\nCGCCAGTTCTGTATGAACGGTCTGGTCTTTGCCGACCGCACGCCGCATCCAGCGCTGACGGAAGCAAAAC\nACCAGCAGCAGTTTTTCCAGTTCCGTTTATCCGGGCAAACCATCGAAGTGACCAGCGAATACCTGTTCCG\nTCATAGCGATAACGAGCTCCTGCACTGGATGGTGGCGCTGGATGGTAAGCCGCTGGCAAGCGGTGAAGTG\nCCTCTGGATGTCGCTCCACAAGGTAAACAGTTGATTGAACTGCCTGAACTACCGCAGCCGGAGAGCGCCG\nGGCAACTCTGGCTCACAGTACGCGTAGTGCAACCGAACGCGACCGCATGGTCAGAAGCCGGGCACATCAG\nCGCCTGGCAGCAGTGGCGTCTGGCGGAAAACCTCAGTGTGACGCTCCCCGCCGCGTCCCACGCCATCCCG\nCATCTGACCACCAGCGAAATGGATTTTTGCATCGAGCTGGGTAATAAGCGTTGGCAATTTAACCGCCAGT\nCAGGCTTTCTTTCACAGATGTGGATTGGCGATAAAAAACAACTGCTGACGCCGCTGCGCGATCAGTTCAC\nCCGTGCACCGCTGGATAACGACATTGGCGTAAGTGAAGCGACCCGCATTGACCCTAACGCCTGGGTCGAA\nCGCTGGAAGGCGGCGGGCCATTACCAGGCCGAAGCAGCGTTGTTGCAGTGCACGGCAGATACACTTGCTG\nATGCGGTGCTGATTACGACCGCTCACGCGTGGCAGCATCAGGGGAAAACCTTATTTATCAGCCGGAAAAC\nCTACCGGATTGATGGTAGTGGTCAAATGGCGATTACCGTTGATGTTGAAGTGGCGAGCGATACACCGCAT\nCCGGCGCGGATTGGCCTGAACTGCCAGCTGGCGCAGGTAGCAGAGCGGGTAAACTGGCTCGGATTAGGGC\nCGCAAGAAAACTATCCCGACCGCCTTACTGCCGCCTGTTTTGACCGCTGGGATCTGCCATTGTCAGACAT\nGTATACCCCGTACGTCTTCCCGAGCGAAAACGGTCTGCGCTGCGGGACGCGCGAATTGAATTATGGCCCA\nCACCAGTGGCGCGGCGACTTCCAGTTCAACATCAGCCGCTACAGTCAACAGCAACTGATGGAAACCAGCC\nATCGCCATCTGCTGCACGCGGAAGAAGGCACATGGCTGAATATCGACGGTTTCCATATGGGGATTGGTGG\nCGACGACTCCTGGAGCCCGTCAGTATCGGCGGAATTCCAGCTGAGCGCCGGTCGCTACCATTACCAGTTG\nGTCTGGTGTCAAAAATAATAATAACCGGGCAGGCCATGTCTGCCCGTATTTCGCGTAAGGAAATCCATTA\nTGTACTATTTAAAAAACACAAACTTTTGGATGTTCGGTTTATTCTTTTTCTTTTACTTTTTTATCATGGG\nAGCCTACTTCCCGTTTTTCCCGATTTGGCTACATGACATCAACCATATCAGCAAAAGTGATACGGGTATT\nATTTTTGCCGCTATTTCTCTGTTCTCGCTATTATTCCAACCGCTGTTTGGTCTGCTTTCTGACAAACTCG\nGGCTGCGCAAATACCTGCTGTGGATTATTACCGGCATGTTAGTGATGTTTGCGCCGTTCTTTATTTTTAT\nCTTCGGGCCACTGTTACAATACAACATTTTAGTAGGATCGATTGTTGGTGGTATTTATCTAGGCTTTTGT\nTTTAACGCCGGTGCGCCAGCAGTAGAGGCATTTATTGAGAAAGTCAGCCGTCGCAGTAATTTCGAATTTG\nGTCGCGCGCGGATGTTTGGCTGTGTTGGCTGGGCGCTGTGTGCCTCGATTGTCGGCATCATGTTCACCAT\nCAATAATCAGTTTGTTTTCTGGCTGGGCTCTGGCTGTGCACTCATCCTCGCCGTTTTACTCTTTTTCGCC\nAAAACGGATGCGCCCTCTTCTGCCACGGTTGCCAATGCGGTAGGTGCCAACCATTCGGCATTTAGCCTTA\nAGCTGGCACTGGAACTGTTCAGACAGCCAAAACTGTGGTTTTTGTCACTGTATGTTATTGGCGTTTCCTG\nCACCTACGATGTTTTTGACCAACAGTTTGCTAATTTCTTTACTTCGTTCTTTGCTACCGGTGAACAGGGT\nACGCGGGTATTTGGCTACGTAACGACAATGGGCGAATTACTTAACGCCTCGATTATGTTCTTTGCGCCAC\nTGATCATTAATCGCATCGGTGGGAAAAACGCCCTGCTGCTGGCTGGCACTATTATGTCTGTACGTATTAT\nTGGCTCATCGTTCGCCACCTCAGCGCTGGAAGTGGTTATTCTGAAAACGCTGCATATGTTTGAAGTACCG\nTTCCTGCTGGTGGGCTGCTTTAAATATATTACCAGCCAGTTTGAAGTGCGTTTTTCAGCGACGATTTATC\nTGGTCTGTTTCTGCTTCTTTAAGCAACTGGCGATGATTTTTATGTCTGTACTGGCGGGCAATATGTATGA\nAAGCATCGGTTTCCAGGGCGCTTATCTGGTGCTGGGTCTGGTGGCGCTGGGCTTCACCTTAATTTCCGTG\nTTCACGCTTAGCGGCCCCGGCCCGCTTTCCCTGCTGCGTCGTCAGGTGAATGAAGTCGCTTAAGCAATCA\nATGTCGGATGCGGCGCGACGCTTATCCGACCAACATATCATAACGGAGTGATCGCATTGAACATGCCAAT\nGACCGAAAGAATAAGAGCAGGCAAGCTATTTACCGATATGTGCGAAGGCTTACCGGAAAAAAGACTTCGT\nGGGAAAACGTTAATGTATGAGTTTAATCACTCGCATCCATCAGAAGTTGAAAAAAGAGAAAGCCTGATTA\nAAGAAATGTTTGCCACGGTAGGGGAAAACGCCTGGGTAGAACCGCCTGTCTATTTCTCTTACGGTTCCAA\nCATCCATATAGGCCGCAATTTTTATGCAAATTTCAATTTAACCATTGTCGATGACTACACGGTAACAATC\nGGTGATAACGTACTGATTGCACCCAACGTTACTCTTTCCGTTACGGGACACCCTGTACACCATGAATTGA\nGAAAAAACGGCGAGATGTACTCTTTTCCGATAACGATTGGCAATAACGTCTGGATCGGAAGTCATGTGGT\nTATTAATCCAGGCGTCACCATCGGGGATAATTCTGTTATTGGCGCGGGTAGTATCGTCACAAAAGACATT\nCCACCAAACGTCGTGGCGGCTGGCGTTCCTTGTCGGGTTATTCGCGAAATAAACGACCGGGATAAGCACT\nATTATTTCAAAGATTATAAAGTTGAATCGTCAGTTTAAATTATAAAAATTGCCTGATACGCTGCGCTTAT\nCAGGCCTACAAGTTCAGCGATCTACATTAGCCGCATCCGGCATGAACAAAGCGCAGGAACAAGCGTCGCA\nTCATGCCTCTTTGACCCACAGCTGCGGAAAACGTACTGGTGCAAAACGCAGGGTTATGATCATCAGCCCA\nACGACGCACAGCGCATGAAATGCCCAGTCCATCAGGTAATTGCCGCTGATACTACGCAGCACGCCAGAAA\nACCACGGGGCAAGCCCGGCGATGATAAAACCGATTCCCTGCATAAACGCCACCAGCTTGCCAGCAATAGC\nCGGTTGCACAGAGTGATCGAGCGCCAGCAGCAAACAGAGCGGAAACGCGCCGCCCAGACCTAACCCACAC\nACCATCGCCCACAATACCGGCAATTGCATCGGCAGCCAGATAAAGCCGCAGAACCCCACCAGTTGTAACA\nCCAGCGCCAGCATTAACAGTTTGCGCCGATCCTGATGGCGAGCCATAGCAGGCATCAGCAAAGCTCCTGC\nGGCTTGCCCAAGCGTCATCAATGCCAGTAAGGAACCGCTGTACTGCGCGCTGGCACCAATCTCAATATAG\nAAAGCGGGTAACCAGGCAATCAGGCTGGCGTAACCGCCGTTAATCAGACCGAAGTAAACACCCAGCGTCC\nACGCGCGGGGAGTGAATACCACGCGAACCGGAGTGGTTGTTGTCTTGTGGGAAGAGGCGACCTCGCGGGC\nGCTTTGCCACCACCAGGCAAAGAGCGCAACAACGGCAGGCAGCGCCACCAGGCGAGTGTTTGATACCAGG\nTTTCGCTATGTTGAACTAACCAGGGCGTTATGGCGGCACCAAGCCCACCGCCGCCCATCAGAGCCGCGGA\nCCACAGCCCCATCACCAGTGGCGTGCGCTGCTGAAACCGCCGTTTAATCACCGAAGCATCACCGCCTGAA\nTGATGCCGATCCCCACCCCACCAAGCAGTGCGCTGCTAAGCAGCAGCGCACTTTGCGGGTAAAGCTCACG\nCATCAATGCACCGACGGCAATCAGCAACAGACTGATGGCGACACTGCGACGTTCGCTGACATGCTGATGA\nAGCCAGCTTCCGGCCAGCGCCAGCCCGCCCATGGTAACCACCGGCAGAGCGGTCGAC\n";
+  const GB = [
+    { name: "lacI", start: 79, end: 1161, codon: "GTG" },
+    { name: "lacZ", start: 1284, end: 4358, codon: "ATG" },
+    { name: "lacY", start: 4410, end: 5663, codon: "ATG" },
+    { name: "lacA", start: 5727, end: 6338, codon: "TTG" }
+  ];
+  const ORF_PATTERN = "(?=(ATG(?:(?!TAA|TAG|TGA)...){100,}(?:TAA|TAG|TGA)))";
+  const GENETIC_CODE = {
+    TTT: "F", TCT: "S", TAT: "Y", TGT: "C", TTC: "F", TCC: "S", TAC: "Y", TGC: "C",
+    TTA: "L", TCA: "S", TAA: "*", TGA: "*", TTG: "L", TCG: "S", TAG: "*", TGG: "W",
+    CTT: "L", CCT: "P", CAT: "H", CGT: "R", CTC: "L", CCC: "P", CAC: "H", CGC: "R",
+    CTA: "L", CCA: "P", CAA: "Q", CGA: "R", CTG: "L", CCG: "P", CAG: "Q", CGG: "R",
+    ATT: "I", ACT: "T", AAT: "N", AGT: "S", ATC: "I", ACC: "T", AAC: "N", AGC: "S",
+    ATA: "I", ACA: "T", AAA: "K", AGA: "R", ATG: "M", ACG: "T", AAG: "K", AGG: "R",
+    GTT: "V", GCT: "A", GAT: "D", GGT: "G", GTC: "V", GCC: "A", GAC: "D", GGC: "G",
+    GTA: "V", GCA: "A", GAA: "E", GGA: "G", GTG: "V", GCG: "A", GAG: "E", GGG: "G"
+  };
+  const PAIRS = { A: "T", T: "A", C: "G", G: "C" };
+  const STOPS = new Set(["TAA", "TAG", "TGA"]);
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const fmt = n => n.toLocaleString("en-US");
+  const pyrepr = ch => ch === "'" ? '"\'"' : "'" + (ch === "\t" ? "\\t" : ch) + "'";
+  const store = {
+    get(k) { try { return localStorage.getItem("orf5:" + k); } catch (e) { return null; } },
+    set(k, v) { try { localStorage.setItem("orf5:" + k, v); } catch (e) {} }
+  };
+
+  /* ---------- file variants for step 1 ---------- */
+  const lacLines = LAC_FASTA.trim().split("\n");
+  const lacSeqLines = lacLines.slice(1);
+  const lacSeq = lacSeqLines.join("");
+  const VARIANTS = [
+    { key: "lac", label: "The lac file", text: LAC_FASTA },
+    { key: "lower", label: "lowercase", text: lacLines[0] + "\n" + lacSeqLines.map(l => l.toLowerCase()).join("\n") + "\n" },
+    { key: "crlf", label: "Windows line endings", text: LAC_FASTA.replace(/\n/g, "\r\n"), show: t => t.replace(/\r/g, "\\r") },
+    { key: "spaces", label: "spaces in lines", text: lacLines[0] + "\n" + lacSeqLines.map(l => l.match(/.{1,10}/g).join(" ")).join("\n") + "\n" },
+    { key: "numbers", label: "numbered lines", text: lacLines[0] + "\n" + lacSeq.match(/.{1,60}/g).map((l, i) => String(i * 60 + 1).padStart(6) + " " + l).join("\n") + "\n" },
+    { key: "rna", label: "RNA (U, not T)", text: lacLines[0] + "\n" + lacSeqLines.map(l => l.replace(/T/g, "U")).join("\n") + "\n" },
+    { key: "N", label: "an N in lacZ", text: (() => { const s = lacSeq.slice(0, 1999) + "N" + lacSeq.slice(2000); return lacLines[0] + "\n" + s.match(/.{1,70}/g).join("\n") + "\n"; })() },
+    { key: "two", label: "two records", text: LAC_FASTA + ">second_record\n" + lacSeq.slice(0, 280).match(/.{1,70}/g).join("\n") + "\n" }
+  ];
+
+  const state = { variant: "lac", text: LAC_FASTA, sequence: "", rc: "", error: null, orfs: [], strands: [], starts: [], all: [] };
+
+  /* ---------- the five steps, written like the Python ---------- */
+  function step1(text) {
+    let sequence = "";
+    for (let line of text.split("\n")) {
+      line = line.trim();
+      if (line.startsWith(">")) continue;
+      sequence = sequence + line.toUpperCase();
+    }
+    return sequence;
+  }
+  function step2(sequence) {
+    let complement = "";
+    for (let i = 0; i < sequence.length; i++) {
+      const base = sequence[i];
+      if (!(base in PAIRS)) return { error: `KeyError: ${pyrepr(base)}`, index: i };
+      complement += PAIRS[base];
+    }
+    return { complement, rc: complement.split("").reverse().join("") };
+  }
+  function step4(sequence, rc) {
+    const orfs = [], strands = [], starts = [], all = [];
+    const re = new RegExp(ORF_PATTERN, "g");
+    for (const strand of ["+", "-"]) {
+      const dna = strand === "+" ? sequence : rc;
+      const stopsSeen = [];
+      for (const m of dna.matchAll(re)) {
+        const orf = m[1], stop = m.index + orf.length;
+        const skipped = stopsSeen.includes(stop);
+        all.push({ strand, start: m.index + 1, stop, codons: orf.length / 3, skipped });
+        if (skipped) continue;
+        stopsSeen.push(stop);
+        orfs.push(orf); strands.push(strand); starts.push(m.index + 1);
+      }
+    }
+    return { orfs, strands, starts, all };
+  }
+  function translate(orf) {
+    let protein = "";
+    for (let p = 0; p < orf.length; p += 3) {
+      const codon = orf.slice(p, p + 3);
+      if (!(codon in GENETIC_CODE)) return { error: `KeyError: '${codon}'`, protein };
+      protein += GENETIC_CODE[codon];
+    }
+    return { protein };
+  }
+
+  function runAll() {
+    state.sequence = step1(state.text);
+    const s2 = state.sequence.length ? step2(state.sequence) : { complement: "", rc: "" };
+    state.error = s2.error ? { step: 2, msg: s2.error, index: s2.index } : null;
+    state.rc = s2.error ? "" : s2.rc;
+    if (!state.error) Object.assign(state, step4(state.sequence, state.rc));
+    else Object.assign(state, { orfs: [], strands: [], starts: [], all: [] });
+    renderStep1(); renderStep2(); rx.update(); renderStep4(); renderStep5(); renderCheck();
+  }
+
+  /* ---------- step 1 view ---------- */
+  const variantsEl = document.getElementById("variants");
+  variantsEl.innerHTML = VARIANTS.map(v => `<button type="button" data-v="${v.key}" aria-pressed="${v.key === "lac"}">${esc(v.label)}</button>`).join("");
+  variantsEl.querySelectorAll("button").forEach(b => b.addEventListener("click", () => {
+    const v = VARIANTS.find(x => x.key === b.dataset.v);
+    state.variant = v.key; state.text = v.text;
+    variantsEl.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", String(x === b)));
+    runAll();
+  }));
+  function renderStep1() {
+    const v = VARIANTS.find(x => x.key === state.variant);
+    const lines = state.text.split("\n");
+    const shown = lines.slice(0, 7).concat(lines.length > 9 ? ["…"] : []).concat(lines.length > 9 ? lines.slice(-3) : lines.slice(7));
+    document.getElementById("fastaView").innerHTML = shown.map(l => {
+      const t = v && v.show ? v.show(l) : l;
+      return l.startsWith(">") ? `<span class="hdr">${esc(t)}</span>` : esc(t);
+    }).join("\n");
+    const s = state.sequence;
+    let out = `Sequence length: ${s.length} bases\n\nsequence[0:60]   ${s.slice(0, 60)}\nsequence[-60:]   ${s.slice(-60)}`;
+    const odd = [...new Set(s.replace(/[ACGT]/g, ""))];
+    if (odd.length) out += `\n\n<span class="err">Not A, C, G or T: ${odd.map(pyrepr).join(" ")}</span>`;
+    else if (state.variant === "two") out += `\n\n<span class="err">No error, but the second record was glued onto the end.</span>`;
+    else out += `\n\n<span class="ok">Only A, C, G and T.</span>`;
+    document.getElementById("s1out").innerHTML = out;
+  }
+  document.getElementById("useOwn").addEventListener("click", () => useOwn(document.getElementById("ownFasta").value));
+  document.getElementById("ownFile").addEventListener("change", e => {
+    const f = e.target.files && e.target.files[0]; if (!f) return;
+    const r = new FileReader(); r.onload = () => { document.getElementById("ownFasta").value = r.result; useOwn(String(r.result)); }; r.readAsText(f);
+  });
+  function useOwn(text) {
+    if (!text.trim()) return;
+    state.variant = "own"; state.text = text;
+    variantsEl.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", "false"));
+    runAll();
+  }
+
+  /* ---------- step 2 view ---------- */
+  const win = document.getElementById("winPos");
+  function renderStep2() {
+    const s = state.sequence, L = s.length, view = document.getElementById("strandView"), out = document.getElementById("s2out");
+    if (state.error) {
+      view.innerHTML = `<span class="lbl">Step 2 stopped at position ${state.error.index + 1}: ${esc(pyrepr(s[state.error.index]))}</span>`;
+      out.innerHTML = `<span class="err">Traceback (most recent call last):\n  File "find_orfs_beginner.py", line 36, in &lt;module&gt;\n    complement = complement + pairs[base]\n${esc(state.error.msg)}</span>`;
+      return;
+    }
+    win.max = Math.max(1, L - 59);
+    const a = Math.min(+win.value, Math.max(1, L - 59)) - 1, b = Math.min(L, a + 60);
+    document.getElementById("winOut").textContent = `${fmt(a + 1)}–${fmt(b)}`;
+    const top = s.slice(a, b), comp = top.split("").map(x => PAIRS[x]).join("");
+    const rcStart = L - b, rcEnd = L - a;          // same bases, as they sit in reverse_complement
+    const rcPart = state.rc.slice(rcStart, rcEnd);
+    view.innerHTML =
+      `<span class="lbl">sequence            5′ </span>${top}<span class="lbl"> 3′   positions ${fmt(a + 1)}–${fmt(b)}</span>\n` +
+      `<span class="lbl">                       </span><span class="pair">${"|".repeat(top.length)}</span>\n` +
+      `<span class="lbl">complement          3′ </span>${comp}<span class="lbl"> 5′</span>\n\n` +
+      `<span class="lbl">reverse_complement  5′ </span><span class="hi">${rcPart}</span><span class="lbl"> 3′   positions ${fmt(rcStart + 1)}–${fmt(rcEnd)}</span>`;
+    out.innerHTML = `len(sequence)            ${L}\nlen(reverse_complement)  ${state.rc.length}\nsequence[:12]            ${s.slice(0, 12)}\nreverse_complement[-12:] ${state.rc.slice(-12)}   <span class="ok"># partners of sequence[:12], in reverse</span>`;
+  }
+  win.addEventListener("input", renderStep2);
+
+  /* ---------- step 3 bench ---------- */
+  const RX_STEPS = [
+    ["a", "ATG", "Start codons. A literal pattern matches those three letters wherever they occur, in any reading frame."],
+    ["b", "TAA|TAG|TGA", "Stop codons. The pipe | means \"or\"."],
+    ["c", "ATG(?:...)*?(?:TAA|TAG|TGA)", "Start, codons, stop. <code>...</code> is any 3 bases, so the stop stays in frame; <code>*?</code> means \"as few as possible\". <code>(?: )</code> groups without saving."],
+    ["d", "ATG(?:(?!TAA|TAG|TGA)...)*(?:TAA|TAG|TGA)", "Each codon must not be a stop. <code>(?!TAA|TAG|TGA)</code> is a negative lookahead: it checks the next 3 bases without using them. Now the ORF can only end at the first in-frame stop."],
+    ["e", "ATG(?:(?!TAA|TAG|TGA)...){100,}(?:TAA|TAG|TGA)", "At least 100 codons. Short ORFs appear by chance all the time; <code>{100,}</code> keeps only long ones."],
+    ["f", ORF_PATTERN, "Lookahead. <code>(?=( … ))</code> saves the ORF in group 1 without using up any bases, so the next search starts one base later and ORFs that overlap are all found. This is the program's pattern."]
+  ];
+  const RX_TRAPS = [
+    ["Greedy .*", "ATG.*(TAA|TAG|TGA)", "Greedy <code>.*</code> grabs as much as possible and ends at the last stop in the sequence, in any frame."],
+    ["{100,}? without the stop check", "ATG(?:...){100,}?(?:TAA|TAG|TGA)", "The first 100 codons can be anything, stop codons included. Look for red rows."],
+    ["Online version, no lookahead", "ATG((?!TAG|TAA|TGA)...){100,}(TAG|TAA|TGA)", "Every match is a real ORF, but ATGs inside a match are never tried. Compare lacI with button f."]
+  ];
+  const rxInput = document.getElementById("rxPat");
+  const rx = (() => {
+    let strand = "+";
+    const stepsEl = document.getElementById("rxSteps"), trapsEl = document.getElementById("rxTraps"), expl = document.getElementById("rxExplain");
+    stepsEl.innerHTML = RX_STEPS.map((p, i) => `<button type="button" data-i="${i}">${p[0]} · ${esc(p[1].length > 22 ? p[1].slice(0, 20) + "…" : p[1])}</button>`).join("");
+    trapsEl.innerHTML = '<span class="muted" style="font-size:.8rem;align-self:center">Common mistakes:</span>' + RX_TRAPS.map((p, i) => `<button type="button" class="trap" data-t="${i}">${esc(p[0])}</button>`).join("");
+    function load(p, btn) {
+      rxInput.value = p[1];
+      expl.innerHTML = `<div><b class="step">${esc(p[0])}</b> ${p[2]}</div>`;
+      document.querySelectorAll("#rxSteps button, #rxTraps button").forEach(x => x.classList.toggle("active", x === btn));
+      update();
+    }
+    stepsEl.querySelectorAll("button").forEach(b => b.addEventListener("click", () => load(RX_STEPS[+b.dataset.i], b)));
+    trapsEl.querySelectorAll("button").forEach(b => b.addEventListener("click", () => load(RX_TRAPS[+b.dataset.t], b)));
+    document.querySelectorAll("#rxStrand button").forEach(b => b.addEventListener("click", () => {
+      strand = b.dataset.strand;
+      document.querySelectorAll("#rxStrand button").forEach(x => x.setAttribute("aria-pressed", String(x === b)));
+      update();
+    }));
+    let t; rxInput.addEventListener("input", () => { clearTimeout(t); t = setTimeout(() => { expl.innerHTML = '<div class="muted">Your own pattern.</div>'; document.querySelectorAll("#rxSteps button, #rxTraps button").forEach(x => x.classList.remove("active")); update(); }, 150); });
+
+    function run(pattern, dna) {
+      let re;
+      try { re = new RegExp(pattern.replace(/\(\?P</g, "(?<"), "g"); } catch (e) { return { error: e.message.replace(/^Invalid regular expression: /, "") }; }
+      const out = [];
+      for (const m of dna.matchAll(re)) {
+        let text = m[0], start = m.index;
+        if (m[0] === "" && m[1] !== undefined) text = m[1];
+        if (!text) continue;
+        out.push({ start, end: start + text.length, text });
+        if (out.length > 3000) break;
+      }
+      return { matches: out };
+    }
+    function orfCheck(x) {
+      if (x.length % 3) return "length not a multiple of 3";
+      if (!x.startsWith("ATG")) return "does not start with ATG";
+      if (!STOPS.has(x.slice(-3))) return "does not end in a stop";
+      for (let i = 3; i < x.length - 3; i += 3) if (STOPS.has(x.slice(i, i + 3))) return "stop codon inside, at codon " + (i / 3 + 1);
+      return "";
+    }
+    function gbTag(start, end) {
+      if (strand !== "+" || state.variant !== "lac") return "";
+      for (const g of GB) if (g.end === end) return g.start === start ? `<span class="tag ok"><i>${g.name}</i> exact</span>` : `<span class="tag gb"><i>${g.name}</i>, starts ${start - g.start} bp late</span>`;
+      return '<span class="tag warn">not a gene</span>';
+    }
+    function update() {
+      const dna = strand === "+" ? state.sequence : state.rc;
+      const count = document.getElementById("rxCount"), chk = document.getElementById("rxCheck"), msg = document.getElementById("rxMsg");
+      if (!dna) { count.textContent = "No sequence"; chk.hidden = true; msg.textContent = state.error ? "Step 2 failed, so there is nothing to search. Pick the lac file in step 1." : ""; document.getElementById("rxView").textContent = ""; document.getElementById("rxRows").innerHTML = ""; return; }
+      const r = run(rxInput.value, dna);
+      if (r.error || !rxInput.value) { count.className = "pill err"; count.textContent = r.error ? "Pattern error" : "Empty pattern"; chk.hidden = true; msg.textContent = r.error || ""; return; }
+      const ms = r.matches;
+      count.className = "pill"; count.textContent = fmt(ms.length) + (ms.length === 1 ? " match" : " matches");
+      const ref = run(ORF_PATTERN, dna).matches;
+      const key = m => m.start + ":" + m.end;
+      const want = new Set(ref.map(key)), got = new Set(ms.map(key));
+      const missing = [...want].filter(k => !got.has(k)).length, extra = [...got].filter(k => !want.has(k)).length;
+      const ok = !missing && !extra;
+      chk.hidden = false; chk.className = "pill " + (ok ? "ok" : "bad"); chk.textContent = ok ? "Same as the program's pattern" : "Different from the program's pattern";
+      msg.textContent = ok ? `All ${ref.length} matches.` : `Finds ${ref.length - missing} of the program's ${ref.length} matches` + (extra ? `, plus ${fmt(extra)} others` : "") + ".";
+      const cov = new Uint16Array(dna.length);
+      for (const m of ms) for (let i = m.start; i < m.end; i++) cov[i]++;
+      let html = "", cur = -1, buf = "";
+      for (let i = 0; i <= dna.length; i++) {
+        const c = i < dna.length ? Math.min(cov[i], 2) : -2;
+        if (c !== cur) { if (buf) html += cur > 0 ? `<span class="h${cur}">${buf}</span>` : buf; buf = ""; cur = c; }
+        if (i < dna.length) buf += dna[i];
+      }
+      document.getElementById("rxView").innerHTML = html;
+      const orfLike = ms.some(m => m.text.length > 3);
+      document.getElementById("rxRows").innerHTML = ms.slice(0, 300).map((m, i) => {
+        const bad = orfLike ? orfCheck(m.text) : "";
+        const cod = m.text.length % 3 ? (m.text.length / 3).toFixed(1) : String(m.text.length / 3);
+        return `<tr><td class="num">${i + 1}</td><td class="num">${fmt(m.start + 1)}–${fmt(m.end)}</td><td class="num">${cod}</td><td>${orfLike ? (bad ? `<span class="tag bad">${esc(bad)}</span>` : '<span class="tag ok">valid ORF</span>') : `<span class="snip">${m.text}</span>`}</td><td>${orfLike && !bad ? gbTag(m.start + 1, m.end) : ""}</td></tr>`;
+      }).join("") + (ms.length > 300 ? `<tr><td colspan="5" class="muted">First 300 of ${fmt(ms.length)} matches.</td></tr>` : "") || '<tr><td colspan="5" class="muted">No matches.</td></tr>';
+    }
+    load(RX_STEPS[0], stepsEl.querySelector("button"));
+    return { update };
+  })();
+
+  /* ---------- step 4 view ---------- */
+  function renderStep4() {
+    const rows = document.getElementById("s4rows"), lists = document.getElementById("s4lists"), out = document.getElementById("s4out"), st = document.getElementById("s4status");
+    if (state.error) { rows.innerHTML = ""; lists.textContent = ""; out.innerHTML = '<span class="err">Not reached: step 2 failed.</span>'; st.innerHTML = ""; return; }
+    const kept = state.all.filter(a => !a.skipped).length;
+    st.innerHTML = `<span class="pill">${state.all.length} matches</span><span class="pill ok">${kept} kept</span><span class="pill">${state.all.length - kept} skipped</span>`;
+    const gbName = a => { if (state.variant !== "lac" || a.strand !== "+") return ""; const g = GB.find(g => g.end === a.stop); return g ? ` <i>${g.name}</i>` : ""; };
+    rows.innerHTML = state.all.map(a => `<tr class="${a.skipped ? "skipped" : ""}"><td class="strandmark ${a.strand === "+" ? "p" : "m"}">${a.strand === "+" ? "+" : "−"}</td><td class="num">${a.start}</td><td class="num">${a.stop}${gbName(a)}</td><td class="num">${a.codons}</td><td>${a.skipped ? '<span class="tag skip">skipped: stop already in stops_seen</span>' : '<span class="tag ok">kept: appended to the lists</span>'}</td></tr>`).join("");
+    const short = o => `'${o.slice(0, 9)}…${o.slice(-3)}'`;
+    lists.textContent = `orfs    = [${state.orfs.map(short).join(", ")}]\nstrands = [${state.strands.map(s => `'${s}'`).join(", ")}]\nstarts  = [${state.starts.join(", ")}]`;
+    out.textContent = `ORFs found: ${state.orfs.length}`;
+  }
+
+  /* ---------- step 5 stepper ---------- */
+  let cur = 0, pos = 0, protein = "";
+  const grid = document.getElementById("codeGrid"), pick = document.getElementById("orfPick");
+  const B = "TCAG";
+  const gridOrder = [];
+  for (const a of B) for (const c of B) for (const b of B) gridOrder.push(a + b + c);
+  function renderGrid(active) {
+    grid.innerHTML = gridOrder.map(c => `<span class="${c === active ? "cur" : ""}${GENETIC_CODE[c] === "*" ? " stopc" : ""}">"${c}": "${GENETIC_CODE[c]}"</span>`).join("");
+  }
+  function renderVars() {
+    const dl = document.getElementById("loopVars");
+    if (!state.orfs.length) { dl.innerHTML = "<dt>orfs</dt><dd>[] (nothing to translate)</dd>"; renderGrid(""); return; }
+    const orf = state.orfs[cur];
+    const codon = pos > 0 ? orf.slice(pos - 3, pos) : "";
+    dl.innerHTML = `<dt>i</dt><dd>${cur}</dd><dt>len(orf)</dt><dd>${orf.length}</dd><dt>position</dt><dd>${pos > 0 ? pos - 3 : "—"}</dd>` +
+      `<dt>codon</dt><dd>${codon ? `"${codon}"` : "—"}</dd><dt>genetic_code[codon]</dt><dd>${codon ? `"${GENETIC_CODE[codon] || "KeyError"}"` : "—"}</dd>` +
+      `<dt>protein</dt><dd>"${protein.length > 60 ? "…" + protein.slice(-60) : protein}"${pos >= orf.length ? '  <span class="tag ok">done</span>' : ""}</dd>`;
+    renderGrid(codon);
+  }
+  function renderStep5() {
+    pick.innerHTML = state.orfs.map((o, i) => `<button type="button" data-i="${i}" aria-pressed="${i === cur}">ORF ${i + 1}</button>`).join("");
+    pick.querySelectorAll("button").forEach(b => b.addEventListener("click", () => { cur = +b.dataset.i; reset(); pick.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", String(x === b))); }));
+    if (cur >= state.orfs.length) cur = 0;
+    reset();
+    document.getElementById("progOut").textContent = 'Click "Run the whole program" to see what python3 find_orfs_beginner.py prints.';
+  }
+  function reset() { pos = 0; protein = ""; renderVars(); }
+  function next() {
+    const orf = state.orfs[cur]; if (!orf || pos >= orf.length) return;
+    protein += GENETIC_CODE[orf.slice(pos, pos + 3)] || "?"; pos += 3; renderVars();
+  }
+  document.getElementById("stepNext").addEventListener("click", next);
+  document.getElementById("stepEnd").addEventListener("click", () => { const orf = state.orfs[cur]; if (!orf) return; while (pos < orf.length) { protein += GENETIC_CODE[orf.slice(pos, pos + 3)] || "?"; pos += 3; } renderVars(); });
+  document.getElementById("stepReset").addEventListener("click", reset);
+  document.getElementById("runAll").addEventListener("click", () => {
+    const o = document.getElementById("progOut");
+    let text = `$ python3 find_orfs_beginner.py\nSequence length: ${state.sequence.length} bases\n`;
+    if (state.error) { o.innerHTML = esc(text) + `<span class="err">Traceback (most recent call last):\n  File "find_orfs_beginner.py", line 36, in &lt;module&gt;\n    complement = complement + pairs[base]\n${esc(state.error.msg)}</span>`; return; }
+    text += `ORFs found: ${state.orfs.length}\n`;
+    for (let i = 0; i < state.orfs.length; i++) {
+      const t = translate(state.orfs[i]);
+      if (t.error) { o.innerHTML = esc(text) + `<span class="err">${esc(t.error)}</span>`; return; }
+      text += `\nORF ${i + 1} on strand ${state.strands[i]} starting at ${state.starts[i]}\n  length: ${state.orfs[i].length} bases, ${t.protein.length - 1} amino acids\n  protein: ${t.protein}\n`;
+    }
+    o.textContent = text;
+  });
+
+  /* ---------- check ---------- */
+  document.getElementById("geneChips").innerHTML = GB.map(g => `<span class="gene-chip"><i>${g.name}</i>+ ${fmt(g.start)}–${fmt(g.end)} · ${g.codon} start</span>`).join("");
+  function renderCheck() {
+    const L = state.sequence.length, tb = document.getElementById("checkRows");
+    if (!state.orfs.length) { tb.innerHTML = '<tr><td colspan="7" class="muted">No ORFs yet.</td></tr>'; return; }
+    tb.innerHTML = state.orfs.map((orf, i) => {
+      const s = state.strands[i], start = state.starts[i], end = start + orf.length - 1;
+      const a = s === "+" ? start : L - end + 1, b = s === "+" ? end : L - start + 1;
+      let gene = '<span class="muted">not annotated</span>';
+      if (state.variant === "lac" && s === "+") {
+        const g = GB.find(g => g.end === b);
+        if (g) gene = g.start === a ? `<span class="tag ok"><i>${g.name}</i> exact</span>` : `<span class="tag gb"><i>${g.name}</i>, real start ${fmt(g.start)} (${g.codon})</span>`;
+      } else if (state.variant !== "lac") gene = '<span class="muted">no annotation</span>';
+      const prot = translate(orf).protein || "";
+      const q = encodeURIComponent(prot.replace(/\*$/, ""));
+      return `<tr><td class="num">${i + 1}</td><td class="strandmark ${s === "+" ? "p" : "m"}">${s === "+" ? "+" : "−"}</td><td class="num">${start}</td><td class="num">${fmt(a)}–${fmt(b)}</td><td class="num">${prot.length - 1}</td><td>${gene}</td><td><a href="https://blast.ncbi.nlm.nih.gov/Blast.cgi?PROGRAM=blastp&amp;PAGE_TYPE=BlastSearch&amp;QUERY=${q}" target="_blank" rel="noopener">BLASTp</a></td></tr>`;
+    }).join("");
+  }
+
+  /* ---------- notes & copy ---------- */
+  document.querySelectorAll("textarea[data-note]").forEach(ta => {
+    const v = store.get("note" + ta.dataset.note); if (v) ta.value = v;
+    ta.addEventListener("input", () => store.set("note" + ta.dataset.note, ta.value));
+  });
+  document.querySelectorAll("pre[data-copy]").forEach(pre => {
+    const b = document.createElement("button"); b.type = "button"; b.className = "copy"; b.textContent = "Copy";
+    const text = pre.textContent;
+    b.addEventListener("click", () => {
+      const flash = l => { b.textContent = l; setTimeout(() => b.textContent = "Copy", 1400); };
+      const sel = () => { const r = document.createRange(); r.selectNodeContents(pre); const s = getSelection(); s.removeAllRanges(); s.addRange(r); flash("Selected"); };
+      try { navigator.clipboard.writeText(text).then(() => flash("Copied"), sel); } catch (e) { sel(); }
+    });
+    pre.appendChild(b);
+  });
+
+  runAll();
+})();
+</script>
