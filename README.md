@@ -21,6 +21,8 @@ Python, run from the repository root:
 
 - `find_orfs_beginner.py` does the same in five numbered steps with only loops, lists and an
   explicit codon dictionary: read FASTA, complement, regex, search both strands, translate.
+- `find_orfs_beginner_biopython.py` is the same five steps with Biopython (`SeqIO.read`,
+  `reverse_complement()`, `translate()`); the regex is unchanged because Biopython has no ORF finder.
 - `find_candidate_genes.py` is the minimal goal students build, starting from the FASTA file: ORFs on both strands (with
   overlaps), a length cutoff, and translation, with a written-out codon table and about 20 commented lines of code, no functions.
 - `find_candidate_genes_biopython.py` gives the same result with Biopython (`pip install biopython`):
