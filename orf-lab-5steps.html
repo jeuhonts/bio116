@@ -296,6 +296,26 @@ footer { margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--line);
 .lists { margin: 0; font: 400 0.8rem/1.6 var(--mono); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; overflow-x: auto; white-space: pre; }
 tr.skipped td { color: var(--muted); }
 .wide { display: grid; gap: 14px; }
+.trace { margin: 0; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px; display: grid; gap: 10px; overflow-x: auto; color: var(--ink); }
+.trace svg { width: 100%; min-width: 760px; height: auto; display: block; }
+.trace figcaption { font-size: 0.88rem; color: var(--muted); max-width: 80ch; }
+.trace .dh { font: 600 12px var(--body); fill: var(--muted); }
+.trace .dhm { font: 600 12px var(--mono); fill: var(--muted); }
+.trace .dl { stroke: var(--line); }
+.trace .dm { font: 400 12.5px var(--mono); fill: currentColor; }
+.trace .dn { font: 400 11.5px var(--body); fill: var(--muted); }
+.trace .dk { font: 600 12.5px var(--mono); fill: var(--primary); }
+.trace .ds { font: 400 12.5px var(--mono); fill: var(--muted); }
+.trace .kept { fill: var(--primary); }
+.trace rect.skip { fill: none; stroke: var(--muted); stroke-dasharray: 3 2; }
+.trace circle.atg.skip { fill: var(--surface); stroke: var(--muted); }
+.trace circle.atg.kept { fill: var(--primary); }
+.trace .stopm { fill: var(--accent); }
+.trace .guide { stroke: var(--accent); stroke-dasharray: 2 3; }
+.trace .box { fill: var(--bg); stroke: var(--line); }
+.trace .bt { font: 600 13px var(--body); fill: currentColor; }
+.trace .arr { stroke: currentColor; stroke-width: 1.4; }
+
 </style>
 
 <div class="bar">
@@ -531,6 +551,10 @@ print(<span class="s">"ORFs found:"</span>, len(orfs))</pre>
         <pre class="term" id="s4out"></pre>
       </div>
     </div>
+    <figure class="trace">
+      <svg viewBox="0 0 1040 372" role="img" aria-label="Step 4 trace on the lac + strand: finditer returns ORFs left to right; the first ORF for each stop position is kept and its stop is added to stops_seen; later ORFs ending at a stop already in stops_seen are skipped. The kept ORFs go into the lists that step 5 translates."><defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker></defs><text x="62" y="36" class="dh" text-anchor="end">ATG at</text><text x="78" y="36" class="dh" text-anchor="start">ORF on the + strand (bp 1–1,400, to scale)</text><text x="530" y="36" class="dhm" text-anchor="start">stop_position</text><text x="648" y="36" class="dhm" text-anchor="start">in stops_seen?</text><text x="768" y="36" class="dh" text-anchor="start">what happens</text><text x="888" y="36" class="dhm" text-anchor="start">stops_seen after</text><line x1="10" y1="46" x2="1030" y2="46" class="dl"/><line x1="378.2" y1="86" x2="378.2" y2="234" class="guide"/><text x="384.2" y="84" class="dn">all end at 1161</text><text x="62" y="68" class="dm" text-anchor="end">12</text><rect x="81.1" y="58" width="82.0" height="12" rx="2" class="kept"/><circle cx="81.1" cy="64" r="4" class="atg kept"/><rect x="160.1" y="56" width="6" height="16" class="stopm"/><text x="530" y="68" class="dm">329</text><text x="648" y="68" class="dm">no</text><text x="768" y="68" class="dk">keep: append</text><text x="888" y="68" class="dk">[329]</text><text x="62" y="100" class="dm" text-anchor="end">202</text><rect x="130.2" y="90" width="248.0" height="12" rx="2" class="kept"/><circle cx="130.2" cy="96" r="4" class="atg kept"/><rect x="375.2" y="88" width="6" height="16" class="stopm"/><text x="530" y="100" class="dm">1,161</text><text x="648" y="100" class="dm">no</text><text x="768" y="100" class="dk">keep: append</text><text x="888" y="100" class="dk">[329, 1161]</text><text x="62" y="132" class="dm" text-anchor="end">370</text><rect x="173.7" y="122" width="204.5" height="12" rx="2" class="skip"/><circle cx="173.7" cy="128" r="4" class="atg skip"/><rect x="375.2" y="120" width="6" height="16" class="stopm"/><text x="530" y="132" class="dm">1,161</text><text x="648" y="132" class="dm">yes</text><text x="768" y="132" class="ds">skip: continue</text><text x="888" y="132" class="dm">[329, 1161]</text><text x="62" y="164" class="dm" text-anchor="end">745</text><rect x="270.6" y="154" width="107.6" height="12" rx="2" class="skip"/><circle cx="270.6" cy="160" r="4" class="atg skip"/><rect x="375.2" y="152" width="6" height="16" class="stopm"/><text x="530" y="164" class="dm">1,161</text><text x="648" y="164" class="dm">yes</text><text x="768" y="164" class="ds">skip: continue</text><text x="888" y="164" class="dm">[329, 1161]</text><text x="78" y="196" class="dn">766, 772, 802, 823 → 1161: skipped the same way</text><text x="62" y="228" class="dm" text-anchor="end">838</text><rect x="294.7" y="218" width="83.5" height="12" rx="2" class="skip"/><circle cx="294.7" cy="224" r="4" class="atg skip"/><rect x="375.2" y="216" width="6" height="16" class="stopm"/><text x="530" y="228" class="dm">1,161</text><text x="648" y="228" class="dm">yes</text><text x="768" y="228" class="ds">skip: continue</text><text x="888" y="228" class="dm">[329, 1161]</text><text x="62" y="260" class="dm" text-anchor="end">1,284</text><rect x="410.0" y="250" width="30.0" height="12" rx="2" class="kept"/><circle cx="410.0" cy="256" r="4" class="atg kept"/><text x="445.0" y="260" class="dn">… to 4,358</text><text x="530" y="260" class="dm">4,358</text><text x="648" y="260" class="dm">no</text><text x="768" y="260" class="dk">keep: append</text><text x="888" y="260" class="dk">[329, 1161, 4358]</text><rect x="78" y="308" width="260" height="50" rx="8" class="box"/><text x="208" y="329" class="bt" text-anchor="middle">3 kept matches (of 10)</text><text x="208" y="346" class="dn" text-anchor="middle">longest ORF for each stop</text><rect x="408" y="308" width="260" height="50" rx="8" class="box"/><text x="538" y="329" class="bt" text-anchor="middle">orfs, strands, starts</text><text x="538" y="346" class="dn" text-anchor="middle">one item per ORF</text><rect x="738" y="308" width="260" height="50" rx="8" class="box"/><text x="868" y="329" class="bt" text-anchor="middle">step 5: translate</text><text x="868" y="346" class="dn" text-anchor="middle">for i in range(len(orfs))</text><line x1="338" y1="333" x2="406" y2="333" class="arr" marker-end="url(#ah)"/><text x="373" y="326" class="dn" text-anchor="middle">append</text><line x1="668" y1="333" x2="736" y2="333" class="arr" marker-end="url(#ah)"/><text x="703" y="326" class="dn" text-anchor="middle">each orf[i]</text></svg>
+      <figcaption>How step 4 keeps only the longest ORF for each stop codon, traced on the first 10 matches of the lac + strand. <code>re.finditer</code> returns matches from left to right, so the first ORF to reach a stop codon starts at the most upstream ATG. Its <code>stop_position</code> is not yet in <code>stops_seen</code>, so it is kept and the stop is recorded. Every later match ending at the same stop is a shorter, nested ORF and is skipped. Only kept ORFs reach the lists that step 5 translates.</figcaption>
+    </figure>
   </section>
 
   <!-- STEP 5 -->
