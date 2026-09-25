@@ -1,0 +1,1055 @@
+<title>Aligning the Globins</title>
+<meta name="description" content="Bio 116 tutorial: protein pairwise sequence alignment with hemoglobin, myoglobin and leghemoglobin.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Literata:opsz,wght@7..72,500;7..72,650&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&display=swap">
+<style>
+:root{
+  --bg:#FAF8F9; --panel:#FFFFFF; --panel-2:#F3EEF1; --ink:#1F1A21; --muted:#645B68; --line:#E3DAE0;
+  --heme:#A8173A; --heme-soft:#F7DDE3; --plum:#4C2C63; --plum-soft:#EBE2F1;
+  --r-hyd:#D9E6F7; --r-aro:#E3DAF5; --r-pos:#F8D8DE; --r-neg:#F5E1C4; --r-pol:#D5EEDF; --r-spe:#ECE8D2;
+  --good:#1E6B45; --warn:#8A5A00;
+  --display:"Literata", Georgia, "Times New Roman", serif;
+  --body:"Source Sans 3", "Segoe UI", Arial, sans-serif;
+  --mono:"JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#141015; --panel:#1C171E; --panel-2:#251F28; --ink:#EEE8EF; --muted:#A99EAD; --line:#352D38;
+    --heme:#F2708A; --heme-soft:#4A1E2A; --plum:#C9A9E2; --plum-soft:#33263E;
+    --r-hyd:#1E3350; --r-aro:#33294F; --r-pos:#4C2230; --r-neg:#48341E; --r-pol:#1B3E2D; --r-spe:#383422;
+    --good:#6FD19E; --warn:#E9B45A;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#141015; --panel:#1C171E; --panel-2:#251F28; --ink:#EEE8EF; --muted:#A99EAD; --line:#352D38;
+  --heme:#F2708A; --heme-soft:#4A1E2A; --plum:#C9A9E2; --plum-soft:#33263E;
+  --r-hyd:#1E3350; --r-aro:#33294F; --r-pos:#4C2230; --r-neg:#48341E; --r-pol:#1B3E2D; --r-spe:#383422;
+  --good:#6FD19E; --warn:#E9B45A;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.6;margin:0}
+.wrap{max-width:1180px;margin:0 auto;padding-inline:20px;padding-block:0 64px;display:grid;grid-template-columns:200px minmax(0,1fr);gap:48px}
+@media (max-width:980px){.wrap{grid-template-columns:minmax(0,1fr);gap:0}.toc{display:none}}
+@media (max-width:480px){.wrap{padding-inline:16px}body{font-size:16px}}
+.toc{position:sticky;top:env(safe-area-inset-top,0px);align-self:start;padding-top:40px;font-size:14px}
+.toc b{display:block;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.toc ol{list-style:none;margin:0;padding:0;display:grid;gap:2px;counter-reset:t}
+.toc a{display:block;color:var(--muted);text-decoration:none;padding:4px 8px;border-left:2px solid var(--line);counter-increment:t}
+.toc a::before{content:counter(t) ". ";font-variant-numeric:tabular-nums}
+.toc a:hover,.toc a.on{color:var(--ink);border-left-color:var(--heme)}
+main{min-width:0}
+.prose{max-width:68ch}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;line-height:1.2;font-weight:650}
+h1{font-size:clamp(2.2rem,5vw,3.4rem);margin:0 0 16px;letter-spacing:-.01em}
+h2{font-size:1.75rem;margin:0 0 12px}
+h3{font-size:1.2rem;margin:28px 0 8px;font-weight:500}
+p{margin:0 0 14px}
+a{color:var(--heme)}
+a:focus-visible,button:focus-visible,select:focus-visible,input:focus-visible,summary:focus-visible,td:focus-visible{outline:2px solid var(--heme);outline-offset:2px}
+code,.mono{font-family:var(--mono);font-size:.88em}
+.eyebrow{font-size:13px;letter-spacing:.09em;text-transform:uppercase;color:var(--heme);font-weight:700;margin-bottom:12px}
+header.hero{padding-block:48px 24px;border-bottom:1px solid var(--line);margin-bottom:8px}
+.lede{font-size:1.15rem;max-width:62ch;color:var(--ink)}
+.meta{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0 26px;padding:0;list-style:none}
+.meta li{font-size:14px;padding:4px 10px;border:1px solid var(--line);border-radius:999px;color:var(--muted);background:var(--panel)}
+section{padding-block:40px 8px;border-bottom:1px solid var(--line);scroll-margin-top:12px}
+section:last-of-type{border-bottom:0}
+.snum{font-family:var(--mono);font-size:13px;color:var(--heme);display:block;margin-bottom:6px}
+.goals{margin:0;padding-left:20px}
+.goals li{margin-bottom:4px}
+.note{font-size:15px;color:var(--muted);border-left:3px solid var(--plum);padding:4px 0 4px 14px;margin:18px 0;max-width:68ch}
+.eq{font-family:var(--mono);font-size:15px;background:var(--panel-2);border-radius:6px;padding:14px 16px;overflow-x:auto;white-space:pre;margin:14px 0 18px;max-width:100%;line-height:1.7}
+.tablewrap{overflow-x:auto;margin:16px 0 20px}
+table.data{border-collapse:collapse;font-size:15px;min-width:560px;width:100%}
+table.data th,table.data td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+table.data th{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:700}
+table.data td.num{font-variant-numeric:tabular-nums}
+
+/* tool panels */
+.tool{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px;margin:20px 0 24px}
+.tool-title{font-family:var(--display);font-size:1.05rem;font-weight:650;margin:0 0 12px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:baseline}
+.tool-title small{font-family:var(--body);font-weight:400;font-size:13px;color:var(--muted)}
+.controls{display:flex;flex-wrap:wrap;gap:12px 16px;align-items:flex-end;margin-bottom:14px}
+.field{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted);min-width:0}
+.field.grow{flex:1 1 220px}
+.field input[type=text]{font-family:var(--mono);text-transform:uppercase}
+select,input[type=text],input[type=number]{font:inherit;font-size:15px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:6px 8px;min-width:0;max-width:100%}
+input[type=number]{width:80px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.seg label{padding:6px 12px;font-size:14px;color:var(--ink);cursor:pointer;background:var(--bg)}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg label:has(input:checked){background:var(--plum);color:var(--bg)}
+.seg label:has(input:focus-visible){outline:2px solid var(--heme);outline-offset:-2px}
+button{font:inherit;font-size:14px;font-weight:600;border-radius:6px;padding:7px 14px;cursor:pointer;border:1px solid var(--line);background:var(--bg);color:var(--ink)}
+button.primary{background:var(--heme);border-color:var(--heme);color:var(--bg)}
+button:hover{border-color:var(--heme)}
+.btnrow{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}
+.chips button{font-weight:400;border-radius:999px;padding:4px 12px}
+
+/* stats */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:8px;overflow:hidden;margin:0 0 14px}
+.stat{background:var(--panel);padding:10px 12px}
+.stat b{display:block;font-family:var(--mono);font-size:1.25rem;font-weight:600;font-variant-numeric:tabular-nums}
+.stat span{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+
+/* alignment display */
+.aln{font-family:var(--mono);font-size:14px;line-height:1.45;overflow-x:auto;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:12px 14px;white-space:pre;max-width:100%}
+.aln .blk{margin-bottom:12px}
+.aln .blk:last-child{margin-bottom:0}
+.aln .nm{color:var(--muted)}
+.aln .mid{color:var(--muted)}
+.r{border-radius:2px}
+.c-hyd{background:var(--r-hyd)} .c-aro{background:var(--r-aro)} .c-pos{background:var(--r-pos)}
+.c-neg{background:var(--r-neg)} .c-pol{background:var(--r-pol)} .c-spe{background:var(--r-spe)}
+.plain .r{background:none}
+.key{outline:2px solid var(--heme);outline-offset:-1px;font-weight:600;color:var(--heme)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;color:var(--muted);margin:10px 0 0}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{display:inline-block;width:14px;height:14px;border-radius:3px}
+.check{font-size:14px;margin:0 0 12px;display:flex;flex-wrap:wrap;gap:6px 18px}
+.ok{color:var(--good);font-weight:600}
+.no{color:var(--warn);font-weight:600}
+
+/* DP explorer */
+.dpwrap{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--bg);max-width:100%}
+table.dp{border-collapse:collapse;font-family:var(--mono);font-size:12px;margin:0}
+table.dp th{font-weight:600;color:var(--muted);width:34px;height:30px;text-align:center;background:var(--panel-2)}
+table.dp th.idx{font-size:10px;font-weight:400}
+table.dp td{width:34px;height:30px;text-align:center;border:1px solid var(--line);position:relative;font-variant-numeric:tabular-nums;cursor:pointer;color:var(--ink)}
+table.dp td.empty{color:transparent;cursor:default}
+table.dp td .ar{position:absolute;top:0;left:2px;font-size:8px;color:var(--muted);line-height:1.1}
+table.dp td.src{outline:2px dashed var(--plum);outline-offset:-3px}
+table.dp td.cur{background:var(--plum-soft);font-weight:600}
+table.dp td.path{background:var(--heme-soft);color:var(--heme);font-weight:600}
+table.dp td.sel{outline:2px solid var(--heme);outline-offset:-2px}
+.calc{font-family:var(--mono);font-size:13px;background:var(--panel-2);border-radius:8px;padding:12px 14px;margin:12px 0;white-space:pre;overflow-x:auto;line-height:1.6;min-height:7.5em}
+.calc b{color:var(--heme)}
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px}
+@media (max-width:760px){.two{grid-template-columns:minmax(0,1fr)}}
+
+/* BLOSUM heatmap */
+.hm{border-collapse:collapse;font-family:var(--mono);font-size:11px}
+.hm th{width:26px;height:24px;color:var(--muted);font-weight:600}
+.hm td{width:26px;height:24px;text-align:center;cursor:pointer;font-variant-numeric:tabular-nums;border:1px solid var(--bg)}
+.hm td.sel{outline:2px solid var(--ink);outline-offset:-2px}
+.hm th.hl{color:var(--heme)}
+.readout{font-size:15px;background:var(--panel-2);border-radius:8px;padding:12px 14px;min-height:5.5em}
+.readout .big{font-family:var(--mono);font-size:1.6rem;font-weight:600;color:var(--heme);display:block}
+
+/* plots */
+canvas{display:block;max-width:100%;background:var(--bg);border:1px solid var(--line);border-radius:8px}
+svg text{font-family:var(--body)}
+.hist{width:100%;height:auto;display:block;max-width:100%}
+
+/* identity matrix */
+table.idm{border-collapse:collapse;font-size:14px;min-width:520px}
+table.idm th,table.idm td{padding:8px 10px;text-align:center;border:1px solid var(--line)}
+table.idm th{font-weight:600;color:var(--muted);font-size:13px}
+table.idm td{font-family:var(--mono);font-variant-numeric:tabular-nums}
+
+/* questions */
+details{border:1px solid var(--line);border-radius:8px;background:var(--panel);padding:12px 16px;margin:0 0 10px;max-width:72ch}
+summary{cursor:pointer;font-weight:600}
+details p{margin:10px 0 0}
+.refs{font-size:15px;padding-left:20px}
+.refs li{margin-bottom:6px}
+footer{font-size:13px;color:var(--muted);padding-top:24px}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+</style>
+
+<div class="wrap">
+<nav class="toc" aria-label="Contents">
+  <b>Contents</b>
+  <ol>
+    <li><a href="#globins">Meet the globins</a></li>
+    <li><a href="#anatomy">What an alignment says</a></li>
+    <li><a href="#blosum">Scoring substitutions</a></li>
+    <li><a href="#gaps">Paying for gaps</a></li>
+    <li><a href="#nw">Needleman–Wunsch</a></li>
+    <li><a href="#sw">Smith–Waterman</a></li>
+    <li><a href="#full">Whole globins</a></li>
+    <li><a href="#family">How far the family reaches</a></li>
+    <li><a href="#signif">Is the score significant?</a></li>
+    <li><a href="#check">Check yourself</a></li>
+    <li><a href="#refs">References</a></li>
+  </ol>
+</nav>
+
+<main>
+<header class="hero">
+  <div class="eyebrow">Bio 116 · Tutorial · Protein pairwise alignment</div>
+  <h1>Aligning the Globins</h1>
+  <p class="lede">Hemoglobin α, hemoglobin β, myoglobin and soybean leghemoglobin all fold into the same eight-helix shape and hold heme between the same two histidines. Their sequences have drifted much further apart than their structures have. In this tutorial you score alignments of these proteins, run the Needleman–Wunsch and Smith–Waterman algorithms one cell at a time, and test whether a weak match could be chance.</p>
+  <ul class="meta">
+    <li>About 45 minutes</li>
+    <li>Assumes: amino-acid chemistry, basic probability</li>
+    <li>All tools run in your browser</li>
+  </ul>
+  <div class="aln" id="heroAln" aria-label="Alignment of the first residues of human hemoglobin alpha and beta"></div>
+  <div class="legend" id="legend1"></div>
+</header>
+
+<section id="goals-sec" aria-labelledby="goals-h">
+  <div class="prose">
+  <h2 id="goals-h">By the end you should be able to</h2>
+  <ul class="goals">
+    <li>Read an alignment: identities, conservative substitutions and gaps.</li>
+    <li>Explain where BLOSUM62 scores come from and read the matrix.</li>
+    <li>Fill a dynamic-programming matrix for global and local alignment, then trace it back.</li>
+    <li>Choose gap penalties and predict their effect on real globins.</li>
+    <li>Judge an alignment score against scores from shuffled sequences.</li>
+  </ul>
+  </div>
+</section>
+
+<section id="globins" aria-labelledby="globins-h">
+  <span class="snum">1</span>
+  <div class="prose">
+  <h2 id="globins-h">Meet the globins</h2>
+  <p>Globins were the first proteins to have their 3D structures solved. Kendrew solved sperm whale myoglobin in 1958 and Perutz solved hemoglobin soon after. Every globin folds into helices named A through H. The heme iron is bound by the <b>proximal histidine F8</b>, the 8th residue of helix F. On the other side of the heme, where O<sub>2</sub> binds, sits the <b>distal histidine E7</b>.</p>
+  <p>Those two histidines give us a check that has nothing to do with the alignment algorithm. If an alignment of two globins is right, their E7 histidines should land in the same column, and so should their F8 histidines.</p>
+  </div>
+  <div class="tablewrap">
+  <table class="data" id="globinTable">
+    <thead><tr><th>Protein</th><th>Organism</th><th>UniProt</th><th>Length</th><th>Distal His (E7)</th><th>Proximal His (F8)</th><th>Job</th></tr></thead>
+    <tbody></tbody>
+  </table>
+  </div>
+  <p class="note">Sequences are the UniProt canonical sequences with the initiator methionine removed, so residue numbers match the classic literature. For example, β His92 is the F8 histidine.</p>
+</section>
+
+<section id="anatomy" aria-labelledby="anatomy-h">
+  <span class="snum">2</span>
+  <div class="prose">
+  <h2 id="anatomy-h">What an alignment says</h2>
+  <p>An alignment is a hypothesis about which residues descend from the same position in an ancestral protein. Each column is one of three kinds:</p>
+  <ul class="goals">
+    <li><b>Identity</b> (<code>|</code>): the same residue in both. The position may be constrained, or there may not have been time for it to change.</li>
+    <li><b>Substitution</b>: different residues. A similar pair such as L/V or K/R gets <code>:</code> and a dissimilar pair gets <code>.</code></li>
+    <li><b>Gap</b> (<code>-</code>): one sequence gained or lost residues since the two split. This is an <i>indel</i> (insertion or deletion), and the alignment cannot tell you which one happened.</li>
+  </ul>
+  </div>
+  <div class="aln" id="anatomyAln"></div>
+  <div class="prose">
+  <p style="margin-top:14px"><b>Homology is yes or no.</b> Two proteins either share an ancestor or they do not. Percent identity and alignment scores are measurements, and they are the <i>evidence</i> for homology. "These proteins are 43% homologous" is a common mistake. Say "43% identical", or "homologous, with 43% identity".</p>
+  </div>
+</section>
+
+<section id="blosum" aria-labelledby="blosum-h">
+  <span class="snum">3</span>
+  <div class="prose">
+  <h2 id="blosum-h">Scoring substitutions: BLOSUM62</h2>
+  <p>Some substitutions happen all the time in real proteins. Isoleucine and valine are both small and hydrophobic, so one can often replace the other in a helix core. Other swaps, like tryptophan to glycine, almost never survive selection. A good scoring scheme should reward the first kind and penalize the second.</p>
+  <p>Henikoff and Henikoff (1992) counted aligned residue pairs in conserved, gap-free blocks of related proteins. Sequences more than 62% identical were clustered together so that close relatives would not dominate the counts. For each pair they compared the observed frequency <i>q<sub>ab</sub></i> with the frequency expected by chance, <i>p<sub>a</sub>p<sub>b</sub></i>:</p>
+  </div>
+  <div class="eq">s(a,b) = round( 2 · log₂( q_ab / (p_a · p_b) ) )        units: half-bits</div>
+  <div class="prose">
+  <p>A positive score means the pair turns up in real alignments more often than chance predicts. A negative score means less often. Because these are logarithms, the scores of independent columns can simply be added. An alignment score is a log-likelihood ratio: "related" against "unrelated".</p>
+  </div>
+  <div class="tool">
+    <div class="tool-title">BLOSUM62 <small>Click any cell. Rows and columns are grouped by chemistry.</small></div>
+    <div class="two">
+      <div class="dpwrap" style="border:0;background:none"><table class="hm" id="heatmap" aria-label="BLOSUM62 substitution matrix"></table></div>
+      <div>
+        <div class="readout" id="hmRead" aria-live="polite"></div>
+        <div class="legend" style="margin-top:12px">
+          <span><i style="background:var(--heme)"></i>positive: seen more than chance</span>
+          <span><i style="background:var(--plum)"></i>negative: seen less than chance</span>
+        </div>
+        <p class="note">Look along the diagonal. W–W scores +11 but A–A only +4. Tryptophan is rare, so two tryptophans lining up by chance is unlikely, and a W match tells you more.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="gaps" aria-labelledby="gaps-h">
+  <span class="snum">4</span>
+  <div class="prose">
+  <h2 id="gaps-h">Paying for gaps</h2>
+  <p>Without a gap penalty, an aligner could scatter gaps everywhere to line up a few extra identities. A <b>linear</b> penalty charges <i>g</i> for every gap position. An <b>affine</b> penalty charges more to open a gap than to extend it:</p>
+  </div>
+  <div class="eq">linear:  cost(L) = g · L
+affine:  cost(L) = open + (L − 1) · extend</div>
+  <div class="prose">
+  <p>Affine penalties match how proteins change. A single mutation event often inserts or deletes several residues together: a loop grows, or a helix is lost. Hemoglobin α has no D helix at all, and that shows up as one run of gap positions when α is aligned to β.</p>
+  </div>
+  <div class="tablewrap">
+  <table class="data" style="min-width:420px;max-width:560px">
+    <thead><tr><th>Gap pattern</th><th>Linear, g = 8</th><th>Affine, 10 / 0.5</th></tr></thead>
+    <tbody>
+      <tr><td>One gap of 5 residues</td><td class="num">40</td><td class="num">12</td></tr>
+      <tr><td>Five gaps of 1 residue</td><td class="num">40</td><td class="num">50</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="note">Under the linear scheme both patterns cost the same. The affine scheme strongly prefers the single block. Open 10 / extend 0.5 are the defaults of EMBOSS Needle, and this page uses them for full-length alignments.</p>
+</section>
+
+<section id="nw" aria-labelledby="nw-h">
+  <span class="snum">5</span>
+  <div class="prose">
+  <h2 id="nw-h">Needleman–Wunsch, one cell at a time</h2>
+  <p>You cannot try every alignment. Two 150-residue globins can be aligned in roughly 10<sup>89</sup> ways. Needleman and Wunsch (1970) noticed that the best alignment of two prefixes can be built from best alignments of slightly shorter prefixes. Cell <i>F(i, j)</i> holds the best score for aligning the first <i>i</i> residues of A with the first <i>j</i> residues of B. For 150 × 150 residues that is 22,500 cells.</p>
+  </div>
+  <div class="eq">F(0,0) = 0      F(i,0) = −i·g      F(0,j) = −j·g
+
+F(i,j) = max {  F(i−1, j−1) + s(aᵢ, bⱼ)     ↖  pair aᵢ with bⱼ
+                F(i−1, j)   − g              ↑  aᵢ against a gap
+                F(i,   j−1) − g              ←  bⱼ against a gap  }</div>
+  <div class="prose">
+  <p>Once the matrix is full, the score of the best global alignment is in the bottom-right cell. <b>Traceback</b> follows the arrows from that cell back to the top-left corner to recover the alignment. To keep a single matrix on screen, this explorer uses a linear gap penalty.</p>
+  </div>
+
+  <div class="tool" id="explorer">
+    <div class="tool-title">Dynamic-programming explorer <small>Rows = sequence A, columns = sequence B</small></div>
+    <div class="controls">
+      <label class="field">Segment
+        <select id="exPreset">
+          <option value="nterm">N-terminus: α 1–17 vs β 1–18</option>
+          <option value="e7">Distal His (E7): α 52–65 vs β 57–70</option>
+          <option value="f8">Proximal His (F8): β 85–99 vs whale Mb 86–100</option>
+          <option value="custom">Custom (type your own)</option>
+        </select>
+      </label>
+      <label class="field grow">Sequence A <input type="text" id="exA" maxlength="22" spellcheck="false" autocomplete="off"></label>
+      <label class="field grow">Sequence B <input type="text" id="exB" maxlength="22" spellcheck="false" autocomplete="off"></label>
+    </div>
+    <div class="controls">
+      <div class="field">Mode
+        <div class="seg" role="radiogroup" aria-label="Alignment mode">
+          <label><input type="radio" name="exMode" id="exGlobal" value="global" checked>Global (NW)</label>
+          <label><input type="radio" name="exMode" id="exLocal" value="local">Local (SW)</label>
+        </div>
+      </div>
+      <label class="field">Gap penalty g <input type="number" id="exGap" value="8" min="0" max="20" step="1"></label>
+      <label class="field">Matrix
+        <select id="exMat"><option value="b62">BLOSUM62</option><option value="id">Identity (+5 / −4)</option></select>
+      </label>
+    </div>
+    <div class="btnrow">
+      <button id="exReset">Reset</button>
+      <button id="exStep" class="primary">Step one cell</button>
+      <button id="exRow">Fill row</button>
+      <button id="exPlay">Play</button>
+      <button id="exAll">Fill all</button>
+    </div>
+    <div class="dpwrap"><table class="dp" id="dp"></table></div>
+    <div class="calc" id="exCalc" aria-live="polite"></div>
+    <div class="aln" id="exAln"></div>
+    <div class="legend">
+      <span><i style="background:var(--plum-soft);outline:1px solid var(--plum)"></i>cell being computed</span>
+      <span><i style="outline:2px dashed var(--plum);outline-offset:-2px"></i>cells it reads from</span>
+      <span><i style="background:var(--heme-soft);outline:1px solid var(--heme)"></i>traceback path</span>
+      <span>Small arrows show which move(s) gave the maximum</span>
+    </div>
+  </div>
+  <div class="prose">
+  <h3>Try this</h3>
+  <ul class="goals">
+    <li>Press <b>Reset</b>, then <b>Step</b> through the first row. Why is every cell in row 1 so negative at the far right?</li>
+    <li>On the N-terminus segment, find the gap. Does it sit where you would have put it by eye?</li>
+    <li>On the E7 segment, check that the two histidines end up in the same column.</li>
+    <li>Set g to 1. How many gaps appear now, and do you believe them?</li>
+  </ul>
+  </div>
+</section>
+
+<section id="sw" aria-labelledby="sw-h">
+  <span class="snum">6</span>
+  <div class="prose">
+  <h2 id="sw-h">Smith–Waterman: local alignment</h2>
+  <p>Global alignment forces every residue of both sequences into the answer. That is wrong when only part of two proteins is related: a shared domain, a motif inside a longer protein, or a short query searched against a database. Smith and Waterman (1981) made three changes:</p>
+  </div>
+  <div class="eq">F(i,j) = max { 0,  F(i−1,j−1) + s(aᵢ,bⱼ),  F(i−1,j) − g,  F(i,j−1) − g }
+
+1. Add 0 as a fourth choice: a bad stretch resets to zero instead of dragging the score down.
+2. Start traceback from the highest cell anywhere in the matrix.
+3. Stop traceback when you reach a cell holding 0.</div>
+  <div class="prose">
+  <p>Switch the explorer above to <b>Local (SW)</b>. Row 0 and column 0 become zeros, negative numbers disappear, and the traceback path can start and end in the middle of the matrix. Local alignment is also the core of database search, which the BLAST tutorial builds on.</p>
+  </div>
+</section>
+
+<section id="full" aria-labelledby="full-h">
+  <span class="snum">7</span>
+  <div class="prose">
+  <h2 id="full-h">Align whole globins</h2>
+  <p>This aligner uses affine gap penalties (Gotoh 1982). It keeps three matrices: one for columns that pair two residues, one for columns ending in a gap in B, and one for a gap in A. Residues are colored by chemistry. The heme-pocket histidines are boxed.</p>
+  </div>
+  <div class="tool" id="fullTool">
+    <div class="controls">
+      <label class="field">Sequence A <select id="fA"></select></label>
+      <label class="field">Sequence B <select id="fB"></select></label>
+      <div class="field">Mode
+        <div class="seg" role="radiogroup" aria-label="Alignment mode">
+          <label><input type="radio" name="fMode" id="fGlobal" value="global" checked>Global</label>
+          <label><input type="radio" name="fMode" id="fLocal" value="local">Local</label>
+        </div>
+      </div>
+      <label class="field">Matrix <select id="fMat"><option value="b62">BLOSUM62</option><option value="id">Identity (+5 / −4)</option></select></label>
+      <label class="field">Gap open <input type="number" id="fOpen" value="10" min="0" max="30" step="0.5"></label>
+      <label class="field">Gap extend <input type="number" id="fExt" value="0.5" min="0" max="10" step="0.5"></label>
+      <label class="field">Colors <select id="fColor"><option value="on">By chemistry</option><option value="off">Off</option></select></label>
+    </div>
+    <div class="stats" id="fStats"></div>
+    <div class="check" id="fCheck"></div>
+    <div class="aln" id="fAln"></div>
+    <div class="legend" id="legend2"></div>
+
+    <h3>Dot plot</h3>
+    <div class="two">
+      <div><canvas id="dot" width="460" height="460" aria-label="Dot plot of sequence A against sequence B"></canvas></div>
+      <div>
+        <p style="font-size:15px">Each dot marks a window of <i>w</i> residues along a diagonal whose summed BLOSUM62 score reaches the threshold. Runs of dots along a diagonal are similar regions. A diagonal that jumps sideways is an indel. The red line is the alignment above.</p>
+        <div class="controls">
+          <label class="field">Window w <input type="number" id="dW" value="10" min="3" max="30" step="1"></label>
+          <label class="field">Threshold <input type="number" id="dT" value="18" min="0" max="80" step="1"></label>
+        </div>
+        <p class="note" style="margin:0">Lower the threshold until noise appears everywhere, then raise it until the true diagonal starts breaking up. Somewhere in between is a useful setting.</p>
+      </div>
+    </div>
+  </div>
+  <div class="prose">
+  <h3>Try this</h3>
+  <ul class="goals">
+    <li><b>α vs β, global.</b> Find the 5-residue block of gaps in α. It sits where β has its D helix and α has none.</li>
+    <li>Read the heme-pocket check above the alignment. Do both histidine pairs line up?</li>
+    <li><b>Human vs sperm whale myoglobin.</b> Compare identity with α vs β. Myoglobins from two mammals are much closer than two hemoglobin chains from one human. What does that tell you about when α and β diverged?</li>
+    <li><b>β vs soybean leghemoglobin.</b> Identity drops to around 20%. Does the F8 histidine still line up?</li>
+    <li>Set gap open to 1 on α vs β. The number of gaps jumps from a handful to more than 20, yet identity barely moves. Which alignment do you believe, and why?</li>
+    <li><b>α vs leghemoglobin.</b> The F8 histidines line up but the E7 histidines do not. What does that suggest about how reliable this alignment is near helix E?</li>
+    <li>Switch β vs leghemoglobin to the identity matrix. What happens to the alignment and to the histidine check?</li>
+  </ul>
+  </div>
+</section>
+
+<section id="family" aria-labelledby="family-h">
+  <span class="snum">8</span>
+  <div class="prose">
+  <h2 id="family-h">How far does the family reach?</h2>
+  <p>Here is every pair of the five globins aligned globally with BLOSUM62 and gap 10 / 0.5. Each cell is percent identity: identical columns divided by alignment length.</p>
+  </div>
+  <div class="tablewrap"><table class="idm" id="idm"></table></div>
+  <div class="prose">
+  <p>Above about 40% identity over 100+ residues, homology is nearly certain. Below about 25% you are in the <b>twilight zone</b> (Doolittle 1986; Rost 1999). Unrelated proteins reach 20% identity by chance often enough that identity alone cannot settle the question. Leghemoglobin and the animal globins share a fold and a proximal histidine, so they are homologous. Their sequences, though, sit right at the edge of what alignment can detect. The next section shows one way to put a number on that.</p>
+  </div>
+</section>
+
+<section id="signif" aria-labelledby="signif-h">
+  <span class="snum">9</span>
+  <div class="prose">
+  <h2 id="signif-h">Is the score significant?</h2>
+  <p>A score only means something next to the scores that unrelated sequences get. One simple test keeps sequence A, shuffles sequence B many times, and aligns A to each shuffle. Shuffling keeps B's length and amino-acid composition but destroys its order, so any evolutionary signal is gone. If the real score sits far to the right of the shuffled scores, chance is a poor explanation.</p>
+  </div>
+  <div class="eq">z = (S_real − mean_shuffled) / sd_shuffled
+empirical p = (number of shuffles scoring ≥ S_real + 1) / (N + 1)</div>
+  <div class="tool" id="shufTool">
+    <div class="tool-title">Shuffle test <small>Local alignment, BLOSUM62, gap 10 / 0.5</small></div>
+    <div class="chips" id="shufChips"></div>
+    <div class="controls">
+      <label class="field">Sequence A <select id="sA"></select></label>
+      <label class="field">Shuffle B <select id="sB"></select></label>
+      <label class="field">Shuffles <select id="sN"><option>100</option><option selected>200</option><option>500</option><option>1000</option></select></label>
+      <button id="sRun" class="primary">Run shuffle test</button>
+    </div>
+    <div class="stats" id="sStats"></div>
+    <svg class="hist" id="hist" viewBox="0 0 640 260" role="img" aria-label="Histogram of shuffled alignment scores"></svg>
+  </div>
+  <div class="prose">
+  <p>Treat the z-score as a rough guide. The best local score from random sequences does not follow a normal distribution. It follows an <b>extreme-value (Gumbel)</b> distribution, whose right tail is longer than a normal curve's. So a z of 3 is less impressive than a normal table suggests. BLAST fits this extreme-value distribution directly and reports an <b>E-value</b>: the number of hits this good you would expect by chance. That is the subject of the next tutorial.</p>
+  </div>
+</section>
+
+<section id="check" aria-labelledby="check-h">
+  <span class="snum">10</span>
+  <h2 id="check-h">Check yourself</h2>
+  <details><summary>1. In a global alignment with linear gap penalty g, what goes in cell F(i, 0)?</summary>
+    <p>−i·g. The only way to align the first i residues of A with nothing from B is to put all i residues against gaps.</p></details>
+  <details><summary>2. Why does a local alignment matrix never contain a negative number?</summary>
+    <p>Zero is one of the choices in the max. If every way of extending an alignment into a cell scores below zero, it is better to start a new alignment there. That reset lets a strong local match stand out from unrelated flanking sequence.</p></details>
+  <details><summary>3. BLOSUM62 scores C–C as +9 but L–L as +4. Give two reasons a cysteine match carries more information.</summary>
+    <p>Cysteine is rare (low p<sub>C</sub>), so chance C–C pairs are unlikely. Cysteines are also often held in place by disulfide bonds or metal binding, so they are strongly conserved in real alignments (high q<sub>CC</sub>). Both push the log-odds ratio up.</p></details>
+  <details><summary>4. With gap open 1, α vs β gets more than 20 gaps and almost the same identity as with gap open 10. Why is it the worse alignment?</summary>
+    <p>With cheap gaps the aligner breaks the sequences into short pieces to squeeze out small score gains. Many of those gaps are not real indels. They are fitting noise. The structures of α and β superimpose helix by helix, with one real block difference (the D helix). An alignment full of one-residue gaps contradicts that structural evidence.</p></details>
+  <details><summary>5. β-globin and soybean leghemoglobin are about 20% identical. Is that enough to call them homologous?</summary>
+    <p>Not from identity alone, because unrelated sequences can reach 20%. The shuffle test adds evidence: the real score sits far above every shuffled score, around z = 7. Independent evidence settles it. The two proteins share the globin fold and bind heme through an F-helix proximal histidine that aligns in the same column.</p></details>
+  <details><summary>6. When would you choose local over global alignment for two proteins?</summary>
+    <p>When you expect only part of them to be related: a shared domain in otherwise different proteins, a short motif, a fragment against a full-length protein, or a query against a database. Use global when you expect the two to be related along their whole length, as with α and β globin.</p></details>
+</section>
+
+<section id="refs" aria-labelledby="refs-h">
+  <span class="snum">11</span>
+  <h2 id="refs-h">References and data</h2>
+  <ol class="refs">
+    <li>Needleman SB, Wunsch CD (1970). A general method applicable to the search for similarities in the amino acid sequence of two proteins. <i>J Mol Biol</i> 48:443–453.</li>
+    <li>Smith TF, Waterman MS (1981). Identification of common molecular subsequences. <i>J Mol Biol</i> 147:195–197.</li>
+    <li>Gotoh O (1982). An improved algorithm for matching biological sequences. <i>J Mol Biol</i> 162:705–708.</li>
+    <li>Henikoff S, Henikoff JG (1992). Amino acid substitution matrices from protein blocks. <i>PNAS</i> 89:10915–10919.</li>
+    <li>Doolittle RF (1986). <i>Of URFs and ORFs: a primer on how to analyze derived amino acid sequences.</i> University Science Books.</li>
+    <li>Rost B (1999). Twilight zone of protein sequence alignments. <i>Protein Eng</i> 12:85–94.</li>
+  </ol>
+  <p class="prose">Sequences: UniProt <a href="https://www.uniprot.org/uniprotkb/P69905" target="_blank" rel="noopener">P69905</a>, <a href="https://www.uniprot.org/uniprotkb/P68871" target="_blank" rel="noopener">P68871</a>, <a href="https://www.uniprot.org/uniprotkb/P02144" target="_blank" rel="noopener">P02144</a>, <a href="https://www.uniprot.org/uniprotkb/P02185" target="_blank" rel="noopener">P02185</a>, <a href="https://www.uniprot.org/uniprotkb/P02238" target="_blank" rel="noopener">P02238</a>. Structures to look at: sperm whale myoglobin <a href="https://www.rcsb.org/structure/1MBN" target="_blank" rel="noopener">PDB 1MBN</a>, human deoxyhemoglobin <a href="https://www.rcsb.org/structure/4HHB" target="_blank" rel="noopener">PDB 4HHB</a>. To check your answers with a standard tool, use <a href="https://www.ebi.ac.uk/jdispatcher/psa/emboss_needle" target="_blank" rel="noopener">EMBOSS Needle</a> and <a href="https://www.ebi.ac.uk/jdispatcher/psa/emboss_water" target="_blank" rel="noopener">EMBOSS Water</a> at EBI.</p>
+  <footer>Bio 116 · Pairwise alignment tutorial. Next: the BLAST algorithm.</footer>
+</section>
+</main>
+</div>
+
+<script>
+"use strict";
+/* ---------- data ---------- */
+const GLOBINS = [
+  {id:"HBA", short:"α", name:"Hemoglobin α", org:"Homo sapiens", acc:"P69905", e7:58, f8:87,
+   job:"Blood O₂ transport (α₂β₂ tetramer)",
+   seq:"VLSPADKTNVKAAWGKVGAHAGEYGAEALERMFLSFPTTKTYFPHFDLSHGSAQVKGHGKKVADALTNAVAHVDDMPNALSALSDLHAHKLRVDPVNFKLLSHCLLVTLAAHLPAEFTPAVHASLDKFLASVSTVLTSKYR"},
+  {id:"HBB", short:"β", name:"Hemoglobin β", org:"Homo sapiens", acc:"P68871", e7:63, f8:92,
+   job:"Blood O₂ transport (α₂β₂ tetramer)",
+   seq:"VHLTPEEKSAVTALWGKVNVDEVGGEALGRLLVVYPWTQRFFESFGDLSTPDAVMGNPKVKAHGKKVLGAFSDGLAHLDNLKGTFATLSELHCDKLHVDPENFRLLGNVLVCVLAHHFGKEFTPPVQAAYQKVVAGVANALAHKYH"},
+  {id:"MBh", short:"Mb (human)", name:"Myoglobin", org:"Homo sapiens", acc:"P02144", e7:64, f8:93,
+   job:"O₂ storage in muscle (monomer)",
+   seq:"GLSDGEWQLVLNVWGKVEADIPGHGQEVLIRLFKGHPETLEKFDKFKHLKSEDEMKASEDLKKHGATVLTALGGILKKKGHHEAEIKPLAQSHATKHKIPVKYLEFISECIIQVLQSKHPGDFGADAQGAMNKALELFRKDMASNYKELGFQG"},
+  {id:"MBw", short:"Mb (whale)", name:"Myoglobin", org:"Physeter macrocephalus (sperm whale)", acc:"P02185", e7:64, f8:93,
+   job:"O₂ storage for long dives; first protein structure solved",
+   seq:"VLSEGEWQLVLHVWAKVEADVAGHGQDILIRLFKSHPETLEKFDRFKHLKTEAEMKASEDLKKHGVTVLTALGAILKKKGHHEAELKPLAQSHATKHKIPIKYLEFISEAIIHVLHSRHPGDFGADAQGAMNKALELFRKDIAAKYKELGYQG"},
+  {id:"LBA", short:"Lb (soybean)", name:"Leghemoglobin A", org:"Glycine max (soybean)", acc:"P02238", e7:61, f8:92,
+   job:"Buffers O₂ for nitrogen-fixing bacteria in root nodules",
+   seq:"VAFTEKQDALVSSSFEAFKANIPQYSVVFYTSILEKAPAAKDLFSFLANGVDPTNPKLTGHAEKLFALVRDSAGQLKASGTVVADAALGSVHAQKAVTDPQFVVVKEALLKTIKAAVGDKWSDELSRAWEVAYDELAAAIKKA"}
+];
+const G = Object.fromEntries(GLOBINS.map(g => [g.id, g]));
+const label = g => g.id === "HBA" || g.id === "HBB" ? `${g.name} (human)` : `${g.name} (${g.short.replace(/^.*\(|\)$/g,"")})`;
+
+const B62_TXT = `A R N D C Q E G H I L K M F P S T W Y V
+A 4 -1 -2 -2 0 -1 -1 0 -2 -1 -1 -1 -1 -2 -1 1 0 -3 -2 0
+R -1 5 0 -2 -3 1 0 -2 0 -3 -2 2 -1 -3 -2 -1 -1 -3 -2 -3
+N -2 0 6 1 -3 0 0 0 1 -3 -3 0 -2 -3 -2 1 0 -4 -2 -3
+D -2 -2 1 6 -3 0 2 -1 -1 -3 -4 -1 -3 -3 -1 0 -1 -4 -3 -3
+C 0 -3 -3 -3 9 -3 -4 -3 -3 -1 -1 -3 -1 -2 -3 -1 -1 -2 -2 -1
+Q -1 1 0 0 -3 5 2 -2 0 -3 -2 1 0 -3 -1 0 -1 -2 -1 -2
+E -1 0 0 2 -4 2 5 -2 0 -3 -3 1 -2 -3 -1 0 -1 -3 -2 -2
+G 0 -2 0 -1 -3 -2 -2 6 -2 -4 -4 -2 -3 -3 -2 0 -2 -2 -3 -3
+H -2 0 1 -1 -3 0 0 -2 8 -3 -3 -1 -2 -1 -2 -1 -2 -2 2 -3
+I -1 -3 -3 -3 -1 -3 -3 -4 -3 4 2 -3 1 0 -3 -2 -1 -3 -1 3
+L -1 -2 -3 -4 -1 -2 -3 -4 -3 2 4 -2 2 0 -3 -2 -1 -2 -1 1
+K -1 2 0 -1 -3 1 1 -2 -1 -3 -2 5 -1 -3 -1 0 -1 -3 -2 -2
+M -1 -1 -2 -3 -1 0 -2 -3 -2 1 2 -1 5 0 -2 -1 -1 -1 -1 1
+F -2 -3 -3 -3 -2 -3 -3 -3 -1 0 0 -3 0 6 -4 -2 -2 1 3 -1
+P -1 -2 -2 -1 -3 -1 -1 -2 -2 -3 -3 -1 -2 -4 7 -1 -1 -4 -3 -2
+S 1 -1 1 0 -1 0 0 0 -1 -2 -2 0 -1 -2 -1 4 1 -3 -2 -2
+T 0 -1 0 -1 -1 -1 -1 -2 -2 -1 -1 -1 -1 -2 -1 1 5 -2 -2 0
+W -3 -3 -4 -4 -2 -2 -3 -2 -2 -3 -2 -3 -1 1 -4 -3 -2 11 2 -3
+Y -2 -2 -2 -3 -2 -1 -2 -3 2 -1 -1 -2 -1 3 -3 -2 -2 2 7 -1
+V 0 -3 -3 -3 -1 -2 -2 -3 -3 3 1 -2 1 -1 -2 -2 0 -3 -1 4`;
+const AA = "ARNDCQEGHILKMFPSTWYV";
+const B62 = new Int8Array(26 * 26);
+(() => {
+  const lines = B62_TXT.split("\n"), cols = lines[0].split(" ");
+  for (const ln of lines.slice(1)) {
+    const [r, ...v] = ln.split(" ");
+    v.forEach((x, k) => { B62[(r.charCodeAt(0) - 65) * 26 + cols[k].charCodeAt(0) - 65] = +x; });
+  }
+})();
+const IDM = new Int8Array(26 * 26);
+for (const a of AA) for (const b of AA) IDM[(a.charCodeAt(0) - 65) * 26 + b.charCodeAt(0) - 65] = a === b ? 5 : -4;
+const MAT = { b62: B62, id: IDM };
+const sc = (m, a, b) => m[(a.charCodeAt(0) - 65) * 26 + b.charCodeAt(0) - 65];
+
+const CLASS = {};
+for (const [cls, s] of Object.entries({hyd:"AVLIM", aro:"FWY", pos:"KRH", neg:"DE", pol:"STNQ", spe:"GPC"})) for (const c of s) CLASS[c] = cls;
+const CLASS_LABEL = [["hyd","hydrophobic AVLIM"],["aro","aromatic FWY"],["pos","positive KRH"],["neg","negative DE"],["pol","polar STNQ"],["spe","special GPC"]];
+function legendHTML(withKey) {
+  return CLASS_LABEL.map(([c, t]) => `<span><i class="c-${c}"></i>${t}</span>`).join("") +
+    (withKey ? `<span><i class="key" style="outline-offset:-2px"></i>heme-pocket His (E7, F8)</span>` : "");
+}
+const esc = s => s.replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+
+/* ---------- affine-gap alignment (Gotoh) ---------- */
+const NEG = -1e9;
+function align(a, b, {local = false, open = 10, ext = 0.5, mat = B62} = {}) {
+  const n = a.length, m = b.length, W = m + 1, N = (n + 1) * W;
+  const M = new Float64Array(N).fill(NEG), X = new Float64Array(N).fill(NEG), Y = new Float64Array(N).fill(NEG);
+  const pM = new Uint8Array(N), pX = new Uint8Array(N), pY = new Uint8Array(N);
+  M[0] = 0;
+  if (!local) {
+    for (let i = 1; i <= n; i++) { X[i * W] = -(open + (i - 1) * ext); pX[i * W] = i === 1 ? 0 : 1; }
+    for (let j = 1; j <= m; j++) { Y[j] = -(open + (j - 1) * ext); pY[j] = j === 1 ? 0 : 2; }
+  }
+  let best = local ? 0 : NEG, bk = 0;
+  for (let i = 1; i <= n; i++) {
+    const ai = (a.charCodeAt(i - 1) - 65) * 26;
+    for (let j = 1; j <= m; j++) {
+      const k = i * W + j, d = k - W - 1, u = k - W, l = k - 1;
+      let v = M[d], p = 0;
+      if (X[d] > v) { v = X[d]; p = 1; }
+      if (Y[d] > v) { v = Y[d]; p = 2; }
+      if (local && v <= 0) { v = 0; p = 3; }
+      M[k] = v + mat[ai + b.charCodeAt(j - 1) - 65]; pM[k] = p;
+      let x = M[u] - open, px = 0;
+      if (X[u] - ext > x) { x = X[u] - ext; px = 1; }
+      if (Y[u] - open > x) { x = Y[u] - open; px = 2; }
+      X[k] = x; pX[k] = px;
+      let y = M[l] - open, py = 0;
+      if (Y[l] - ext > y) { y = Y[l] - ext; py = 2; }
+      if (X[l] - open > y) { y = X[l] - open; py = 1; }
+      Y[k] = y; pY[k] = py;
+      if (local && M[k] > best) { best = M[k]; bk = k; }
+    }
+  }
+  let i, j, state;
+  if (local) {
+    if (best <= 0) return {score: 0, A: "", B: "", aStart: 0, bStart: 0, path: []};
+    i = Math.floor(bk / W); j = bk % W; state = 0;
+  } else {
+    const k = N - 1; i = n; j = m; best = M[k]; state = 0;
+    if (X[k] > best) { best = X[k]; state = 1; }
+    if (Y[k] > best) { best = Y[k]; state = 2; }
+  }
+  const A = [], B = [], path = [];
+  while (i > 0 || j > 0) {
+    const k = i * W + j;
+    path.push([i, j]);
+    if (state === 0) {
+      const p = pM[k]; A.push(a[i - 1]); B.push(b[j - 1]); i--; j--;
+      if (p === 3) break;
+      state = p;
+    } else if (state === 1) {
+      const p = pX[k]; A.push(a[i - 1]); B.push("-"); i--; state = p;
+    } else {
+      const p = pY[k]; A.push("-"); B.push(b[j - 1]); j--; state = p;
+    }
+    if (local && i === 0 && j === 0) break;
+  }
+  return {score: best, A: A.reverse().join(""), B: B.reverse().join(""), aStart: i, bStart: j, path: path.reverse()};
+}
+
+/* score-only local alignment, rolling rows, for the shuffle test */
+function localScore(a, b, open, ext, mat) {
+  const m = b.length;
+  let Mp = new Float64Array(m + 1), Xp = new Float64Array(m + 1).fill(NEG), Yp = new Float64Array(m + 1).fill(NEG);
+  let Mc = new Float64Array(m + 1), Xc = new Float64Array(m + 1), Yc = new Float64Array(m + 1);
+  const bc = Array.from(b, c => c.charCodeAt(0) - 65);
+  let best = 0;
+  for (let i = 0; i < a.length; i++) {
+    const ai = (a.charCodeAt(i) - 65) * 26;
+    Mc[0] = NEG; Xc[0] = NEG; Yc[0] = NEG;
+    for (let j = 1; j <= m; j++) {
+      let v = Mp[j - 1]; if (Xp[j - 1] > v) v = Xp[j - 1]; if (Yp[j - 1] > v) v = Yp[j - 1]; if (v < 0) v = 0;
+      const mm = v + mat[ai + bc[j - 1]]; Mc[j] = mm; if (mm > best) best = mm;
+      let x = Mp[j] - open; if (Xp[j] - ext > x) x = Xp[j] - ext; if (Yp[j] - open > x) x = Yp[j] - open; Xc[j] = x;
+      let y = Mc[j - 1] - open; if (Yc[j - 1] - ext > y) y = Yc[j - 1] - ext; if (Xc[j - 1] - open > y) y = Xc[j - 1] - open; Yc[j] = y;
+    }
+    [Mp, Mc] = [Mc, Mp]; [Xp, Xc] = [Xc, Xp]; [Yp, Yc] = [Yc, Yp];
+  }
+  return best;
+}
+
+function alnStats(res, mat) {
+  let id = 0, pos = 0, gaps = 0, opens = 0;
+  for (let k = 0; k < res.A.length; k++) {
+    const x = res.A[k], y = res.B[k];
+    if (x === "-" || y === "-") { gaps++; if (k === 0 || (res.A[k-1] !== "-" && res.B[k-1] !== "-") || (x === "-") !== (res.A[k-1] === "-")) opens++; continue; }
+    if (x === y) id++;
+    if (sc(B62, x, y) > 0) pos++;
+  }
+  const L = res.A.length || 1;
+  return {len: res.A.length, id, pos, gaps, opens, pid: 100 * id / L, ppos: 100 * pos / L};
+}
+
+/* render an alignment as colored blocks */
+function renderAln(el, res, opt) {
+  const {nameA, nameB, keyA = [], keyB = [], width = 60, color = true, offA = 0, offB = 0} = opt;
+  const nw = Math.max(nameA.length, nameB.length);
+  let ia = res.aStart + offA, ib = res.bStart + offB, html = "";
+  const numW = 4;
+  for (let s = 0; s < res.A.length; s += width) {
+    const ca = res.A.slice(s, s + width), cb = res.B.slice(s, s + width);
+    const startA = ia + 1, startB = ib + 1;
+    let la = "", lm = "", lb = "";
+    for (let k = 0; k < ca.length; k++) {
+      const x = ca[k], y = cb[k];
+      if (x !== "-") ia++;
+      if (y !== "-") ib++;
+      const kA = x !== "-" && keyA.includes(ia), kB = y !== "-" && keyB.includes(ib);
+      la += x === "-" ? "-" : `<span class="r c-${CLASS[x]}${kA ? " key" : ""}" title="${nameA} ${x}${ia}">${x}</span>`;
+      lb += y === "-" ? "-" : `<span class="r c-${CLASS[y]}${kB ? " key" : ""}" title="${nameB} ${y}${ib}">${y}</span>`;
+      lm += x === "-" || y === "-" ? " " : x === y ? "|" : sc(B62, x, y) > 0 ? ":" : ".";
+    }
+    const endA = ia, endB = ib;
+    html += `<div class="blk"><span class="nm">${nameA.padEnd(nw)} ${String(startA).padStart(numW)}</span> ${la} <span class="nm">${endA}</span>\n` +
+            `${" ".repeat(nw + numW + 2)}<span class="mid">${lm}</span>\n` +
+            `<span class="nm">${nameB.padEnd(nw)} ${String(startB).padStart(numW)}</span> ${lb} <span class="nm">${endB}</span></div>`;
+  }
+  el.innerHTML = html || `<span class="nm">No positive-scoring local alignment.</span>`;
+  el.classList.toggle("plain", !color);
+}
+
+/* ---------- hero + anatomy ---------- */
+function drawHero() {
+  const a = G.HBA.seq, b = G.HBB.seq;
+  const full = align(a, b);
+  const cut = 48;
+  const part = {A: full.A.slice(0, cut), B: full.B.slice(0, cut), aStart: 0, bStart: 0};
+  renderAln(document.getElementById("heroAln"), part, {nameA: "HBA", nameB: "HBB", width: cut});
+  document.getElementById("legend1").innerHTML = legendHTML(false);
+  const nt = align(a.slice(0, 17), b.slice(0, 18));
+  renderAln(document.getElementById("anatomyAln"), nt, {nameA: "α", nameB: "β", width: 60});
+}
+
+/* ---------- globin table ---------- */
+function drawTable() {
+  document.querySelector("#globinTable tbody").innerHTML = GLOBINS.map(g =>
+    `<tr><td><b>${g.name}</b>${g.id === "HBA" || g.id === "HBB" ? "" : ""}</td><td><i>${g.org.replace(/ \(.*\)/, "")}</i>${/\(/.test(g.org) ? " (" + g.org.match(/\((.*)\)/)[1] + ")" : ""}</td>` +
+    `<td><a href="https://www.uniprot.org/uniprotkb/${g.acc}" target="_blank" rel="noopener">${g.acc}</a></td>` +
+    `<td class="num">${g.seq.length}</td><td class="num">His${g.e7}</td><td class="num">His${g.f8}</td><td>${g.job}</td></tr>`).join("");
+}
+
+/* ---------- BLOSUM heatmap ---------- */
+const HM_ORDER = "CSTPAGNDEQHRKMILVFYW";
+let hmSel = ["W", "W"];
+function drawHeatmap() {
+  const t = document.getElementById("heatmap");
+  let h = "<thead><tr><th></th>" + [...HM_ORDER].map(c => `<th scope="col" data-c="${c}">${c}</th>`).join("") + "</tr></thead><tbody>";
+  for (const r of HM_ORDER) {
+    h += `<tr><th scope="row" data-r="${r}">${r}</th>`;
+    for (const c of HM_ORDER) {
+      const v = sc(B62, r, c);
+      const tone = v > 0 ? "var(--heme)" : v < 0 ? "var(--plum)" : "transparent";
+      const pct = v > 0 ? Math.min(100, 14 + v * 9) : v < 0 ? Math.min(100, 8 + -v * 12) : 0;
+      h += `<td tabindex="0" data-r="${r}" data-c="${c}" style="background:color-mix(in srgb, ${tone} ${pct}%, var(--panel));color:${pct > 55 ? "var(--bg)" : "var(--ink)"}">${v}</td>`;
+    }
+    h += "</tr>";
+  }
+  t.innerHTML = h + "</tbody>";
+  const pick = e => { const td = e.target.closest("td"); if (td) { hmSel = [td.dataset.r, td.dataset.c]; hmUpdate(); } };
+  t.addEventListener("click", pick);
+  t.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pick(e); } });
+  hmUpdate();
+}
+const AA_NAME = {A:"alanine",R:"arginine",N:"asparagine",D:"aspartate",C:"cysteine",Q:"glutamine",E:"glutamate",G:"glycine",H:"histidine",I:"isoleucine",L:"leucine",K:"lysine",M:"methionine",F:"phenylalanine",P:"proline",S:"serine",T:"threonine",W:"tryptophan",Y:"tyrosine",V:"valine"};
+function hmUpdate() {
+  const [r, c] = hmSel, v = sc(B62, r, c), ratio = Math.pow(2, v / 2);
+  document.querySelectorAll("#heatmap td.sel").forEach(x => x.classList.remove("sel"));
+  document.querySelectorAll("#heatmap th.hl").forEach(x => x.classList.remove("hl"));
+  document.querySelector(`#heatmap td[data-r="${r}"][data-c="${c}"]`).classList.add("sel");
+  document.querySelector(`#heatmap th[data-r="${r}"]`).classList.add("hl");
+  document.querySelector(`#heatmap th[data-c="${c}"]`).classList.add("hl");
+  const how = v > 0 ? `about <b>${ratio.toFixed(ratio < 10 ? 1 : 0)}×</b> more often than chance` : v < 0 ? `about <b>${(1 / ratio).toFixed(1)}×</b> less often than chance` : `about as often as chance`;
+  document.getElementById("hmRead").innerHTML =
+    `<span class="big">${r}–${c}: ${v > 0 ? "+" : ""}${v}</span>` +
+    `${AA_NAME[r]} ${r === c ? "matched with itself" : "aligned with " + AA_NAME[c]}. In conserved blocks this pair appears ${how} (2<sup>${v}/2</sup>, since the scores are in half-bits).`;
+}
+
+/* ---------- DP explorer (linear gaps) ---------- */
+const PRESETS = {
+  nterm: [G.HBA.seq.slice(0, 17), G.HBB.seq.slice(0, 18)],
+  e7: [G.HBA.seq.slice(51, 65), G.HBB.seq.slice(56, 70)],
+  f8: [G.HBB.seq.slice(84, 99), G.MBw.seq.slice(85, 100)],
+};
+const ex = {};
+function exSetup() {
+  const clean = s => s.toUpperCase().replace(/[^ARNDCQEGHILKMFPSTWYV]/g, "").slice(0, 22);
+  const a = clean(document.getElementById("exA").value), b = clean(document.getElementById("exB").value);
+  const local = document.getElementById("exLocal").checked;
+  const g = Math.max(0, +document.getElementById("exGap").value || 0);
+  const mat = MAT[document.getElementById("exMat").value];
+  Object.assign(ex, {a, b, local, g, mat, n: a.length, m: b.length});
+  const n = a.length, m = b.length;
+  const F = [], P = [];
+  for (let i = 0; i <= n; i++) { F.push(new Array(m + 1).fill(0)); P.push(new Array(m + 1).fill(0)); }
+  for (let i = 1; i <= n; i++) { F[i][0] = local ? 0 : -i * g; P[i][0] = local ? 0 : 2; }
+  for (let j = 1; j <= m; j++) { F[0][j] = local ? 0 : -j * g; P[0][j] = local ? 0 : 4; }
+  let best = 0, bi = 0, bj = 0;
+  for (let i = 1; i <= n; i++) for (let j = 1; j <= m; j++) {
+    const d = F[i - 1][j - 1] + sc(mat, a[i - 1], b[j - 1]), u = F[i - 1][j] - g, l = F[i][j - 1] - g;
+    let v = Math.max(d, u, l);
+    if (local) v = Math.max(v, 0);
+    F[i][j] = v;
+    P[i][j] = (local && v === 0) ? 0 : (d === v ? 1 : 0) | (u === v ? 2 : 0) | (l === v ? 4 : 0);
+    if (local && v > best) { best = v; bi = i; bj = j; }
+  }
+  // traceback (prefer diagonal, then up, then left)
+  const path = [];
+  let i = local ? bi : n, j = local ? bj : m, A = "", B = "";
+  const score = local ? best : F[n][m];
+  if (!local || best > 0) {
+    while (i > 0 || j > 0) {
+      path.push(i + "," + j);
+      if (local && F[i][j] === 0) break;
+      const p = P[i][j];
+      if (p & 1) { A = a[i - 1] + A; B = b[j - 1] + B; i--; j--; }
+      else if (p & 2) { A = a[i - 1] + A; B = "-" + B; i--; }
+      else { A = "-" + A; B = b[j - 1] + B; j--; }
+    }
+    if (!local) path.push("0,0");
+  }
+  Object.assign(ex, {F, P, path: new Set(path), res: {A, B, aStart: local ? i : 0, bStart: local ? j : 0}, score, filled: n * m, sel: null});
+  exBuildTable();
+  exRender();
+}
+function exBuildTable() {
+  const {a, b, n, m} = ex, t = document.getElementById("dp");
+  let h = `<thead><tr><th></th><th class="idx"></th>` + [...Array(m + 1).keys()].map(j => `<th class="idx">${j}</th>`).join("") + `</tr>`;
+  h += `<tr><th></th><th></th><th>–</th>` + [...b].map(c => `<th>${c}</th>`).join("") + `</tr></thead><tbody>`;
+  for (let i = 0; i <= n; i++) {
+    h += `<tr><th class="idx">${i}</th><th>${i === 0 ? "–" : a[i - 1]}</th>`;
+    for (let j = 0; j <= m; j++) h += `<td id="c${i}_${j}" data-i="${i}" data-j="${j}"></td>`;
+    h += "</tr>";
+  }
+  t.innerHTML = h + "</tbody>";
+  ex.cells = [];
+  for (let i = 0; i <= n; i++) { ex.cells.push([]); for (let j = 0; j <= m; j++) ex.cells[i].push(document.getElementById(`c${i}_${j}`)); }
+}
+const ARROW = p => (p & 1 ? "↖" : "") + (p & 2 ? "↑" : "") + (p & 4 ? "←" : "");
+function exIsFilled(i, j) { return i === 0 || j === 0 || ((i - 1) * ex.m + (j - 1)) < ex.filled; }
+function exRender() {
+  const {n, m, F, P, filled} = ex, done = filled >= n * m;
+  const curK = filled - 1, ci = Math.floor(curK / m) + 1, cj = (curK % m) + 1;
+  const focus = ex.sel || (!done && filled > 0 ? [ci, cj] : null);
+  for (let i = 0; i <= n; i++) for (let j = 0; j <= m; j++) {
+    const el = ex.cells[i][j], f = exIsFilled(i, j);
+    el.className = f ? "" : "empty";
+    el.innerHTML = f ? `<span class="ar">${ARROW(P[i][j])}</span>${F[i][j]}` : "";
+    if (done && ex.path.has(i + "," + j)) el.classList.add("path");
+  }
+  if (focus && focus[0] > 0 && focus[1] > 0) {
+    const [i, j] = focus;
+    ex.cells[i][j].classList.add(ex.sel ? "sel" : "cur");
+    if (!ex.sel) ex.cells[i][j].classList.add("cur");
+    [[i - 1, j - 1], [i - 1, j], [i, j - 1]].forEach(([x, y]) => ex.cells[x][y].classList.add("src"));
+    exCalc(i, j);
+  } else {
+    document.getElementById("exCalc").innerHTML = done
+      ? `Matrix complete. ${ex.local ? "Best local score (highest cell)" : "Global score (bottom-right cell)"} = <b>${ex.score}</b>.\nClick any cell to see how it was computed.`
+      : `Row 0 and column 0 are ${ex.local ? "all 0: a local alignment can start anywhere" : "multiples of −g: aligning a prefix entirely against gaps"}.\nPress Step to compute cell (1, 1).`;
+  }
+  const alnEl = document.getElementById("exAln");
+  if (done) renderAln(alnEl, ex.res, {nameA: "A", nameB: "B", width: 60});
+  else alnEl.innerHTML = `<span class="nm">Fill the whole matrix to trace back the alignment.</span>`;
+}
+function exCalc(i, j) {
+  const {a, b, F, g, mat, local} = ex, s = sc(mat, a[i - 1], b[j - 1]);
+  const d = F[i - 1][j - 1] + s, u = F[i - 1][j] - g, l = F[i][j - 1] - g, v = F[i][j];
+  const fmt = x => (x < 0 ? "−" + -x : String(x)).padStart(4);
+  const row = (lab, expr, val) => { const line = `${lab.padEnd(10)}${expr.padEnd(34)}= ${fmt(val)}`; return val === v ? `<b>${line}</b>` : line; };
+  document.getElementById("exCalc").innerHTML =
+    `Cell (${i}, ${j}):  A${i} = ${a[i - 1]},  B${j} = ${b[j - 1]},  s(${a[i - 1]},${b[j - 1]}) = ${s}\n` +
+    row("↖ diag", `F(${i - 1},${j - 1}) + s  = ${F[i - 1][j - 1]} + ${s}`, d) + "\n" +
+    row("↑ up", `F(${i - 1},${j}) − g    = ${F[i - 1][j]} − ${g}`, u) + "\n" +
+    row("← left", `F(${i},${j - 1}) − g    = ${F[i][j - 1]} − ${g}`, l) + "\n" +
+    (local ? row("  reset", "start a new local alignment", 0) + "\n" : "") +
+    `F(${i}, ${j}) = max = <b>${v}</b>`;
+}
+let exTimer = null;
+function exStop() { if (exTimer) { clearInterval(exTimer); exTimer = null; document.getElementById("exPlay").textContent = "Play"; } }
+function exWire() {
+  const preset = document.getElementById("exPreset");
+  const load = () => {
+    const p = PRESETS[preset.value];
+    if (p) { document.getElementById("exA").value = p[0]; document.getElementById("exB").value = p[1]; }
+    exStop(); exSetup();
+  };
+  preset.addEventListener("change", load);
+  ["exA", "exB"].forEach(id => document.getElementById(id).addEventListener("input", () => { preset.value = "custom"; exStop(); exSetup(); }));
+  ["exGlobal", "exLocal", "exGap", "exMat"].forEach(id => document.getElementById(id).addEventListener("change", () => { exStop(); exSetup(); }));
+  document.getElementById("exGap").addEventListener("input", () => { exStop(); exSetup(); });
+  document.getElementById("exReset").onclick = () => { exStop(); ex.filled = 0; ex.sel = null; exRender(); };
+  document.getElementById("exStep").onclick = () => { exStop(); if (ex.filled < ex.n * ex.m) ex.filled++; ex.sel = null; exRender(); };
+  document.getElementById("exRow").onclick = () => { exStop(); const m = ex.m; ex.filled = Math.min(ex.n * m, (Math.floor(ex.filled / m) + (ex.filled % m ? 1 : 1)) * m); ex.sel = null; exRender(); };
+  document.getElementById("exAll").onclick = () => { exStop(); ex.filled = ex.n * ex.m; ex.sel = null; exRender(); };
+  document.getElementById("exPlay").onclick = () => {
+    if (exTimer) { exStop(); return; }
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) { ex.filled = ex.n * ex.m; ex.sel = null; exRender(); return; }
+    if (ex.filled >= ex.n * ex.m) ex.filled = 0;
+    ex.sel = null;
+    document.getElementById("exPlay").textContent = "Pause";
+    exTimer = setInterval(() => { ex.filled++; exRender(); if (ex.filled >= ex.n * ex.m) exStop(); }, 90);
+  };
+  document.getElementById("dp").addEventListener("click", e => {
+    const td = e.target.closest("td"); if (!td) return;
+    const i = +td.dataset.i, j = +td.dataset.j;
+    if (i === 0 || j === 0 || !exIsFilled(i, j)) return;
+    exStop(); ex.sel = [i, j]; exRender();
+  });
+  load();
+}
+
+/* ---------- full-length aligner + dot plot ---------- */
+function fillSelect(sel, val) {
+  sel.innerHTML = GLOBINS.map(g => `<option value="${g.id}">${label(g)}</option>`).join("");
+  sel.value = val;
+}
+let fRes = null;
+function fRun() {
+  const A = G[document.getElementById("fA").value], B = G[document.getElementById("fB").value];
+  const local = document.getElementById("fLocal").checked;
+  const mat = MAT[document.getElementById("fMat").value];
+  const open = Math.max(0, +document.getElementById("fOpen").value || 0), ext = Math.max(0, +document.getElementById("fExt").value || 0);
+  const res = align(A.seq, B.seq, {local, open, ext, mat});
+  fRes = {res, A, B};
+  const st = alnStats(res, mat);
+  document.getElementById("fStats").innerHTML = [
+    [res.score.toFixed(1).replace(/\.0$/, ""), "Score"], [st.len, "Columns"], [st.pid.toFixed(1) + "%", "Identity"],
+    [st.ppos.toFixed(1) + "%", "Similarity"], [st.gaps, "Gap positions"], [st.opens, "Gaps opened"]
+  ].map(([v, l]) => `<div class="stat"><b>${v}</b><span>${l}</span></div>`).join("");
+  // heme pocket check: find the column each key His occupies
+  const colOf = (seqAln, start, pos) => { let r = start; for (let k = 0; k < seqAln.length; k++) { if (seqAln[k] !== "-") { r++; if (r === pos) return k; } } return -1; };
+  const chk = ["e7", "f8"].map(key => {
+    const ca = colOf(res.A, res.aStart, A[key]), cb = colOf(res.B, res.bStart, B[key]);
+    const tag = key === "e7" ? "Distal His E7" : "Proximal His F8";
+    if (ca < 0 || cb < 0) return `<span>${tag}: <span class="no">outside the local alignment</span></span>`;
+    return ca === cb ? `<span>${tag}: <span class="ok">aligned ✓</span> (${A.short} H${A[key]} ↔ ${B.short} H${B[key]})</span>`
+                     : `<span>${tag}: <span class="no">not aligned</span> (${A.short} H${A[key]} and ${B.short} H${B[key]} are ${Math.abs(ca - cb)} columns apart)</span>`;
+  });
+  document.getElementById("fCheck").innerHTML = chk.join("");
+  renderAln(document.getElementById("fAln"), res, {
+    nameA: A.id, nameB: B.id, keyA: [A.e7, A.f8], keyB: [B.e7, B.f8], width: 60,
+    color: document.getElementById("fColor").value === "on"
+  });
+  drawDot();
+}
+function cssVar(n) { return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+function drawDot() {
+  if (!fRes) return;
+  const {res, A, B} = fRes, a = A.seq, b = B.seq;
+  const cv = document.getElementById("dot"), ctx = cv.getContext("2d");
+  const cssW = Math.min(460, cv.parentElement.clientWidth || 460), dpr = window.devicePixelRatio || 1;
+  cv.style.width = cssW + "px"; cv.style.height = cssW + "px";
+  cv.width = Math.round(cssW * dpr); cv.height = Math.round(cssW * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const pad = 34, size = cssW - pad - 10;
+  const ink = cssVar("--ink"), muted = cssVar("--muted"), line = cssVar("--line"), heme = cssVar("--heme"), bg = cssVar("--bg");
+  ctx.fillStyle = bg; ctx.fillRect(0, 0, cssW, cssW);
+  const sx = size / b.length, sy = size / a.length;
+  ctx.strokeStyle = line; ctx.lineWidth = 1; ctx.strokeRect(pad + .5, pad + .5, size, size);
+  ctx.fillStyle = muted; ctx.font = `11px ${cssVar("--body")}`;
+  ctx.textAlign = "center"; ctx.textBaseline = "bottom";
+  for (let t = 0; t <= b.length; t += 25) ctx.fillText(t, pad + t * sx, pad - 4);
+  ctx.textAlign = "right"; ctx.textBaseline = "middle";
+  for (let t = 0; t <= a.length; t += 25) ctx.fillText(t, pad - 5, pad + t * sy);
+  ctx.save(); ctx.fillStyle = ink; ctx.font = `600 12px ${cssVar("--body")}`;
+  ctx.textAlign = "right"; ctx.textBaseline = "bottom"; ctx.fillText(`${B.id} →`, pad + size, pad - 16);
+  ctx.translate(12, pad + size); ctx.rotate(-Math.PI / 2); ctx.textAlign = "left"; ctx.textBaseline = "middle"; ctx.fillText(`${A.id} →`, 0, 0);
+  ctx.restore();
+  const w = Math.max(1, +document.getElementById("dW").value || 10), thr = +document.getElementById("dT").value || 0;
+  ctx.fillStyle = ink;
+  const dot = Math.max(1.2, Math.min(sx, sy));
+  for (let d = -(a.length - w); d <= b.length - w; d++) {
+    const i0 = Math.max(0, -d), j0 = i0 + d, L = Math.min(a.length - i0, b.length - j0);
+    if (L < w) continue;
+    let s = 0;
+    for (let k = 0; k < w; k++) s += sc(B62, a[i0 + k], b[j0 + k]);
+    for (let k = 0; k + w <= L; k++) {
+      if (k > 0) s += sc(B62, a[i0 + k + w - 1], b[j0 + k + w - 1]) - sc(B62, a[i0 + k - 1], b[j0 + k - 1]);
+      if (s >= thr) ctx.fillRect(pad + (j0 + k + w / 2) * sx - dot / 2, pad + (i0 + k + w / 2) * sy - dot / 2, dot, dot);
+    }
+  }
+  if (res.path.length) {
+    ctx.strokeStyle = heme; ctx.globalAlpha = .75; ctx.lineWidth = 2; ctx.beginPath();
+    res.path.forEach(([i, j], k) => { const x = pad + j * sx, y = pad + i * sy; k ? ctx.lineTo(x, y) : ctx.moveTo(x, y); });
+    ctx.stroke(); ctx.globalAlpha = 1;
+  }
+}
+function fWire() {
+  fillSelect(document.getElementById("fA"), "HBA");
+  fillSelect(document.getElementById("fB"), "HBB");
+  ["fA", "fB", "fGlobal", "fLocal", "fMat", "fOpen", "fExt", "fColor"].forEach(id => document.getElementById(id).addEventListener("change", fRun));
+  ["fOpen", "fExt"].forEach(id => document.getElementById(id).addEventListener("input", fRun));
+  ["dW", "dT"].forEach(id => document.getElementById(id).addEventListener("input", drawDot));
+  document.getElementById("legend2").innerHTML = legendHTML(true);
+  fRun();
+}
+
+/* ---------- identity matrix ---------- */
+function drawIdm() {
+  const ids = GLOBINS.map(g => g.id);
+  let h = `<thead><tr><th></th>${GLOBINS.map(g => `<th scope="col">${g.short}</th>`).join("")}</tr></thead><tbody>`;
+  for (const r of ids) {
+    h += `<tr><th scope="row">${G[r].short}</th>`;
+    for (const c of ids) {
+      if (r === c) { h += `<td style="color:var(--muted)">—</td>`; continue; }
+      const st = alnStats(align(G[r].seq, G[c].seq), B62), p = st.pid;
+      const pct = Math.round(Math.min(90, p * 0.9));
+      h += `<td style="background:color-mix(in srgb, var(--heme) ${pct}%, var(--panel));color:${pct > 45 ? "var(--bg)" : "var(--ink)"}">${p.toFixed(0)}%</td>`;
+    }
+    h += "</tr>";
+  }
+  document.getElementById("idm").innerHTML = h + "</tbody>";
+}
+
+/* ---------- shuffle test ---------- */
+function rng(seed) { return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function shuffle(s, r) { const a = s.split(""); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a.join(""); }
+let sSeed = 116;
+function sRun() {
+  const A = G[document.getElementById("sA").value], B = G[document.getElementById("sB").value];
+  const N = +document.getElementById("sN").value, open = 10, ext = 0.5;
+  const real = localScore(A.seq, B.seq, open, ext, B62);
+  const r = rng(sSeed++), scores = [];
+  for (let k = 0; k < N; k++) scores.push(localScore(A.seq, shuffle(B.seq, r), open, ext, B62));
+  const mean = scores.reduce((x, y) => x + y, 0) / N;
+  const sd = Math.sqrt(scores.reduce((x, y) => x + (y - mean) ** 2, 0) / (N - 1));
+  const z = (real - mean) / sd, ge = scores.filter(x => x >= real).length, p = (ge + 1) / (N + 1);
+  document.getElementById("sStats").innerHTML = [
+    [real.toFixed(1).replace(/\.0$/, ""), "Real score"], [mean.toFixed(1), "Shuffled mean"], [sd.toFixed(1), "Shuffled SD"],
+    [z.toFixed(1), "z-score"], [ge === 0 ? `< ${(1 / (N + 1)).toFixed(N >= 1000 ? 4 : 3)}` : p.toFixed(3), "Empirical p"]
+  ].map(([v, l]) => `<div class="stat"><b>${v}</b><span>${l}</span></div>`).join("");
+  drawHist(scores, real, A, B);
+}
+function niceStep(range, target) { const raw = range / target, p = Math.pow(10, Math.floor(Math.log10(raw))), f = raw / p; return (f < 1.5 ? 1 : f < 3.5 ? 2 : f < 7.5 ? 5 : 10) * p; }
+function drawHist(scores, real, A, B) {
+  const svg = document.getElementById("hist"), W = 640, H = 260, L = 48, R = 20, T = 30, Bm = 44;
+  const lo = Math.floor(Math.min(...scores, real)), hi = Math.ceil(Math.max(...scores, real));
+  const span = Math.max(1, hi - lo);
+  const bw = Math.max(1, Math.ceil(span / 30));
+  const x0 = Math.floor(lo / bw) * bw, nb = Math.ceil((hi - x0 + 1) / bw);
+  const counts = new Array(nb).fill(0);
+  scores.forEach(s => counts[Math.min(nb - 1, Math.floor((s - x0) / bw))]++);
+  const cmax = Math.max(...counts), x1 = x0 + nb * bw;
+  const X = v => L + (v - x0) / (x1 - x0) * (W - L - R), Y = c => H - Bm - c / cmax * (H - T - Bm);
+  let g = "";
+  const ys = niceStep(cmax, 4);
+  for (let c = 0; c <= cmax; c += ys) g += `<line x1="${L}" x2="${W - R}" y1="${Y(c)}" y2="${Y(c)}" stroke="var(--line)"/><text x="${L - 6}" y="${Y(c) + 4}" text-anchor="end" font-size="11" fill="var(--muted)">${c}</text>`;
+  counts.forEach((c, k) => { if (c) g += `<rect x="${X(x0 + k * bw) + 1}" y="${Y(c)}" width="${Math.max(1, X(x0 + (k + 1) * bw) - X(x0 + k * bw) - 2)}" height="${Y(0) - Y(c)}" fill="var(--plum)" opacity=".75"/>`; });
+  const xs = niceStep(x1 - x0, 7);
+  for (let v = Math.ceil(x0 / xs) * xs; v <= x1; v += xs) g += `<line x1="${X(v)}" x2="${X(v)}" y1="${Y(0)}" y2="${Y(0) + 5}" stroke="var(--muted)"/><text x="${X(v)}" y="${Y(0) + 18}" text-anchor="middle" font-size="11" fill="var(--muted)">${v}</text>`;
+  g += `<line x1="${L}" x2="${W - R}" y1="${Y(0)}" y2="${Y(0)}" stroke="var(--muted)"/>`;
+  g += `<text x="${(L + W - R) / 2}" y="${H - 6}" text-anchor="middle" font-size="12" fill="var(--muted)">best local alignment score (${A.id} vs shuffled ${B.id})</text>`;
+  g += `<text x="14" y="${(T + H - Bm) / 2}" text-anchor="middle" font-size="12" fill="var(--muted)" transform="rotate(-90 14 ${(T + H - Bm) / 2})">shuffles</text>`;
+  const rx = X(real + 0.5);
+  const anchor = rx > W - 160 ? "end" : "start", tx = anchor === "end" ? rx - 6 : rx + 6;
+  g += `<line x1="${rx}" x2="${rx}" y1="${T - 12}" y2="${Y(0)}" stroke="var(--heme)" stroke-width="2.5"/>`;
+  g += `<text x="${tx}" y="${T - 2}" text-anchor="${anchor}" font-size="12" font-weight="700" fill="var(--heme)">real ${A.id} vs ${B.id}: ${real.toFixed(1).replace(/\.0$/, "")}</text>`;
+  svg.innerHTML = g;
+}
+function sWire() {
+  fillSelect(document.getElementById("sA"), "HBB");
+  fillSelect(document.getElementById("sB"), "LBA");
+  const presets = [["α vs β", "HBA", "HBB"], ["β vs whale Mb", "HBB", "MBw"], ["β vs leghemoglobin", "HBB", "LBA"], ["α vs leghemoglobin", "HBA", "LBA"]];
+  document.getElementById("shufChips").innerHTML = presets.map(([t, a, b]) => `<button data-a="${a}" data-b="${b}">${t}</button>`).join("");
+  document.getElementById("shufChips").addEventListener("click", e => {
+    const bt = e.target.closest("button"); if (!bt) return;
+    document.getElementById("sA").value = bt.dataset.a; document.getElementById("sB").value = bt.dataset.b; sRun();
+  });
+  document.getElementById("sRun").onclick = sRun;
+  sRun();
+}
+
+/* ---------- table of contents highlight ---------- */
+function tocWire() {
+  const links = [...document.querySelectorAll(".toc a")];
+  const secs = links.map(a => document.querySelector(a.getAttribute("href")));
+  const on = () => {
+    let k = 0;
+    secs.forEach((s, i) => { if (s.getBoundingClientRect().top < 140) k = i; });
+    links.forEach((a, i) => a.classList.toggle("on", i === k));
+  };
+  addEventListener("scroll", on, {passive: true}); on();
+}
+
+drawTable(); drawHero(); drawHeatmap(); exWire(); fWire(); drawIdm(); sWire(); tocWire();
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", drawDot);
+new MutationObserver(drawDot).observe(document.documentElement, {attributes: true, attributeFilter: ["data-theme"]});
+addEventListener("resize", () => { clearTimeout(window.__rz); window.__rz = setTimeout(drawDot, 120); });
+</script>
