@@ -1,0 +1,586 @@
+<title>BLAST at NCBI</title>
+<meta name="description" content="Bio 116 supplemental tutorial: running protein BLAST on the NCBI website and reading the results, with real searches.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Literata:opsz,wght@7..72,500;7..72,650&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&display=swap">
+<style>
+
+:root{
+  --bg:#FAF8F9; --panel:#FFFFFF; --panel-2:#F3EEF1; --ink:#1F1A21; --muted:#645B68; --line:#E3DAE0;
+  --heme:#A8173A; --heme-soft:#F7DDE3; --plum:#4C2C63; --plum-soft:#EBE2F1;
+  --r-hyd:#D9E6F7; --r-aro:#E3DAF5; --r-pos:#F8D8DE; --r-neg:#F5E1C4; --r-pol:#D5EEDF; --r-spe:#ECE8D2;
+  --good:#1E6B45; --warn:#8A5A00;
+  --display:"Literata", Georgia, "Times New Roman", serif;
+  --body:"Source Sans 3", "Segoe UI", Arial, sans-serif;
+  --mono:"JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#141015; --panel:#1C171E; --panel-2:#251F28; --ink:#EEE8EF; --muted:#A99EAD; --line:#352D38;
+    --heme:#F2708A; --heme-soft:#4A1E2A; --plum:#C9A9E2; --plum-soft:#33263E;
+    --r-hyd:#1E3350; --r-aro:#33294F; --r-pos:#4C2230; --r-neg:#48341E; --r-pol:#1B3E2D; --r-spe:#383422;
+    --good:#6FD19E; --warn:#E9B45A;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#141015; --panel:#1C171E; --panel-2:#251F28; --ink:#EEE8EF; --muted:#A99EAD; --line:#352D38;
+  --heme:#F2708A; --heme-soft:#4A1E2A; --plum:#C9A9E2; --plum-soft:#33263E;
+  --r-hyd:#1E3350; --r-aro:#33294F; --r-pos:#4C2230; --r-neg:#48341E; --r-pol:#1B3E2D; --r-spe:#383422;
+  --good:#6FD19E; --warn:#E9B45A;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.6;margin:0}
+.wrap{max-width:1180px;margin:0 auto;padding-inline:20px;padding-block:0 64px;display:grid;grid-template-columns:200px minmax(0,1fr);gap:48px}
+@media (max-width:980px){.wrap{grid-template-columns:minmax(0,1fr);gap:0}.toc{display:none}}
+@media (max-width:480px){.wrap{padding-inline:16px}body{font-size:16px}}
+.toc{position:sticky;top:env(safe-area-inset-top,0px);align-self:start;padding-top:40px;font-size:14px}
+.toc b{display:block;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.toc ol{list-style:none;margin:0;padding:0;display:grid;gap:2px;counter-reset:t}
+.toc a{display:block;color:var(--muted);text-decoration:none;padding:4px 8px;border-left:2px solid var(--line);counter-increment:t}
+.toc a::before{content:counter(t) ". ";font-variant-numeric:tabular-nums}
+.toc a:hover,.toc a.on{color:var(--ink);border-left-color:var(--heme)}
+main{min-width:0}
+.prose{max-width:68ch}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;line-height:1.2;font-weight:650}
+h1{font-size:clamp(2.2rem,5vw,3.4rem);margin:0 0 16px;letter-spacing:-.01em}
+h2{font-size:1.75rem;margin:0 0 12px}
+h3{font-size:1.2rem;margin:28px 0 8px;font-weight:500}
+p{margin:0 0 14px}
+a{color:var(--heme)}
+a:focus-visible,button:focus-visible,select:focus-visible,input:focus-visible,summary:focus-visible,td:focus-visible{outline:2px solid var(--heme);outline-offset:2px}
+code,.mono{font-family:var(--mono);font-size:.88em}
+.eyebrow{font-size:13px;letter-spacing:.09em;text-transform:uppercase;color:var(--heme);font-weight:700;margin-bottom:12px}
+header.hero{padding-block:48px 24px;border-bottom:1px solid var(--line);margin-bottom:8px}
+.lede{font-size:1.15rem;max-width:62ch;color:var(--ink)}
+.meta{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0 26px;padding:0;list-style:none}
+.meta li{font-size:14px;padding:4px 10px;border:1px solid var(--line);border-radius:999px;color:var(--muted);background:var(--panel)}
+section{padding-block:40px 8px;border-bottom:1px solid var(--line);scroll-margin-top:12px}
+section:last-of-type{border-bottom:0}
+.snum{font-family:var(--mono);font-size:13px;color:var(--heme);display:block;margin-bottom:6px}
+.goals{margin:0;padding-left:20px}
+.goals li{margin-bottom:4px}
+.note{font-size:15px;color:var(--muted);border-left:3px solid var(--plum);padding:4px 0 4px 14px;margin:18px 0;max-width:68ch}
+.eq{font-family:var(--mono);font-size:15px;background:var(--panel-2);border-radius:6px;padding:14px 16px;overflow-x:auto;white-space:pre;margin:14px 0 18px;max-width:100%;line-height:1.7}
+.tablewrap{overflow-x:auto;margin:16px 0 20px}
+table.data{border-collapse:collapse;font-size:15px;min-width:560px;width:100%}
+table.data th,table.data td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+table.data th{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:700}
+table.data td.num{font-variant-numeric:tabular-nums}
+
+/* tool panels */
+.tool{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px;margin:20px 0 24px}
+.tool-title{font-family:var(--display);font-size:1.05rem;font-weight:650;margin:0 0 12px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:baseline}
+.tool-title small{font-family:var(--body);font-weight:400;font-size:13px;color:var(--muted)}
+.controls{display:flex;flex-wrap:wrap;gap:12px 16px;align-items:flex-end;margin-bottom:14px}
+.field{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted);min-width:0}
+.field.grow{flex:1 1 220px}
+.field input[type=text]{font-family:var(--mono);text-transform:uppercase}
+select,input[type=text],input[type=number]{font:inherit;font-size:15px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:6px 8px;min-width:0;max-width:100%}
+input[type=number]{width:80px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.seg label{padding:6px 12px;font-size:14px;color:var(--ink);cursor:pointer;background:var(--bg)}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg label:has(input:checked){background:var(--plum);color:var(--bg)}
+.seg label:has(input:focus-visible){outline:2px solid var(--heme);outline-offset:-2px}
+button{font:inherit;font-size:14px;font-weight:600;border-radius:6px;padding:7px 14px;cursor:pointer;border:1px solid var(--line);background:var(--bg);color:var(--ink)}
+button.primary{background:var(--heme);border-color:var(--heme);color:var(--bg)}
+button:hover{border-color:var(--heme)}
+.btnrow{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}
+.chips button{font-weight:400;border-radius:999px;padding:4px 12px}
+
+/* stats */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:8px;overflow:hidden;margin:0 0 14px}
+.stat{background:var(--panel);padding:10px 12px}
+.stat b{display:block;font-family:var(--mono);font-size:1.25rem;font-weight:600;font-variant-numeric:tabular-nums}
+.stat span{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+
+/* alignment display */
+.aln{font-family:var(--mono);font-size:14px;line-height:1.45;overflow-x:auto;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:12px 14px;white-space:pre;max-width:100%}
+.aln .blk{margin-bottom:12px}
+.aln .blk:last-child{margin-bottom:0}
+.aln .nm{color:var(--muted)}
+.aln .mid{color:var(--muted)}
+.r{border-radius:2px}
+.c-hyd{background:var(--r-hyd)} .c-aro{background:var(--r-aro)} .c-pos{background:var(--r-pos)}
+.c-neg{background:var(--r-neg)} .c-pol{background:var(--r-pol)} .c-spe{background:var(--r-spe)}
+.plain .r{background:none}
+.key{outline:2px solid var(--heme);outline-offset:-1px;font-weight:600;color:var(--heme)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;color:var(--muted);margin:10px 0 0}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{display:inline-block;width:14px;height:14px;border-radius:3px}
+.check{font-size:14px;margin:0 0 12px;display:flex;flex-wrap:wrap;gap:6px 18px}
+.ok{color:var(--good);font-weight:600}
+.no{color:var(--warn);font-weight:600}
+
+/* DP explorer */
+.dpwrap{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--bg);max-width:100%}
+table.dp{border-collapse:collapse;font-family:var(--mono);font-size:12px;margin:0}
+table.dp th{font-weight:600;color:var(--muted);width:34px;height:30px;text-align:center;background:var(--panel-2)}
+table.dp th.idx{font-size:10px;font-weight:400}
+table.dp td{width:34px;height:30px;text-align:center;border:1px solid var(--line);position:relative;font-variant-numeric:tabular-nums;cursor:pointer;color:var(--ink)}
+table.dp td.empty{color:transparent;cursor:default}
+table.dp td .ar{position:absolute;top:0;left:2px;font-size:8px;color:var(--muted);line-height:1.1}
+table.dp td.src{outline:2px dashed var(--plum);outline-offset:-3px}
+table.dp td.cur{background:var(--plum-soft);font-weight:600}
+table.dp td.path{background:var(--heme-soft);color:var(--heme);font-weight:600}
+table.dp td.sel{outline:2px solid var(--heme);outline-offset:-2px}
+.calc{font-family:var(--mono);font-size:13px;background:var(--panel-2);border-radius:8px;padding:12px 14px;margin:12px 0;white-space:pre;overflow-x:auto;line-height:1.6;min-height:7.5em}
+.calc b{color:var(--heme)}
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px}
+@media (max-width:760px){.two{grid-template-columns:minmax(0,1fr)}}
+
+/* BLOSUM heatmap */
+.hm{border-collapse:collapse;font-family:var(--mono);font-size:11px}
+.hm th{width:26px;height:24px;color:var(--muted);font-weight:600}
+.hm td{width:26px;height:24px;text-align:center;cursor:pointer;font-variant-numeric:tabular-nums;border:1px solid var(--bg)}
+.hm td.sel{outline:2px solid var(--ink);outline-offset:-2px}
+.hm th.hl{color:var(--heme)}
+.readout{font-size:15px;background:var(--panel-2);border-radius:8px;padding:12px 14px;min-height:5.5em}
+.readout .big{font-family:var(--mono);font-size:1.6rem;font-weight:600;color:var(--heme);display:block}
+
+/* plots */
+canvas{display:block;max-width:100%;background:var(--bg);border:1px solid var(--line);border-radius:8px}
+svg text{font-family:var(--body)}
+.hist{width:100%;height:auto;display:block;max-width:100%}
+
+/* identity matrix */
+table.idm{border-collapse:collapse;font-size:14px;min-width:520px}
+table.idm th,table.idm td{padding:8px 10px;text-align:center;border:1px solid var(--line)}
+table.idm th{font-weight:600;color:var(--muted);font-size:13px}
+table.idm td{font-family:var(--mono);font-variant-numeric:tabular-nums}
+
+/* questions */
+details{border:1px solid var(--line);border-radius:8px;background:var(--panel);padding:12px 16px;margin:0 0 10px;max-width:72ch}
+summary{cursor:pointer;font-weight:600}
+details p{margin:10px 0 0}
+.refs{font-size:15px;padding-left:20px}
+.refs li{margin-bottom:6px}
+footer{font-size:13px;color:var(--muted);padding-top:24px}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+
+/* ---- NCBI tutorial additions ---- */
+[hidden]{display:none!important}
+:root{--s1:#2a78d6;--s2:#eb6834;--s3:#1baf7a}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--s1:#3987e5;--s2:#d95926;--s3:#199e70}}
+:root[data-theme="dark"]{--s1:#3987e5;--s2:#d95926;--s3:#199e70}
+.part{font-family:var(--display);font-size:1rem;color:var(--plum);letter-spacing:.02em;margin:0;padding-block:36px 0}
+.route{list-style:none;margin:20px 0 4px;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+@media (max-width:760px){.route{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
+@media (max-width:440px){.route{grid-template-columns:minmax(0,1fr)}}
+.route li{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:4px}
+.route a{color:inherit;text-decoration:none}
+.route .n{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--heme);color:var(--bg);font-family:var(--mono);font-size:13px;font-weight:600}
+.route span.d{font-size:14px;color:var(--muted);line-height:1.45}
+.panel{border:1px solid var(--line);border-radius:10px;background:var(--panel);margin:16px 0}
+.panel > h3{margin:0;padding:10px 16px;border-bottom:1px solid var(--line);font-size:1.05rem;background:var(--panel-2);border-radius:10px 10px 0 0}
+.panel .body{padding:12px 16px}
+.panel table.data{margin:0}
+.setting{font-family:var(--mono);font-size:13px;background:var(--panel-2);border-radius:4px;padding:1px 6px;white-space:nowrap}
+table.hits{border-collapse:collapse;font-size:14px;min-width:760px;width:100%}
+table.hits th,table.hits td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+table.hits th{font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);font-weight:700}
+table.hits td:nth-child(2),table.hits th:nth-child(2),table.hits td:nth-child(3),table.hits th:nth-child(3){text-align:left}
+table.hits td:nth-child(3){font-style:italic}
+table.hits tr.gap td{color:var(--muted);text-align:center;font-style:normal}
+table.hits tr.hl td{background:var(--heme-soft)}
+.bo{font-family:var(--mono);font-size:13px;line-height:1.5;white-space:pre;overflow-x:auto;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:12px 14px;max-width:100%}
+.bo .hd{color:var(--heme);font-weight:600}
+.task{border-left:4px solid var(--heme);background:var(--panel);padding:10px 16px;border-radius:0 8px 8px 0;margin:14px 0}
+.task b.t{display:block;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--heme);margin-bottom:4px}
+.task ol{margin:0;padding-left:20px}
+.chartwrap{position:relative}
+.muted{color:var(--muted)}
+.ok{color:var(--good);font-weight:700}.miss{color:var(--warn);font-weight:700}
+</style>
+
+<div class="wrap">
+<nav class="toc" aria-label="Contents">
+  <b>Contents</b>
+  <ol>
+    <li><a href="#start">Getting started</a></li>
+    <li><a href="#form">The search page</a></li>
+    <li><a href="#ex1">Exercise 1: first search</a></li>
+    <li><a href="#ex2">Exercise 2: see further</a></li>
+    <li><a href="#ex3">Exercise 3: tune the search</a></li>
+    <li><a href="#ex4">Exercise 4: a plant query</a></li>
+    <li><a href="#aln">Reading an alignment</a></li>
+    <li><a href="#tools">The results page</a></li>
+    <li><a href="#more">Beyond blastp</a></li>
+    <li><a href="#cli">Web vs command line</a></li>
+    <li><a href="#check">Check yourself</a></li>
+    <li><a href="#sources">Sources</a></li>
+  </ol>
+</nav>
+
+<main>
+<header class="hero">
+  <div class="eyebrow">Bio 116 · Supplemental tutorial · Hands-on BLAST</div>
+  <h1>BLAST at NCBI</h1>
+  <p class="lede">The Inside BLAST tutorial explained how the algorithm works. This one is practical: how to run protein BLAST on the NCBI website, what each setting does, and how to read the results page. All results shown here come from real searches run on NCBI's servers on 25 September 2026 with the same settings you will use. Do each exercise yourself alongside.</p>
+  <ul class="meta">
+    <li>About 40 minutes, plus search time</li>
+    <li>Needs: a web browser; no account</li>
+    <li>Follows: Inside BLAST</li>
+  </ul>
+  <ol class="route" aria-label="The four exercises">
+    <li><a href="#ex1"><span class="n">1</span></a><b>First search</b><span class="d">β-globin against Swiss-Prot with default settings.</span></li>
+    <li><a href="#ex2"><span class="n">2</span></a><b>See further</b><span class="d">Raise "Max target sequences" and find what the default hid.</span></li>
+    <li><a href="#ex3"><span class="n">3</span></a><b>Tune the search</b><span class="d">Limit to human, raise the E-value cutoff, change word size.</span></li>
+    <li><a href="#ex4"><span class="n">4</span></a><b>A plant query</b><span class="d">Soybean leghemoglobin: which relatives can BLAST see?</span></li>
+  </ol>
+</header>
+
+<section id="start" aria-labelledby="start-h">
+  <span class="snum">1</span>
+  <div class="prose">
+  <h2 id="start-h">Getting started</h2>
+  <ol class="goals">
+    <li>Go to <a href="https://blast.ncbi.nlm.nih.gov/Blast.cgi" target="_blank" rel="noopener">blast.ncbi.nlm.nih.gov</a>.</li>
+    <li>Choose the program. You have a protein and want protein relatives, so click <b>Protein BLAST</b> (blastp). The other buttons are blastn (nucleotide), blastx (translated nucleotide query against proteins) and tblastn (protein query against translated nucleotides). The Inside BLAST tutorial explains when to use each.</li>
+    <li>Have your query ready: a UniProt or NCBI accession, or the sequence itself. This tutorial uses human β-globin, <code>P68871</code>, and soybean leghemoglobin, <code>P02238</code>.</li>
+  </ol>
+  <p>Searches usually finish within a minute but can take longer when NCBI is busy. The results page updates on its own; leave it open.</p>
+  </div>
+</section>
+
+<section id="form" aria-labelledby="form-h">
+  <span class="snum">2</span>
+  <div class="prose">
+  <h2 id="form-h">The search page, section by section</h2>
+  <p>The blastp page has four sections. The defaults listed here were read from NCBI's live form. Any setting you change is highlighted on the form, and "Restore default search parameters" puts everything back.</p>
+  </div>
+
+  <div class="panel"><h3>Enter Query Sequence</h3><div class="body">
+    <ul class="goals">
+      <li><b>Query box.</b> Accessions, gi numbers or FASTA sequences. You can also upload a file.</li>
+      <li><b>Query subrange.</b> Search with part of the query, such as one domain.</li>
+      <li><b>Job Title.</b> A label that helps you find the search later.</li>
+      <li><b>Align two or more sequences.</b> Tick this to compare your query with sequences you paste, instead of a database.</li>
+    </ul>
+  </div></div>
+
+  <div class="panel"><h3>Choose Search Set</h3><div class="body">
+    <p style="margin-top:0">The <b>Database</b> menu offers these protein databases (default first):</p>
+    <div class="tablewrap" style="margin:0 0 10px"><table class="data">
+      <thead><tr><th>Menu entry</th><th>What it holds</th><th>Use it when</th></tr></thead>
+      <tbody>
+        <tr><td><b>ClusteredNR</b> <span class="muted">(default)</span></td><td>nr grouped into clusters of proteins more than 90% identical; one well-annotated representative per cluster</td><td>A broad first search with results that are easy to scan</td></tr>
+        <tr><td>RefSeq Select proteins</td><td>One representative RefSeq protein per gene, for selected organisms</td><td>Clean gene-level results</td></tr>
+        <tr><td>Reference proteins (refseq_protein)</td><td>NCBI's curated RefSeq proteins</td><td>Well-annotated, less redundant than nr</td></tr>
+        <tr><td>Model Organisms (landmark)</td><td>Proteomes of a set of well-studied organisms</td><td>Quick check across model species</td></tr>
+        <tr><td><b>UniProtKB/Swiss-Prot</b> (swissprot)</td><td>Manually reviewed UniProt entries</td><td>Reliable annotation; used in this tutorial</td></tr>
+        <tr><td>Non-redundant protein sequences (nr)</td><td>The largest collection: GenBank translations, RefSeq, UniProt, PDB and more</td><td>Maximum coverage</td></tr>
+        <tr><td>Patented protein sequences (pataa)</td><td>Sequences from patents</td><td>Patent searches</td></tr>
+        <tr><td>Protein Data Bank proteins (pdb)</td><td>Proteins with experimental 3D structures</td><td>Finding a structure for your protein or a relative</td></tr>
+        <tr><td>Metagenomic proteins (env_nr)</td><td>Proteins from environmental samples</td><td>Uncultured organisms</td></tr>
+        <tr><td>Transcriptome Shotgun Assembly proteins (tsa_nr)</td><td>Proteins predicted from assembled transcriptomes</td><td>Species without a genome annotation</td></tr>
+      </tbody>
+    </table></div>
+    <ul class="goals">
+      <li><b>Organism</b> limits the search to a species or group (type a name or taxonomy ID). Tick <b>exclude</b> to remove that group instead.</li>
+      <li><b>Exclude</b> can drop predicted models (XM/XP accessions) and uncultured/environmental sequences.</li>
+    </ul>
+  </div></div>
+
+  <div class="panel"><h3>Program Selection</h3><div class="body">
+    <ul class="goals" style="margin:0">
+      <li><b>blastp</b> (protein-protein BLAST): the default and the standard choice.</li>
+      <li><b>Quick BLASTP</b> (accelerated protein-protein BLAST): faster, for close matches.</li>
+      <li><b>PSI-BLAST</b> (Position-Specific Iterated BLAST): builds a profile from the hits and searches again. See the Inside BLAST tutorial.</li>
+      <li><b>PHI-BLAST</b> (Pattern Hit Initiated BLAST): requires a sequence pattern you supply to be part of every hit.</li>
+      <li><b>DELTA-BLAST</b> (Domain Enhanced Lookup Time Accelerated BLAST): starts from a profile built from conserved domains, for distant homologs.</li>
+    </ul>
+  </div></div>
+
+  <div class="panel"><h3>Algorithm parameters <span class="muted" style="font-weight:400;font-size:14px">(click to expand, below the BLAST button)</span></h3><div class="body">
+    <div class="tablewrap" style="margin:0"><table class="data">
+      <thead><tr><th>Setting</th><th>Default</th><th>Options</th><th>What it does</th></tr></thead>
+      <tbody>
+        <tr><td colspan="4" class="muted" style="font-size:12px;letter-spacing:.06em;text-transform:uppercase">General Parameters</td></tr>
+        <tr><td>Max target sequences</td><td><span class="setting">100</span></td><td>10 – 5000</td><td>How many database sequences to report. A hard cap, whatever their E-values.</td></tr>
+        <tr><td>Short queries</td><td><span class="setting">on</span></td><td>on / off</td><td>Adjusts settings automatically for very short queries.</td></tr>
+        <tr><td>Expect threshold</td><td><span class="setting">0.05</span></td><td>any number</td><td>Report hits with E-values up to this.</td></tr>
+        <tr><td>Word size</td><td><span class="setting">5</span></td><td>2, 3, 5, 6</td><td>Length of the seed words. Smaller is slower but more sensitive.</td></tr>
+        <tr><td colspan="4" class="muted" style="font-size:12px;letter-spacing:.06em;text-transform:uppercase">Scoring Parameters</td></tr>
+        <tr><td>Matrix</td><td><span class="setting">BLOSUM62</span></td><td>PAM30 … PAM250</td><td>Substitution matrix. See PAM and BLOSUM.</td></tr>
+        <tr><td>Gap Costs</td><td><span class="setting">Existence 11, Extension 1</span></td><td>depends on matrix</td><td>Cost of a gap of length L is existence + L × extension.</td></tr>
+        <tr><td>Compositional adjustments</td><td><span class="setting">Conditional compositional score matrix adjustment</span></td><td>none / three methods</td><td>Corrects scores for query or subject with unusual amino-acid composition.</td></tr>
+        <tr><td colspan="4" class="muted" style="font-size:12px;letter-spacing:.06em;text-transform:uppercase">Filters and Masking</td></tr>
+        <tr><td>Low complexity regions</td><td>see form</td><td>on / off</td><td>Masks repetitive, biased stretches (SEG) that cause artefactual hits.</td></tr>
+        <tr><td>Mask for lookup table only / lower case</td><td><span class="setting">off</span></td><td>on / off</td><td>Finer control over masking.</td></tr>
+      </tbody>
+    </table></div>
+  </div></div>
+</section>
+
+<p class="part">Part 1 · Four exercises</p>
+
+<section id="ex1" aria-labelledby="ex1-h">
+  <span class="snum">3</span>
+  <div class="prose">
+  <h2 id="ex1-h">Exercise 1 · A first search</h2>
+  </div>
+  <div class="task"><b class="t">Do this</b>
+    <ol><li>Protein BLAST page. Query: <code>P68871</code>.</li><li>Database: <b>UniProtKB/Swiss-Prot</b>. Leave everything else at its default.</li><li>Click <b>BLAST</b>.</li></ol>
+  </div>
+  <div class="prose">
+  <p>The <b>Descriptions</b> tab lists one row per database sequence. Here are the first ten and the last of our run:</p>
+  </div>
+  <div class="tablewrap"><table class="hits" id="t1"></table></div>
+  <div class="tablewrap">
+  <table class="data">
+    <thead><tr><th>Column</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td><b>Description</b>, <b>Scientific Name</b></td><td>What the hit is and where it comes from. Check both before trusting the annotation.</td></tr>
+      <tr><td><b>Max Score</b></td><td>Bit score of the best alignment (HSP) with this sequence.</td></tr>
+      <tr><td><b>Total Score</b></td><td>Sum of bit scores of all its HSPs. Larger than Max Score when a protein matches in several places, as with repeats.</td></tr>
+      <tr><td><b>Query Cover</b></td><td>Percentage of your query covered by the alignments. Low cover means a partial match, often one domain.</td></tr>
+      <tr><td><b>E value</b></td><td>Expected number of chance hits this good in a database this size. The main filter.</td></tr>
+      <tr><td><b>Per. Ident</b></td><td>Percent identity over the aligned region only.</td></tr>
+      <tr><td><b>Acc. Len</b>, <b>Accession</b></td><td>Length of the database sequence, and its identifier (a link to the record).</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="prose">
+  <p>Look at the last row. Hit 100 has an E-value around 10<sup>−85</sup>, overwhelmingly significant, and yet the list stops there. That is not because nothing else matched. The default <b>Max target sequences</b> is 100.</p>
+  </div>
+</section>
+
+<section id="ex2" aria-labelledby="ex2-h">
+  <span class="snum">4</span>
+  <div class="prose">
+  <h2 id="ex2-h">Exercise 2 · See past the first 100</h2>
+  </div>
+  <div class="task"><b class="t">Do this</b>
+    <ol><li>Click <b>Edit Search</b> at the top of the results.</li><li>Open <b>Algorithm parameters</b> and set <b>Max target sequences</b> to <b>5000</b>. Keep everything else the same.</li><li>Run the search again.</li></ol>
+  </div>
+  <div class="tool">
+    <div class="tool-title">All hits with E ≤ 0.05, in rank order <small>β-globin vs Swiss-Prot, run of 25 September 2026</small></div>
+    <div class="stats" id="ex2Stats"></div>
+    <div class="chartwrap"><svg class="hist" id="ex2Chart" viewBox="0 0 720 300" role="img" aria-label="E-values of all hits against rank, coloured by globin family"></svg></div>
+  </div>
+  <div class="prose">
+  <p>Every hit is a hemoglobin chain. First come β-like chains from hundreds of vertebrates (β, δ, γ, ε). Only after about 380 of them does the first α-like chain appear. Human α-globin is hit number 419. The first 100 rows showed none of this. Nor is myoglobin anywhere in the list: at the default settings BLAST does not report it at all. Exercise 3 looks into why.</p>
+  <p><b>Lesson:</b> when your question is "which families are related to my protein?", raise Max target sequences, or narrow the search with Organism, before concluding that something is absent.</p>
+  </div>
+</section>
+
+<section id="ex3" aria-labelledby="ex3-h">
+  <span class="snum">5</span>
+  <div class="prose">
+  <h2 id="ex3-h">Exercise 3 · Tune the search</h2>
+  <p>Now ask a sharper question: which human proteins are related to β-globin?</p>
+  </div>
+  <div class="task"><b class="t">Do this</b>
+    <ol><li>Edit Search. In <b>Organism</b>, type <b>Homo sapiens</b> and pick it from the list.</li><li>Set <b>Expect threshold</b> to <b>10</b>, so weak hits are shown too. Run it.</li><li>Then change <b>Word size</b> from 5 to <b>3</b> and run again.</li></ol>
+  </div>
+  <div class="tablewrap"><table class="data" id="t3"></table></div>
+  <div class="prose">
+  <p>Three things to notice:</p>
+  <ul class="goals">
+    <li><b>Word size matters.</b> With the default word size of 5, only nine human hemoglobin chains are found, even at E ≤ 10. With word size 3, cytoglobin (E ≈ 10<sup>−16</sup>) and neuroglobin (E ≈ 3 × 10<sup>−4</sup>) appear. These are real, significant relatives that the faster default seeding never reached. This is the speed–sensitivity trade-off from the Inside BLAST tutorial, happening on NCBI's servers.</li>
+    <li><b>Compositional adjustment matters too.</b> Switch it off (third column) and neuroglobin drops out again. The default adjustment usually helps for proteins of ordinary composition.</li>
+    <li><b>Myoglobin is still missing.</b> Human myoglobin is in the database, and a full Smith–Waterman alignment with β-globin is clearly significant, yet BLAST does not report it under any of these settings. BLAST is a heuristic; not finding a relative is not proof that there isn't one. For distant relatives, try PSI-BLAST or DELTA-BLAST, or a profile HMM search.</li>
+    <li><b>The Organism filter changes E-values.</b> Restricting to human shrinks the searched database from 487,728 to 20,526 sequences, and E-values fall to match. Human α-globin's E-value is about 2 × 10<sup>−32</sup> in the full search and 1 × 10<sup>−33</sup> in the human-only one. Remember this when comparing E-values between searches.</li>
+  </ul>
+  <p>The rows below cytoglobin and neuroglobin, with E-values between 1 and 10, are unrelated proteins such as kinesins and helicases. Their short partial alignments are exactly the chance hits that an E-value near 1 predicts.</p>
+  </div>
+</section>
+
+<section id="ex4" aria-labelledby="ex4-h">
+  <span class="snum">6</span>
+  <div class="prose">
+  <h2 id="ex4-h">Exercise 4 · A plant query</h2>
+  </div>
+  <div class="task"><b class="t">Do this</b>
+    <ol><li>New search with query <code>P02238</code> (soybean leghemoglobin). Database: Swiss-Prot. All defaults.</li></ol>
+  </div>
+  <div class="tablewrap"><table class="data" id="t4"></table></div>
+  <div class="prose">
+  <p>All the hits are plant globins. Other soybean leghemoglobins come first, then leghemoglobins of other legumes, then the non-symbiotic hemoglobins found in all plants. Swiss-Prot now names these by their enzymatic activity, "Anaerobic nitrite reductase", so the description alone would not tell you they are globins. The weakest hit is a moss protein, and its E-value is still about 10<sup>−23</sup>. No animal globin appears. BLAST sees the plant branch of the globin family clearly, but it cannot bridge from plants to animals. That matches what the mini-BLAST in Inside BLAST predicted.</p>
+  </div>
+</section>
+
+<p class="part">Part 2 · The results page</p>
+
+<section id="aln" aria-labelledby="aln-h">
+  <span class="snum">7</span>
+  <div class="prose">
+  <h2 id="aln-h">Reading an alignment</h2>
+  <p>Click a description, or open the <b>Alignments</b> tab, to see each alignment. This is human β-globin against human α-globin from Exercise 3. It is re-typeset here, with the same content as NCBI's text format.</p>
+  </div>
+  <div class="bo" id="alnBox"></div>
+  <div class="prose">
+  <p><b>Score</b> gives the bit score and, in parentheses, the raw score. <b>Expect</b> is the E-value. <b>Identities</b> counts identical columns, <b>Positives</b> adds conservative substitutions (a <code>+</code> in the middle line), and <b>Gaps</b> counts gap columns. The coordinates show which part of each protein aligned. Here it is β residues 4–146 against almost all of α, with the 5-residue D-helix gap you met in the first tutorial.</p>
+  </div>
+</section>
+
+<section id="tools" aria-labelledby="tools-h">
+  <span class="snum">8</span>
+  <div class="prose">
+  <h2 id="tools-h">The rest of the results page</h2>
+  <ul class="goals">
+    <li><b>Tabs:</b> <b>Descriptions</b> (the hit table), <b>Graphic Summary</b> (where each hit aligns along your query, colored by score), <b>Alignments</b>, and <b>Taxonomy</b> (hits grouped by lineage and organism).</li>
+    <li><b>Filter Results</b> (beside the table): narrow the displayed hits by Organism, Percent Identity, E value and Query Coverage without rerunning the search.</li>
+    <li><b>Selecting hits:</b> tick rows, then use <b>Download</b> (FASTA of complete or aligned sequences, GenBank, hit tables as text or CSV), <b>GenPept</b>, <b>Graphics</b>, <b>Distance tree of results</b>, <b>Multiple alignment</b> or the <b>MSA Viewer</b>. That is a fast way to start the multiple alignment and phylogeny tutorials with your own data.</li>
+    <li><b>Download All</b> saves the whole report as Text, XML, JSON, hit tables and more.</li>
+    <li><b>Edit Search</b> reopens the form with your settings. <b>Save Search</b> stores the strategy, and <b>Recent Results</b> lists your recent searches.</li>
+    <li>Each search has a <b>request ID (RID)</b>. Results are kept only for a limited time, and the page shows the expiry date. Download anything you need to keep.</li>
+    <li><b>Search Summary</b> records the exact parameters and database version. Copy these into your notes so the search can be repeated.</li>
+  </ul>
+  </div>
+</section>
+
+<section id="more" aria-labelledby="more-h">
+  <span class="snum">9</span>
+  <div class="prose">
+  <h2 id="more-h">Beyond a single blastp</h2>
+  <ul class="goals">
+    <li><b>Compare two sequences directly.</b> Tick <b>Align two or more sequences</b>, paste β-globin as query and human myoglobin (<code>P02144</code>) as subject. Does BLAST report an alignment, and with what E-value? Compare with the database search in Exercise 3.</li>
+    <li><b>PSI-BLAST.</b> Choose PSI-BLAST under Program Selection and run the search. The results page lets you run the next iteration using the hits that pass the inclusion threshold, and you can untick hits to keep them out of the profile. Try leghemoglobin and watch whether animal globins join in later iterations.</li>
+    <li><b>DELTA-BLAST.</b> Uses conserved-domain profiles from the start, often reaching further than blastp in one step.</li>
+    <li><b>Other programs.</b> The same form layout is used for blastn, blastx and tblastn, with nucleotide-specific options such as megablast, match/mismatch scores and species-specific repeat filters.</li>
+  </ul>
+  </div>
+</section>
+
+<section id="cli" aria-labelledby="cli-h">
+  <span class="snum">10</span>
+  <div class="prose">
+  <h2 id="cli-h">Web versus command line</h2>
+  <p>The web defaults differ from BLAST+ on the command line. NCBI's BLAST FAQ says that to reproduce web blastp results with BLAST+, you should add <code>-evalue 0.05 -max_target_seqs 100 -seg yes</code>. Otherwise BLAST+ uses its own defaults (for example an E-value cutoff of 10). Also match the word size, matrix, gap costs and database version shown in the Search Summary.</p>
+  <p>The searches on this page were submitted through NCBI's BLAST URL API, a programmatic route to the same service, with the parameters listed below. The web page and API use the same servers and databases.</p>
+  </div>
+  <div class="tablewrap"><table class="data" id="runsTable"></table></div>
+</section>
+
+<section id="check" aria-labelledby="check-h">
+  <span class="snum">11</span>
+  <h2 id="check-h">Check yourself</h2>
+  <details><summary>1. Your search returns exactly 100 hits, all with E-values below 10⁻⁸⁰. What should you suspect?</summary>
+    <p>The Max target sequences cap (default 100) has cut the list off. Many more significant hits probably exist. Raise the limit or narrow the search.</p></details>
+  <details><summary>2. Why did cytoglobin and neuroglobin appear only after changing word size from 5 to 3?</summary>
+    <p>BLAST only extends alignments that start from word hits. Longer words need longer exact-ish matches, so distant relatives produce too few seeds. Smaller words seed more alignments, at the cost of speed.</p></details>
+  <details><summary>3. The same α-globin hit has E = 2 × 10⁻³² in one search and 1 × 10⁻³³ in another. Is one wrong?</summary>
+    <p>No. The second search was limited to human sequences, so the database was about 24 times smaller and E-values scale down accordingly. E-values are only comparable between searches of the same database.</p></details>
+  <details><summary>4. BLAST did not report myoglobin for a β-globin query. Can you conclude the two are not homologous?</summary>
+    <p>No. BLAST is heuristic and failing to find a hit is not evidence of absence. Myoglobin and hemoglobin are well-established homologs (same fold, same heme-binding histidines), as the earlier tutorials showed with full dynamic programming, profile methods and structure.</p></details>
+  <details><summary>5. Many leghemoglobin hits are named "Anaerobic nitrite reductase". What does that teach you about descriptions?</summary>
+    <p>Names describe what a protein does or what was measured, not necessarily its family. Use the alignment, E-value and coverage to judge homology, and look at the record to understand the name.</p></details>
+  <details><summary>6. You want to rerun a colleague's web search next year. What do you need from them?</summary>
+    <p>The query, program, database and its date or version, and every parameter from the Search Summary: word size, matrix, gap costs, compositional adjustment, filters, Expect threshold, Max target sequences, and any Organism limits.</p></details>
+</section>
+
+<section id="sources" aria-labelledby="sources-h">
+  <span class="snum">12</span>
+  <h2 id="sources-h">Sources</h2>
+  <ul class="goals">
+    <li>NCBI BLAST web interface and <a href="https://blast.ncbi.nlm.nih.gov/doc/blast-help/FAQ.html" target="_blank" rel="noopener">BLAST FAQ</a>, read 25 September 2026. The form defaults and database list in section 2 were taken from the live blastp page.</li>
+    <li>Results from NCBI BLASTP 2.17.0+, database swissprot posted 16 September 2026 (487,728 sequences; 186,063,409 residues), searched 25 September 2026.</li>
+    <li><a href="https://blast.ncbi.nlm.nih.gov/doc/blast-help/" target="_blank" rel="noopener">BLAST Help</a> and the <a href="https://www.ncbi.nlm.nih.gov/books/NBK279690/" target="_blank" rel="noopener">BLAST+ user manual</a>.</li>
+  </ul>
+  <footer>Bio 116 · Supplemental tutorial. NCBI's pages change over time; if a label here does not match what you see, the concepts still apply. Results tables are re-typeset from NCBI's output; this page is not affiliated with NCBI.</footer>
+</section>
+</main>
+</div>
+
+<script>
+"use strict";
+const DATA = {"hbb": {"rows": [{"rank": 1, "acc": "NP_000509", "sp": "Homo sapiens", "name": "hemoglobin subunit beta", "max": 301.2, "total": 301.2, "cover": 100, "e": 5.83859e-106, "pid": 100.0, "len": 147}, {"rank": 2, "acc": "P02024", "sp": "Gorilla gorilla gorilla", "name": "Hemoglobin subunit beta", "max": 300.1, "total": 300.1, "cover": 100, "e": 2.04047e-105, "pid": 99.32, "len": 147}, {"rank": 3, "acc": "P02025", "sp": "Hylobates lar", "name": "Hemoglobin subunit beta", "max": 294.3, "total": 294.3, "cover": 99, "e": 2.97316e-103, "pid": 98.63, "len": 146}, {"rank": 4, "acc": "P02032", "sp": "Semnopithecus entellus", "name": "Hemoglobin subunit beta", "max": 292.0, "total": 292.0, "cover": 99, "e": 2.44568e-102, "pid": 97.26, "len": 146}, {"rank": 5, "acc": "P19885", "sp": "Colobus polykomos", "name": "Hemoglobin subunit beta", "max": 291.6, "total": 291.6, "cover": 100, "e": 4.28615e-102, "pid": 95.92, "len": 147}, {"rank": 6, "acc": "Q6WN22", "sp": "Ateles paniscus", "name": "Hemoglobin subunit beta", "max": 290.0, "total": 290.0, "cover": 100, "e": 1.53097e-101, "pid": 95.92, "len": 147}, {"rank": 7, "acc": "P68232", "sp": "Ateles geoffroyi", "name": "Hemoglobin subunit beta", "max": 289.7, "total": 289.7, "cover": 100, "e": 2.65024e-101, "pid": 95.92, "len": 147}, {"rank": 8, "acc": "P68222", "sp": "Macaca fuscata fuscata", "name": "Hemoglobin subunit beta", "max": 289.3, "total": 289.3, "cover": 100, "e": 2.92537e-101, "pid": 95.24, "len": 147}, {"rank": 9, "acc": "Q6WN27", "sp": "Pithecia pithecia", "name": "Hemoglobin subunit beta", "max": 289.3, "total": 289.3, "cover": 100, "e": 3.15897e-101, "pid": 95.92, "len": 147}, {"rank": 10, "acc": "Q6WN25", "sp": "Lagothrix lagotricha", "name": "Hemoglobin subunit beta", "max": 289.3, "total": 289.3, "cover": 100, "e": 3.19383e-101, "pid": 95.92, "len": 147}, {"rank": 11, "acc": "P02028", "sp": "Chlorocebus aethiops", "name": "Hemoglobin subunit beta", "max": 289.3, "total": 289.3, "cover": 99, "e": 3.29645e-101, "pid": 95.89, "len": 146}, {"rank": 12, "acc": "Q6WN28", "sp": "Callithrix jacchus", "name": "Hemoglobin subunit beta", "max": 288.5, "total": 288.5, "cover": 100, "e": 6.44695e-101, "pid": 96.6, "len": 147}, {"rank": 13, "acc": "P67821", "sp": "Sapajus apella", "name": "Hemoglobin subunit beta", "max": 288.1, "total": 288.1, "cover": 100, "e": 9.67621e-101, "pid": 95.24, "len": 147}, {"rank": 14, "acc": "Q6WN21", "sp": "Callimico goeldii", "name": "Hemoglobin subunit beta", "max": 287.7, "total": 287.7, "cover": 100, "e": 1.40526e-100, "pid": 95.24, "len": 147}, {"rank": 15, "acc": "Q9TSP1", "sp": "Papio anubis", "name": "Hemoglobin subunit beta", "max": 286.2, "total": 286.2, "cover": 100, "e": 4.59732e-100, "pid": 94.56, "len": 147}, {"rank": 16, "acc": "P02033", "sp": "Piliocolobus badius", "name": "Hemoglobin subunit beta", "max": 286.2, "total": 286.2, "cover": 99, "e": 5.65606e-100, "pid": 95.21, "len": 146}, {"rank": 17, "acc": "P02036", "sp": "Saimiri sciureus", "name": "Hemoglobin subunit beta", "max": 286.2, "total": 286.2, "cover": 100, "e": 6.04865e-100, "pid": 94.56, "len": 147}, {"rank": 18, "acc": "P18985", "sp": "Mico argentatus", "name": "Hemoglobin subunit beta", "max": 285.8, "total": 285.8, "cover": 99, "e": 7.52376e-100, "pid": 96.58, "len": 146}, {"rank": 19, "acc": "P08259", "sp": "Mandrillus sphinx", "name": "Hemoglobin subunit beta", "max": 285.8, "total": 285.8, "cover": 99, "e": 7.94815e-100, "pid": 94.52, "len": 146}, {"rank": 20, "acc": "Q6WN29", "sp": "Alouatta belzebul", "name": "Hemoglobin subunit beta", "max": 285.8, "total": 285.8, "cover": 100, "e": 8.59359e-100, "pid": 95.24, "len": 147}, {"rank": 21, "acc": "P61772", "sp": "Pan troglodytes", "name": "Hemoglobin subunit delta", "max": 285.4, "total": 285.4, "cover": 100, "e": 1.01313e-99, "pid": 93.88, "len": 147}, {"rank": 22, "acc": "P02026", "sp": "Macaca mulatta", "name": "Hemoglobin subunit beta", "max": 285.4, "total": 285.4, "cover": 99, "e": 1.06894e-99, "pid": 94.52, "len": 146}, {"rank": 23, "acc": "P02039", "sp": "Leontocebus fuscicollis", "name": "Hemoglobin subunit beta", "max": 285.4, "total": 285.4, "cover": 99, "e": 1.26022e-99, "pid": 95.21, "len": 146}, {"rank": 24, "acc": "P02035", "sp": "Aotus trivirgatus", "name": "Hemoglobin subunit beta", "max": 285.0, "total": 285.0, "cover": 99, "e": 1.48572e-99, "pid": 95.21, "len": 146}, {"rank": 25, "acc": "P02031", "sp": "Cercocebus atys", "name": "Hemoglobin subunit beta", "max": 285.0, "total": 285.0, "cover": 99, "e": 1.51869e-99, "pid": 95.21, "len": 146}, {"rank": 26, "acc": "P02040", "sp": "Cebus albifrons", "name": "Hemoglobin subunit beta", "max": 285.0, "total": 285.0, "cover": 99, "e": 1.55239e-99, "pid": 95.21, "len": 146}, {"rank": 27, "acc": "P68054", "sp": "Leontocebus nigricollis", "name": "Hemoglobin subunit beta", "max": 285.0, "total": 285.0, "cover": 99, "e": 1.69485e-99, "pid": 95.21, "len": 146}, {"rank": 28, "acc": "Q6WN26", "sp": "Aotus azarai", "name": "Hemoglobin subunit beta", "max": 285.0, "total": 285.0, "cover": 100, "e": 1.83246e-99, "pid": 94.56, "len": 147}, {"rank": 29, "acc": "P02042", "sp": "Homo sapiens", "name": "Hemoglobin subunit delta", "max": 284.6, "total": 284.6, "cover": 100, "e": 2.3586e-99, "pid": 93.2, "len": 147}, {"rank": 30, "acc": "P02030", "sp": "Papio cynocephalus", "name": "Hemoglobin subunit beta", "max": 283.9, "total": 283.9, "cover": 99, "e": 4.75494e-99, "pid": 94.52, "len": 146}, {"rank": 31, "acc": "P67822", "sp": "Cebus capucinus", "name": "Hemoglobin subunit beta", "max": 283.5, "total": 283.5, "cover": 99, "e": 6.12018e-99, "pid": 94.52, "len": 146}, {"rank": 32, "acc": "P02038", "sp": "Saguinus mystax", "name": "Hemoglobin subunit beta", "max": 283.5, "total": 283.5, "cover": 99, "e": 6.90543e-99, "pid": 94.52, "len": 146}, {"rank": 33, "acc": "P02044", "sp": "Ateles geoffroyi", "name": "Hemoglobin subunit delta", "max": 283.1, "total": 283.1, "cover": 100, "e": 9.71559e-99, "pid": 93.88, "len": 147}, {"rank": 34, "acc": "P02029", "sp": "Theropithecus gelada", "name": "Hemoglobin subunit beta", "max": 282.3, "total": 282.3, "cover": 99, "e": 1.83386e-98, "pid": 93.84, "len": 146}, {"rank": 35, "acc": "P19886", "sp": "Colobus polykomos", "name": "Hemoglobin subunit delta", "max": 282.3, "total": 282.3, "cover": 100, "e": 2.11763e-98, "pid": 92.52, "len": 147}, {"rank": 36, "acc": "Q6WN20", "sp": "Cheracebus torquatus", "name": "Hemoglobin subunit beta", "max": 282.0, "total": 282.0, "cover": 100, "e": 2.18851e-98, "pid": 93.88, "len": 147}, {"rank": 37, "acc": "P02055", "sp": "Meles meles", "name": "Hemoglobin subunit beta", "max": 278.5, "total": 278.5, "cover": 99, "e": 5.21151e-97, "pid": 91.78, "len": 146}, {"rank": 38, "acc": "P33499", "sp": "Ateles fusciceps", "name": "Hemoglobin subunit delta", "max": 278.5, "total": 278.5, "cover": 99, "e": 6.34961e-97, "pid": 93.84, "len": 146}, {"rank": 39, "acc": "P15449", "sp": "Mellivora capensis", "name": "Hemoglobin subunit beta", "max": 278.1, "total": 278.1, "cover": 99, "e": 7.65183e-97, "pid": 91.78, "len": 146}, {"rank": 40, "acc": "P68046", "sp": "Odobenus rosmarus divergens", "name": "Hemoglobin subunit beta", "max": 278.1, "total": 278.1, "cover": 99, "e": 8.63354e-97, "pid": 91.78, "len": 146}, {"rank": 41, "acc": "P09909", "sp": "Phoca vitulina", "name": "Hemoglobin subunit beta", "max": 277.3, "total": 277.3, "cover": 99, "e": 1.47812e-96, "pid": 91.78, "len": 146}, {"rank": 42, "acc": "P68052", "sp": "Pteronura brasiliensis", "name": "Hemoglobin subunit beta", "max": 277.3, "total": 277.3, "cover": 99, "e": 1.78126e-96, "pid": 91.78, "len": 146}, {"rank": 43, "acc": "P08535", "sp": "Lepus europaeus", "name": "Hemoglobin subunit beta", "max": 276.9, "total": 276.9, "cover": 100, "e": 2.42473e-96, "pid": 91.16, "len": 147}, {"rank": 44, "acc": "P02057", "sp": "Oryctolagus cuniculus", "name": "Hemoglobin subunit beta-1/2", "max": 276.6, "total": 276.6, "cover": 100, "e": 3.05309e-96, "pid": 90.48, "len": 147}, {"rank": 45, "acc": "P10893", "sp": "Lutra lutra", "name": "Hemoglobin subunit beta", "max": 276.6, "total": 276.6, "cover": 99, "e": 3.15168e-96, "pid": 91.1, "len": 146}, {"rank": 46, "acc": "P18989", "sp": "Procyon lotor", "name": "Hemoglobin subunit beta", "max": 276.2, "total": 276.2, "cover": 99, "e": 4.14652e-96, "pid": 90.41, "len": 146}, {"rank": 47, "acc": "P15166", "sp": "Leptonychotes weddellii", "name": "Hemoglobin subunit beta", "max": 276.2, "total": 276.2, "cover": 99, "e": 4.57694e-96, "pid": 90.41, "len": 146}, {"rank": 48, "acc": "P26916", "sp": "Nasua nasua", "name": "Hemoglobin subunit beta", "max": 275.8, "total": 275.8, "cover": 99, "e": 5.89094e-96, "pid": 91.1, "len": 146}, {"rank": 49, "acc": "P23602", "sp": "Mustela lutreola", "name": "Hemoglobin subunit beta", "max": 275.8, "total": 275.8, "cover": 99, "e": 7.17737e-96, "pid": 91.1, "len": 146}, {"rank": 50, "acc": "P21201", "sp": "Vulpes vulpes", "name": "Hemoglobin subunit beta", "max": 275.4, "total": 275.4, "cover": 99, "e": 1.00855e-95, "pid": 91.1, "len": 146}, {"rank": 51, "acc": "P13557", "sp": "Carlito syrichta", "name": "Hemoglobin subunit beta", "max": 275.4, "total": 275.4, "cover": 100, "e": 1.13922e-95, "pid": 90.48, "len": 147}, {"rank": 52, "acc": "P18983", "sp": "Ailuropoda melanoleuca", "name": "Hemoglobin subunit beta", "max": 275.0, "total": 275.0, "cover": 100, "e": 1.32839e-95, "pid": 90.48, "len": 147}, {"rank": 53, "acc": "P68015", "sp": "Leontocebus nigricollis", "name": "Hemoglobin subunit delta", "max": 275.0, "total": 275.0, "cover": 99, "e": 1.44865e-95, "pid": 92.47, "len": 146}, {"rank": 54, "acc": "P68044", "sp": "Mustela putorius furo", "name": "Hemoglobin subunit beta", "max": 273.9, "total": 273.9, "cover": 99, "e": 3.52348e-95, "pid": 90.41, "len": 146}, {"rank": 55, "acc": "P18982", "sp": "Ailurus fulgens", "name": "Hemoglobin subunit beta", "max": 273.9, "total": 273.9, "cover": 99, "e": 3.76327e-95, "pid": 90.41, "len": 146}, {"rank": 56, "acc": "P68014", "sp": "Saguinus mystax", "name": "Hemoglobin subunit delta", "max": 273.5, "total": 273.5, "cover": 99, "e": 5.06097e-95, "pid": 91.78, "len": 146}, {"rank": 57, "acc": "Q5XLE5", "sp": "Ailuropoda melanoleuca", "name": "Hemoglobin subunit delta", "max": 273.1, "total": 273.1, "cover": 100, "e": 7.04161e-95, "pid": 89.8, "len": 147}, {"rank": 58, "acc": "P02046", "sp": "Aotus trivirgatus", "name": "Hemoglobin subunit delta", "max": 272.3, "total": 272.3, "cover": 99, "e": 1.71079e-94, "pid": 91.1, "len": 146}, {"rank": 59, "acc": "P60524", "sp": "Canis lupus familiaris", "name": "Hemoglobin subunit beta", "max": 272.3, "total": 272.3, "cover": 99, "e": 1.82722e-94, "pid": 89.73, "len": 146}, {"rank": 60, "acc": "P02047", "sp": "Saimiri sciureus", "name": "Hemoglobin subunit delta", "max": 271.9, "total": 271.9, "cover": 99, "e": 2.74226e-94, "pid": 91.1, "len": 146}, {"rank": 61, "acc": "P18984", "sp": "Balaenoptera acutorostrata", "name": "Hemoglobin subunit beta", "max": 271.6, "total": 271.6, "cover": 99, "e": 2.77252e-94, "pid": 90.41, "len": 146}, {"rank": 62, "acc": "P68011", "sp": "Ursus maritimus", "name": "Hemoglobin subunit beta", "max": 271.2, "total": 271.2, "cover": 99, "e": 4.02621e-94, "pid": 89.73, "len": 146}, {"rank": 63, "acc": "P02051", "sp": "Cephalopachus bancanus", "name": "Hemoglobin subunit beta", "max": 271.2, "total": 271.2, "cover": 99, "e": 4.07063e-94, "pid": 89.73, "len": 146}, {"rank": 64, "acc": "P24660", "sp": "Macroderma gigas", "name": "Hemoglobin subunit beta", "max": 270.8, "total": 270.8, "cover": 99, "e": 7.36189e-94, "pid": 89.73, "len": 146}, {"rank": 65, "acc": "P02050", "sp": "Otolemur crassicaudatus", "name": "Hemoglobin subunit beta-1/2", "max": 269.6, "total": 269.6, "cover": 99, "e": 1.97635e-93, "pid": 89.04, "len": 146}, {"rank": 66, "acc": "D0VX08", "sp": "Pteropus vampyrus", "name": "Hemoglobin subunit beta", "max": 268.5, "total": 268.5, "cover": 99, "e": 6.11896e-93, "pid": 89.04, "len": 146}, {"rank": 67, "acc": "P14392", "sp": "Pteropus poliocephalus", "name": "Hemoglobin subunit beta", "max": 266.9, "total": 266.9, "cover": 99, "e": 2.13747e-92, "pid": 89.04, "len": 146}, {"rank": 68, "acc": "P28781", "sp": "Taphozous georgianus", "name": "Hemoglobin subunit beta", "max": 266.5, "total": 266.5, "cover": 99, "e": 3.57978e-92, "pid": 87.67, "len": 146}, {"rank": 69, "acc": "P11752", "sp": "Lyroderma lyra", "name": "Hemoglobin subunit beta", "max": 264.2, "total": 264.2, "cover": 99, "e": 2.21228e-91, "pid": 86.3, "len": 146}, {"rank": 70, "acc": "P18986", "sp": "Crocuta crocuta", "name": "Hemoglobin subunit beta", "max": 264.2, "total": 264.2, "cover": 98, "e": 2.28631e-91, "pid": 87.5, "len": 146}, {"rank": 71, "acc": "P23020", "sp": "Proteles cristata", "name": "Hemoglobin subunit beta", "max": 263.5, "total": 263.5, "cover": 98, "e": 5.8096e-91, "pid": 87.5, "len": 146}, {"rank": 72, "acc": "P02058", "sp": "Rousettus aegyptiacus", "name": "Hemoglobin subunit beta", "max": 263.1, "total": 263.1, "cover": 99, "e": 7.64305e-91, "pid": 86.99, "len": 146}, {"rank": 73, "acc": "B2KHZ4", "sp": "Rhinolophus ferrumequinum", "name": "Hemoglobin subunit beta", "max": 260.8, "total": 260.8, "cover": 100, "e": 5.88709e-90, "pid": 86.39, "len": 147}, {"rank": 74, "acc": "P21667", "sp": "Varecia variegata", "name": "Hemoglobin subunit beta", "max": 258.1, "total": 258.1, "cover": 98, "e": 7.33411e-89, "pid": 84.72, "len": 146}, {"rank": 75, "acc": "P20855", "sp": "Ctenodactylus gundi", "name": "Hemoglobin subunit beta", "max": 257.7, "total": 257.7, "cover": 99, "e": 8.83777e-89, "pid": 84.25, "len": 146}, {"rank": 76, "acc": "P02067", "sp": "Sus scrofa", "name": "Hemoglobin subunit beta", "max": 257.7, "total": 257.7, "cover": 100, "e": 8.94302e-89, "pid": 85.03, "len": 147}, {"rank": 77, "acc": "P19016", "sp": "Hippopotamus amphibius", "name": "Hemoglobin subunit beta", "max": 257.7, "total": 257.7, "cover": 99, "e": 1.01925e-88, "pid": 85.62, "len": 146}, {"rank": 78, "acc": "P19646", "sp": "Paguma larvata", "name": "Hemoglobin subunit beta", "max": 257.7, "total": 257.7, "cover": 98, "e": 1.13743e-88, "pid": 85.42, "len": 146}, {"rank": 79, "acc": "P02049", "sp": "Nycticebus coucang", "name": "Hemoglobin subunit beta", "max": 257.3, "total": 257.3, "cover": 99, "e": 1.58072e-88, "pid": 92.47, "len": 146}, {"rank": 80, "acc": "P02090", "sp": "Nannospalax ehrenbergi", "name": "Hemoglobin subunit beta", "max": 255.8, "total": 255.8, "cover": 99, "e": 6.43707e-88, "pid": 82.19, "len": 146}, {"rank": 81, "acc": "P41328", "sp": "Lynx lynx", "name": "Hemoglobin subunit beta", "max": 255.4, "total": 255.4, "cover": 98, "e": 8.19411e-88, "pid": 84.72, "len": 146}, {"rank": 82, "acc": "P14388", "sp": "Antrozous pallidus", "name": "Hemoglobin subunit beta", "max": 255.0, "total": 255.0, "cover": 99, "e": 9.98293e-88, "pid": 85.62, "len": 146}, {"rank": 83, "acc": "Q7M3C2", "sp": "Hapalemur griseus", "name": "Hemoglobin subunit beta", "max": 254.6, "total": 254.6, "cover": 98, "e": 1.99252e-87, "pid": 84.72, "len": 146}, {"rank": 84, "acc": "P02048", "sp": "Loris tardigradus", "name": "Hemoglobin subunit beta", "max": 253.8, "total": 253.8, "cover": 99, "e": 3.44833e-87, "pid": 91.1, "len": 146}, {"rank": 85, "acc": "P13558", "sp": "Carlito syrichta", "name": "Hemoglobin subunit delta", "max": 253.4, "total": 253.4, "cover": 100, "e": 4.90239e-87, "pid": 88.44, "len": 147}, {"rank": 86, "acc": "P02054", "sp": "Lemur catta", "name": "Hemoglobin subunit beta", "max": 253.4, "total": 253.4, "cover": 98, "e": 5.40676e-87, "pid": 84.03, "len": 146}, {"rank": 87, "acc": "P07412", "sp": "Felis catus", "name": "Hemoglobin subunit beta-A/B", "max": 253.1, "total": 253.1, "cover": 98, "e": 7.76517e-87, "pid": 84.03, "len": 146}, {"rank": 88, "acc": "Q03902", "sp": "Otolemur crassicaudatus", "name": "Hemoglobin subunit delta", "max": 252.7, "total": 252.7, "cover": 100, "e": 8.48411e-87, "pid": 89.8, "len": 147}, {"rank": 89, "acc": "P04244", "sp": "Panthera pardus orientalis", "name": "Hemoglobin subunit beta", "max": 252.7, "total": 252.7, "cover": 100, "e": 9.8924e-87, "pid": 80.95, "len": 147}, {"rank": 90, "acc": "Q45XI8", "sp": "Trichechus manatus", "name": "Hemoglobin subunit delta", "max": 251.9, "total": 251.9, "cover": 100, "e": 1.76925e-86, "pid": 81.63, "len": 147}, {"rank": 91, "acc": "P02091", "sp": "Rattus norvegicus", "name": "Hemoglobin subunit beta-1", "max": 251.9, "total": 251.9, "cover": 100, "e": 2.17923e-86, "pid": 81.63, "len": 147}, {"rank": 92, "acc": "P02088", "sp": "Mus musculus", "name": "Hemoglobin subunit beta-1", "max": 251.5, "total": 251.5, "cover": 100, "e": 2.48582e-86, "pid": 80.27, "len": 147}, {"rank": 93, "acc": "B3EWD2", "sp": "Sciurus carolinensis", "name": "Hemoglobin subunit beta [Sciurus carolinensis]", "max": 251.5, "total": 251.5, "cover": 99, "e": 2.62394e-86, "pid": 82.88, "len": 146}, {"rank": 94, "acc": "Q45XH7", "sp": "Elephas maximus", "name": "Hemoglobin subunit gamma", "max": 251.1, "total": 251.1, "cover": 100, "e": 3.77134e-86, "pid": 78.91, "len": 147}, {"rank": 95, "acc": "P02059", "sp": "Erinaceus europaeus", "name": "Hemoglobin subunit beta", "max": 250.8, "total": 250.8, "cover": 99, "e": 5.41219e-86, "pid": 82.19, "len": 146}, {"rank": 96, "acc": "P07415", "sp": "Trichechus inunguis", "name": "Hemoglobin subunit beta", "max": 249.6, "total": 249.6, "cover": 99, "e": 1.42099e-85, "pid": 81.51, "len": 146}, {"rank": 97, "acc": "P02089", "sp": "Mus musculus", "name": "Hemoglobin subunit beta-2", "max": 249.6, "total": 249.6, "cover": 100, "e": 1.81014e-85, "pid": 80.27, "len": 147}, {"rank": 98, "acc": "P68048", "sp": "Panthera tigris sumatrae", "name": "Hemoglobin subunit beta-1", "max": 249.2, "total": 249.2, "cover": 100, "e": 1.99796e-85, "pid": 80.27, "len": 147}, {"rank": 99, "acc": "Q45XH8", "sp": "Loxodonta africana", "name": "Hemoglobin subunit gamma", "max": 249.2, "total": 249.2, "cover": 100, "e": 2.38125e-85, "pid": 78.23, "len": 147}, {"rank": 100, "acc": "P02052", "sp": "Tupaia glis", "name": "Hemoglobin subunit beta", "max": 249.2, "total": 249.2, "cover": 99, "e": 2.59775e-85, "pid": 82.19, "len": 146}], "stat": {"db_num": 487728, "db_len": 186063409, "hsp_len": 106, "eff_space": 5508933881, "kappa": 0.041, "lambda": 0.267, "entropy": 0.14}, "version": "BLASTP 2.17.0+"}, "lba": {"rows": [{"rank": 1, "acc": "NP_001235928", "sp": "Glycine max", "name": "leghemoglobin 3", "max": 286.2, "total": 286.2, "cover": 100, "e": 3.79142e-100, "pid": 100.0, "len": 144}, {"rank": 2, "acc": "P02236", "sp": "Glycine max", "name": "Leghemoglobin 4", "max": 271.6, "total": 271.6, "cover": 100, "e": 3.33144e-94, "pid": 93.06, "len": 145}, {"rank": 3, "acc": "P02237", "sp": "Glycine max", "name": "Leghemoglobin 1", "max": 268.1, "total": 268.1, "cover": 100, "e": 5.65122e-93, "pid": 92.36, "len": 145}, {"rank": 4, "acc": "P02235", "sp": "Glycine max", "name": "Leghemoglobin 2", "max": 264.2, "total": 264.2, "cover": 100, "e": 2.20472e-91, "pid": 92.36, "len": 144}, {"rank": 5, "acc": "P27199", "sp": "Psophocarpus tetragonolobus", "name": "Leghemoglobin [Psophocarpus tetragonolobus]", "max": 251.5, "total": 251.5, "cover": 100, "e": 2.03533e-86, "pid": 85.42, "len": 145}, {"rank": 6, "acc": "P02234", "sp": "Phaseolus vulgaris", "name": "Leghemoglobin alpha", "max": 241.9, "total": 241.9, "cover": 100, "e": 1.6417e-82, "pid": 82.64, "len": 146}, {"rank": 7, "acc": "Q43236", "sp": "Vigna unguiculata", "name": "Leghemoglobin-1", "max": 239.6, "total": 239.6, "cover": 100, "e": 1.20774e-81, "pid": 81.94, "len": 145}, {"rank": 8, "acc": "O04939", "sp": "Phaseolus vulgaris", "name": "Leghemoglobin [Phaseolus vulgaris]", "max": 238.8, "total": 238.8, "cover": 100, "e": 2.30804e-81, "pid": 81.25, "len": 146}, {"rank": 9, "acc": "Q43296", "sp": "Vigna unguiculata", "name": "Leghemoglobin-2", "max": 236.1, "total": 236.1, "cover": 100, "e": 2.75087e-80, "pid": 80.56, "len": 145}, {"rank": 10, "acc": "P42511", "sp": "Canavalia lineata", "name": "Leghemoglobin [Canavalia lineata]", "max": 210.3, "total": 210.3, "cover": 100, "e": 5.72562e-70, "pid": 71.72, "len": 149}, {"rank": 11, "acc": "A0A0R0HW51", "sp": "Glycine max", "name": "Leghemoglobin 5", "max": 206.1, "total": 206.1, "cover": 94, "e": 4.93654e-68, "pid": 68.63, "len": 168}, {"rank": 12, "acc": "P14848", "sp": "Sesbania rostrata", "name": "Leghemoglobin 2", "max": 195.3, "total": 195.3, "cover": 99, "e": 5.02693e-64, "pid": 68.49, "len": 148}, {"rank": 13, "acc": "P09187", "sp": "Medicago sativa", "name": "Leghemoglobin-1", "max": 193.7, "total": 193.7, "cover": 99, "e": 1.87228e-63, "pid": 67.59, "len": 147}, {"rank": 14, "acc": "P10816", "sp": "Sesbania rostrata", "name": "Leghemoglobin 3", "max": 192.6, "total": 192.6, "cover": 99, "e": 6.24371e-63, "pid": 68.49, "len": 148}, {"rank": 15, "acc": "P27992", "sp": "Medicago truncatula", "name": "Leghemoglobin 6", "max": 191.8, "total": 191.8, "cover": 99, "e": 9.16541e-63, "pid": 69.18, "len": 147}, {"rank": 16, "acc": "P28010", "sp": "Medicago sativa", "name": "Leghemoglobin [Medicago sativa]", "max": 191.4, "total": 191.4, "cover": 99, "e": 1.40498e-62, "pid": 67.81, "len": 147}, {"rank": 17, "acc": "Q3C1F6", "sp": "Lotus japonicus", "name": "Leghemoglobin 2", "max": 190.7, "total": 190.7, "cover": 99, "e": 2.99313e-62, "pid": 68.06, "len": 146}, {"rank": 18, "acc": "Q3C1F7", "sp": "Lotus japonicus", "name": "Leghemoglobin 1", "max": 188.3, "total": 188.3, "cover": 99, "e": 2.05731e-61, "pid": 67.36, "len": 146}, {"rank": 19, "acc": "P27993", "sp": "Medicago truncatula", "name": "Leghemoglobin 1", "max": 184.1, "total": 184.1, "cover": 99, "e": 1.29145e-59, "pid": 68.49, "len": 146}, {"rank": 20, "acc": "O80405", "sp": "Lathyrus oleraceus", "name": "Leghemoglobin Lb120-1", "max": 181.8, "total": 181.8, "cover": 99, "e": 1.01177e-58, "pid": 65.52, "len": 146}, {"rank": 21, "acc": "Q9SAZ0", "sp": "Lathyrus oleraceus", "name": "Leghemoglobin Lb120-34", "max": 181.4, "total": 181.4, "cover": 99, "e": 1.33033e-58, "pid": 65.52, "len": 146}, {"rank": 22, "acc": "P93849", "sp": "Vicia faba", "name": "Leghemoglobin 49", "max": 181.4, "total": 181.4, "cover": 99, "e": 1.5507e-58, "pid": 64.83, "len": 146}, {"rank": 23, "acc": "G7KGT0", "sp": "Medicago truncatula", "name": "Leghemoglobin 8", "max": 181.0, "total": 181.0, "cover": 99, "e": 2.19951e-58, "pid": 63.7, "len": 147}, {"rank": 24, "acc": "O48668", "sp": "Lathyrus oleraceus", "name": "Leghemoglobin Lb5-10", "max": 180.3, "total": 180.3, "cover": 99, "e": 4.38399e-58, "pid": 63.01, "len": 147}, {"rank": 25, "acc": "P14962", "sp": "Medicago sativa", "name": "Leghemoglobin-3", "max": 179.9, "total": 179.9, "cover": 99, "e": 4.84212e-58, "pid": 65.75, "len": 146}, {"rank": 26, "acc": "Q9FEP8", "sp": "Lotus japonicus", "name": "Leghemoglobin 3", "max": 179.1, "total": 179.1, "cover": 99, "e": 1.254e-57, "pid": 64.83, "len": 147}, {"rank": 27, "acc": "P02232", "sp": "Vicia faba", "name": "Leghemoglobin-1", "max": 178.7, "total": 178.7, "cover": 99, "e": 1.31365e-57, "pid": 64.58, "len": 144}, {"rank": 28, "acc": "P02233", "sp": "Lathyrus oleraceus", "name": "Leghemoglobin-1", "max": 178.7, "total": 178.7, "cover": 99, "e": 1.52574e-57, "pid": 63.7, "len": 148}, {"rank": 29, "acc": "Q9SAZ1", "sp": "Lathyrus oleraceus", "name": "Leghemoglobin Lb120-8", "max": 178.7, "total": 178.7, "cover": 99, "e": 1.78168e-57, "pid": 64.14, "len": 146}, {"rank": 30, "acc": "I3SX86", "sp": "Lotus japonicus", "name": "Atypical leghemoglobin 2-1", "max": 175.3, "total": 175.3, "cover": 100, "e": 3.75413e-56, "pid": 59.33, "len": 152}, {"rank": 31, "acc": "O48665", "sp": "Lathyrus oleraceus", "name": "Leghemoglobin Lb120-29", "max": 170.6, "total": 170.6, "cover": 99, "e": 2.47103e-54, "pid": 62.07, "len": 146}, {"rank": 32, "acc": "P93848", "sp": "Vicia faba", "name": "Leghemoglobin 29", "max": 169.9, "total": 169.9, "cover": 97, "e": 5.78771e-54, "pid": 60.14, "len": 148}, {"rank": 33, "acc": "P02240", "sp": "Lupinus luteus", "name": "Leghemoglobin-2", "max": 155.2, "total": 155.2, "cover": 99, "e": 3.37759e-48, "pid": 57.43, "len": 154}, {"rank": 34, "acc": "P02239", "sp": "Lupinus luteus", "name": "Leghemoglobin-1", "max": 151.8, "total": 151.8, "cover": 99, "e": 7.77153e-47, "pid": 56.08, "len": 154}, {"rank": 35, "acc": "Q941P9", "sp": "Solanum lycopersicum", "name": "Anaerobic nitrite reductase HB2", "max": 148.3, "total": 148.3, "cover": 98, "e": 2.07234e-45, "pid": 51.7, "len": 156}, {"rank": 36, "acc": "O24521", "sp": "Arabidopsis thaliana", "name": "Anaerobic nitrite reductase AHB2", "max": 143.3, "total": 143.3, "cover": 98, "e": 1.7927e-43, "pid": 51.7, "len": 158}, {"rank": 37, "acc": "Q941Q2", "sp": "Brassica napus", "name": "Anaerobic nitrite reductase HB2", "max": 142.5, "total": 142.5, "cover": 98, "e": 4.39966e-43, "pid": 51.7, "len": 161}, {"rank": 38, "acc": "Q93Y92", "sp": "Gossypium hirsutum", "name": "Anaerobic nitrite reductase HB2", "max": 139.0, "total": 139.0, "cover": 98, "e": 1.17997e-41, "pid": 50.0, "len": 159}, {"rank": 39, "acc": "P08054", "sp": "Casuarina glauca", "name": "Anaerobic nitrite reductase HBI", "max": 129.8, "total": 129.8, "cover": 98, "e": 3.19852e-38, "pid": 44.9, "len": 152}, {"rank": 40, "acc": "Q42665", "sp": "Casuarina glauca", "name": "Anaerobic nitrite reductase SYMA", "max": 128.3, "total": 128.3, "cover": 98, "e": 1.27678e-37, "pid": 44.9, "len": 152}, {"rank": 41, "acc": "Q3C1F3", "sp": "Lotus japonicus", "name": "Anaerobic nitrite reductase Glb1-2", "max": 116.3, "total": 116.3, "cover": 97, "e": 8.25772e-33, "pid": 45.89, "len": 161}, {"rank": 42, "acc": "P23244", "sp": "Casuarina glauca", "name": "Anaerobic nitrite reductase HBII", "max": 111.7, "total": 111.7, "cover": 97, "e": 5.03647e-31, "pid": 44.52, "len": 160}, {"rank": 43, "acc": "Q947C5", "sp": "Gossypium hirsutum", "name": "Anaerobic nitrite reductase HB1", "max": 110.9, "total": 110.9, "cover": 97, "e": 1.46884e-30, "pid": 44.83, "len": 163}, {"rank": 44, "acc": "P68168", "sp": "Trema andersonii", "name": "Anaerobic nitrite reductase", "max": 109.4, "total": 109.4, "cover": 97, "e": 4.87014e-30, "pid": 41.38, "len": 162}, {"rank": 45, "acc": "I1LJI1", "sp": "Glycine max", "name": "Anaerobic nitrite reductase Hb1", "max": 109.4, "total": 109.4, "cover": 97, "e": 4.94266e-30, "pid": 43.84, "len": 157}, {"rank": 46, "acc": "O24520", "sp": "Arabidopsis thaliana", "name": "Anaerobic nitrite reductase AHB1", "max": 108.6, "total": 108.6, "cover": 98, "e": 8.65119e-30, "pid": 42.18, "len": 160}, {"rank": 47, "acc": "Q3C1F4", "sp": "Lotus japonicus", "name": "Anaerobic nitrite reductase Glb1-1", "max": 107.5, "total": 107.5, "cover": 97, "e": 2.96336e-29, "pid": 41.78, "len": 161}, {"rank": 48, "acc": "A0A072ULZ1", "sp": "Medicago truncatula", "name": "Anaerobic nitrite reductase Glb1-2", "max": 111.3, "total": 222.2, "cover": 98, "e": 4.47545e-29, "pid": 44.22, "len": 351}, {"rank": 49, "acc": "A0A072TK64", "sp": "Medicago truncatula", "name": "Anaerobic nitrite reductase Glb1-3", "max": 110.2, "total": 110.2, "cover": 98, "e": 1.31655e-28, "pid": 43.54, "len": 349}, {"rank": 50, "acc": "P07803", "sp": "Trema tomentosum", "name": "Anaerobic nitrite reductase GLB1", "max": 105.1, "total": 105.1, "cover": 97, "e": 2.37532e-28, "pid": 42.07, "len": 161}, {"rank": 51, "acc": "A2XE99", "sp": "Oryza sativa Indica Group", "name": "Anaerobic nitrite reductase NSHB3", "max": 101.7, "total": 101.7, "cover": 99, "e": 5.51884e-27, "pid": 44.0, "len": 169}, {"rank": 52, "acc": "A2XEA0", "sp": "Oryza sativa Indica Group", "name": "Anaerobic nitrite reductase NSHB4", "max": 99.4, "total": 99.4, "cover": 99, "e": 4.96504e-26, "pid": 41.33, "len": 167}, {"rank": 53, "acc": "Q9M593", "sp": "Zea mays subsp. parviglumis", "name": "Anaerobic nitrite reductase GLB1", "max": 98.2, "total": 98.2, "cover": 99, "e": 1.24716e-25, "pid": 39.6, "len": 165}, {"rank": 54, "acc": "Q42831", "sp": "Hordeum vulgare", "name": "Anaerobic nitrite reductase GLB1", "max": 98.2, "total": 98.2, "cover": 99, "e": 1.2857e-25, "pid": 38.26, "len": 162}, {"rank": 55, "acc": "A2Y6J9", "sp": "Oryza sativa Indica Group", "name": "Anaerobic nitrite reductase NSHB5", "max": 96.7, "total": 96.7, "cover": 99, "e": 2.50359e-25, "pid": 41.78, "len": 145}, {"rank": 56, "acc": "Q75II4", "sp": "Oryza sativa Japonica Group", "name": "Anaerobic nitrite reductase NSHB5", "max": 96.3, "total": 96.3, "cover": 99, "e": 4.16541e-25, "pid": 41.78, "len": 145}, {"rank": 57, "acc": "Q9FY42", "sp": "Zea mays", "name": "Anaerobic nitrite reductase GLB1", "max": 96.7, "total": 96.7, "cover": 99, "e": 4.65973e-25, "pid": 38.93, "len": 165}, {"rank": 58, "acc": "Q9M630", "sp": "Physcomitrium patens", "name": "Anaerobic nitrite reductase GLB0", "max": 92.4, "total": 92.4, "cover": 97, "e": 2.63943e-23, "pid": 36.55, "len": 180}], "stat": {"db_num": 487728, "db_len": 186063409, "hsp_len": 106, "eff_space": 5105841158, "kappa": 0.041, "lambda": 0.267, "entropy": 0.14}}, "hbb_human_e10": {"rows": [{"rank": 1, "acc": "NP_000509", "sp": "Homo sapiens", "name": "hemoglobin subunit beta", "max": 301.2, "total": 301.2, "cover": 100, "e": 3.59026e-107, "pid": 100.0, "len": 147}, {"rank": 2, "acc": "P02042", "sp": "Homo sapiens", "name": "Hemoglobin subunit delta", "max": 284.6, "total": 284.6, "cover": 100, "e": 1.45035e-100, "pid": 93.2, "len": 147}, {"rank": 3, "acc": "P02100", "sp": "Homo sapiens", "name": "Hemoglobin subunit epsilon", "max": 240.7, "total": 240.7, "cover": 100, "e": 3.19665e-83, "pid": 75.51, "len": 147}, {"rank": 4, "acc": "P61921", "sp": "Pan troglodytes", "name": "Hemoglobin subunit gamma-2", "max": 235.7, "total": 235.7, "cover": 100, "e": 3.64899e-81, "pid": 73.47, "len": 147}, {"rank": 5, "acc": "P69891", "sp": "Homo sapiens", "name": "Hemoglobin subunit gamma-1", "max": 232.6, "total": 232.6, "cover": 100, "e": 5.65904e-80, "pid": 72.79, "len": 147}, {"rank": 6, "acc": "P69905", "sp": "Homo sapiens", "name": "Hemoglobin subunit alpha", "max": 114.8, "total": 114.8, "cover": 97, "e": 1.39918e-33, "pid": 43.45, "len": 142}, {"rank": 7, "acc": "P02008", "sp": "Homo sapiens", "name": "Hemoglobin subunit zeta", "max": 100.5, "total": 100.5, "cover": 97, "e": 5.95158e-28, "pid": 35.86, "len": 142}, {"rank": 8, "acc": "P09105", "sp": "Homo sapiens", "name": "Hemoglobin subunit theta-1", "max": 97.1, "total": 97.1, "cover": 97, "e": 1.2246e-26, "pid": 39.31, "len": 142}, {"rank": 9, "acc": "Q6B0K9", "sp": "Homo sapiens", "name": "Hemoglobin subunit mu", "max": 88.6, "total": 88.6, "cover": 97, "e": 2.24531e-23, "pid": 35.17, "len": 141}], "stat": {"db_num": 20526, "db_len": 11441413, "hsp_len": 90, "eff_space": 546862161, "kappa": 0.041, "lambda": 0.267, "entropy": 0.14}}, "hbb_human_e10_w3": {"rows": [{"rank": 1, "acc": "NP_000509", "sp": "Homo sapiens", "name": "hemoglobin subunit beta", "max": 301.2, "total": 301.2, "cover": 100, "e": 3.59026e-107, "pid": 100.0, "len": 147}, {"rank": 2, "acc": "P02042", "sp": "Homo sapiens", "name": "Hemoglobin subunit delta", "max": 284.6, "total": 284.6, "cover": 100, "e": 1.45035e-100, "pid": 93.2, "len": 147}, {"rank": 3, "acc": "P02100", "sp": "Homo sapiens", "name": "Hemoglobin subunit epsilon", "max": 240.7, "total": 240.7, "cover": 100, "e": 3.19665e-83, "pid": 75.51, "len": 147}, {"rank": 4, "acc": "P61921", "sp": "Pan troglodytes", "name": "Hemoglobin subunit gamma-2", "max": 235.7, "total": 235.7, "cover": 100, "e": 3.64899e-81, "pid": 73.47, "len": 147}, {"rank": 5, "acc": "P69891", "sp": "Homo sapiens", "name": "Hemoglobin subunit gamma-1", "max": 232.6, "total": 232.6, "cover": 100, "e": 5.65904e-80, "pid": 72.79, "len": 147}, {"rank": 6, "acc": "P69905", "sp": "Homo sapiens", "name": "Hemoglobin subunit alpha", "max": 114.8, "total": 114.8, "cover": 97, "e": 1.39918e-33, "pid": 43.45, "len": 142}, {"rank": 7, "acc": "P02008", "sp": "Homo sapiens", "name": "Hemoglobin subunit zeta", "max": 100.5, "total": 100.5, "cover": 97, "e": 5.95158e-28, "pid": 35.86, "len": 142}, {"rank": 8, "acc": "P09105", "sp": "Homo sapiens", "name": "Hemoglobin subunit theta-1", "max": 97.1, "total": 97.1, "cover": 97, "e": 1.2246e-26, "pid": 39.31, "len": 142}, {"rank": 9, "acc": "Q6B0K9", "sp": "Homo sapiens", "name": "Hemoglobin subunit mu", "max": 88.6, "total": 88.6, "cover": 97, "e": 2.24531e-23, "pid": 35.17, "len": 141}, {"rank": 10, "acc": "Q8WWM9", "sp": "Homo sapiens", "name": "Cytoglobin", "max": 72.8, "total": 72.8, "cover": 86, "e": 1.00839e-16, "pid": 28.79, "len": 190}, {"rank": 11, "acc": "Q3KN66", "sp": "Pan troglodytes", "name": "Neuroglobin", "max": 38.5, "total": 38.5, "cover": 95, "e": 0.000307343, "pid": 23.45, "len": 151}, {"rank": 12, "acc": "P46379", "sp": "Homo sapiens", "name": "Large proline-rich protein BAG6", "max": 28.9, "total": 28.9, "cover": 48, "e": 1.35711, "pid": 25.35, "len": 1132}, {"rank": 13, "acc": "Q9Y4B5", "sp": "Homo sapiens", "name": "Microtubule cross-linking factor 1", "max": 28.9, "total": 28.9, "cover": 32, "e": 1.4028, "pid": 36.17, "len": 1905}, {"rank": 14, "acc": "P85298", "sp": "Homo sapiens", "name": "Rho GTPase-activating protein 8", "max": 27.7, "total": 27.7, "cover": 58, "e": 2.49024, "pid": 26.67, "len": 464}, {"rank": 15, "acc": "Q9Y5U5", "sp": "Homo sapiens", "name": "Tumor necrosis factor receptor superfamily member 18", "max": 26.2, "total": 26.2, "cover": 34, "e": 8.33764, "pid": 34.0, "len": 241}, {"rank": 16, "acc": "Q8IY21", "sp": "Homo sapiens", "name": "Probable ATP-dependent RNA helicase DDX60", "max": 26.2, "total": 26.2, "cover": 11, "e": 8.59514, "pid": 62.5, "len": 1712}, {"rank": 17, "acc": "Q9H1H9", "sp": "Homo sapiens", "name": "Kinesin-like protein KIF13A", "max": 26.2, "total": 26.2, "cover": 29, "e": 8.85139, "pid": 35.71, "len": 1805}, {"rank": 18, "acc": "Q5S007", "sp": "Homo sapiens", "name": "Leucine-rich repeat serine/threonine-protein kinase 2", "max": 26.2, "total": 26.2, "cover": 46, "e": 9.61702, "pid": 31.43, "len": 2527}], "stat": {"db_num": 20526, "db_len": 11441413, "hsp_len": 90, "eff_space": 546862161, "kappa": 0.041, "lambda": 0.267, "entropy": 0.14}}, "hbb_human_e10_w3_nocbs": {"rows": [{"rank": 1, "acc": "NP_000509", "sp": "Homo sapiens", "name": "hemoglobin subunit beta", "max": 305.1, "total": 305.1, "cover": 100, "e": 1.11882e-108, "pid": 100.0, "len": 147}, {"rank": 2, "acc": "P02042", "sp": "Homo sapiens", "name": "Hemoglobin subunit delta", "max": 284.6, "total": 284.6, "cover": 100, "e": 1.35793e-100, "pid": 93.2, "len": 147}, {"rank": 3, "acc": "P02100", "sp": "Homo sapiens", "name": "Hemoglobin subunit epsilon", "max": 238.4, "total": 238.4, "cover": 100, "e": 2.68338e-82, "pid": 75.51, "len": 147}, {"rank": 4, "acc": "P61921", "sp": "Pan troglodytes", "name": "Hemoglobin subunit gamma-2", "max": 233.0, "total": 233.0, "cover": 100, "e": 3.6497e-80, "pid": 73.47, "len": 147}, {"rank": 5, "acc": "P69891", "sp": "Homo sapiens", "name": "Hemoglobin subunit gamma-1", "max": 229.6, "total": 229.6, "cover": 100, "e": 8.58444e-79, "pid": 72.79, "len": 147}, {"rank": 6, "acc": "P69905", "sp": "Homo sapiens", "name": "Hemoglobin subunit alpha", "max": 114.4, "total": 114.4, "cover": 97, "e": 2.04766e-33, "pid": 42.07, "len": 142}, {"rank": 7, "acc": "P02008", "sp": "Homo sapiens", "name": "Hemoglobin subunit zeta", "max": 97.8, "total": 97.8, "cover": 97, "e": 6.3235e-27, "pid": 35.86, "len": 142}, {"rank": 8, "acc": "P09105", "sp": "Homo sapiens", "name": "Hemoglobin subunit theta-1", "max": 94.0, "total": 94.0, "cover": 97, "e": 2.02278e-25, "pid": 38.62, "len": 142}, {"rank": 9, "acc": "Q6B0K9", "sp": "Homo sapiens", "name": "Hemoglobin subunit mu", "max": 85.1, "total": 85.1, "cover": 97, "e": 5.59939e-22, "pid": 35.17, "len": 141}, {"rank": 10, "acc": "Q8WWM9", "sp": "Homo sapiens", "name": "Cytoglobin", "max": 71.2, "total": 71.2, "cover": 89, "e": 3.65194e-16, "pid": 28.68, "len": 190}, {"rank": 11, "acc": "Q9Y4B5", "sp": "Homo sapiens", "name": "Microtubule cross-linking factor 1", "max": 29.3, "total": 29.3, "cover": 32, "e": 0.933182, "pid": 36.17, "len": 1905}, {"rank": 12, "acc": "P85298", "sp": "Homo sapiens", "name": "Rho GTPase-activating protein 8", "max": 28.1, "total": 28.1, "cover": 58, "e": 2.03041, "pid": 26.67, "len": 464}, {"rank": 13, "acc": "Q8N456", "sp": "Homo sapiens", "name": "Leucine-rich repeat-containing protein 18 [Homo sapiens]", "max": 26.9, "total": 26.9, "cover": 33, "e": 4.37104, "pid": 37.5, "len": 261}, {"rank": 14, "acc": "A6H8Y1", "sp": "Homo sapiens", "name": "Transcription factor TFIIIB component B'' homolog", "max": 26.6, "total": 26.6, "cover": 24, "e": 7.44387, "pid": 30.56, "len": 2624}], "stat": {"db_num": 20526, "db_len": 11441413, "hsp_len": 90, "eff_space": 546862161, "kappa": 0.041, "lambda": 0.267, "entropy": 0.14}}, "hbb5000": [["Hb beta-like", 5.83859e-106, 301.212], ["Hb beta-like", 2.04047e-105, 300.056], ["Hb beta-like", 2.97316e-103, 294.278], ["Hb beta-like", 2.44568e-102, 291.967], ["Hb beta-like", 4.28615e-102, 291.582], ["Hb beta-like", 1.53097e-101, 290.041], ["Hb beta-like", 2.65024e-101, 289.656], ["Hb beta-like", 2.92537e-101, 289.271], ["Hb beta-like", 3.15897e-101, 289.271], ["Hb beta-like", 3.19383e-101, 289.271], ["Hb beta-like", 3.29645e-101, 289.271], ["Hb beta-like", 6.44695e-101, 288.5], ["Hb beta-like", 9.67621e-101, 288.115], ["Hb beta-like", 1.40526e-100, 287.73], ["Hb beta-like", 4.59732e-100, 286.189], ["Hb beta-like", 5.65606e-100, 286.189], ["Hb beta-like", 6.04865e-100, 286.189], ["Hb beta-like", 7.52376e-100, 285.804], ["Hb beta-like", 7.94815e-100, 285.804], ["Hb beta-like", 8.59359e-100, 285.804], ["Hb beta-like", 1.01313e-99, 285.419], ["Hb beta-like", 1.06894e-99, 285.419], ["Hb beta-like", 1.26022e-99, 285.419], ["Hb beta-like", 1.48572e-99, 285.034], ["Hb beta-like", 1.51869e-99, 285.034], ["Hb beta-like", 1.55239e-99, 285.034], ["Hb beta-like", 1.69485e-99, 285.034], ["Hb beta-like", 1.83246e-99, 285.034], ["Hb beta-like", 2.3586e-99, 284.648], ["Hb beta-like", 4.75494e-99, 283.878], ["Hb beta-like", 6.12018e-99, 283.493], ["Hb beta-like", 6.90543e-99, 283.493], ["Hb beta-like", 9.71559e-99, 283.108], ["Hb beta-like", 1.83386e-98, 282.337], ["Hb beta-like", 2.11763e-98, 282.337], ["Hb beta-like", 2.18851e-98, 281.952], ["Hb beta-like", 5.21151e-97, 278.485], ["Hb beta-like", 6.34961e-97, 278.485], ["Hb beta-like", 7.65183e-97, 278.1], ["Hb beta-like", 8.63354e-97, 278.1], ["Hb beta-like", 1.47812e-96, 277.33], ["Hb beta-like", 1.78126e-96, 277.33], ["Hb beta-like", 2.42473e-96, 276.944], ["Hb beta-like", 3.05309e-96, 276.559], ["Hb beta-like", 3.15168e-96, 276.559], ["Hb beta-like", 4.14652e-96, 276.174], ["Hb beta-like", 4.57694e-96, 276.174], ["Hb beta-like", 5.89094e-96, 275.789], ["Hb beta-like", 7.17737e-96, 275.789], ["Hb beta-like", 1.00855e-95, 275.404], ["Hb beta-like", 1.13922e-95, 275.404], ["Hb beta-like", 1.32839e-95, 275.018], ["Hb beta-like", 1.44865e-95, 275.018], ["Hb beta-like", 3.52348e-95, 273.863], ["Hb beta-like", 3.76327e-95, 273.863], ["Hb beta-like", 5.06097e-95, 273.478], ["Hb beta-like", 7.04161e-95, 273.092], ["Hb beta-like", 1.71079e-94, 272.322], ["Hb beta-like", 1.82722e-94, 272.322], ["Hb beta-like", 2.74226e-94, 271.937], ["Hb beta-like", 2.77252e-94, 271.552], ["Hb beta-like", 4.02621e-94, 271.166], ["Hb beta-like", 4.07063e-94, 271.166], ["Hb beta-like", 7.36189e-94, 270.781], ["Hb beta-like", 1.97635e-93, 269.626], ["Hb beta-like", 6.11896e-93, 268.47], ["Hb beta-like", 2.13747e-92, 266.929], ["Hb beta-like", 3.57978e-92, 266.544], ["Hb beta-like", 2.21228e-91, 264.233], ["Hb beta-like", 2.28631e-91, 264.233], ["Hb beta-like", 5.8096e-91, 263.462], ["Hb beta-like", 7.64305e-91, 263.077], ["Hb beta-like", 5.88709e-90, 260.766], ["Hb beta-like", 7.33411e-89, 258.07], ["Hb beta-like", 8.83777e-89, 257.684], ["Hb beta-like", 8.94302e-89, 257.684], ["Hb beta-like", 1.01925e-88, 257.684], ["Hb beta-like", 1.13743e-88, 257.684], ["Hb beta-like", 1.58072e-88, 257.299], ["Hb beta-like", 6.43707e-88, 255.758], ["Hb beta-like", 8.19411e-88, 255.373], ["Hb beta-like", 9.98293e-88, 254.988], ["Hb beta-like", 1.99252e-87, 254.603], ["Hb beta-like", 3.44833e-87, 253.832], ["Hb beta-like", 4.90239e-87, 253.447], ["Hb beta-like", 5.40676e-87, 253.447], ["Hb beta-like", 7.76517e-87, 253.062], ["Hb beta-like", 8.48411e-87, 252.677], ["Hb beta-like", 9.8924e-87, 252.677], ["Hb beta-like", 1.76925e-86, 251.906], ["Hb beta-like", 2.17923e-86, 251.906], ["Hb beta-like", 2.48582e-86, 251.521], ["Hb beta-like", 2.62394e-86, 251.521], ["Hb beta-like", 3.77134e-86, 251.136], ["Hb beta-like", 5.41219e-86, 250.751], ["Hb beta-like", 1.42099e-85, 249.595], ["Hb beta-like", 1.81014e-85, 249.595], ["Hb beta-like", 1.99796e-85, 249.21], ["Hb beta-like", 2.38125e-85, 249.21], ["Hb beta-like", 2.59775e-85, 249.21], ["Hb beta-like", 3.27303e-85, 248.825], ["Hb beta-like", 3.53424e-85, 248.825], ["Hb beta-like", 5.35799e-85, 248.44], ["Hb beta-like", 5.66005e-85, 248.054], ["Hb beta-like", 8.04002e-85, 247.669], ["Hb beta-like", 9.38111e-85, 247.669], ["Hb beta-like", 1.05766e-84, 247.669], ["Hb beta-like", 1.19413e-84, 247.284], ["Hb beta-like", 1.95618e-84, 246.899], ["Hb beta-like", 2.18295e-84, 246.899], ["Hb beta-like", 2.9677e-84, 246.514], ["other globin", 3.09868e-84, 246.514], ["Hb beta-like", 4.85825e-84, 245.743], ["Hb beta-like", 6.2523e-84, 245.743], ["Hb beta-like", 9.38802e-84, 245.358], ["Hb beta-like", 1.14295e-83, 244.973], ["Hb beta-like", 1.4233e-83, 244.588], ["Hb beta-like", 1.42423e-83, 244.588], ["Hb beta-like", 1.57199e-83, 244.588], ["Hb beta-like", 1.77356e-83, 244.588], ["Hb beta-like", 2.9053e-83, 243.817], ["Hb beta-like", 3.17173e-83, 243.817], ["Hb beta-like", 3.24e-83, 243.817], ["Hb beta-like", 3.38747e-83, 243.817], ["Hb beta-like", 3.86397e-83, 243.432], ["Hb beta-like", 3.99068e-83, 243.432], ["Hb beta-like", 4.65594e-83, 243.432], ["Hb beta-like", 4.97263e-83, 243.432], ["Hb beta-like", 5.42865e-83, 243.432], ["Hb beta-like", 5.73465e-83, 243.047], ["Hb beta-like", 9.81522e-83, 242.662], ["Hb beta-like", 1.33434e-82, 242.276], ["Hb beta-like", 1.50451e-82, 242.276], ["Hb beta-like", 1.5211e-82, 241.891], ["Hb beta-like", 1.71718e-82, 241.891], ["Hb beta-like", 1.77354e-82, 241.891], ["Hb beta-like", 1.87352e-82, 241.891], ["Hb beta-like", 2.09195e-82, 241.891], ["Hb beta-like", 2.5485e-82, 241.506], ["Hb beta-like", 3.0042e-82, 241.506], ["Hb beta-like", 4.45857e-82, 241.121], ["Hb beta-like", 5.03024e-82, 240.736], ["Hb beta-like", 5.19849e-82, 240.736], ["Hb beta-like", 5.19849e-82, 240.736], ["Hb beta-like", 6.54102e-82, 240.35], ["Hb beta-like", 6.91373e-82, 240.35], ["Hb beta-like", 7.30344e-82, 240.35], ["Hb beta-like", 7.96855e-82, 240.35], ["Hb beta-like", 8.60935e-82, 240.35], ["Hb beta-like", 8.60935e-82, 240.35], ["Hb beta-like", 8.69928e-82, 240.35], ["Hb beta-like", 1.00323e-81, 239.965], ["Hb beta-like", 1.24999e-81, 239.965], ["Hb beta-like", 1.36461e-81, 239.58], ["Hb beta-like", 1.71706e-81, 239.58], ["Hb beta-like", 1.77449e-81, 239.195], ["Hb beta-like", 2.11485e-81, 239.195], ["Hb beta-like", 2.60624e-81, 238.81], ["Hb beta-like", 3.31738e-81, 238.81], ["Hb beta-like", 3.543e-81, 238.81], ["Hb beta-like", 4.4119e-81, 238.424], ["Hb beta-like", 6.06379e-81, 238.039], ["Hb beta-like", 1.45649e-80, 236.884], ["Hb beta-like", 1.45799e-80, 237.269], ["Hb beta-like", 1.62697e-80, 236.884], ["Hb beta-like", 2.36214e-80, 236.498], ["Hb beta-like", 2.52279e-80, 236.498], ["Hb beta-like", 2.78448e-80, 236.498], ["Hb beta-like", 3.46387e-80, 236.113], ["Hb beta-like", 3.50379e-80, 236.113], ["Hb beta-like", 3.54421e-80, 236.113], ["Hb beta-like", 4.13232e-80, 236.113], ["Hb beta-like", 4.92002e-80, 235.728], ["Hb beta-like", 5.9341e-80, 235.728], ["Hb beta-like", 7.89182e-80, 235.343], ["Hb beta-like", 8.80646e-80, 234.958], ["Hb beta-like", 9.30279e-80, 234.958], ["Hb beta-like", 1.33589e-79, 234.572], ["Hb beta-like", 1.69957e-79, 234.187], ["Hb beta-like", 1.81431e-79, 234.187], ["Hb beta-like", 2.46318e-79, 233.802], ["Hb beta-like", 2.65971e-79, 233.802], ["Hb beta-like", 3.31774e-79, 233.802], ["Hb beta-like", 3.50633e-79, 233.802], ["Hb beta-like", 3.62194e-79, 233.417], ["Hb beta-like", 3.95582e-79, 233.417], ["Hb beta-like", 4.04171e-79, 233.417], ["Hb beta-like", 4.31466e-79, 233.417], ["Hb beta-like", 4.36613e-79, 233.417], ["Hb beta-like", 8.33442e-79, 232.646], ["Hb beta-like", 8.61691e-79, 232.646], ["Hb beta-like", 9.20289e-79, 232.646], ["Hb beta-like", 1.14595e-78, 232.261], ["Hb beta-like", 1.17086e-78, 232.261], ["Hb beta-like", 1.19733e-78, 232.261], ["Hb beta-like", 1.21053e-78, 232.261], ["Hb beta-like", 1.25102e-78, 232.261], ["Hb beta-like", 1.49029e-78, 231.876], ["Hb beta-like", 1.71862e-78, 231.876], ["Hb beta-like", 1.85651e-78, 231.876], ["Hb beta-like", 1.87698e-78, 231.876], ["Hb beta-like", 2.69419e-78, 231.491], ["Hb beta-like", 3.31691e-78, 231.106], ["Hb beta-like", 3.39319e-78, 231.106], ["Hb beta-like", 3.62246e-78, 231.106], ["Hb beta-like", 3.62393e-78, 231.106], ["Hb beta-like", 5.61676e-78, 230.72], ["Hb beta-like", 7.31045e-78, 230.335], ["Hb beta-like", 9.93366e-78, 229.95], ["Hb beta-like", 1.04935e-77, 229.95], ["Hb beta-like", 1.10848e-77, 229.95], ["Hb beta-like", 1.32056e-77, 229.565], ["Hb beta-like", 1.70061e-77, 229.18], ["Hb beta-like", 2.0945e-77, 229.18], ["Hb beta-like", 3.66246e-77, 228.409], ["Hb beta-like", 5.5574e-77, 228.024], ["Hb beta-like", 6.69606e-77, 228.024], ["Hb beta-like", 7.07339e-77, 227.639], ["Hb beta-like", 9.10216e-77, 227.639], ["Hb beta-like", 9.30396e-77, 227.639], ["Hb beta-like", 1.19725e-76, 227.254], ["Hb beta-like", 1.22379e-76, 227.254], ["Hb beta-like", 3.04027e-76, 226.098], ["Hb beta-like", 3.245e-76, 226.098], ["Hb beta-like", 7.46614e-76, 224.942], ["Hb beta-like", 1.10854e-75, 224.942], ["Hb beta-like", 1.57396e-75, 224.172], ["Hb beta-like", 2.236e-75, 224.172], ["Hb beta-like", 2.26005e-75, 223.787], ["Hb beta-like", 2.63566e-75, 223.787], ["Hb beta-like", 3.24603e-75, 223.402], ["Hb beta-like", 9.50248e-75, 222.246], ["Hb beta-like", 9.92621e-75, 222.246], ["Hb beta-like", 1.33515e-74, 221.861], ["Hb beta-like", 1.98033e-74, 221.476], ["Hb beta-like", 2.54826e-74, 221.09], ["Hb beta-like", 2.75264e-74, 221.09], ["Hb beta-like", 3.74157e-74, 221.09], ["Hb beta-like", 3.86666e-74, 220.705], ["Hb beta-like", 3.95237e-74, 220.705], ["Hb beta-like", 4.55773e-74, 220.705], ["other globin", 5.03032e-74, 220.705], ["Hb beta-like", 1.13172e-73, 219.55], ["Hb beta-like", 1.1959e-73, 219.55], ["Hb beta-like", 1.22219e-73, 219.55], ["Hb beta-like", 1.40938e-73, 219.55], ["Hb beta-like", 1.4565e-73, 219.55], ["Hb beta-like", 1.47256e-73, 219.55], ["Hb beta-like", 1.57267e-73, 219.164], ["Hb beta-like", 1.7171e-73, 219.164], ["Hb beta-like", 1.73574e-73, 219.164], ["Hb beta-like", 1.75487e-73, 219.164], ["Hb beta-like", 1.95818e-73, 219.164], ["Hb beta-like", 2.49223e-73, 218.779], ["Hb beta-like", 2.97001e-73, 218.779], ["Hb beta-like", 4.17194e-73, 218.394], ["Hb beta-like", 7.21627e-73, 217.624], ["Hb beta-like", 7.45846e-73, 217.624], ["Hb beta-like", 7.62378e-73, 217.624], ["Hb beta-like", 8.14205e-73, 217.624], ["Hb beta-like", 9.38902e-73, 217.238], ["Hb beta-like", 1.1563e-72, 217.238], ["Hb beta-like", 1.33324e-72, 216.853], ["Hb beta-like", 1.33339e-72, 216.853], ["Hb beta-like", 1.39315e-72, 216.853], ["Hb beta-like", 1.4085e-72, 216.853], ["Hb beta-like", 1.75375e-72, 216.468], ["Hb beta-like", 2.51803e-72, 216.083], ["Hb beta-like", 2.93566e-72, 216.083], ["Hb beta-like", 2.96801e-72, 216.083], ["Hb beta-like", 3.20366e-72, 215.698], ["Hb beta-like", 4.75346e-72, 215.312], ["Hb beta-like", 5.02297e-72, 215.312], ["Hb beta-like", 5.42176e-72, 215.312], ["Hb beta-like", 6.60644e-72, 215.312], ["Hb beta-like", 7.37289e-72, 215.312], ["Hb beta-like", 1.23395e-71, 214.542], ["Hb beta-like", 2.27963e-71, 213.772], ["Hb beta-like", 2.46141e-71, 213.772], ["Hb beta-like", 4.07531e-71, 213.386], ["Hb beta-like", 6.8964e-71, 212.616], ["Hb beta-like", 1.01209e-70, 212.231], ["Hb beta-like", 1.30226e-70, 211.846], ["Hb beta-like", 1.16579e-69, 209.534], ["Hb beta-like", 2.08388e-69, 208.764], ["Hb beta-like", 2.48326e-69, 208.764], ["Hb beta-like", 3.93472e-69, 207.994], ["Hb beta-like", 6.58564e-69, 207.608], ["Hb beta-like", 1.17715e-68, 206.838], ["Hb beta-like", 2.10409e-68, 206.453], ["Hb beta-like", 2.17593e-68, 206.068], ["Hb beta-like", 2.47998e-68, 206.068], ["Hb beta-like", 4.14429e-67, 202.986], ["Hb beta-like", 6.78399e-67, 202.601], ["Hb beta-like", 1.83904e-66, 201.445], ["Hb beta-like", 3.32304e-66, 200.675], ["Hb beta-like", 7.07691e-66, 199.904], ["Hb beta-like", 8.05523e-65, 197.208], ["Hb beta-like", 4.83224e-62, 190.274], ["Hb beta-like", 1.14865e-58, 181.8], ["Hb beta-like", 2.87258e-57, 178.333], ["Hb beta-like", 5.24969e-57, 177.563], ["Hb beta-like", 2.03777e-56, 176.022], ["Hb beta-like", 1.08736e-55, 174.096], ["Hb beta-like", 1.64633e-55, 173.711], ["Hb beta-like", 3.14329e-55, 172.94], ["Hb beta-like", 6.53599e-55, 172.17], ["Hb beta-like", 6.60047e-55, 172.17], ["Hb beta-like", 2.27262e-54, 171.014], ["Hb beta-like", 5.2834e-54, 169.859], ["Hb beta-like", 9.11912e-54, 169.474], ["Hb beta-like", 9.55044e-54, 169.088], ["Hb beta-like", 1.11313e-53, 169.088], ["Hb beta-like", 3.24805e-53, 167.933], ["Hb beta-like", 4.61543e-53, 167.548], ["Hb beta-like", 6.67747e-53, 167.162], ["Hb beta-like", 1.56938e-52, 166.007], ["Hb beta-like", 2.45363e-52, 165.622], ["Hb beta-like", 3.22594e-52, 165.236], ["Hb beta-like", 1.89722e-51, 163.31], ["Hb beta-like", 7.78796e-51, 161.77], ["Hb beta-like", 7.97214e-51, 161.77], ["Hb beta-like", 6.35618e-50, 159.458], ["Hb beta-like", 8.36765e-50, 159.073], ["Hb beta-like", 1.04933e-49, 159.073], ["Hb beta-like", 1.26779e-49, 158.688], ["Hb beta-like", 1.29151e-49, 157.147], ["Hb beta-like", 1.595e-49, 158.688], ["Hb beta-like", 2.48883e-49, 157.918], ["Hb beta-like", 3.56999e-49, 157.532], ["Hb beta-like", 6.75311e-49, 156.762], ["Hb beta-like", 1.58423e-48, 155.992], ["Hb beta-like", 1.60164e-48, 155.992], ["Hb beta-like", 4.41856e-48, 154.836], ["Hb beta-like", 7.46661e-48, 154.451], ["Hb beta-like", 7.88599e-48, 154.451], ["Hb beta-like", 1.85304e-47, 153.295], ["Hb beta-like", 2.97522e-47, 152.14], ["Hb beta-like", 6.37327e-47, 151.754], ["Hb beta-like", 9.33926e-47, 151.369], ["Hb beta-like", 1.97715e-46, 150.599], ["Hb beta-like", 4.85284e-46, 149.828], ["Hb beta-like", 9.46925e-46, 149.058], ["Hb beta-like", 1.11783e-45, 148.673], ["Hb beta-like", 1.15271e-45, 148.673], ["Hb beta-like", 1.19112e-45, 148.673], ["Hb beta-like", 1.47892e-45, 148.673], ["Hb beta-like", 2.66767e-45, 147.902], ["Hb beta-like", 3.67747e-45, 147.517], ["Hb beta-like", 4.22064e-45, 147.517], ["Hb beta-like", 6.61925e-45, 146.747], ["Hb beta-like", 6.83976e-45, 146.747], ["Hb beta-like", 6.89996e-45, 146.747], ["Hb beta-like", 7.1298e-45, 146.747], ["Hb beta-like", 1.10361e-44, 146.362], ["Hb beta-like", 1.11818e-44, 146.362], ["Hb beta-like", 1.25817e-44, 145.976], ["Hb beta-like", 1.74597e-44, 145.591], ["Hb beta-like", 1.99046e-44, 145.591], ["Hb beta-like", 2.01232e-44, 145.591], ["Hb beta-like", 2.45493e-44, 145.206], ["Hb beta-like", 2.79871e-44, 145.206], ["Hb beta-like", 3.96059e-44, 144.821], ["Hb beta-like", 4.04804e-44, 144.821], ["Hb beta-like", 7.81262e-44, 144.05], ["Hb beta-like", 8.8098e-44, 144.05], ["Hb beta-like", 2.59082e-43, 142.895], ["Hb beta-like", 3.71463e-43, 142.51], ["Hb beta-like", 4.05367e-43, 142.124], ["Hb beta-like", 4.68303e-43, 142.124], ["Hb beta-like", 5.11047e-43, 142.124], ["Hb beta-like", 5.76777e-43, 139.813], ["Hb beta-like", 1.62575e-42, 140.584], ["Hb beta-like", 1.93603e-42, 140.584], ["Hb beta-like", 2.80611e-42, 140.198], ["Hb beta-like", 3.40683e-42, 139.813], ["Hb beta-like", 5.11496e-42, 139.428], ["Hb beta-like", 5.34324e-42, 139.428], ["Hb beta-like", 1.3329e-40, 135.961], ["Hb beta-like", 3.41572e-40, 134.806], ["Hb beta-like", 8.63367e-40, 133.65], ["Hb beta-like", 1.22403e-39, 133.265], ["Hb beta-like", 2.542e-39, 132.494], ["Hb beta-like", 8.90969e-39, 131.339], ["Hb alpha-like", 1.37951e-38, 130.568], ["Hb beta-like", 1.93242e-38, 130.568], ["Hb alpha-like", 1.38495e-35, 122.865], ["Hb alpha-like", 1.52764e-35, 122.865], ["Hb alpha-like", 3.35891e-35, 122.094], ["Hb alpha-like", 5.87734e-35, 121.324], ["Hb alpha-like", 1.48333e-34, 120.553], ["Hb alpha-like", 1.93338e-34, 120.168], ["Hb alpha-like", 2.17156e-34, 120.168], ["Hb beta-like", 5.04089e-34, 119.013], ["Hb alpha-like", 5.95715e-34, 118.627], ["Hb alpha-like", 6.19951e-34, 118.627], ["Hb alpha-like", 7.65259e-34, 118.627], ["Hb alpha-like", 1.01192e-33, 118.242], ["Hb alpha-like", 1.04551e-33, 118.242], ["Hb alpha-like", 1.65825e-33, 117.472], ["Hb alpha-like", 1.75059e-33, 117.472], ["Hb alpha-like", 2.02345e-33, 117.472], ["Hb alpha-like", 2.67658e-33, 117.087], ["Hb alpha-like", 3.88791e-33, 116.701], ["Hb alpha-like", 4.25801e-33, 116.701], ["Hb alpha-like", 5.08755e-33, 116.316], ["Hb alpha-like", 6.18869e-33, 116.316], ["Hb alpha-like", 6.90032e-33, 115.931], ["Hb alpha-like", 7.12936e-33, 115.931], ["Hb alpha-like", 7.66397e-33, 115.931], ["other globin", 9.22154e-33, 115.931], ["Hb alpha-like", 9.77527e-33, 115.546], ["Hb alpha-like", 1.07392e-32, 115.546], ["Hb alpha-like", 1.18907e-32, 115.546], ["Hb alpha-like", 1.44638e-32, 115.161], ["Hb alpha-like", 1.65963e-32, 115.161], ["Hb alpha-like", 1.75936e-32, 115.161], ["Hb alpha-like", 2.07131e-32, 114.775], ["Hb alpha-like", 2.27538e-32, 114.775], ["Hb alpha-like", 2.30943e-32, 114.775], ["Hb alpha-like", 2.87091e-32, 114.39], ["Hb alpha-like", 3.13202e-32, 114.39], ["Hb alpha-like", 3.54028e-32, 114.39], ["Hb alpha-like", 4.02263e-32, 114.005], ["Hb alpha-like", 4.06663e-32, 114.005], ["Hb alpha-like", 4.29399e-32, 114.005], ["Hb alpha-like", 4.37083e-32, 114.005], ["Hb alpha-like", 4.51584e-32, 114.005], ["Hb alpha-like", 5.45524e-32, 114.005], ["Hb alpha-like", 6.42226e-32, 113.62], ["Hb alpha-like", 6.49252e-32, 113.62], ["Hb alpha-like", 6.7998e-32, 113.62], ["Hb alpha-like", 6.87417e-32, 113.62], ["Hb alpha-like", 6.90235e-32, 113.62], ["Hb alpha-like", 7.0829e-32, 113.62], ["Hb alpha-like", 7.56066e-32, 113.62], ["Hb alpha-like", 7.98331e-32, 113.235], ["other globin", 8.21459e-32, 113.235], ["Hb alpha-like", 8.80449e-32, 113.235], ["Hb alpha-like", 9.02227e-32, 113.235], ["Hb alpha-like", 1.0142e-31, 113.235], ["Hb alpha-like", 1.03495e-31, 113.235], ["Hb alpha-like", 1.04784e-31, 113.235], ["Hb alpha-like", 1.07089e-31, 113.235], ["Hb alpha-like", 1.09444e-31, 113.235], ["Hb alpha-like", 1.13075e-31, 112.849], ["Hb alpha-like", 1.19395e-31, 112.849], ["Hb alpha-like", 1.24705e-31, 112.849], ["Hb alpha-like", 1.31134e-31, 112.849], ["Hb alpha-like", 1.54373e-31, 112.849], ["Hb alpha-like", 1.54373e-31, 112.849], ["Hb alpha-like", 1.55012e-31, 112.849], ["Hb alpha-like", 1.60154e-31, 112.464], ["Hb alpha-like", 1.66585e-31, 112.464], ["Hb alpha-like", 1.66585e-31, 112.464], ["Hb alpha-like", 1.70954e-31, 112.464], ["Hb alpha-like", 1.85724e-31, 112.464], ["Hb alpha-like", 1.89808e-31, 112.464], ["Hb alpha-like", 2.07925e-31, 112.464], ["Hb alpha-like", 2.10199e-31, 112.464], ["Hb alpha-like", 2.12498e-31, 112.464], ["Hb alpha-like", 2.14822e-31, 112.464], ["Hb alpha-like", 2.16269e-31, 112.464], ["Hb alpha-like", 2.21947e-31, 112.079], ["Hb alpha-like", 2.36914e-31, 112.079], ["Hb alpha-like", 2.69943e-31, 112.079], ["Hb alpha-like", 2.90079e-31, 112.079], ["Hb alpha-like", 3.23404e-31, 111.694], ["Hb alpha-like", 3.28315e-31, 111.694], ["Hb alpha-like", 3.39203e-31, 111.694], ["Hb alpha-like", 3.59031e-31, 111.694], ["Hb alpha-like", 3.86489e-31, 111.694], ["Hb alpha-like", 3.93326e-31, 111.694], ["Hb alpha-like", 3.99306e-31, 111.694], ["Hb alpha-like", 4.03672e-31, 111.694], ["Hb alpha-like", 4.24434e-31, 111.694], ["Hb alpha-like", 4.40364e-31, 111.694], ["Hb alpha-like", 4.43303e-31, 111.694], ["Hb alpha-like", 4.54968e-31, 111.309], ["Hb alpha-like", 4.75195e-31, 111.309], ["Hb alpha-like", 5.18386e-31, 111.309], ["Hb alpha-like", 5.21838e-31, 111.309], ["Hb alpha-like", 5.24054e-31, 111.309], ["Hb alpha-like", 5.45035e-31, 111.309], ["Hb alpha-like", 5.81778e-31, 111.309], ["Hb alpha-like", 6.44325e-31, 110.923], ["Hb alpha-like", 6.96894e-31, 110.923], ["Hb alpha-like", 7.1528e-31, 110.923], ["Hb alpha-like", 8.11459e-31, 110.923], ["Hb alpha-like", 8.54839e-31, 110.923], ["Hb alpha-like", 8.69898e-31, 110.923], ["Hb alpha-like", 9.18495e-31, 110.538], ["Hb alpha-like", 9.22442e-31, 110.538], ["Hb alpha-like", 9.73979e-31, 110.538], ["Hb alpha-like", 9.80406e-31, 110.538], ["Hb alpha-like", 9.9539e-31, 110.538], ["Hb alpha-like", 1.04649e-30, 110.538], ["Hb alpha-like", 1.10017e-30, 110.538], ["Hb alpha-like", 1.10972e-30, 110.538], ["Hb alpha-like", 1.17171e-30, 110.538], ["Hb alpha-like", 1.28659e-30, 110.538], ["Hb alpha-like", 1.30066e-30, 110.153], ["Hb alpha-like", 1.30629e-30, 110.153], ["Hb alpha-like", 1.3496e-30, 110.153], ["Hb alpha-like", 1.46587e-30, 110.153], ["Hb alpha-like", 1.48833e-30, 110.153], ["Hb alpha-like", 1.58865e-30, 110.153], ["Hb alpha-like", 1.77109e-30, 110.153], ["Hb alpha-like", 1.81002e-30, 109.768], ["Hb alpha-like", 1.82981e-30, 109.768], ["Hb alpha-like", 1.84981e-30, 109.768], ["Hb alpha-like", 1.90283e-30, 109.768], ["Hb alpha-like", 1.98739e-30, 109.768], ["Hb alpha-like", 2.06224e-30, 109.768], ["Hb alpha-like", 2.14451e-30, 109.768], ["Hb alpha-like", 2.29906e-30, 109.768], ["Hb alpha-like", 2.45401e-30, 109.768], ["Hb alpha-like", 2.60794e-30, 109.383], ["Hb alpha-like", 2.63644e-30, 109.383], ["Hb alpha-like", 2.98436e-30, 109.383], ["Hb alpha-like", 3.01698e-30, 109.383], ["Hb beta-like", 3.30442e-30, 108.997], ["Hb alpha-like", 3.34862e-30, 109.383], ["Hb alpha-like", 3.3634e-30, 109.383], ["Hb alpha-like", 3.4596e-30, 109.383], ["Hb alpha-like", 3.4596e-30, 109.383], ["Hb alpha-like", 3.51287e-30, 109.383], ["Hb alpha-like", 4.09023e-30, 108.997], ["Hb alpha-like", 4.34657e-30, 108.997], ["Hb alpha-like", 4.39406e-30, 108.997], ["Hb alpha-like", 5.08339e-30, 108.612], ["Hb alpha-like", 5.91881e-30, 108.612], ["Hb alpha-like", 6.5689e-30, 108.612], ["Hb alpha-like", 7.35582e-30, 108.227], ["Hb alpha-like", 8.34289e-30, 108.227], ["other globin", 8.34289e-30, 108.227], ["Hb alpha-like", 8.52618e-30, 108.227], ["Hb alpha-like", 8.8087e-30, 108.227], ["Hb alpha-like", 8.94508e-30, 108.227], ["Hb alpha-like", 9.44455e-30, 108.227], ["Hb alpha-like", 9.44455e-30, 108.227], ["Hb alpha-like", 9.97191e-30, 108.227], ["Hb alpha-like", 1.00355e-29, 108.227], ["Hb alpha-like", 1.00809e-29, 108.227], ["Hb alpha-like", 1.0368e-29, 108.227], ["Hb alpha-like", 1.04149e-29, 107.842], ["Hb alpha-like", 1.08286e-29, 107.842], ["Hb alpha-like", 1.16104e-29, 107.842], ["Hb alpha-like", 1.19189e-29, 107.842], ["Hb alpha-like", 1.20714e-29, 107.842], ["Hb alpha-like", 1.35181e-29, 107.842], ["Hb alpha-like", 1.45203e-29, 107.842], ["Hb beta-like", 1.51434e-29, 107.457], ["Hb alpha-like", 1.57391e-29, 107.457], ["Hb alpha-like", 1.59111e-29, 107.457], ["Hb alpha-like", 1.69829e-29, 107.457], ["Hb alpha-like", 1.89642e-29, 107.457], ["Hb alpha-like", 2.10085e-29, 107.071], ["Hb alpha-like", 2.3527e-29, 107.071], ["Hb alpha-like", 2.51529e-29, 107.071], ["Hb alpha-like", 2.56634e-29, 107.071], ["Hb alpha-like", 2.73919e-29, 107.071], ["Hb alpha-like", 2.75639e-29, 107.071], ["Hb alpha-like", 3.08689e-29, 106.686], ["Hb alpha-like", 3.20913e-29, 106.686], ["Hb alpha-like", 3.51671e-29, 106.686], ["Hb alpha-like", 3.59395e-29, 106.686], ["Hb alpha-like", 3.61642e-29, 106.686], ["Hb alpha-like", 3.75356e-29, 106.686], ["Hb alpha-like", 3.85996e-29, 106.686], ["Hb alpha-like", 4.37009e-29, 106.301], ["Hb alpha-like", 4.77406e-29, 106.301], ["Hb alpha-like", 5.35441e-29, 106.301], ["Hb alpha-like", 5.4305e-29, 106.301], ["Hb alpha-like", 6.18652e-29, 105.916], ["Hb beta-like", 6.5564e-29, 105.531], ["Hb alpha-like", 7.99115e-29, 105.916], ["Hb alpha-like", 8.38535e-29, 105.531], ["Hb alpha-like", 9.88246e-29, 105.531], ["Hb alpha-like", 1.03705e-28, 105.531], ["Hb alpha-like", 1.04837e-28, 105.531], ["Hb alpha-like", 1.22631e-28, 105.145], ["Hb alpha-like", 1.26692e-28, 105.145], ["Hb alpha-like", 1.33761e-28, 105.145], ["Hb alpha-like", 1.42261e-28, 105.145], ["Hb alpha-like", 1.49104e-28, 105.145], ["Hb alpha-like", 1.87294e-28, 104.76], ["Hb alpha-like", 2.06521e-28, 104.76], ["Hb alpha-like", 2.19366e-28, 104.76], ["Hb alpha-like", 2.20423e-28, 104.76], ["Hb alpha-like", 2.40426e-28, 104.375], ["Hb alpha-like", 2.52618e-28, 104.375], ["Hb alpha-like", 2.70926e-28, 104.375], ["Hb alpha-like", 2.90908e-28, 104.375], ["Hb alpha-like", 3.31384e-28, 104.375], ["Hb alpha-like", 3.63209e-28, 103.99], ["Hb alpha-like", 3.65394e-28, 103.99], ["Hb alpha-like", 3.67578e-28, 103.99], ["Hb alpha-like", 3.75233e-28, 103.99], ["Hb alpha-like", 4.76457e-28, 103.605], ["Hb alpha-like", 5.08523e-28, 103.605], ["Hb alpha-like", 5.73018e-28, 103.605], ["Hb alpha-like", 5.85594e-28, 103.605], ["Hb alpha-like", 6.21939e-28, 103.605], ["Hb alpha-like", 7.23998e-28, 103.219], ["Hb alpha-like", 7.39885e-28, 103.219], ["Hb alpha-like", 7.72712e-28, 103.219], ["Hb alpha-like", 8.65564e-28, 103.219], ["Hb alpha-like", 9.85967e-28, 102.834], ["Hb alpha-like", 1.0076e-27, 102.834], ["Hb alpha-like", 1.11754e-27, 102.834], ["Hb alpha-like", 1.14776e-27, 102.834], ["Hb alpha-like", 1.16028e-27, 102.834], ["Hb alpha-like", 1.19272e-27, 102.834], ["Hb alpha-like", 1.19272e-27, 102.834], ["Hb alpha-like", 1.35067e-27, 102.449], ["Hb alpha-like", 1.46582e-27, 102.449], ["Hb alpha-like", 1.46582e-27, 102.449], ["Hb alpha-like", 1.57228e-27, 102.449], ["Hb alpha-like", 1.74372e-27, 102.449], ["Hb alpha-like", 2.59003e-27, 102.064], ["Hb alpha-like", 2.91836e-27, 101.679], ["Hb alpha-like", 3.01491e-27, 101.679], ["Hb alpha-like", 3.01491e-27, 101.679], ["Hb alpha-like", 3.30493e-27, 101.679], ["Hb alpha-like", 4.04102e-27, 101.293], ["Hb alpha-like", 4.65307e-27, 101.293], ["Hb alpha-like", 4.99448e-27, 101.293], ["Hb alpha-like", 5.71811e-27, 100.908], ["other globin", 5.7508e-27, 100.908], ["Hb alpha-like", 6.1057e-27, 100.908], ["Hb alpha-like", 6.58407e-27, 100.908], ["Hb alpha-like", 6.65908e-27, 100.908], ["Hb alpha-like", 6.91519e-27, 100.908], ["Hb alpha-like", 7.10346e-27, 100.908], ["Hb alpha-like", 7.22179e-27, 100.908], ["Hb alpha-like", 7.66726e-27, 100.908], ["Hb alpha-like", 8.0909e-27, 100.523], ["Hb alpha-like", 8.17914e-27, 100.523], ["Hb alpha-like", 8.27192e-27, 100.523], ["Hb alpha-like", 9.01782e-27, 100.523], ["Hb alpha-like", 9.41765e-27, 100.523], ["other globin", 9.67863e-27, 100.523], ["Hb beta-like", 9.71689e-27, 100.138], ["Hb alpha-like", 9.72912e-27, 100.523], ["Hb alpha-like", 1.0611e-26, 100.138], ["Hb alpha-like", 1.07267e-26, 100.138], ["Hb alpha-like", 1.22864e-26, 100.138], ["Hb alpha-like", 1.24855e-26, 100.138], ["Hb alpha-like", 1.25557e-26, 100.138], ["other globin", 1.39938e-26, 100.138], ["Hb alpha-like", 1.52619e-26, 100.138], ["Hb alpha-like", 1.65522e-26, 99.7525], ["Hb alpha-like", 1.85449e-26, 99.7525], ["Hb alpha-like", 1.99028e-26, 99.7525], ["Hb alpha-like", 2.18272e-26, 99.3673], ["Hb beta-like", 2.29156e-26, 99.3673], ["Hb alpha-like", 2.29156e-26, 99.3673], ["Hb alpha-like", 2.39314e-26, 99.3673], ["Hb alpha-like", 2.41923e-26, 99.3673], ["Hb alpha-like", 2.43266e-26, 99.3673], ["Hb alpha-like", 3.18996e-26, 98.9821], ["Hb alpha-like", 3.33132e-26, 98.9821], ["Hb alpha-like", 3.45987e-26, 98.9821], ["Hb alpha-like", 3.57425e-26, 98.9821], ["Hb alpha-like", 3.89808e-26, 98.9821], ["Hb alpha-like", 4.00541e-26, 98.9821], ["Hb alpha-like", 4.27457e-26, 98.9821], ["Hb alpha-like", 4.29757e-26, 98.5969], ["Hb alpha-like", 4.36824e-26, 98.5969], ["other globin", 4.36824e-26, 98.5969], ["Hb alpha-like", 5.0564e-26, 98.5969], ["Hb alpha-like", 5.08404e-26, 98.5969], ["Hb alpha-like", 6.11264e-26, 98.5969], ["Hb alpha-like", 7.59211e-26, 98.2117], ["Hb alpha-like", 7.63347e-26, 98.2117], ["Hb alpha-like", 7.97105e-26, 98.2117], ["Hb alpha-like", 8.64649e-26, 98.2117], ["Hb alpha-like", 9.90118e-26, 97.8265], ["Hb alpha-like", 1.01181e-25, 97.8265], ["Hb alpha-like", 1.19041e-25, 97.8265], ["other globin", 1.3705e-25, 97.4413], ["Hb alpha-like", 1.55223e-25, 97.4413], ["Hb alpha-like", 1.70215e-25, 97.0561], ["other globin", 1.99147e-25, 97.0561], ["Hb alpha-like", 2.36838e-25, 97.0561], ["Hb alpha-like", 2.74179e-25, 96.6709], ["Hb alpha-like", 2.92593e-25, 96.6709], ["Hb alpha-like", 3.03846e-25, 96.6709], ["Hb alpha-like", 3.24249e-25, 96.6709], ["Hb alpha-like", 4.04761e-25, 96.2857], ["Hb alpha-like", 6.81064e-25, 95.5153], ["Hb alpha-like", 1.0109e-24, 95.1301], ["Hb alpha-like", 1.07329e-24, 95.1301], ["Hb alpha-like", 1.28278e-24, 95.1301], ["Hb alpha-like", 1.30425e-24, 95.1301], ["Hb alpha-like", 1.42225e-24, 94.7449], ["other globin", 1.58488e-24, 94.7449], ["Hb alpha-like", 1.74565e-24, 94.7449], ["Hb alpha-like", 3.34492e-24, 93.9745], ["Hb alpha-like", 4.88533e-24, 93.5893], ["Hb alpha-like", 6.86572e-24, 93.2041], ["Hb alpha-like", 7.29082e-24, 93.2041], ["Hb alpha-like", 1.41054e-23, 92.4337], ["Hb alpha-like", 2.08207e-23, 92.0485], ["Hb alpha-like", 3.81506e-23, 91.2781], ["Hb alpha-like", 1.26652e-22, 89.7373], ["Hb alpha-like", 1.35738e-22, 89.7373], ["Hb beta-like", 1.56208e-22, 89.7373], ["Hb alpha-like", 2.20722e-22, 89.3521], ["Hb alpha-like", 2.97386e-22, 88.9669], ["other globin", 3.65138e-22, 88.5817], ["Hb alpha-like", 5.35152e-22, 88.1965], ["Hb alpha-like", 7.24065e-22, 87.8113], ["Hb beta-like", 8.51352e-22, 87.8113], ["Hb alpha-like", 1.67367e-21, 87.0409], ["Hb alpha-like", 2.74965e-21, 86.2705], ["other globin", 4.6837e-21, 85.8853], ["Hb beta-like", 6.71434e-21, 82.4185], ["Hb alpha-like", 3.19158e-20, 83.5741], ["Hb alpha-like", 4.451e-20, 83.5741], ["other globin", 2.32853e-19, 78.9518], ["Hb alpha-like", 2.97925e-19, 81.2629], ["Hb alpha-like", 5.7776e-19, 80.4925], ["Hb alpha-like", 1.08123e-18, 79.7221], ["Hb alpha-like", 3.06752e-17, 75.8702], ["Hb beta-like", 3.46908e-17, 73.1738], ["Hb alpha-like", 3.76103e-17, 75.8702], ["Hb alpha-like", 9.66284e-17, 74.7146], ["Hb alpha-like", 1.6689e-16, 73.9442], ["Hb alpha-like", 1.72808e-16, 73.9442], ["Hb alpha-like", 4.96388e-15, 70.4774], ["Hb alpha-like", 8.10176e-15, 69.707], ["other globin", 7.37069e-14, 67.3958], ["Hb alpha-like", 8.37524e-14, 67.0106], ["Hb alpha-like", 1.13095e-12, 63.929], ["Hb beta-like", 5.04866e-10, 54.6842], ["other globin", 0.000229791, 40.817], ["Hb beta-like", 0.00107795, 38.1206]], "aln_alpha": {"bit_score": 114.775, "score": 286, "evalue": 1.39918e-33, "identity": 63, "positive": 88, "gaps": 8, "align_len": 145, "query_from": 4, "query_to": 146, "hit_from": 3, "hit_to": 141, "qseq": "LTPEEKSAVTALWGKV--NVDEVGGEALGRLLVVYPWTQRFFESFGDLSTPDAVMGNPKVKAHGKKVLGAFSDGLAHLDNLKGTFATLSELHCDKLHVDPENFRLLGNVLVCVLAHHFGKEFTPPVQAAYQKVVAGVANALAHKY", "hseq": "LSPADKTNVKAAWGKVGAHAGEYGAEALERMFLSFPTTKTYFPHF-DLS-----HGSAQVKGHGKKVADALTNAVAHVDDMPNALSALSDLHAHKLRVDPVNFKLLSHCLLVTLAAHLPAEFTPAVHASLDKFLASVSTVLTSKY", "midline": "L+P +K+ V A WGKV  +  E G EAL R+ + +P T+ +F  F DLS      G+ +VK HGKKV  A ++ +AH+D++    + LS+LH  KL VDP NF+LL + L+  LA H   EFTP V A+  K +A V+  L  KY", "len": 142}};
+const fmtE = e => e === 0 ? "0.0" : e < 1e-3 ? e.toExponential(0).replace("e", "e") : e < 1 ? e.toFixed(3) : e.toFixed(1);
+const esc = s => String(s).replace(/[&<>]/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;"}[c]));
+function hitRow(r, cls = "") {
+  return `<tr class="${cls}"><td>${r.rank}</td><td>${esc(r.name)}</td><td>${esc(r.sp)}</td><td>${r.max.toFixed(0)}</td><td>${r.total.toFixed(0)}</td><td>${r.cover}%</td><td>${fmtE(r.e)}</td><td>${r.pid.toFixed(2)}%</td><td>${r.len}</td><td>${esc(r.acc)}</td></tr>`;
+}
+const HEAD = `<thead><tr><th>#</th><th>Description</th><th>Scientific Name</th><th>Max Score</th><th>Total Score</th><th>Query Cover</th><th>E value</th><th>Per. Ident</th><th>Acc. Len</th><th>Accession</th></tr></thead>`;
+/* exercise 1 */
+(() => {
+  const R = DATA.hbb.rows;
+  document.getElementById("t1").innerHTML = HEAD + "<tbody>" + R.slice(0, 10).map(r => hitRow(r)).join("") +
+    `<tr class="gap"><td colspan="10">… rows 11–99 …</td></tr>` + hitRow(R[R.length - 1], "hl") + "</tbody>";
+})();
+/* exercise 2 chart */
+function drawEx2() {
+  const rows = DATA.hbb5000, N = rows.length;
+  const fams = [["Hb beta-like", "var(--s1)", "β-like hemoglobins"], ["Hb alpha-like", "var(--s2)", "α-like hemoglobins"], ["other globin", "var(--s3)", "other hemoglobin chains"]];
+  const cnt = Object.fromEntries(fams.map(f => [f[0], rows.filter(r => r[0] === f[0]).length]));
+  const firstA = rows.findIndex(r => r[0] === "Hb alpha-like") + 1;
+  document.getElementById("ex2Stats").innerHTML = [[N, "hits with E ≤ 0.05"], [cnt["Hb beta-like"], "β-like chains"], [cnt["Hb alpha-like"], "α-like chains"], [firstA, "rank of first α-like chain"], ["0", "myoglobins"]]
+    .map(([v, l]) => `<div class="stat"><b>${v}</b><span>${l}</span></div>`).join("");
+  const W = 720, H = 300, L = 54, R = 16, T = 34, B = 42;
+  const ys = rows.map(r => -Math.log10(Math.max(r[1], 1e-300))), ymax = Math.ceil(Math.max(...ys) / 20) * 20;
+  const X = k => L + k / (N - 1) * (W - L - R), Y = v => H - B - v / ymax * (H - T - B);
+  let g = "";
+  for (let v = 0; v <= ymax; v += 20) g += `<line x1="${L}" x2="${W - R}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)"/><text x="${L - 6}" y="${Y(v) + 4}" text-anchor="end" font-size="11" fill="var(--muted)">${v === 0 ? "1" : `10<tspan dy="-5" font-size="9">−${v}</tspan>`}</text>`;
+  for (let k = 0; k <= N; k += 100) g += `<text x="${X(Math.min(k, N - 1))}" y="${H - B + 16}" text-anchor="middle" font-size="11" fill="var(--muted)">${k || 1}</text>`;
+  g += `<text x="${(L + W - R) / 2}" y="${H - 6}" text-anchor="middle" font-size="12" fill="var(--muted)">hit rank</text>`;
+  g += `<text x="12" y="${(T + H - B) / 2}" text-anchor="middle" font-size="12" fill="var(--muted)" transform="rotate(-90 12 ${(T + H - B) / 2})">E value</text>`;
+  g += `<rect x="${X(0)}" y="${T}" width="${X(99) - X(0)}" height="${H - T - B}" fill="var(--heme-soft)" opacity=".6"/><text x="${X(50)}" y="${T + 16}" text-anchor="middle" font-size="11" font-weight="700" fill="var(--heme)">default: first 100</text>`;
+  rows.forEach((r, k) => { const f = fams.find(x => x[0] === r[0]) || fams[2]; g += `<circle cx="${X(k).toFixed(1)}" cy="${Y(ys[k]).toFixed(1)}" r="2.6" fill="${f[1]}"><title>#${k + 1}: ${f[2]}, E = ${fmtE(r[1])}</title></circle>`; });
+  const kA = 418; g += `<line x1="${X(kA)}" x2="${X(kA) + 30}" y1="${Y(ys[kA]) - 6}" y2="${Y(ys[kA]) - 40}" stroke="var(--ink)"/><text x="${X(kA) + 34}" y="${Y(ys[kA]) - 42}" font-size="12" font-weight="700" fill="var(--ink)">#419 human α-globin</text>`;
+  g += `<g transform="translate(${L + 8} 12)">` + fams.map((f, i) => `<circle cx="${i * 205}" cy="0" r="5" fill="${f[1]}"/><text x="${i * 205 + 9}" y="4" font-size="12" fill="var(--ink)">${f[2]} (${cnt[f[0]]})</text>`).join("") + `</g>`;
+  document.getElementById("ex2Chart").innerHTML = g;
+}
+drawEx2();
+/* exercise 3 comparison */
+(() => {
+  const runs = [["hbb_human_e10", "Word size 5"], ["hbb_human_e10_w3", "Word size 3"], ["hbb_human_e10_w3_nocbs", "Word size 3, no compositional adjustment"]];
+  const want = [["Hemoglobin subunit delta", "δ"], ["Hemoglobin subunit epsilon", "ε"], ["Hemoglobin subunit gamma-1", "γ1"], ["Hemoglobin subunit alpha", "α"], ["Hemoglobin subunit zeta", "ζ"], ["Hemoglobin subunit theta-1", "θ1"], ["Hemoglobin subunit mu", "μ"], ["Cytoglobin", "cytoglobin"], ["Neuroglobin", "neuroglobin"], ["Myoglobin", "myoglobin"]];
+  let h = `<thead><tr><th>Human protein</th>${runs.map(r => `<th>${r[1]}</th>`).join("")}</tr></thead><tbody>`;
+  for (const [nm, lab] of want) {
+    h += `<tr><td><b>${lab}</b></td>` + runs.map(([k]) => { const r = DATA[k].rows.find(x => x.name === nm); return r ? `<td class="num"><span class="ok">E ${fmtE(r.e)}</span></td>` : `<td><span class="miss">not reported</span></td>`; }).join("") + "</tr>";
+  }
+  h += `<tr><td>total hits (E ≤ 10)</td>${runs.map(([k]) => `<td class="num">${DATA[k].rows.length}</td>`).join("")}</tr></tbody>`;
+  document.getElementById("t3").innerHTML = h;
+})();
+/* exercise 4 summary */
+(() => {
+  const R = DATA.lba.rows;
+  const groups = [["Soybean leghemoglobins", r => /leghemoglobin/i.test(r.name) && r.sp === "Glycine max"], ["Other legume leghemoglobins", r => /leghemoglobin/i.test(r.name) && r.sp !== "Glycine max"], ["Plant non-symbiotic hemoglobins (\"Anaerobic nitrite reductase\")", r => /nitrite reductase/i.test(r.name)]];
+  let h = `<thead><tr><th>Group</th><th>Hits</th><th>Best E</th><th>Weakest E</th><th>Identity range</th><th>Example organisms</th></tr></thead><tbody>`;
+  for (const [lab, f] of groups) {
+    const g = R.filter(f); if (!g.length) continue;
+    const sp = [...new Set(g.map(r => r.sp))];
+    h += `<tr><td>${lab}</td><td class="num">${g.length}</td><td class="num">${fmtE(Math.min(...g.map(r => r.e)))}</td><td class="num">${fmtE(Math.max(...g.map(r => r.e)))}</td><td class="num">${Math.round(Math.min(...g.map(r => r.pid)))}–${Math.round(Math.max(...g.map(r => r.pid)))}%</td><td><i>${sp.slice(0, 4).join(", ")}</i>${sp.length > 4 ? ` +${sp.length - 4} more` : ""}</td></tr>`;
+  }
+  h += `<tr><td><b>Animal globins</b></td><td class="num">0</td><td colspan="4" class="muted">none reported</td></tr></tbody>`;
+  document.getElementById("t4").innerHTML = h;
+})();
+/* alignment */
+(() => {
+  const a = DATA.aln_alpha, W = 60;
+  let out = `<span class="hd">&gt;P69905 Hemoglobin subunit alpha [Homo sapiens]</span>\nLength=${a.len}\n\n Score = ${a.bit_score.toFixed(1)} bits (${a.score}),  Expect = ${fmtE(a.evalue)}\n Identities = ${a.identity}/${a.align_len} (${Math.round(100 * a.identity / a.align_len)}%), Positives = ${a.positive}/${a.align_len} (${Math.round(100 * a.positive / a.align_len)}%), Gaps = ${a.gaps}/${a.align_len} (${Math.round(100 * a.gaps / a.align_len)}%)\n\n`;
+  let qi = a.query_from, si = a.hit_from;
+  for (let k = 0; k < a.qseq.length; k += W) {
+    const q = a.qseq.slice(k, k + W), m = a.midline.slice(k, k + W), s = a.hseq.slice(k, k + W);
+    const qe = qi + q.replace(/-/g, "").length - 1, se = si + s.replace(/-/g, "").length - 1;
+    out += `Query  ${String(qi).padEnd(4)} ${q}  ${qe}\n            ${m}\nSbjct  ${String(si).padEnd(4)} ${s}  ${se}\n\n`;
+    qi = qe + 1; si = se + 1;
+  }
+  document.getElementById("alnBox").innerHTML = out.trimEnd();
+})();
+/* runs table */
+(() => {
+  const runs = [
+    ["Ex. 1", "P68871", "swissprot", "0.05", "100", "5", "conditional", "—", DATA.hbb.rows.length],
+    ["Ex. 2", "P68871", "swissprot", "0.05", "5000", "5", "conditional", "—", DATA.hbb5000.length],
+    ["Ex. 3a", "P68871", "swissprot", "10", "500", "5", "conditional", "Homo sapiens", DATA.hbb_human_e10.rows.length],
+    ["Ex. 3b", "P68871", "swissprot", "10", "500", "3", "conditional", "Homo sapiens", DATA.hbb_human_e10_w3.rows.length],
+    ["Ex. 3c", "P68871", "swissprot", "10", "500", "3", "none", "Homo sapiens", DATA.hbb_human_e10_w3_nocbs.rows.length],
+    ["Ex. 4", "P02238", "swissprot", "0.05", "100", "5", "conditional", "—", DATA.lba.rows.length],
+  ];
+  document.getElementById("runsTable").innerHTML = `<thead><tr><th>Run</th><th>Query</th><th>Database</th><th>Expect</th><th>Max targets</th><th>Word size</th><th>Comp. adjustment</th><th>Organism</th><th>Hits</th></tr></thead><tbody>` +
+    runs.map(r => `<tr>${r.map((c, i) => `<td class="${i >= 3 && i !== 6 && i !== 7 ? "num" : ""}">${c}</td>`).join("")}</tr>`).join("") +
+    `</tbody><caption class="muted" style="caption-side:bottom;text-align:left;font-size:13px;padding-top:6px">All runs: blastp, BLOSUM62, gap costs 11/1, low-complexity filter off.</caption>`;
+})();
+function tocWire() {
+  const links = [...document.querySelectorAll(".toc a")];
+  const secs = links.map(a => document.querySelector(a.getAttribute("href")));
+  const on = () => { let k = 0; secs.forEach((s, i) => { if (s.getBoundingClientRect().top < 140) k = i; }); links.forEach((a, i) => a.classList.toggle("on", i === k)); };
+  addEventListener("scroll", on, {passive: true}); on();
+}
+tocWire();
+</script>
