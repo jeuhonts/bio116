@@ -7,7 +7,7 @@
 | **Audience** | Undergraduate bioinformatics (BIO116). Assumes you know the genetic code and the basics of protein structure. |
 | **Time** | About 2–3 hours (Parts 1–4 offline, about 1 h; Part 5 needs a browser and about 30 min of compute) |
 | **You need** | Python 3.8+ (standard library only), a web browser, and optionally [ChimeraX](https://www.cgl.ucsf.edu/chimerax/) or the [Mol\* viewer](https://molstar.org/viewer/) |
-| **Files** | `structure_tutorial.py` (companion script), `../../triplets.txt` (the DNA we start from) |
+| **Files** | `protein-structure-tutorial.html` (interactive version: open it in any browser, works offline), `structure_tutorial.py` (companion script), `../../triplets.txt` (the DNA we start from) |
 
 By the end you will be able to:
 

@@ -1,0 +1,909 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Folding H-Ras</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;1,7..72,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root {
+  color-scheme: light;
+  --bg: #F3F5F1;
+  --surface: #FFFFFF;
+  --sunk: #E9EDE8;
+  --ink: #17211C;
+  --muted: #56645C;
+  --line: #D5DCD6;
+  --brand: #1E5B43;
+  --brand-ink: #FFFFFF;
+  --brand-soft: #DFEBE4;
+  --helix: #B3306A;
+  --strand: #C98400;
+  --coil: #97A39C;
+  --good: #2E7D4F;
+  --bad: #B3261E;
+  --af-vh: #0053D6; --af-c: #65CBF3; --af-l: #FFDB13; --af-vl: #FF7D45;
+  --display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --body: "Literata", Georgia, "Times New Roman", serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #0F1512; --surface: #161E1A; --sunk: #1D2722; --ink: #E4EBE6; --muted: #98A69E;
+    --line: #2B3731; --brand: #74C49E; --brand-ink: #0F1512; --brand-soft: #1B2E24;
+    --helix: #E0739F; --strand: #EDB23E; --coil: #6C7871; --good: #6CCB8F; --bad: #F08A80;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0F1512; --surface: #161E1A; --sunk: #1D2722; --ink: #E4EBE6; --muted: #98A69E;
+  --line: #2B3731; --brand: #74C49E; --brand-ink: #0F1512; --brand-soft: #1B2E24;
+  --helix: #E0739F; --strand: #EDB23E; --coil: #6C7871; --good: #6CCB8F; --bad: #F08A80;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body {
+  margin: 0; background: var(--bg); color: var(--ink);
+  font: 400 17px/1.6 var(--body);
+  padding-inline: 16px;
+}
+[hidden] { display: none !important; }
+a { color: var(--brand); text-underline-offset: 2px; }
+:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+h1, h2, h3 { font-family: var(--display); line-height: 1.15; text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(2.2rem, 5vw, 3.4rem); font-weight: 700; letter-spacing: -0.02em; }
+h2 { font-size: clamp(1.6rem, 3.4vw, 2.1rem); font-weight: 700; letter-spacing: -0.01em; }
+h3 { font-size: 1.15rem; font-weight: 500; }
+p { margin: 0; max-width: 66ch; }
+code, .mono { font-family: var(--mono); font-size: 0.86em; }
+.label {
+  font: 500 0.72rem/1.2 var(--display); text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted);
+}
+
+/* ---------- layout ---------- */
+.shell { max-width: 1180px; margin: 0 auto; display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 48px; padding-block: 32px 80px; }
+nav.steps { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 24px); align-self: start; display: grid; gap: 4px; }
+nav.steps a {
+  display: grid; grid-template-columns: 26px 1fr; gap: 8px; align-items: center;
+  padding: 6px 8px; border-radius: 6px; text-decoration: none; color: var(--muted);
+  font: 500 0.92rem/1.25 var(--display);
+}
+nav.steps a .n {
+  width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid var(--line);
+  display: grid; place-items: center; font-size: 0.75rem; font-variant-numeric: tabular-nums;
+}
+nav.steps a:hover { color: var(--ink); background: var(--sunk); }
+nav.steps a.done .n { background: var(--brand); border-color: var(--brand); color: var(--brand-ink); }
+nav.steps a.here { color: var(--ink); }
+nav.steps a.here .n { border-color: var(--brand); }
+.theme-btn { margin-top: 16px; justify-self: start; }
+main { display: grid; gap: 72px; min-width: 0; }
+section { display: grid; gap: 20px; min-width: 0; scroll-margin-top: 24px; }
+.sec-head { display: grid; gap: 8px; }
+.sec-head .label { color: var(--brand); }
+
+/* ---------- hero ---------- */
+.hero { display: grid; gap: 20px; }
+.hero .lede { font-size: 1.15rem; color: var(--muted); max-width: 60ch; }
+.ribbon { width: 100%; max-width: 100%; height: auto; display: block; }
+.meta { display: flex; flex-wrap: wrap; gap: 8px 24px; }
+.meta div { display: grid; gap: 2px; }
+.meta b { font: 500 0.95rem/1.3 var(--display); }
+
+/* ---------- widgets ---------- */
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 20px; display: grid; gap: 16px; min-width: 0; }
+.panel.sunk { background: var(--sunk); border-color: transparent; }
+.row { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center; }
+button, .btn {
+  font: 500 0.9rem/1 var(--display); padding: 9px 14px; border-radius: 6px; cursor: pointer;
+  border: 1px solid var(--line); background: var(--surface); color: var(--ink);
+}
+button:hover { border-color: var(--brand); }
+button.primary { background: var(--brand); color: var(--brand-ink); border-color: var(--brand); }
+button.chip { padding: 6px 10px; font-size: 0.82rem; }
+button.chip[aria-pressed="true"] { background: var(--brand-soft); border-color: var(--brand); }
+input[type="number"], textarea {
+  font: 400 0.9rem/1.4 var(--mono); color: var(--ink); background: var(--bg);
+  border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px;
+}
+input[type="number"] { width: 6.5em; }
+textarea { width: 100%; min-height: 96px; resize: vertical; }
+input[type="range"] { accent-color: var(--brand); width: 160px; max-width: 100%; }
+.ctl { display: grid; gap: 4px; font-size: 0.9rem; }
+.ctl output { font: 500 0.85rem var(--mono); }
+.scroll { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 0.9rem; }
+th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font: 500 0.75rem/1.2 var(--display); text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); font-size: 0.85rem; }
+tr.sel td { background: var(--brand-soft); }
+.seq { font: 400 0.85rem/1.55 var(--mono); word-break: break-all; letter-spacing: 0.02em; }
+.tracks { font: 400 0.82rem/1.35 var(--mono); white-space: pre; }
+.tracks .H { color: var(--helix); font-weight: 500; }
+.tracks .E { color: var(--strand); font-weight: 500; }
+.tracks .C { color: var(--coil); }
+.tracks .x { background: color-mix(in srgb, var(--bad) 22%, transparent); }
+.tracks .lab { color: var(--muted); }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; }
+.tile { display: grid; gap: 2px; padding: 12px 14px; background: var(--sunk); border-radius: 8px; }
+.tile b { font: 500 1.35rem/1.2 var(--display); font-variant-numeric: tabular-nums; }
+.tile span { font-size: 0.8rem; color: var(--muted); }
+.ok { color: var(--good); font-weight: 600; }
+.no { color: var(--bad); font-weight: 600; }
+.mm { background: color-mix(in srgb, var(--bad) 28%, transparent); border-radius: 2px; }
+.note { font-size: 0.92rem; color: var(--muted); }
+.callout { border-left: 3px solid var(--brand); padding: 4px 0 4px 16px; display: grid; gap: 8px; }
+details.hint { border: 1px dashed var(--line); border-radius: 8px; padding: 10px 14px; }
+details.hint summary { cursor: pointer; font: 500 0.92rem var(--display); color: var(--brand); }
+details.hint[open] summary { margin-bottom: 8px; }
+.q { display: grid; gap: 10px; }
+.q .opts { display: grid; gap: 6px; }
+.q .opts button { text-align: left; font: 400 0.95rem/1.35 var(--body); padding: 10px 12px; }
+.q .opts button.right { border-color: var(--good); background: color-mix(in srgb, var(--good) 12%, transparent); }
+.q .opts button.wrong { border-color: var(--bad); background: color-mix(in srgb, var(--bad) 10%, transparent); }
+.q .why { font-size: 0.92rem; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 0.82rem; color: var(--muted); }
+.legend i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; vertical-align: -1px; margin-right: 6px; }
+.timeline { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 0; border-top: 2px solid var(--brand); }
+.timeline div { padding: 12px 14px 4px 0; display: grid; gap: 4px; position: relative; }
+.timeline div::before { content: ""; position: absolute; top: -7px; left: 0; width: 12px; height: 12px; border-radius: 50%; background: var(--sunk); border: 2px solid var(--brand); }
+.timeline b { font: 700 1rem var(--display); }
+.timeline span { font-size: 0.88rem; color: var(--muted); }
+.tools { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; }
+.tools .panel { gap: 8px; }
+.drop { border: 2px dashed var(--line); border-radius: 10px; padding: 20px; text-align: center; display: grid; gap: 8px; justify-items: center; }
+.drop.over { border-color: var(--brand); background: var(--brand-soft); }
+canvas { max-width: 100%; display: block; }
+.two { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+svg text { fill: var(--muted); font: 11px var(--display); }
+
+@media (max-width: 860px) {
+  .shell { grid-template-columns: minmax(0, 1fr); gap: 24px; padding-block: 0 64px; }
+  nav.steps {
+    top: env(safe-area-inset-top, 0px); z-index: 5; display: flex; overflow-x: auto; gap: 2px;
+    background: var(--bg); border-bottom: 1px solid var(--line); margin-inline: -16px; padding: 8px 16px;
+  }
+  nav.steps a { grid-template-columns: 24px auto; white-space: nowrap; }
+  .theme-btn { margin-top: 0; }
+  section { scroll-margin-top: 72px; }
+  .timeline { grid-template-columns: minmax(0, 1fr); border-top: 0; border-left: 2px solid var(--brand); padding-left: 18px; margin-left: 6px; }
+  .timeline div { padding: 6px 0; }
+  .timeline div::before { top: 12px; left: -26px; }
+}
+</style>
+</head>
+<body>
+<div class="shell">
+  <nav class="steps" aria-label="Tutorial steps">
+    <a href="#gene"><span class="n">1</span>Find the gene</a>
+    <a href="#splice"><span class="n">2</span>Splice it</a>
+    <a href="#sequence"><span class="n">3</span>Read the sequence</a>
+    <a href="#predict"><span class="n">4</span>Predict in 3D</a>
+    <a href="#confidence"><span class="n">5</span>Judge the model</a>
+    <a href="#limits"><span class="n">6</span>Know the limits</a>
+    <a href="#quiz"><span class="n">7</span>Check yourself</a>
+    <button class="chip theme-btn" id="themeBtn" type="button">Dark theme</button>
+  </nav>
+
+  <main>
+    <header class="hero" id="top">
+      <span class="label">BIO116 · Interactive tutorial · Protein structure prediction</span>
+      <h1>Folding H-Ras, from DNA to a model you can trust</h1>
+      <p class="lede">You'll start from 10&thinsp;kb of human genomic DNA (<code>triplets.txt</code>), find the gene hidden in it,
+        splice it into a protein, predict that protein's structure, and then check the prediction against a crystal structure.
+        Everything on this page runs in your browser, even offline.</p>
+      <svg class="ribbon" viewBox="0 0 900 90" role="img" aria-label="Pipeline: DNA, protein sequence, secondary structure, 3D model">
+        <g stroke-width="3" fill="none" stroke-linecap="round">
+          <path d="M10 45 C 40 15, 70 75, 100 45 S 160 15, 190 45" stroke="var(--coil)"/>
+          <path d="M10 45 C 40 75, 70 15, 100 45 S 160 75, 190 45" stroke="var(--muted)"/>
+        </g>
+        <text x="100" y="86" text-anchor="middle">DNA</text>
+        <path d="M205 45 h40" stroke="var(--line)" stroke-width="2"/>
+        <g font-family="var(--mono)"><text x="330" y="50" text-anchor="middle" style="font:500 15px var(--mono);fill:var(--ink)">MTEYKLVVVG…</text></g>
+        <text x="330" y="86" text-anchor="middle">sequence</text>
+        <path d="M420 45 h40" stroke="var(--line)" stroke-width="2"/>
+        <rect x="475" y="38" width="36" height="14" rx="3" fill="var(--coil)"/>
+        <rect x="515" y="34" width="60" height="22" rx="11" fill="var(--helix)"/>
+        <rect x="579" y="38" width="16" height="14" rx="3" fill="var(--coil)"/>
+        <path d="M599 36 h42 l14 9 l-14 9 h-42 z" fill="var(--strand)"/>
+        <text x="565" y="86" text-anchor="middle">secondary structure</text>
+        <path d="M670 45 h40" stroke="var(--line)" stroke-width="2"/>
+        <path d="M735 60 C 745 10, 790 10, 790 40 S 840 75, 850 35 S 810 5, 780 55 S 760 80, 745 50" stroke="var(--brand)" stroke-width="5" fill="none" stroke-linecap="round"/>
+        <text x="795" y="86" text-anchor="middle">3D model</text>
+      </svg>
+      <div class="meta">
+        <div><span class="label">Audience</span><b>Undergraduate bioinformatics</b></div>
+        <div><span class="label">Time</span><b>2–3 hours</b></div>
+        <div><span class="label">You need</span><b>A browser; optionally ChimeraX or Mol*</b></div>
+        <div><span class="label">Companion</span><b><code>structure_tutorial.py</code></b></div>
+      </div>
+
+      <div class="panel sunk">
+        <h3>Background in two minutes</h3>
+        <p><b>Anfinsen</b> showed that for many small proteins the sequence alone determines the fold, so structure should be computable.
+          <b>Levinthal</b> pointed out that a 100-residue chain has about 3<sup>100</sup> ≈ 10<sup>48</sup> conformations, so neither the
+          protein nor a computer can search them all. Prediction methods are shortcuts built from what we already know about proteins:</p>
+        <div class="timeline" aria-label="History of prediction methods">
+          <div><b>1970s</b><span>Chou–Fasman and GOR: residue propensities for helix and strand. Q3 ≈ 50–65%.</span></div>
+          <div><b>1990s</b><span>Homology modelling and threading: copy the shape of a related protein with a known structure.</span></div>
+          <div><b>2000s</b><span>Rosetta fragment assembly, PSIPRED profiles (Q3 ≈ 80%).</span></div>
+          <div><b>2010s</b><span>Co-evolution: residues that mutate together are usually in contact.</span></div>
+          <div><b>2020</b><span>AlphaFold2 reaches near-experimental accuracy in CASP14.</span></div>
+          <div><b>2022–24</b><span>ESMFold (language model, no MSA); AlphaFold3 and Boltz add ligands, DNA and RNA.</span></div>
+        </div>
+      </div>
+    </header>
+
+    <!-- ================= 1 ================= -->
+    <section id="gene">
+      <div class="sec-head">
+        <span class="label">Step 1 of 7</span>
+        <h2>Find the gene in the DNA</h2>
+        <p><code>triplets.txt</code> contains the DNA printed as codons in all three forward reading frames. An <b>open reading frame</b> (ORF)
+          runs from a Met (ATG) to a stop codon. Long ORFs are gene candidates. Set the minimum length and click any ORF to inspect it.</p>
+      </div>
+      <div class="panel">
+        <div class="row">
+          <label class="ctl" for="minLen">Minimum ORF length <output id="minLenOut">50 aa</output>
+            <input type="range" id="minLen" min="20" max="200" step="5" value="50"></label>
+          <button type="button" class="chip" id="revealExons" aria-pressed="false">Reveal H-Ras exons</button>
+          <span class="note" id="orfCount"></span>
+        </div>
+        <div class="scroll"><svg id="orfMap" viewBox="0 0 1000 150" style="min-width:640px;width:100%" role="img" aria-label="Map of ORFs across three reading frames"></svg></div>
+        <div class="scroll" style="max-height:320px;overflow-y:auto">
+          <table id="orfTable"><thead><tr><th>Frame</th><th>Codons</th><th>Length</th><th>First 40 aa</th><th></th></tr></thead><tbody></tbody></table>
+        </div>
+      </div>
+      <div class="panel sunk" id="orfDetail">
+        <span class="label">Selected ORF</span>
+        <div class="seq" id="orfSeq"></div>
+        <div class="row">
+          <button type="button" id="copyOrf">Copy sequence</button>
+          <a class="btn" href="https://blast.ncbi.nlm.nih.gov/Blast.cgi?PROGRAM=blastp&PAGE_TYPE=BlastSearch" target="_blank" rel="noopener">Open BLASTP ↗</a>
+          <button type="button" id="orfToAnalyzer">Analyse in step 3</button>
+          <span class="note" id="copyMsg" aria-live="polite"></span>
+        </div>
+      </div>
+      <div class="callout">
+        <p><b>Try this.</b> Paste the longest ORF and the frame 1 ORF starting at codon 2077 into BLASTP (database <i>UniProtKB/Swiss-Prot</i>).
+          Which one matches a known protein? Why does the matching protein stop matching after <code>…DPTIE</code>?</p>
+        <details class="hint"><summary>Show the answer</summary>
+          <p>The ORF at codon 2077 (<code>MTEYKLVVVGAGGVGKSALTIQ…</code>) is the start of <b>GTPase HRas</b> (UniProt P01112). After <code>…DPTIE</code> the
+            DNA enters an <b>intron</b>, so the protein continues further along the DNA. The longest ORF gets no convincing hit: introns
+            and repetitive DNA can hold long ORFs purely by chance.</p>
+        </details>
+      </div>
+    </section>
+
+    <!-- ================= 2 ================= -->
+    <section id="splice">
+      <div class="sec-head">
+        <span class="label">Step 2 of 7</span>
+        <h2>Splice the exons into one protein</h2>
+        <p>tBLASTn (the H-Ras protein searched against this DNA) finds four coding exons. Each intron should start with <b>GT</b> and end with <b>AG</b>.
+          The coordinates below are correct. Change them by one or two nucleotides to see what breaks.</p>
+      </div>
+      <div class="panel">
+        <div class="scroll">
+          <table id="exonTable"><thead><tr><th>Exon</th><th>Start</th><th>End</th><th>Length</th><th>Reading frame</th><th>Next intron</th></tr></thead><tbody></tbody></table>
+        </div>
+        <div class="row"><button type="button" id="exonReset">Reset to correct coordinates</button><span class="note" id="spliceSummary"></span></div>
+        <div>
+          <span class="label">Translated protein, compared with UniProt P01112 (mismatches highlighted)</span>
+          <div class="seq" id="splicedSeq"></div>
+        </div>
+      </div>
+      <details class="hint"><summary>Why do exons 1–3 sit in frame 1 but exon 4 in frame 2?</summary>
+        <p>Introns 1 and 2 are 267 and 153 nt long, both multiples of 3, so the frame doesn't change, even though codon 97 (Arg, AGG) is split
+          AG|G across intron 2. Intron 3 is 697 nt long, which is not a multiple of 3, so exon 4 moves to frame 2. Translating each frame
+          separately can't join these pieces; splicing can.</p>
+      </details>
+    </section>
+
+    <!-- ================= 3 ================= -->
+    <section id="sequence">
+      <div class="sec-head">
+        <span class="label">Step 3 of 7</span>
+        <h2>What the sequence alone tells you</h2>
+        <p>Before building a 3D model, simple statistics already hint at the structure: whether the protein is soluble or sits in a membrane,
+          how much of it is helix or strand, and whether it looks folded at all.</p>
+      </div>
+      <div class="panel">
+        <div class="row">
+          <span class="label">Load</span>
+          <button type="button" class="chip" data-preset="hras" aria-pressed="true">H-Ras (spliced)</button>
+          <button type="button" class="chip" data-preset="repeat" aria-pressed="false">Longest ORF (frame 2)</button>
+          <button type="button" class="chip" data-preset="gcn4" aria-pressed="false">GCN4 leucine zipper</button>
+        </div>
+        <label for="seqIn" class="label">Protein sequence (edit freely)</label>
+        <textarea id="seqIn" spellcheck="false"></textarea>
+        <div class="tiles" id="stats"></div>
+        <p class="note" id="statsNote"></p>
+      </div>
+
+      <div class="panel">
+        <h3>Hydropathy plot (Kyte–Doolittle)</h3>
+        <p class="note">Each point is the average hydrophobicity of a window centred on that residue. A 19-residue window above 1.6 suggests a helix that spans the membrane.</p>
+        <div class="row">
+          <label class="ctl" for="kdWin">Window <output id="kdWinOut">19</output>
+            <input type="range" id="kdWin" min="5" max="25" step="2" value="19"></label>
+          <span class="note" id="tmNote"></span>
+        </div>
+        <div class="scroll"><svg id="kdPlot" viewBox="0 0 800 220" style="min-width:520px;width:100%" role="img" aria-label="Hydropathy plot"></svg></div>
+      </div>
+
+      <div class="panel">
+        <h3>Secondary structure: Chou–Fasman</h3>
+        <p class="note">Average each residue's helix propensity (P<sub>α</sub>) and strand propensity (P<sub>β</sub>) over a window. Call helix if ⟨P<sub>α</sub>⟩ passes its
+          threshold and beats ⟨P<sub>β</sub>⟩, strand if ⟨P<sub>β</sub>⟩ passes its threshold, otherwise coil. Then drop helices shorter than 4 and strands shorter than 3.
+          For H-Ras, the prediction is scored against the crystal structure 5P21.</p>
+        <div class="row">
+          <label class="ctl" for="cfWin">Window <output id="cfWinOut">7</output>
+            <input type="range" id="cfWin" min="3" max="15" step="2" value="7"></label>
+          <label class="ctl" for="cfHa">Helix threshold <output id="cfHaOut">1.03</output>
+            <input type="range" id="cfHa" min="0.90" max="1.20" step="0.01" value="1.03"></label>
+          <label class="ctl" for="cfHb">Strand threshold <output id="cfHbOut">1.05</output>
+            <input type="range" id="cfHb" min="0.90" max="1.25" step="0.01" value="1.05"></label>
+          <button type="button" class="chip" id="cfReset">Reset</button>
+        </div>
+        <div class="tiles" id="cfStats"></div>
+        <div class="legend"><span><i style="background:var(--helix)"></i>H helix</span><span><i style="background:var(--strand)"></i>E strand</span><span><i style="background:var(--coil)"></i>C coil</span><span><i style="background:color-mix(in srgb,var(--bad) 30%,transparent)"></i>disagrees with 5P21</span></div>
+        <div class="scroll"><div class="tracks" id="cfTracks"></div></div>
+      </div>
+      <div class="callout">
+        <p><b>Try this.</b> Can you push Q3 above 65% with the sliders? What do you have to give up? Then load the GCN4 leucine zipper, a known
+          continuous α-helix. How much of it does the method call helix?</p>
+        <details class="hint"><summary>Discussion</summary>
+          <p>Tuning thresholds on one protein is <b>overfitting</b>: the settings won't carry over to the next protein. Chou–Fasman ignores two things
+            modern predictors rely on: <b>evolutionary information</b> (the same position in related sequences) and <b>long-range contacts</b>. β-strands pair with partners that can be
+            far apart in the sequence, and a local window can't see that.</p>
+          <p>The longest frame 2 ORF is a useful negative control. It is about 18% proline and made of near-perfect 28-residue repeats, which strongly suggests it doesn't fold.</p>
+        </details>
+      </div>
+    </section>
+
+    <!-- ================= 4 ================= -->
+    <section id="predict">
+      <div class="sec-head">
+        <span class="label">Step 4 of 7</span>
+        <h2>Predict the 3D structure</h2>
+        <p>Copy the H-Ras FASTA and run it through <b>one</b> of these free tools. Each takes a few minutes or less for 189 residues. Save the result as a <code>.pdb</code> file for step 5.</p>
+      </div>
+      <div class="panel sunk">
+        <div class="row"><span class="label">FASTA</span><button type="button" id="copyFasta">Copy H-Ras FASTA</button><span class="note" id="fastaMsg" aria-live="polite"></span></div>
+        <div class="seq" id="fastaBox"></div>
+      </div>
+      <div class="tools">
+        <div class="panel"><span class="label">No MSA · seconds</span><h3>ESMFold</h3>
+          <p class="note">A protein language model predicts the structure from the single sequence. Fastest; slightly less accurate than AlphaFold2.</p>
+          <a href="https://esmatlas.com/resources?action=fold" target="_blank" rel="noopener">ESM Atlas fold page ↗</a>
+          <p class="note">Or: <code>python3 structure_tutorial.py fold --spliced</code></p></div>
+        <div class="panel"><span class="label">MSA · minutes</span><h3>ColabFold (AlphaFold2)</h3>
+          <p class="note">Paste the sequence, then choose Runtime → Run all. Gives the PAE plot and five ranked models.</p>
+          <a href="https://colab.research.google.com/github/sokrypton/ColabFold/blob/main/AlphaFold2.ipynb" target="_blank" rel="noopener">ColabFold notebook ↗</a></div>
+        <div class="panel"><span class="label">Complexes · ligands</span><h3>AlphaFold Server (AF3)</h3>
+          <p class="note">Add GTP or GDP plus Mg²⁺ next to the protein. Needs a free Google account.</p>
+          <a href="https://alphafoldserver.com" target="_blank" rel="noopener">alphafoldserver.com ↗</a></div>
+        <div class="panel"><span class="label">Precomputed</span><h3>AlphaFold DB</h3>
+          <p class="note">Download the ready-made model for UniProt P01112 to skip waiting.</p>
+          <a href="https://alphafold.ebi.ac.uk/entry/P01112" target="_blank" rel="noopener">AF-P01112 ↗</a></div>
+      </div>
+      <div class="panel">
+        <h3>What the network does</h3>
+        <div class="two">
+          <p><b>MSA and co-evolution.</b> If residue <i>i</i> mutates and residue <i>j</i> compensates across many related species, the two are probably in contact.
+            AlphaFold2's <i>Evoformer</i> reasons over the alignment and a residue-pair map through 48 blocks.</p>
+          <p><b>Structure module.</b> Each residue is treated as a rigid frame that is rotated and moved into place. The model is recycled three times and outputs
+            coordinates together with pLDDT and PAE. AlphaFold3 replaces this step with <i>diffusion</i>, which also lets it place ligands.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= 5 ================= -->
+    <section id="confidence">
+      <div class="sec-head">
+        <span class="label">Step 5 of 7</span>
+        <h2>Judge the model</h2>
+        <p>A prediction is a hypothesis. Predictors store per-residue confidence (<b>pLDDT</b>, 0–100) in the B-factor column of the PDB file. Load your model below; the file
+          is read in your browser and never uploaded.</p>
+      </div>
+      <div class="panel">
+        <div class="drop" id="dropModel">
+          <b>Drop a predicted .pdb file here</b>
+          <span class="note">from AlphaFold DB, ColabFold or ESMFold</span>
+          <label class="btn" for="fileModel">Choose file</label>
+          <input type="file" id="fileModel" accept=".pdb,.ent,.txt" hidden>
+        </div>
+        <div class="legend">
+          <span><i style="background:var(--af-vh)"></i>≥ 90 very high: backbone and side chains reliable</span>
+          <span><i style="background:var(--af-c)"></i>70–90 confident: backbone reliable</span>
+          <span><i style="background:var(--af-l)"></i>50–70 low: caution</span>
+          <span><i style="background:var(--af-vl)"></i>&lt; 50 very low: likely disordered</span>
+        </div>
+        <div id="modelOut" hidden>
+          <div class="tiles" id="plddtTiles"></div>
+          <div class="scroll"><svg id="plddtPlot" viewBox="0 0 800 200" style="min-width:520px;width:100%;margin-top:12px" role="img" aria-label="pLDDT per residue"></svg></div>
+          <div class="row" style="margin-top:12px">
+            <label class="ctl" for="rFrom">Residues from <input type="number" id="rFrom" value="1" min="1"></label>
+            <label class="ctl" for="rTo">to <input type="number" id="rTo" value="166" min="1"></label>
+            <span id="rangeStat" class="mono"></span>
+          </div>
+          <div class="two" style="margin-top:16px">
+            <div class="panel sunk"><span class="label">Cα trace coloured by pLDDT · drag to rotate</span><canvas id="trace" width="520" height="400" style="width:100%;touch-action:none;cursor:grab"></canvas></div>
+            <div class="panel sunk">
+              <span class="label">Compare with experiment</span>
+              <p class="note">Download <a href="https://www.rcsb.org/structure/5P21" target="_blank" rel="noopener">PDB 5P21 ↗</a> (H-Ras 1–166 with GppNHp and Mg²⁺) and load it here.
+                The Cα RMSD is computed after optimal superposition, over the residue range above, using residues numbered the same in both files.</p>
+              <label class="btn" for="fileRef" style="justify-self:start">Load reference .pdb</label>
+              <input type="file" id="fileRef" accept=".pdb,.ent,.txt" hidden>
+              <div class="tiles" id="rmsdOut"></div>
+              <p class="note">Rules of thumb: Cα RMSD under 2 Å is very close. For TM-score (above 0.5 means the same fold), use the <a href="https://www.rcsb.org/alignment" target="_blank" rel="noopener">RCSB pairwise alignment ↗</a>.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="two">
+        <div class="callout"><p><b>What to expect for H-Ras.</b> The G domain (1–166) should be almost entirely above 90. The <b>hypervariable region</b> (about 167–189, ending in the
+          lipid-anchored <code>CVLS</code>) should drop below 50. It is flexible in the cell and not visible in the crystal either. Compare the RMSD over 1–166 with the RMSD over 1–189.</p></div>
+        <div class="callout"><p><b>PAE</b> (predicted aligned error, the heat map in ColabFold and AlphaFold DB) tells you how confident the model is about the relative position of two residues. High pLDDT with high
+          PAE between two domains means each domain is right, but their relative orientation is not known. For complexes, ipTM above about 0.8 means a confident interface.</p></div>
+      </div>
+    </section>
+
+    <!-- ================= 6 ================= -->
+    <section id="limits">
+      <div class="sec-head">
+        <span class="label">Step 6 of 7</span>
+        <h2>What predictors can't tell you</h2>
+        <p>H-Ras makes a good case study because its biology depends on details that a single static model misses.</p>
+      </div>
+      <div class="two">
+        <div class="panel"><h3>One conformation, two states</h3><p class="note">Ras switches between inactive GDP-bound and active GTP-bound states. The changes are concentrated in switch I (≈30–38) and switch II (≈59–76). AlphaFold2 gives you only one of them.</p></div>
+        <div class="panel"><h3>Point mutations</h3><p class="note">Predict G12V: the model looks almost the same as wild type. The mutation is oncogenic because it blocks GTP hydrolysis, not because it changes the fold.</p></div>
+        <div class="panel"><h3>Ligands and lipids</h3><p class="note">AlphaFold2 has no GTP, no Mg²⁺ and no farnesyl lipid. AlphaFold3 can add GTP and Mg²⁺, but most modifications are still out of reach.</p></div>
+        <div class="panel"><h3>Partners, membranes, motion</h3><p class="note">Ras works at the membrane, bound to Raf, SOS and GAP. Low pLDDT can mean real, functional disorder. A predicted model doesn't show dynamics or the folding pathway.</p></div>
+      </div>
+    </section>
+
+    <!-- ================= 7 ================= -->
+    <section id="quiz">
+      <div class="sec-head">
+        <span class="label">Step 7 of 7</span>
+        <h2>Check yourself</h2>
+        <p>Pick an answer to see the explanation. Your score is kept in this browser only.</p>
+      </div>
+      <div class="panel" id="quizBox"></div>
+      <p class="note" id="quizScore"></p>
+      <div class="panel sunk">
+        <h3>Exercises to hand in</h3>
+        <ol style="margin:0;padding-left:1.2em;display:grid;gap:6px;max-width:70ch">
+          <li>Report the four exon coordinates and the splice-site dinucleotides. In two sentences, explain why "longest ORF" failed.</li>
+          <li>Make a table of Q3 for Chou–Fasman, PSIPRED and the DSSP secondary structure of your AlphaFold or ESMFold model. Explain the ranking.</li>
+          <li>Include a figure of your model coloured by pLDDT, with the G domain, the switch regions and the hypervariable region labelled. Give the mean pLDDT for 1–166 and for 167–189.</li>
+          <li>Report the Cα RMSD against 5P21 over 1–166, and explain why it rises when you include every residue.</li>
+          <li>Fold the frame 2 repeat ORF. Using its mean pLDDT, argue whether it is a real protein.</li>
+          <li>In about 150 words, explain why an accurate model of Ras alone wasn't enough to design sotorasib against KRAS-G12C.</li>
+        </ol>
+      </div>
+      <p class="note">Sources: Anfinsen 1973 <i>Science</i>; Chou &amp; Fasman 1978 <i>Adv. Enzymol.</i>; Kyte &amp; Doolittle 1982 <i>J. Mol. Biol.</i>; Pai et al. 1990 <i>EMBO J.</i> (5P21);
+        Jumper et al. 2021 <i>Nature</i>; Lin et al. 2023 <i>Science</i>; Mirdita et al. 2022 <i>Nat. Methods</i>; Abramson et al. 2024 <i>Nature</i>.</p>
+    </section>
+  </main>
+</div>
+
+<script>
+"use strict";
+const DNA = "CCACCCCGAGCCTAGAGAAGGCTCCTAGCTTGGCTGGGCCTCATGGGGCCCTTGTCTGCTTAGTTCCAGCCTGGAGGGCCTCACGCTCCCCTCCCCCAGCCTTGGCTCGACCCCCTCTGCTTCGTAGGACACCCTCCCTGTGTTTCTGCCCATCCTCAGGGTCCATGCAGGGAGTGCTGGCTTCAGGCCTCCCCACCTGAGGCCCACAGGGGCTGTGAGCCTGGGGTGCCGGGCCAGCTGCCGGTGGCTGTGGGGCTCCCGGCACTGCCTCAAGCTGTGGGCTATGGGTCCTTCTCCACCTGATGGTCTCTGAGCCTGGGGTCCAGGATCAAGTCCCAGGCCTTCCCCTACCCCAGCCCTGTGCCAGCCGAGCCCCTTCACCTGCAGGCAGCTGCCCTCTCCTGCTGTGGGTCAAACATCCAGGCAAGGAGGTGGCATGTACCCTCAGGCAGTACCTGCAAGAGTCAGAGTGGCTTCCTGGCCAGGTTACTGTGCCCATGGGAGCCTGGAATGGGCCAGGCTGAGGTCACAGCACCTAGAGGTGAGCAGATCAGCCCAGGACCTGACTATCCACGGACCCAGCTGGCGAGGAGGAAGAGAGTCAGGTGTGTGACCGATGCTGGGGTACCTCTGGGTCCCCCAACACAATGCCTGCTGCTCATCCAAATCCCACTTCCCTCCTTCTCCACAGGGGTCCTCTCTTGCACCCTGTTCTTCCTGAGCCCCTCCCCAGGCCTCTGAGGGTATTGGCCCAGTGTGTCCCTCTCTTGCATCCCATTCTTCCTAAGCCCAGTGTGTCCCTCGACTACGTGCATCAGGCTTACCTGGTGTTGCCCCTTAAAGATGCAGACGTCTGGCGGGGCGCAGTGGCTCACGCCTGTAATCCCAGCACTTTGGGAGGCCGCGGCGGGCAGATCACGAGGTCAGGAGATTGAGACCATCCTGGCTAACACGGTGAAACCCTGTCTCTACTAAAAATACAAAAAAAAAAAAAAAAAAATTAGCTGGCGTGGTGGCAGGTGCCTGTAGTCCCAGCTACTTGGGAGGCTGAGGCAGGAGAATGCCATGAACCCGCGAGGCGGAGCTTGCAGTGAGACAAGATCGCGCCACTGTCCTCCAGCCTGGGCAACAGAGCAAGACTCTGTCTCAAAAAAAAAAAAAAAAAAGGCTGGGTGCGGTGGCTCACACCTGTAATCCCAGCACTTTGGGAGGCTGAGGCGGGCAGATCACAAGATCAGGAGATCAAGACCATCCTGGCTAACGAGGTGAAACCCCATCTCTACTAAAGATACAAAAAACATAGTTAGCCAGGCGTGGTGGCGGACGCCTGTAGTCCCAGCTACTTGGGAGGCTGAGGCTGGGGAATGGCATGAACCCAGGAGGTGGAGCTTGCAGTGAGCCAAGATGGCACCACTGCACTCCAGCCTGGGCGACAGAGAGAGACTCCATCTCAAAAAACAAACAAACAAACAAAGATGCAGACATCTGCCTCGGCCCCAGGCCCTGGAATCATGAGCTCCAGGCGTGGAGTGACAAGTGTGCTCGGAGCGTCCAGTGTCCTCCTCCCTGACCACCTTCATGTGTCTTCAGTCTGGACCTGGACTGATCCCCTGACTGCACTCCCCACCCAGCCTTCCCAGATTTATCTTCCTGATGAGACGAGTTCCCTTCGGAGCCCTGTGTGTCTTACTACGTGTTCGGTTGAGGGCCTGCCTCGCCCCAGAGCTGTGGGCTGCACGTGGCCTGCACGTGGCCTGCGTGCTCCTCTGCTGTCCACAGTCGCAGGAGGGGATGCTCAAATATTTGTCGAAGGAATCCGTGAACAGGCAGATGCACATGTAGCCACTTAGAACGTTCTGGCCATGGCTTTTATCTGTTGACCACGTGTGGACACTGAAGATGCATCCTCTCCATCCCGTCTAGAGCTGCCCCTGTGCCAGGCGAGTTGGCCGGCTGTTGACAGAGGTGGTGGGTGGGAGTGTTGGAGCGGGGCAGTGGCTCAGGCTCTGGGTGCCTCACTGGCCTGGTCTGGAAGGTGACCATGCACCAAGGATCAAAGAAGTGAAGCCCAAAGCAGAATCTCATGGAGTTTCCAGCCCAAATCTCCCCCACTGCCTGCCTTTCTCCAGCCAGTGCAAGGCCCCAGGCCTCACAGCAGGACCCCAACACTGCATCCCCCCAAAGACTCTGGCCACCTCCATCCCAGGCCTGCCAGCCTCGAGCCTCATGGAGGGCGTGAGCTGGCGGGGTCACGGGCAGCCCCTGGACACCTATGGGTGACACTAAGGGCTGAGTCAGCTACCCTTGTCTCCTCTGTGCCCAAGAGCCCCAAGCATCAGACTGGTCTGAGCCCCAAGGCCTGGGGGTGCAAGGGGTTGGAGGCTGTGGGATCCAAAGACCCCATTGAACTCCCACCTCAGACACTGCACCTAGTGTTCTCACCCAGGCCTGAACCCATCCACACACTTCACGGCCCTGCTCCCACCCTGTGTCCCCTCTGCAAGCCCCCATGCTCCCCAAATTGGTAACTGGGGGGCCTGTCTCCACACCCCTGCTAGTGCCATTCCCTGGTGGGTAGCCATCACCTCTGGGTCCCCTGCTGCCCTCGCCCCTTCACCATGGGGGCTCGGAAGGCAGAGCCCGCTCCCCTCCTGAGCCCCACCCTGGAACCCTGAGCACCCTGGGTCATTGCCTCTGAGTCTCCCTCAGGGGCAGGGCTTGGGGCCCCTCCTGTCTCCTGACAGGGAGCCCTTTCAGTGCAGGGCCAGGGGGTGGTGGAGGCAAGGGTCCTCAGGGGACCAGATCTGACATGCGGGGCCATCACTGGGTCCCCGATGGCTGTGCTGCTTCGTCCCCGCGCCCACGCCTCGGCGCAGGTTCCCTCCTGGCACCGGTCATAGGGCGAGGCTTGCGGCTCCCACCCCAAGGGTGCGCTCGGCTCTCACCTGAGGGCTCAGCCTAGGTGTCCGGCCCTGGCAGCTCGGCCCTGGGCGCCCTCCACCTCCAGGCGCTGTCTCCTACTCCAGGCTGTTCTTCCGGCCGCCGCGGGGTTGCGGCCTGGGCGCCATAGCAACGGGAGCCAGGCCTCATTTGAATACGCAAATATTTATAAGTCGCCGGGGGCTCGGGTTCCGTGCGGCTGAGCCACGCCCCTTAGCAACGGTCGCTAGGGCGGGGCCACGTGGACTGGCACGTGCGTGGGCGCCCCTGCTGCGGGCGATCCCAGGGGAAGGTGACGCGCCACCAACTCGAGTTGGGTGGGCGCAGGCGCGTCAGGTGCCAGCTTCCTGCGGCTCCGTGCCTGGGCCGTCGCGATGCACGTGTCGCGTTTCCTCGCGATCCTGGCGCTTCCCACGCGGGGCGGGTAAAGGCGGTCTCTGCTGGAGGCTCGCGCCCACCTTTCCCAGGTGGAAGGGTCGCCCCTGGGGCCGAGGCCTGCCGTCCTGACCTTCGGTTGGAAGTGAGGCCGACGGCAAAAGGAAGCACCGGGGGAAGCGCCCCCGAGGACCAGGAAACACACACCGGACGCCGGAGCGCACCCGAGTGCCCGGCCCGCGGGACACGCTGCCGCCCGCCGTCCAGTCGCCGCTTCTCACTCGCGTTCATGCGTGTCCGCCCCGAGCCGAGCTCTGACTGCGACCGCGCGGTGGACGGACGGCAGGCGGGACCCCCGGGACCGCACGTGGGTGGAGCCCCGGGTCAGCAGCGACCGGCGCAGGAGGGCGAGGCGGGCGCTGGACTGGGCAGAGGCAGGGTTTGCCTGACTGTAAAACGCCTTTTTTGTTTTGAGACGAAGTAGCGCTCTGTTGCCCAGTGCAGTGGCGCGATTTCGGCTCACCGCAACATCCGCCTCCCGGGTTCCAGCGATTCTCCTGCCTCAGCCTCCCGAGTAGCTGGGACTACAGGCGCGCGCCACTGCAGCCGACTAATTTTTTGTGTTTTTAGTAGAGACAGGGTTTCATCATGTTGGCCAGGCTGGTCTTGAACTCCTGACCTCAAGTAATCCACCCGCTTAGGCCTCCCGAAGTGCTGGGATTATAGGCGTGAGCCACCGCGCCCGGCCCTTTTTGTTTTTTAATGAGGATGTATTTCTGATTCCTTTGCAATTTTAAAAAATGTTAAAAACATGTCTTTTTGGGTTTGAAAGAGCTAGGATGTGCGTCTATGTGCTTGGGGTGAGCCCTGGGCACTTCGCTCCCCTGTGGCAACTTGTGGGTACGGTTTAACTGGACCACGCTGAGCTTCTGCAGCGTTGGAACCTCAAGTTTGGGGGGACTGGGCGGGCAGGGTCGCCTGCCACGCAGGCCCGAGAAAGAGGAGAGTGGTGGAGGGGGCGTTCTCACGCCTGGCCCCAGGGCACACGGCTGCGCCCGCCGCCCGGAACCCCACCGGGGCTGCAAGCGTCCTCGGGGTGGGTTGCGGTGGGAGTAGGGGAGCTGGGGTGCGTGGTGGTAGGTGGGGTGCGCGGCCGCTCCACCTGCGCGGAAGGGCAGCCGGGCAACCGGACCCCGCGGCCACCCGGGGGCCCCCAGCTCCGAGCATCCCGCCTTGGTCCCGGCGGATCCCAGCCTTTCCCCAGCCCGTAGCCCCGGGACCTCCGCGGTGGGCGGCGCCGCGCTGCCGGCGCAGGGAGGGCCTCTGGTGCACCGGCACCGCTGAGTCGGGTTCTCTCGCCGGCCTGTTCCCGGGAGAGCCCGGGGCCCTGCTCGGAGATGCCGCCCCGGGCCCCCAGACACCGGCTCCCTGGCCTTCCTCGAGCAACCCCGAGCTCGGCTCCGGTCTCCAGCCAAGCCCAACCCCGAGAGGCCGCGGCCCTACTGGCTCCGCCTCCCGCGTTGCTCCCGGAAGCCCCGCCCGACCGCGGCTCCTGACAGACGGGCCGCTCAGCCAACCGGGGTGGGGCGGGGCCCGATGGCGCGCAGCCAATGGTAGGCCGCGCCTGGCAGACGGACGGGCGCGGGGCGGGGCGTGCGCAGGCCCGCCCGAGTCTCCGCCGCCCGTGCCCTGCGCCCGCAACCCGAGCCGCACCCGCCGCGGACGGAGCCCATGCGCGGGGCGAACCGCGCGCCCCCGCCCCCGCCCCGCCCCGGCCTCGGCCCCGGCCCTGGCCCCGGGGGCAGTCGCGCCTGTGAACGGTGAGTGCGGGCAGGGATCGGCCGGGCCGCGCGCCCTCCTCGCCCCCAGGCGGCAGCAATACGCGCGGCGCGGGCCGGGGGCGCGGGGCCGGCGGGCGTAAGCGGCGGCGGCGGCGGCGGCGGCGGGTGGGTGGGGCCGGGCGGGGCCCGCGGGCACAGGTGAGCGGGCGTCGGGGGCTGCGGCGGGCGGGGGCCCCTTCCTCCCTGGGGCCTGCGGGAATCCGGGCCCCACCCGTGGCCTCGCGCTGGGCACGGTCCCCACGCCGGCGTACCCGGGAGCCTCGGGCCCGGCGCCCTCACACCCGGGGGCGTCTGGGAGGAGGCGGCCGCGGCCACGGCACGCCCGGGCACCCCCGATTCAGCATCACAGGTCGCGGACCAGGCCGGGGGCCTCAGCCCCAGTGCCTTTTCCCTCTCCGGGTCTCCCGCGCCGCTTCTCGGCCCCTTCCTGTCGCTCAGTCCCTGCTTCCCAGGAGCTCCTCTGTCTTCTCCAGCTTTCTGTGGCTGAAAGATGCCCCCGGTTCCCCGCCGGGGGTGCGGGGCGCTGCCCGGGTCTGCCCTCCCCTCGGCGGCGCCTAGTACGCAGTAGGCGCTCAGCAAATACTTGTCGGAGGCACCAGCGCCGCGGGGCCTGCAGGCTGGCACTAGCCTGCCCGGGCACGCCGTGGCGCGCTCCGCCGTGGCCAGACCTGTTCTGGAGGACGGTAACCTCAGCCCTCGGGCGCCTCCCTTTAGCCTTTCTGCCGACCCAGCAGCTTCTAATTTGGGTGCGTGGTTGAGAGCGCTCAGCTGTCAGCCCTGCCTTTGAGGGCTGGGTCCCTTTTCCCATCACTGGGTCATTAAGAGCAAGTGGGGGCGAGGCGACAGCCCTCCCGCACGCTGGGTTGCAGCTGCACAGGTAGGCACGCTGCAGTCCTTGCTGCCTGGCGTTGGGGCCCAGGGACCGCTGTGGGTTTGCCCTTCAGATGGCCCTGCCAGCAGCTGCCCTGTGGGGCCTGGGGCTGGGCCTGGGCCTGGCTGAGCAGGGCCCTCCTTGGCAGGTGGGGCAGGAGACCCTGTAGGAGGACCCCGGGCCGCAGGCCCCTGAGGAGCGATGACGGAATATAAGCTGGTGGTGGTGGGCGCCGGCGGTGTGGGCAAGAGTGCGCTGACCATCCAGCTGATCCAGAACCATTTTGTGGACGAATACGACCCCACTATAGAGGTGAGCCTGGCGCCGCCGTCCAGGTGCCAGCAGCTGCTGCGGGCGAGCCCAGGACACAGCCAGGATAGGGCTGGCTGCAGCCCCTGGTCCCCTGCATGGTGCTGTGGCCCTGTCTCCTGCTTCCTCTAGAGGAGGGGAGTCCCTCGTCTCAGCACCCCAGGAGAGGAGGGGGCATGAGGGGCATGAGAGGTACCAGGGAGAGGCTGGCTGTGTGAACTCCCCCCACGGAAGGTCCTGAGGGGGTCCCTGAGCCCTGTCCTCCTGCAGGATTCCTACCGGAAGCAGGTGGTCATTGATGGGGAGACGTGCCTGTTGGACATCCTGGATACCGCCGGCCAGGAGGAGTACAGCGCCATGCGGGACCAGTACATGCGCACCGGGGAGGGCTTCCTGTGTGTGTTTGCCATCAACAACACCAAGTCTTTTGAGGACATCCACCAGTACAGGTGAACCCCGTGAGGCTGGCCCGGGAGCCCACGCCGCACAGGTGGGGCCAGGCCGGCTGCGTCCAGGCAGGGGCCTCCTGTCCTCTCTGCGCATGTCCTGGATGCCGCTGCGCCTGCAGCCCCCGTAGCCAGCTCTCGCTTTCCACCTCTCAGGGAGCAGATCAAACGGGTGAAGGACTCGGATGACGTGCCCATGGTGCTGGTGGGGAACAAGTGTGACCTGGCTGCACGCACTGTGGAATCTCGGCAGGCTCAGGACCTCGCCCGAAGCTACGGCATCCCCTACATCGAGACCTCGGCCAAGACCCGGCAGGTGAGGCAGCTCTCCACCCCACAGCTAGCCAGGGACCCGCCCCGCCCCGCCCCAGCCAGGGAGCAGCACTCACTGACCCTCTCCCTTGACACAGGGCAGCCGCTCTGGCTCTAGCTCCAGCTCCGGGACCCTCTGGGACCCCCCGGGACCCATGTGACCCAGCGGCCCCTCGCGCTGTAAGTCTCCCGGGACGGCAGGGCAGTGAGGGAGGCGAGGGCCGGGGTCTGGGCTCACGCCCTGCAGTCCTGGGCCGACACAGCTCCGGGGAAGGCGGAGGTCCTTGGGGAGAGCTGCCCTGAGCCAGGCCGGAGCGGTGACCCTGGGGCCCGGCCCCTCTTGTCCCCAGAGTGTCCCACGGGCACCTGTTGGTTCTGAGTCTTAGTGGGGCTACTGGGGACACGGGCCGTAGCTGAGTCGAGAGCTGGGTGCAGGGTGGTCAAACCCTGGCCAGACCTGGAGTTCAGGAGGGCCCCGGGCCACCCTGACCTTTGAGGGGCTGCTGTAGCATGATGCGGGTGGCCCTGGGCACTTCGAGATGGCCAGAGTCCAGCTTCCCGTGTGTGTGGTGGGCCTGGGGAAGTGGCTGGTGGAGTCGGGAGCTTCGGGCCAGGCAAGGCTTGATCCCACAGCAGGGAGCCCCTCACCCAGGCAGGCGGCCACAGGCCGGTCCCTCCTGATCCCATCCCTCCTTTCCCAGGGAGTGGAGGATGCCTTCTACACGTTGGTGCGTGAGATCCGGCAGCACAAGCTGCGGAAGCTGAACCCTCCTGATGAGAGTGGCCCCGGCTGCATGAGCTGCAAGTGTGTGCTCTCCTGACGCAGGTGAGGGGGACTCCCAGGGCGGCCGCCACGCCCACCGGATGACCCCGGCTCCCCGCCCCTGCCGGTCTCCTGGCCTGCGGTCAGCAGCCTCCCTTGTGCCCCGCCCAGCACAAGCTCAGGACATGGAGGTGCCGGATGCAGGAAGGAGGTGCAGACGGAAGGAGGAGGAAGGAAGGACGGAAGCAAGGAAGGAAGGAAGGGCTGCTGGAGCCCAGTCACCCCGGGACCGTGGGCCGAGGTGACTGCAGACCCTCCCAGGGAGGCTGTGCACAGACTGTCTTGAACATCCCAAATGCCACCGGAACCCCAGCCCTTAGCTCCCCTCCCAGGCCTCTGTGGGCCCTTGTCGGGCACAGATGGGATCACAGTAAATTATTGGATGGTCTTGATCTTGGTTTTCGGCTGAGGGTGGGACACGGTGCGCGTGTGGCCTGGCATGAGGTATGTCGGAACCTCAGGCCTGTCCAGCCCTGGGCTCTCCATAGCCTTTGGGAGGGGGAGGTTGGGAGAGGCCGGTCAGGGGTCTGGGCTGTGGTGCTCTCTCCTCCCGCCTGCCCCAGTGTCCACGGCTTCTGGCAGAGAGCTCTGGACAAGCAGGCAGATCATAAGGACAGAGAGCTTACTGTGCTTCTACCAACTAGGAGGGCGTCCTGGTCCTCCAGAGGGAGGTGGTTTCAGGGGTTGGGGATCTGTGCCGGTGGCTCTGGTCTCTGCTGGGAGCCTTCTTGGCGGTGAGAGGCATCACCTTTCCTGACTTGCTCCCAGCGTGAAATGCACCTGCCAAGAATGGCAGACATAGGGACCCCGCCTCCTGGGCCTTCACATGCCCAGTTTTCTTCGGCTCTGTGGCCTGAAGCGGTCTGTGGACCTTGGAAGTAGGGCTCCAGCACCGACTGGCCTCAGGCCTCTGCCTCATTGGTGGTCGGGTAGCGGCCAGTAGGGCGTGGGAGCCTGGCCATCCCTGCCTCCTGGAGTGGACGAGGTTGGCAGCTGGTCCGTCTGCTCCTGCCCCACTCTCCCCCGCCCCTGCCCTCACCCTACCCTTGCCCCACGCCTGCCTCATGGCTGGTTGCTCTTGGAGCCTGGTAGTGTCACTGGCTCAGCCTTGCTGGGTATACACAGGCTCTGCCACCCACTCTGCTCCAAGGGGCTTGCCCTGCCTTGGGCCAAGTTCTAGGTCTGGCCACAGCCACAGACAGCTCAGTCCCCTGTGTGGTCATCCTGGCTTCTGCTGGGGGCCCACAGCGCCCCTGGTGCCCCTCCCCTCCCAGGGCCCGGGTTGAGGCTGGGCCAGGCCCCTCTGGGACGGGGACTTGTGCCCTGTCAGGGTTCCCTATCCCTGAGGTTGGGGGAGAGCTAGCAGGGCATGCCGCTGGCTGGCCAGGGCTGCAGGGACACTCCCCCTTTTGTCCAGGGAATACCACACTCGCCCTTCTCTCCAGCGAACACCACACTCGCCCTTCTCTCCAGGGGACGCCACACTCCCCCTTCTGTCCAGGGGACGCCACACTCCCCCTTCTCTCCAGGGGACGCCACACTCGCCCTTCTCTCCAGGGGACGCCACACTCGCCCTTCTCTCCAGGGGACGCCACACTCCCCCTTCTGTCCAGGGGACGCCACACTCGCCCTTCTCTCCAGGGGACGCCACACTGGCCCTTCTCTCCAGGGGACGCCACACTCCCCCTTCTGTCCAGGGGACGCCACACTCCCCCTTCTCTCCAGGGGACGCCACACTCCCCCTTCTCTCCAGGGGACGCCACACTGGCCCTTCTCTCCAGGGGACGCCACACTCCCCCTTCTGTCCAGGGGACGCCACACTCGCCCTTCTCTCCAGGGGACGCCACACTCGCCCTTCTCTCCAGGGGACGCCACACTCCCCCTTCTCTCCAGGGGACGCCACACTCCCCCTTCTCTCCAGGGGACGCCACACTCCCCCTTCTCTCCAGGGGACGCCACACTCCCCCTTCTGTCCAGGGGACGCCACACTCGCCCTTCTCTCCAGGGGACGCCACACTCCCCCTTCTCTCCAGGGGACGCCACACTCCCCCTTCTCTCCAGGGGACGCCACACTCCCCCTTCTGTCCAGGGGACGCCACACTCGCCCTTCTCTCCAGGGGACGCCACACTCGCCCTTCTCTCCAGGGGACGCCACACTCGCCCTTCTCTCCAGGGGACGCCACACTTGCCCTTCTGTCCAGGGAATGCCACACTCCCCCTTCTCCCCAGCAGCCTCCGAGTGACCAGCTTCCCCATCGATAGACTTCCCGAGGCCAGGAGCCCTCTAGGGCTGCCGGGTGCCACCCTGGCTCCTTCCACACCGTGCTGGTCACTGCCTGCTGGGGGCGTCAGATGCAGGTGACCCTGTGCAGGAGGTATCTCTGGACCTGCC";
+
+/* ---------------- genetic code ---------------- */
+const B = "TCAG", AA = "FFLLSSSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG";
+const CODE = {};
+for (let i = 0; i < 4; i++) for (let j = 0; j < 4; j++) for (let k = 0; k < 4; k++) CODE[B[i] + B[j] + B[k]] = AA[16 * i + 4 * j + k];
+const translate = s => { let p = ""; for (let i = 0; i + 3 <= s.length; i += 3) p += CODE[s.slice(i, i + 3)] || "X"; return p; };
+const wrap = (s, w = 60) => s.match(new RegExp(`.{1,${w}}`, "g")) || [];
+const $ = id => document.getElementById(id);
+const esc = s => s.replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
+const store = {
+  get(k, d) { try { const v = localStorage.getItem("hras-tut:" + k); return v === null ? d : JSON.parse(v); } catch { return d; } },
+  set(k, v) { try { localStorage.setItem("hras-tut:" + k, JSON.stringify(v)); } catch {} }
+};
+async function copyText(text, msgEl, fallbackEl) {
+  try { await navigator.clipboard.writeText(text); msgEl.textContent = "Copied"; }
+  catch {
+    if (fallbackEl) { const r = document.createRange(); r.selectNodeContents(fallbackEl); const s = getSelection(); s.removeAllRanges(); s.addRange(r); }
+    msgEl.textContent = "Selected. Press Ctrl+C or ⌘C to copy.";
+  }
+  setTimeout(() => (msgEl.textContent = ""), 2500);
+}
+
+/* ---------------- constants ---------------- */
+const HRAS_REF = "MTEYKLVVVGAGGVGKSALTIQLIQNHFVDEYDPTIEDSYRKQVVIDGETCLLDILDTAGQEEYSAMRDQYMRTGEGFLCVFAINNTKSFEDIHQYREQIKRVKDSDDVPMVLVGNKCDLAARTVESRQAQDLARSYGIPYIETSAKTRQGVEDAFYTLVREIRQHKLRKLNPPDESGPGCMSCKCVLS";
+const EXONS_OK = [[6229, 6339], [6607, 6785], [6939, 7098], [7796, 7915]];
+const SS_5P21 = (() => {
+  const s = Array(166).fill("C");
+  [[2, 9], [37, 46], [49, 58], [77, 83], [111, 116], [141, 143]].forEach(([a, b]) => { for (let i = a - 1; i < b; i++) s[i] = "E"; });
+  [[16, 25], [66, 74], [87, 104], [127, 137], [152, 166]].forEach(([a, b]) => { for (let i = a - 1; i < b; i++) s[i] = "H"; });
+  return s.join("");
+})();
+const KD = { A: 1.8, R: -4.5, N: -3.5, D: -3.5, C: 2.5, Q: -3.5, E: -3.5, G: -0.4, H: -3.2, I: 4.5, L: 3.8, K: -3.9, M: 1.9, F: 2.8, P: -1.6, S: -0.8, T: -0.7, W: -0.9, Y: -1.3, V: 4.2 };
+const CF = { E: [1.51, .37], M: [1.45, 1.05], A: [1.42, .83], L: [1.21, 1.30], K: [1.16, .74], F: [1.13, 1.38], Q: [1.11, 1.10], W: [1.08, 1.37], I: [1.08, 1.60], V: [1.06, 1.70], D: [1.01, .54], H: [1.00, .87], R: [.98, .93], T: [.83, 1.19], S: [.77, .75], C: [.70, 1.19], Y: [.69, 1.47], N: [.67, .89], P: [.57, .55], G: [.57, .75] };
+const MASS = { A: 71.08, R: 156.19, N: 114.10, D: 115.09, C: 103.14, E: 129.12, Q: 128.13, G: 57.05, H: 137.14, I: 113.16, L: 113.16, K: 128.17, M: 131.19, F: 147.18, P: 97.12, S: 87.08, T: 101.10, W: 186.21, Y: 163.18, V: 99.13 };
+
+/* ---------------- step 1: ORFs ---------------- */
+const FRAMES = [1, 2, 3].map(f => translate(DNA.slice(f - 1)));
+const ALL_ORFS = [];
+FRAMES.forEach((p, fi) => {
+  const re = /M[^*]*\*/g; let m;
+  while ((m = re.exec(p))) {
+    const start = m.index + 1, seq = m[0].slice(0, -1);
+    ALL_ORFS.push({ frame: fi + 1, start, end: m.index + m[0].length - 1, seq, nt: fi + 3 * m.index + 1, ntEnd: fi + 3 * (m.index + m[0].length) });
+  }
+});
+let selectedOrf = null;
+function drawOrfs() {
+  const min = +$("minLen").value;
+  $("minLenOut").textContent = min + " aa";
+  const orfs = ALL_ORFS.filter(o => o.seq.length >= min).sort((a, b) => b.seq.length - a.seq.length);
+  $("orfCount").textContent = `${orfs.length} ORFs`;
+  const L = DNA.length, X = n => 60 + (n / L) * 930;
+  let s = "";
+  for (let kb = 0; kb <= L; kb += 1000) s += `<line x1="${X(kb)}" x2="${X(kb)}" y1="8" y2="128" stroke="var(--line)" stroke-width="1"/><text x="${X(kb)}" y="144" text-anchor="middle">${kb / 1000} kb</text>`;
+  [1, 2, 3].forEach(f => {
+    const y = 12 + (f - 1) * 30;
+    s += `<text x="0" y="${y + 13}">Frame ${f}</text><line x1="60" x2="990" y1="${y + 9}" y2="${y + 9}" stroke="var(--line)"/>`;
+  });
+  orfs.forEach(o => {
+    const y = 12 + (o.frame - 1) * 30, sel = selectedOrf === o;
+    s += `<rect data-i="${ALL_ORFS.indexOf(o)}" x="${X(o.nt)}" y="${y + 2}" width="${Math.max(2, X(o.ntEnd) - X(o.nt))}" height="14" rx="2"
+      fill="${sel ? "var(--helix)" : "var(--brand)"}" opacity="${sel ? 1 : 0.75}" style="cursor:pointer"><title>Frame ${o.frame}, codons ${o.start}-${o.end}, ${o.seq.length} aa</title></rect>`;
+  });
+  if ($("revealExons").getAttribute("aria-pressed") === "true") {
+    s += `<text x="0" y="115">Exons</text><line x1="60" x2="990" y1="111" y2="111" stroke="var(--line)"/>`;
+    EXONS_OK.forEach(([a, b], i) => {
+      s += `<rect x="${X(a)}" y="103" width="${Math.max(3, X(b) - X(a))}" height="16" fill="var(--strand)"/>`;
+      s += `<text x="${X(a)}" y="100">${i + 1}</text>`;
+      if (EXONS_OK[i + 1]) s += `<path d="M${X(b)} 111 L${(X(b) + X(EXONS_OK[i + 1][0])) / 2} 104 L${X(EXONS_OK[i + 1][0])} 111" fill="none" stroke="var(--strand)"/>`;
+    });
+  }
+  $("orfMap").innerHTML = s;
+  $("orfTable").tBodies[0].innerHTML = orfs.map(o => `<tr class="${selectedOrf === o ? "sel" : ""}"><td class="num">${o.frame}</td><td class="num">${o.start}–${o.end}</td><td class="num">${o.seq.length}</td>
+    <td class="seq">${o.seq.slice(0, 40)}</td><td><button class="chip" data-i="${ALL_ORFS.indexOf(o)}" type="button">Select</button></td></tr>`).join("");
+}
+function selectOrf(o) {
+  selectedOrf = o;
+  $("orfSeq").innerHTML = `<span class="label">Frame ${o.frame}, codons ${o.start}–${o.end}, ${o.seq.length} aa</span><br>` + wrap(o.seq).join("<br>");
+  drawOrfs();
+}
+$("minLen").addEventListener("input", drawOrfs);
+$("revealExons").addEventListener("click", e => { const b = e.currentTarget; b.setAttribute("aria-pressed", b.getAttribute("aria-pressed") === "true" ? "false" : "true"); drawOrfs(); });
+document.addEventListener("click", e => {
+  const t = e.target.closest("[data-i]");
+  if (t && (t.closest("#orfMap") || t.closest("#orfTable"))) selectOrf(ALL_ORFS[+t.dataset.i]);
+});
+$("copyOrf").addEventListener("click", () => selectedOrf && copyText(selectedOrf.seq, $("copyMsg"), $("orfSeq")));
+$("orfToAnalyzer").addEventListener("click", () => {
+  if (!selectedOrf) return;
+  $("seqIn").value = selectedOrf.seq; setPreset(null); analyze(); location.hash = "sequence";
+});
+
+/* ---------------- step 2: splicing ---------------- */
+let exons = EXONS_OK.map(e => e.slice());
+function buildExonTable() {
+  $("exonTable").tBodies[0].innerHTML = exons.map((e, i) => `<tr><td>Exon ${i + 1}</td>
+    <td><input type="number" id="ex${i}s" value="${e[0]}" aria-label="Exon ${i + 1} start"></td>
+    <td><input type="number" id="ex${i}e" value="${e[1]}" aria-label="Exon ${i + 1} end"></td>
+    <td class="num" id="ex${i}len"></td><td class="num" id="ex${i}fr"></td><td class="mono" id="ex${i}in"></td></tr>`).join("");
+  exons.forEach((_, i) => ["s", "e"].forEach(k => $(`ex${i}${k}`).addEventListener("input", ev => {
+    exons[i][k === "s" ? 0 : 1] = parseInt(ev.target.value, 10) || 0; splice();
+  })));
+}
+function splice() {
+  let cds = "", cum = 0;
+  exons.forEach(([a, b], i) => {
+    const len = Math.max(0, b - a + 1);
+    const firstCodon = a + ((3 - (cum % 3)) % 3);
+    $(`ex${i}len`).textContent = len + " nt";
+    $(`ex${i}fr`).textContent = "frame " + (((firstCodon - 1) % 3 + 3) % 3 + 1);
+    cds += DNA.slice(a - 1, b); cum += len;
+    const nx = exons[i + 1];
+    if (nx) {
+      const intr = DNA.slice(b, nx[0] - 1);
+      const d = intr.slice(0, 2), ac = intr.slice(-2);
+      $(`ex${i}in`).innerHTML = `${intr.length} nt · <span class="${d === "GT" ? "ok" : "no"}">${d}</span>…<span class="${ac === "AG" ? "ok" : "no"}">${ac}</span> · ${intr.length % 3 === 0 ? "keeps frame" : "shifts frame"}`;
+    } else $(`ex${i}in`).textContent = "—";
+  });
+  const prot = translate(cds);
+  const stopAt = prot.indexOf("*");
+  const core = stopAt >= 0 ? prot.slice(0, stopAt) : prot;
+  let same = 0, html = "";
+  for (let i = 0; i < prot.length; i++) {
+    const ok = prot[i] === (HRAS_REF[i] || "*");
+    if (ok && i < HRAS_REF.length) same++;
+    html += ok ? prot[i] : `<span class="mm">${prot[i]}</span>`;
+    if ((i + 1) % 60 === 0) html += "<br>";
+  }
+  $("splicedSeq").innerHTML = html;
+  const perfect = core === HRAS_REF && prot.endsWith("*") && stopAt === prot.length - 1;
+  $("spliceSummary").innerHTML = `CDS ${cds.length} nt (${cds.length % 3 === 0 ? '<span class="ok">multiple of 3</span>' : '<span class="no">not a multiple of 3</span>'}) · ` +
+    `${same}/${HRAS_REF.length} residues match H-Ras · ` +
+    (perfect ? '<span class="ok">complete protein ending in a stop codon</span>'
+      : stopAt >= 0 && stopAt < prot.length - 1 ? `<span class="no">premature stop at residue ${stopAt + 1}</span>` : '<span class="no">no clean stop at the end</span>');
+}
+$("exonReset").addEventListener("click", () => { exons = EXONS_OK.map(e => e.slice()); buildExonTable(); splice(); });
+
+/* ---------------- step 3: sequence analysis ---------------- */
+const PRESETS = {
+  hras: HRAS_REF,
+  repeat: ALL_ORFS.slice().sort((a, b) => b.seq.length - a.seq.length)[0].seq,
+  gcn4: "RMKQLEDKVEELLSKNYHLENEVARLKKLVGER"
+};
+function setPreset(name) { document.querySelectorAll("[data-preset]").forEach(b => b.setAttribute("aria-pressed", b.dataset.preset === name ? "true" : "false")); }
+document.querySelectorAll("[data-preset]").forEach(b => b.addEventListener("click", () => { $("seqIn").value = PRESETS[b.dataset.preset]; setPreset(b.dataset.preset); analyze(); }));
+const cleanSeq = () => $("seqIn").value.toUpperCase().replace(/[^ACDEFGHIKLMNPQRSTVWY]/g, "");
+function smooth(seq, scale, w) {
+  const h = Math.floor(w / 2), v = [...seq].map(a => scale[a] ?? 0), out = Array(seq.length).fill(null);
+  for (let i = h; i < seq.length - h; i++) { let s = 0; for (let j = i - h; j <= i + h; j++) s += v[j]; out[i] = s / w; }
+  return out;
+}
+function chouFasman(seq, w, tA, tB) {
+  const pa = {}, pb = {}; for (const k in CF) { pa[k] = CF[k][0]; pb[k] = CF[k][1]; }
+  const A = smooth(seq, pa, w), Bv = smooth(seq, pb, w);
+  let s = A.map((a, i) => a === null ? "C" : (a >= tA && a > Bv[i]) ? "H" : (Bv[i] >= tB && Bv[i] >= a) ? "E" : "C").join("");
+  s = s.replace(/H+/g, m => m.length <= 3 ? "C".repeat(m.length) : m).replace(/E+/g, m => m.length <= 2 ? "C".repeat(m.length) : m);
+  return s;
+}
+function period(seq) {
+  let best = [0, 0];
+  for (let p = 3; p <= Math.min(60, Math.floor(seq.length / 2)); p++) {
+    let same = 0; for (let i = 0; i + p < seq.length; i++) if (seq[i] === seq[i + p]) same++;
+    const f = same / (seq.length - p); if (f > best[0]) best = [f, p];
+  }
+  return best;
+}
+function tile(v, lab) { return `<div class="tile"><b>${v}</b><span>${lab}</span></div>`; }
+function analyze() {
+  const seq = cleanSeq(), n = seq.length;
+  if (n < 5) { $("stats").innerHTML = tile("—", "Enter at least 5 residues"); $("kdPlot").innerHTML = ""; $("cfTracks").textContent = ""; $("cfStats").innerHTML = ""; return; }
+  const c = {}; for (const a of seq) c[a] = (c[a] || 0) + 1;
+  const mw = [...seq].reduce((s, a) => s + (MASS[a] || 110), 18.02) / 1000;
+  const gravy = [...seq].reduce((s, a) => s + KD[a], 0) / n;
+  const charge = (c.K || 0) + (c.R || 0) - (c.D || 0) - (c.E || 0);
+  const dis = [..."PESQKAG"].reduce((s, a) => s + (c[a] || 0), 0) / n;
+  const [pf, pp] = period(seq);
+  $("stats").innerHTML = tile(n, "residues") + tile(mw.toFixed(1) + " kDa", "molecular weight") + tile((gravy >= 0 ? "+" : "") + gravy.toFixed(2), "GRAVY (<0 soluble)") +
+    tile((charge > 0 ? "+" : "") + charge, "net charge, pH 7") + tile(Math.round(dis * 100) + "%", "disorder-promoting (PESQKAG)") +
+    tile(Math.round(((c.P || 0) / n) * 100) + "%", "proline");
+  $("statsNote").innerHTML = pf > 0.4
+    ? `<span class="no">Strongly repetitive:</span> ${Math.round(pf * 100)}% of residues match the residue ${pp} positions later. Expect a disordered, low-confidence prediction.`
+    : `No strong internal repeat (best period ${pp} aa, ${Math.round(pf * 100)}% self-match).`;
+  drawKD(seq); drawCF(seq);
+}
+function drawKD(seq) {
+  const w = +$("kdWin").value; $("kdWinOut").textContent = w;
+  const v = smooth(seq, KD, w), n = seq.length, W = 800, H = 220, L = 40, R = 10, T = 12, Bm = 28;
+  const x = i => L + (i / Math.max(1, n - 1)) * (W - L - R), y = k => T + ((4.5 - k) / 9) * (H - T - Bm);
+  let s = "";
+  [-4, -2, 0, 2, 4].forEach(k => s += `<line x1="${L}" x2="${W - R}" y1="${y(k)}" y2="${y(k)}" stroke="var(--line)" ${k === 0 ? "" : 'stroke-dasharray="2 4"'}/><text x="${L - 6}" y="${y(k) + 4}" text-anchor="end">${k > 0 ? "+" + k : k}</text>`);
+  const tick = n > 150 ? 50 : n > 60 ? 20 : 10;
+  for (let i = 0; i <= n; i += tick) if (i > 0) s += `<text x="${x(i - 1)}" y="${H - 8}" text-anchor="middle">${i}</text>`;
+  s += `<line x1="${L}" x2="${W - R}" y1="${y(1.6)}" y2="${y(1.6)}" stroke="var(--helix)" stroke-dasharray="6 4"/><text x="${W - R}" y="${y(1.6) - 5}" text-anchor="end" style="fill:var(--helix)">TM cutoff 1.6</text>`;
+  const pts = v.map((k, i) => k === null ? null : `${x(i).toFixed(1)},${y(k).toFixed(1)}`).filter(Boolean);
+  if (pts.length) {
+    s += `<polygon points="${pts[0].split(",")[0]},${y(0)} ${pts.join(" ")} ${pts[pts.length - 1].split(",")[0]},${y(0)}" fill="var(--brand)" opacity="0.12"/>`;
+    s += `<polyline points="${pts.join(" ")}" fill="none" stroke="var(--brand)" stroke-width="2"/>`;
+  }
+  $("kdPlot").innerHTML = s;
+  const vals = v.filter(k => k !== null), mx = vals.length ? Math.max(...vals) : NaN;
+  const tm = w === 19 && mx > 1.6;
+  $("tmNote").innerHTML = vals.length ? `Peak ${mx >= 0 ? "+" : ""}${mx.toFixed(2)} · ${w !== 19 ? "the 1.6 cutoff is calibrated for a 19-residue window" : tm ? '<span class="no">possible transmembrane helix</span>' : '<span class="ok">no transmembrane helix</span>'}` : "Sequence shorter than the window";
+}
+function drawCF(seq) {
+  const w = +$("cfWin").value, tA = +$("cfHa").value, tB = +$("cfHb").value;
+  $("cfWinOut").textContent = w; $("cfHaOut").textContent = tA.toFixed(2); $("cfHbOut").textContent = tB.toFixed(2);
+  const ss = chouFasman(seq, w, tA, tB), n = seq.length;
+  const isRas = seq.startsWith(HRAS_REF.slice(0, 166));
+  const pct = ch => Math.round(([...ss].filter(c => c === ch).length / n) * 100) + "%";
+  let stats = tile(pct("H"), "helix") + tile(pct("E"), "strand") + tile(pct("C"), "coil");
+  if (isRas) {
+    let ok = 0; for (let i = 0; i < 166; i++) if (ss[i] === SS_5P21[i]) ok++;
+    stats += tile(Math.round((ok / 166) * 100) + "%", "Q3 vs 5P21 (1–166)");
+  }
+  $("cfStats").innerHTML = stats;
+  let out = "";
+  for (let s0 = 0; s0 < n; s0 += 60) {
+    const seg = seq.slice(s0, s0 + 60), ps = ss.slice(s0, s0 + 60);
+    out += `<span class="lab">${String(s0 + 1).padStart(4)} seq  </span>${seg}\n<span class="lab">     pred </span>` +
+      [...ps].map((c, j) => { const r = isRas && s0 + j < 166 ? SS_5P21[s0 + j] : null; return `<span class="${c}${r && r !== c ? " x" : ""}">${c}</span>`; }).join("") + "\n";
+    if (isRas && s0 < 166) out += `<span class="lab">     5P21 </span>` + [...SS_5P21.slice(s0, s0 + 60)].map(c => `<span class="${c}">${c}</span>`).join("") + "\n";
+    out += "\n";
+  }
+  $("cfTracks").innerHTML = out;
+}
+$("seqIn").addEventListener("input", () => { setPreset(null); analyze(); });
+["kdWin"].forEach(id => $(id).addEventListener("input", () => drawKD(cleanSeq())));
+["cfWin", "cfHa", "cfHb"].forEach(id => $(id).addEventListener("input", () => drawCF(cleanSeq())));
+$("cfReset").addEventListener("click", () => { $("cfWin").value = 7; $("cfHa").value = 1.03; $("cfHb").value = 1.05; drawCF(cleanSeq()); });
+
+/* ---------------- step 4 ---------------- */
+const FASTA = ">sp|P01112|RASH_HUMAN GTPase HRas (spliced from triplets.txt)\n" + wrap(HRAS_REF).join("\n");
+$("fastaBox").innerHTML = esc(FASTA).replace(/\n/g, "<br>");
+$("copyFasta").addEventListener("click", () => copyText(FASTA, $("fastaMsg"), $("fastaBox")));
+
+/* ---------------- step 5: pLDDT, trace, RMSD ---------------- */
+function parsePDB(text) {
+  const res = []; let chain = null;
+  for (const line of text.split(/\r?\n/)) {
+    if (line.startsWith("ENDMDL")) break;
+    if (!line.startsWith("ATOM") || line.slice(12, 16).trim() !== "CA") continue;
+    const ch = line[21]; if (chain === null) chain = ch; if (ch !== chain) continue;
+    const alt = line[16]; if (alt !== " " && alt !== "A") continue;
+    res.push({ n: parseInt(line.slice(22, 26), 10), x: +line.slice(30, 38), y: +line.slice(38, 46), z: +line.slice(46, 54), b: +line.slice(60, 66) });
+  }
+  if (res.length && Math.max(...res.map(r => r.b)) <= 1.0) res.forEach(r => (r.b *= 100));
+  return res;
+}
+const bandColor = b => b >= 90 ? "var(--af-vh)" : b >= 70 ? "var(--af-c)" : b >= 50 ? "var(--af-l)" : "var(--af-vl)";
+const bandHex = b => b >= 90 ? "#0053D6" : b >= 70 ? "#65CBF3" : b >= 50 ? "#FFDB13" : "#FF7D45";
+let model = null, ref = null;
+function showModel(text, name) {
+  model = parsePDB(text);
+  if (!model.length) { $("modelOut").hidden = true; $("dropModel").querySelector("b").textContent = `No Cα atoms found in ${name}. Is it a PDB-format file?`; return; }
+  $("dropModel").querySelector("b").textContent = `Loaded ${name}. Drop another file to replace it.`;
+  $("modelOut").hidden = false;
+  const bs = model.map(r => r.b), n = bs.length, mean = bs.reduce((a, b) => a + b, 0) / n;
+  const frac = (lo, hi) => Math.round((bs.filter(b => b >= lo && b < hi).length / n) * 100) + "%";
+  $("plddtTiles").innerHTML = tile(n, "residues") + tile(mean.toFixed(1), "mean pLDDT") + tile(frac(90, 101), "very high (≥90)") + tile(frac(70, 90), "confident") + tile(frac(50, 70), "low") + tile(frac(0, 50), "very low (<50)");
+  const W = 800, H = 200, L = 34, R = 8, T = 10, Bm = 26, bw = (W - L - R) / n;
+  const y = v => T + (1 - v / 100) * (H - T - Bm);
+  let s = "";
+  [0, 50, 70, 90, 100].forEach(v => s += `<line x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)" ${v % 50 ? 'stroke-dasharray="3 3"' : ""}/><text x="${L - 5}" y="${y(v) + 4}" text-anchor="end">${v}</text>`);
+  model.forEach((r, i) => s += `<rect x="${(L + i * bw).toFixed(2)}" y="${y(r.b).toFixed(1)}" width="${Math.max(0.6, bw - 0.3).toFixed(2)}" height="${(y(0) - y(r.b)).toFixed(1)}" fill="${bandColor(r.b)}"><title>Residue ${r.n}: ${r.b.toFixed(1)}</title></rect>`);
+  const tick = n > 150 ? 50 : n > 60 ? 20 : 10;
+  model.forEach((r, i) => { if (r.n % tick === 0) s += `<text x="${L + (i + 0.5) * bw}" y="${H - 8}" text-anchor="middle">${r.n}</text>`; });
+  $("plddtPlot").innerHTML = s;
+  $("rTo").value = Math.min(166, model[model.length - 1].n);
+  $("rFrom").value = model[0].n;
+  rangeStat(); resetView(); drawTrace(); rmsd();
+}
+function inRange() { const a = +$("rFrom").value, b = +$("rTo").value; return r => r.n >= a && r.n <= b; }
+function rangeStat() {
+  if (!model) return;
+  const sel = model.filter(inRange());
+  $("rangeStat").textContent = sel.length ? `${sel.length} residues · mean pLDDT ${(sel.reduce((s, r) => s + r.b, 0) / sel.length).toFixed(1)}` : "no residues in range";
+}
+["rFrom", "rTo"].forEach(id => $(id).addEventListener("input", () => { rangeStat(); rmsd(); }));
+
+// Cα trace with simple rotation
+let rotX = -0.4, rotY = 0.6, auto = !matchMedia("(prefers-reduced-motion: reduce)").matches, dragging = false;
+function resetView() { rotX = -0.4; rotY = 0.6; }
+function drawTrace() {
+  const cv = $("trace"), ctx = cv.getContext("2d");
+  const dpr = window.devicePixelRatio || 1, cw = cv.clientWidth || 520, chh = Math.round(cw * 0.77);
+  if (cv.width !== Math.round(cw * dpr)) { cv.width = Math.round(cw * dpr); cv.height = Math.round(chh * dpr); }
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, cw, chh);
+  if (!model) return;
+  const cx = model.reduce((s, r) => s + r.x, 0) / model.length, cy = model.reduce((s, r) => s + r.y, 0) / model.length, cz = model.reduce((s, r) => s + r.z, 0) / model.length;
+  const cX = Math.cos(rotX), sX = Math.sin(rotX), cY = Math.cos(rotY), sY = Math.sin(rotY);
+  const P = model.map(r => { let x = r.x - cx, y = r.y - cy, z = r.z - cz; const x1 = cY * x + sY * z, z1 = -sY * x + cY * z; const y1 = cX * y - sX * z1, z2 = sX * y + cX * z1; return { x: x1, y: y1, z: z2, b: r.b, n: r.n }; });
+  const ext = Math.max(...P.map(p => Math.hypot(p.x, p.y))) || 1, sc = (Math.min(cw, chh) / 2 - 12) / ext;
+  const segs = []; for (let i = 0; i + 1 < P.length; i++) if (P[i + 1].n - P[i].n === 1) segs.push([P[i], P[i + 1]]);
+  segs.sort((a, b) => (a[0].z + a[1].z) - (b[0].z + b[1].z));
+  const zmin = Math.min(...P.map(p => p.z)), zmax = Math.max(...P.map(p => p.z)) || 1;
+  ctx.lineCap = "round";
+  segs.forEach(([a, b]) => {
+    const depth = ((a.z + b.z) / 2 - zmin) / (zmax - zmin || 1);
+    ctx.globalAlpha = 0.35 + 0.65 * depth; ctx.lineWidth = 2 + 3 * depth; ctx.strokeStyle = bandHex(Math.min(a.b, b.b));
+    ctx.beginPath(); ctx.moveTo(cw / 2 + a.x * sc, chh / 2 - a.y * sc); ctx.lineTo(cw / 2 + b.x * sc, chh / 2 - b.y * sc); ctx.stroke();
+  });
+  ctx.globalAlpha = 1;
+}
+(function loop() { if (auto && !dragging && model) { rotY += 0.006; drawTrace(); } requestAnimationFrame(loop); })();
+(() => {
+  const cv = $("trace"); let lx = 0, ly = 0;
+  cv.addEventListener("pointerdown", e => { dragging = true; auto = false; lx = e.clientX; ly = e.clientY; cv.setPointerCapture(e.pointerId); cv.style.cursor = "grabbing"; });
+  cv.addEventListener("pointermove", e => { if (!dragging) return; rotY += (e.clientX - lx) * 0.01; rotX += (e.clientY - ly) * 0.01; lx = e.clientX; ly = e.clientY; drawTrace(); });
+  const up = () => { dragging = false; cv.style.cursor = "grab"; };
+  cv.addEventListener("pointerup", up); cv.addEventListener("pointercancel", up);
+  addEventListener("resize", drawTrace);
+})();
+
+// RMSD after optimal superposition: Horn's quaternion method (largest eigenvalue of a 4x4 matrix via Jacobi)
+function maxEig4(A) {
+  const a = A.map(r => r.slice());
+  for (let sweep = 0; sweep < 60; sweep++) {
+    let off = 0; for (let p = 0; p < 4; p++) for (let q = p + 1; q < 4; q++) off += a[p][q] * a[p][q];
+    if (off < 1e-18) break;
+    for (let p = 0; p < 4; p++) for (let q = p + 1; q < 4; q++) {
+      if (Math.abs(a[p][q]) < 1e-15) continue;
+      const th = (a[q][q] - a[p][p]) / (2 * a[p][q]), t = Math.sign(th || 1) / (Math.abs(th) + Math.sqrt(th * th + 1));
+      const c = 1 / Math.sqrt(t * t + 1), s = t * c;
+      for (let k = 0; k < 4; k++) { const akp = a[k][p], akq = a[k][q]; a[k][p] = c * akp - s * akq; a[k][q] = s * akp + c * akq; }
+      for (let k = 0; k < 4; k++) { const apk = a[p][k], aqk = a[q][k]; a[p][k] = c * apk - s * aqk; a[q][k] = s * apk + c * aqk; }
+    }
+  }
+  return Math.max(a[0][0], a[1][1], a[2][2], a[3][3]);
+}
+function rmsd() {
+  if (!model || !ref) { $("rmsdOut").innerHTML = ""; return; }
+  const keep = inRange(), refMap = new Map(ref.map(r => [r.n, r]));
+  const pairs = model.filter(keep).filter(r => refMap.has(r.n)).map(r => [r, refMap.get(r.n)]);
+  if (pairs.length < 3) { $("rmsdOut").innerHTML = tile("—", "fewer than 3 shared residues in range"); return; }
+  const n = pairs.length, ca = [0, 0, 0], cb = [0, 0, 0];
+  pairs.forEach(([a, b]) => { ca[0] += a.x; ca[1] += a.y; ca[2] += a.z; cb[0] += b.x; cb[1] += b.y; cb[2] += b.z; });
+  ca.forEach((_, i) => { ca[i] /= n; cb[i] /= n; });
+  const S = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]; let E = 0;
+  pairs.forEach(([a, b]) => {
+    const u = [a.x - ca[0], a.y - ca[1], a.z - ca[2]], v = [b.x - cb[0], b.y - cb[1], b.z - cb[2]];
+    E += u[0] ** 2 + u[1] ** 2 + u[2] ** 2 + v[0] ** 2 + v[1] ** 2 + v[2] ** 2;
+    for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) S[i][j] += u[i] * v[j];
+  });
+  const [[xx, xy, xz], [yx, yy, yz], [zx, zy, zz]] = S;
+  const N = [[xx + yy + zz, yz - zy, zx - xz, xy - yx], [yz - zy, xx - yy - zz, xy + yx, zx + xz], [zx - xz, xy + yx, -xx + yy - zz, yz + zy], [xy - yx, zx + xz, yz + zy, -xx - yy + zz]];
+  const val = Math.sqrt(Math.max(0, (E - 2 * maxEig4(N)) / n));
+  $("rmsdOut").innerHTML = tile(val.toFixed(2) + " Å", "Cα RMSD") + tile(n, `residues compared (${$("rFrom").value}–${$("rTo").value})`);
+}
+function readFile(file, cb) { const fr = new FileReader(); fr.onload = () => cb(String(fr.result), file.name); fr.readAsText(file); }
+$("fileModel").addEventListener("change", e => e.target.files[0] && readFile(e.target.files[0], showModel));
+$("fileRef").addEventListener("change", e => e.target.files[0] && readFile(e.target.files[0], t => { ref = parsePDB(t); rmsd(); }));
+(() => {
+  const d = $("dropModel");
+  ["dragenter", "dragover"].forEach(ev => d.addEventListener(ev, e => { e.preventDefault(); d.classList.add("over"); }));
+  ["dragleave", "drop"].forEach(ev => d.addEventListener(ev, e => { e.preventDefault(); d.classList.remove("over"); }));
+  d.addEventListener("drop", e => e.dataTransfer.files[0] && readFile(e.dataTransfer.files[0], showModel));
+})();
+
+/* ---------------- step 7: quiz ---------------- */
+const QUIZ = [
+  { q: "Why is \"longest ORF\" a poor gene finder in eukaryotic genomic DNA?", o: ["Eukaryotes don't use ATG as a start codon", "Introns split genes, and noncoding DNA can hold long ORFs by chance", "Stop codons are different in eukaryotes", "ORFs only exist in bacteria"], a: 1, why: "H-Ras's longest exon is 60 codons, while a chance ORF in repetitive DNA here is 330 codons long." },
+  { q: "Intron 3 of H-Ras is 697 nt long. What does that do to the reading frame of exon 4?", o: ["Nothing; introns never affect frames", "Shifts it, because 697 is not a multiple of 3", "Makes exon 4 noncoding", "Reverses its strand"], a: 1, why: "697 = 3 × 232 + 1, so exon 4 is read in frame 2 of the raw DNA." },
+  { q: "Chou–Fasman reaches Q3 ≈ 57% on H-Ras. What does it lack that modern predictors use?", o: ["A larger window", "Evolutionary information and long-range contacts", "The genetic code", "Hydrophobicity values"], a: 1, why: "β-strands pair with partners far apart in sequence; MSAs and learned pair representations capture this." },
+  { q: "A region of your model has pLDDT around 35. The best interpretation is:", o: ["The structure there is accurate but flexible", "It is probably disordered; the drawn shape is not meaningful", "It is a transmembrane helix", "The file is corrupted"], a: 1, why: "pLDDT below 50 often marks intrinsically disordered regions, such as the H-Ras hypervariable tail." },
+  { q: "Two domains both have pLDDT above 90, but PAE between them is high. You can trust:", o: ["The distance between residues in different domains", "Each domain's fold, but not their relative orientation", "Nothing in the model", "Only the side chains"], a: 1, why: "PAE measures confidence in relative positions; pLDDT is local." },
+  { q: "The AlphaFold2 model of H-Ras G12V looks almost identical to wild type. Why?", o: ["AlphaFold ignores mutations", "G12V is oncogenic by blocking GTP hydrolysis, not by changing the fold", "G12V is a silent mutation", "The model failed"], a: 1, why: "Predictors are not reliable estimators of how a mutation affects function or stability." }
+];
+let answers = store.get("quiz", {});
+function renderQuiz() {
+  $("quizBox").innerHTML = QUIZ.map((x, i) => `<div class="q"><h3>${i + 1}. ${x.q}</h3><div class="opts">${x.o.map((o, j) => {
+    const picked = answers[i] === j, cls = answers[i] === undefined ? "" : j === x.a ? (picked || answers[i] !== x.a ? "right" : "") : picked ? "wrong" : "";
+    return `<button type="button" data-q="${i}" data-o="${j}" class="${cls}">${o}</button>`; }).join("")}</div>
+    ${answers[i] !== undefined ? `<p class="why"><span class="${answers[i] === x.a ? "ok" : "no"}">${answers[i] === x.a ? "Correct." : "Not quite."}</span> ${x.why}</p>` : ""}</div>`).join("");
+  const done = Object.keys(answers).length, right = QUIZ.filter((x, i) => answers[i] === x.a).length;
+  $("quizScore").innerHTML = done ? `${right} of ${QUIZ.length} correct · <button type="button" class="chip" id="quizReset">Reset quiz</button>` : "";
+  if (done) $("quizReset").addEventListener("click", () => { answers = {}; store.set("quiz", answers); renderQuiz(); });
+}
+$("quizBox").addEventListener("click", e => { const b = e.target.closest("[data-q]"); if (!b) return; answers[b.dataset.q] = +b.dataset.o; store.set("quiz", answers); renderQuiz(); markProgress(); });
+
+/* ---------------- nav progress + theme ---------------- */
+const links = [...document.querySelectorAll("nav.steps a")];
+let visited = store.get("visited", []);
+function markProgress() { links.forEach(a => a.classList.toggle("done", visited.includes(a.getAttribute("href").slice(1)))); }
+const io = new IntersectionObserver(es => es.forEach(e => {
+  if (!e.isIntersecting) return;
+  const id = e.target.id;
+  links.forEach(a => a.classList.toggle("here", a.getAttribute("href") === "#" + id));
+  if (!visited.includes(id)) { visited.push(id); store.set("visited", visited); markProgress(); }
+}), { rootMargin: "-30% 0px -60% 0px" });
+document.querySelectorAll("main section").forEach(s => io.observe(s));
+function applyTheme(t) {
+  if (t) document.documentElement.setAttribute("data-theme", t); else document.documentElement.removeAttribute("data-theme");
+  const dark = t ? t === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+  $("themeBtn").textContent = dark ? "Light theme" : "Dark theme";
+}
+$("themeBtn").addEventListener("click", () => {
+  const cur = document.documentElement.getAttribute("data-theme") || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+  const next = cur === "dark" ? "light" : "dark"; store.set("theme", next); applyTheme(next); drawTrace();
+});
+
+/* ---------------- boot ---------------- */
+applyTheme(store.get("theme", null));
+drawOrfs();
+selectOrf(ALL_ORFS.find(o => o.frame === 1 && o.start === 2077));
+buildExonTable(); splice();
+$("seqIn").value = HRAS_REF; analyze();
+renderQuiz(); markProgress();
+</script>
+</body>
+</html>
