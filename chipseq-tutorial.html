@@ -1,0 +1,807 @@
+<title>Where Proteins Touch DNA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#f6f5f8; --surface:#ffffff; --surface-2:#f0edf3; --ink:#1d1a22; --muted:#625c6b; --line:#e0dce6;
+  --brand:#5b2a6e; --brand-ink:#ffffff; --brand-soft:#efe6f2; --brand-line:#d7c3de;
+  --good:#1f7a4a; --good-soft:#e3f3ea; --warn:#9a5b00; --warn-soft:#fbf0dc; --bad:#b42f2f; --bad-soft:#fae4e4;
+  --A:#1f9d55; --C:#2563c9; --G:#c98200; --T:#d43d3d;
+  --scope:#0d0a12; --scope-line:#2a2433; --scope-ink:#cfc6da;
+  --display:"Bricolage Grotesque", "Arial Black", system-ui, sans-serif;
+  --body:"IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+  --mono:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --r:10px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --paper:#141218; --surface:#1d1a23; --surface-2:#25212c; --ink:#ece8f1; --muted:#a49cae; --line:#342f3c;
+    --brand:#c79ad6; --brand-ink:#1d1a22; --brand-soft:#2d2236; --brand-line:#4d3a58;
+    --good:#5fd394; --good-soft:#173325; --warn:#f0b54a; --warn-soft:#3a2c12; --bad:#ff8080; --bad-soft:#3d1c1f;
+    --A:#3fcf7f; --C:#6f9dff; --G:#f2b233; --T:#ff6b6b;
+    --scope:#08060b; --scope-line:#2a2433;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --paper:#141218; --surface:#1d1a23; --surface-2:#25212c; --ink:#ece8f1; --muted:#a49cae; --line:#342f3c;
+  --brand:#c79ad6; --brand-ink:#1d1a22; --brand-soft:#2d2236; --brand-line:#4d3a58;
+  --good:#5fd394; --good-soft:#173325; --warn:#f0b54a; --warn-soft:#3a2c12; --bad:#ff8080; --bad-soft:#3d1c1f;
+  --A:#3fcf7f; --C:#6f9dff; --G:#f2b233; --T:#ff6b6b;
+  --scope:#08060b; --scope-line:#2a2433;
+}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.6;padding:0 16px}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;line-height:1.15;margin:0}
+h1{font-size:clamp(2.1rem,5vw,3.3rem);font-weight:800;letter-spacing:-.02em}
+h2{font-size:clamp(1.55rem,3.2vw,2.1rem);font-weight:700;letter-spacing:-.01em}
+h3{font-size:1.15rem;font-weight:700}
+p{margin:0}
+code,.mono{font-family:var(--mono)}
+a{color:var(--brand)}
+button,input,select{font:inherit}
+:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+
+.layout{max-width:1160px;margin:0 auto;display:grid;grid-template-columns:210px minmax(0,1fr);gap:48px;padding-block:40px 80px}
+@media (max-width:920px){.layout{grid-template-columns:minmax(0,1fr)}.rail{display:none}}
+
+/* rail */
+.rail{position:sticky;top:calc(env(safe-area-inset-top,0px) + 24px);align-self:start;display:flex;flex-direction:column;gap:18px;font-size:.9rem}
+.rail .eyebrow{margin-bottom:-6px}
+.rail ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.rail a{display:grid;grid-template-columns:26px 1fr;gap:10px;align-items:center;padding:7px 8px;border-radius:8px;color:var(--muted);text-decoration:none}
+.rail a:hover{background:var(--surface-2);color:var(--ink)}
+.rail a.active{color:var(--ink);background:var(--brand-soft)}
+.rail .n{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;border:1.5px solid var(--line);font-family:var(--mono);font-size:.75rem;background:var(--surface)}
+.rail a.active .n{border-color:var(--brand);color:var(--brand)}
+.rail a.done .n{background:var(--brand);border-color:var(--brand);color:var(--brand-ink)}
+.score{border-top:1px solid var(--line);padding-top:14px;display:flex;flex-direction:column;gap:6px;color:var(--muted)}
+.score b{font-family:var(--display);font-size:1.6rem;color:var(--ink);font-variant-numeric:tabular-nums}
+.meter{height:6px;border-radius:3px;background:var(--line);overflow:hidden}
+.meter i{display:block;height:100%;background:var(--brand);width:0;transition:width .3s}
+
+main{display:flex;flex-direction:column;gap:72px;min-width:0}
+.eyebrow{font-size:.74rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.lede{font-size:1.14rem;color:var(--muted);max-width:62ch}
+.prose{display:flex;flex-direction:column;gap:14px;max-width:66ch}
+.prose p{color:var(--ink)}
+.term{font-weight:600;color:var(--brand)}
+.dot{display:inline-block;width:.55em;height:.55em;border-radius:50%;background:var(--brand);margin-right:.45em;vertical-align:.12em}
+
+/* hero */
+.hero{display:flex;flex-direction:column;gap:22px}
+.meta{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font-size:.8rem;padding:4px 10px;border-radius:999px;background:var(--surface);border:1px solid var(--line);color:var(--muted)}
+.flow{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:0;margin-top:8px;position:relative}
+.flow .phase{grid-column:span 3;font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);border-bottom:1.5px dashed var(--brand-line);padding-bottom:6px;margin-bottom:14px;font-weight:600}
+.flow .phase.dry{grid-column:span 2;margin-left:12px}
+.flow a{display:flex;flex-direction:column;gap:8px;align-items:flex-start;text-decoration:none;color:var(--ink);padding-right:12px;position:relative}
+.flow a .c{width:40px;height:40px;border-radius:50%;background:var(--brand);color:var(--brand-ink);display:grid;place-items:center;font-family:var(--display);font-weight:800;font-size:1.1rem;position:relative;z-index:1}
+.flow a:not(:last-child)::after{content:"";position:absolute;top:20px;left:40px;right:0;height:2px;background:var(--brand-line)}
+.flow a b{font-family:var(--display);font-size:1rem;line-height:1.2}
+.flow a span{font-size:.84rem;color:var(--muted);line-height:1.4}
+.flow a:hover b{color:var(--brand)}
+@media (max-width:640px){
+  .flow{grid-template-columns:minmax(0,1fr);gap:14px}
+  .flow .phase,.flow .phase.dry{grid-column:auto;margin-left:0;margin-bottom:0}
+  .flow a{display:grid;grid-template-columns:40px 1fr;column-gap:12px;row-gap:2px}
+  .flow a .c{grid-row:span 2}
+  .flow a:not(:last-child)::after{display:none}
+}
+
+/* sections */
+section.stage{display:flex;flex-direction:column;gap:22px;scroll-margin-top:24px}
+.stage-head{display:flex;flex-direction:column;gap:6px}
+.stage-head .sub{font-style:italic;color:var(--muted)}
+.lab{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:22px;display:flex;flex-direction:column;gap:16px}
+.lab-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+.lab-head .tag{font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;font-weight:600;color:var(--brand);background:var(--brand-soft);padding:3px 9px;border-radius:999px}
+.lab .hint{font-size:.9rem;color:var(--muted)}
+@media (max-width:520px){.lab{padding:16px}}
+
+.controls{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center}
+.ctl{display:flex;flex-direction:column;gap:4px;font-size:.86rem;color:var(--muted);min-width:0}
+.ctl output{font-family:var(--mono);color:var(--ink);font-weight:500}
+input[type=range]{accent-color:var(--brand);width:min(260px,70vw)}
+.btn{border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:8px 14px;border-radius:8px;cursor:pointer;font-weight:500;font-size:.9rem}
+.btn:hover{border-color:var(--brand);color:var(--brand)}
+.btn.primary{background:var(--brand);border-color:var(--brand);color:var(--brand-ink)}
+.btn.primary:hover{filter:brightness(1.08);color:var(--brand-ink)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.toggle{display:flex;align-items:center;gap:8px;font-size:.9rem;cursor:pointer}
+.toggle input{accent-color:var(--brand);width:16px;height:16px}
+
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.stat{background:var(--surface-2);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:2px}
+.stat span{font-size:.76rem;color:var(--muted)}
+.stat b{font-family:var(--mono);font-size:1.12rem;font-weight:600;font-variant-numeric:tabular-nums}
+.callout{border-radius:8px;padding:10px 14px;font-size:.92rem;background:var(--surface-2)}
+.callout.good{background:var(--good-soft);color:var(--good)}
+.callout.warn{background:var(--warn-soft);color:var(--warn)}
+.callout.bad{background:var(--bad-soft);color:var(--bad)}
+
+svg text{fill:var(--muted);font-family:var(--mono);font-size:11px}
+.chart{width:100%;height:auto;display:block}
+
+/* process steps */
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;counter-reset:s}
+.step{display:flex;gap:10px;align-items:flex-start;font-size:.9rem}
+.step .c{flex:none;width:28px;height:28px;border-radius:50%;border:1.5px solid var(--brand);color:var(--brand);display:grid;place-items:center;font-family:var(--mono);font-size:.8rem;font-weight:600}
+.step b{display:block;font-size:.95rem}
+.step span{color:var(--muted);line-height:1.45}
+
+/* library assembly */
+.parts,.slots{display:flex;flex-wrap:wrap;gap:8px}
+.part{font-family:var(--mono);font-size:.84rem;padding:8px 12px;border-radius:6px;border:1.5px solid var(--brand-line);background:var(--brand-soft);color:var(--ink);cursor:pointer}
+.part:hover{border-color:var(--brand)}
+.part.used{visibility:hidden}
+.slots{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px;gap:0}
+.slot{flex:1 0 92px;min-height:54px;border:1.5px dashed var(--line);display:grid;place-items:center;font-family:var(--mono);font-size:.8rem;text-align:center;padding:6px;cursor:pointer;background:var(--surface);color:var(--muted);position:relative}
+.slot+.slot{border-left:none}
+.slot:first-child{border-radius:8px 0 0 8px}.slot:last-child{border-radius:0 8px 8px 0}
+.slot.filled{border-style:solid;color:var(--ink);background:var(--brand-soft)}
+.slot.insert.filled{background:var(--surface-2)}
+.slot.right{background:var(--good-soft);border-color:var(--good);color:var(--good)}
+.slot.wrong{background:var(--bad-soft);border-color:var(--bad);color:var(--bad)}
+.strand-labels{display:flex;justify-content:space-between;font-family:var(--mono);font-size:.76rem;color:var(--muted)}
+
+/* canvas */
+.scopebox{background:var(--scope);border-radius:10px;overflow:hidden;position:relative}
+.scopebox canvas{display:block;width:100%}
+.scope-legend{display:flex;flex-wrap:wrap;gap:14px;font-size:.82rem;color:var(--muted)}
+.scope-legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:-1px}
+
+/* SBS */
+.sbs{display:grid;grid-template-columns:minmax(0,260px) minmax(0,1fr);gap:22px}
+@media (max-width:700px){.sbs{grid-template-columns:minmax(0,1fr)}}
+.tile{background:var(--scope);border-radius:10px;padding:14px;display:grid;grid-template-columns:repeat(4,1fr);gap:10px;aspect-ratio:1;max-width:100%}
+.clu{border-radius:50%;background:#1a1522;transition:background .25s, box-shadow .25s;position:relative}
+.clu.tracked::after{content:"";position:absolute;inset:-5px;border:1.5px dashed #e8dcf0;border-radius:50%}
+.tile-cap{font-size:.8rem;color:var(--muted);margin-top:8px}
+.seqwrap{overflow-x:auto;padding-bottom:4px}
+.seqrow{display:grid;grid-template-columns:120px repeat(36,22px);gap:2px;align-items:center;font-family:var(--mono);font-size:.82rem;min-width:max-content}
+.seqrow+.seqrow{margin-top:4px}
+.seqrow>span:first-child{font-size:.74rem;color:var(--muted);font-family:var(--body);position:sticky;left:0;background:var(--surface);padding-right:6px}
+.cell{height:24px;display:grid;place-items:center;border-radius:4px;background:var(--surface-2);color:var(--muted)}
+.cell.lit{color:#fff;font-weight:600}
+.cell.now{outline:2px solid var(--ink);outline-offset:1px}
+.cell.err{box-shadow:inset 0 -3px 0 var(--ink)}
+.cell.tmpl.done{background:transparent;color:var(--ink)}
+.bA{background:var(--A)!important}.bC{background:var(--C)!important}.bG{background:var(--G)!important}.bT{background:var(--T)!important}
+.tA{color:var(--A)}.tC{color:var(--C)}.tG{color:var(--G)}.tT{color:var(--T)}
+.channels{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;align-items:end;height:92px}
+.ch{display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end;font-family:var(--mono);font-size:.8rem}
+.ch i{display:block;width:100%;border-radius:4px 4px 0 0;transition:height .25s;min-height:2px}
+.guess{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.guess .btn{font-family:var(--mono);font-weight:600;min-width:44px}
+.guess .btn[data-b="A"]{color:var(--A)}.guess .btn[data-b="C"]{color:var(--C)}.guess .btn[data-b="G"]{color:var(--G)}.guess .btn[data-b="T"]{color:var(--T)}
+.shake{animation:shake .3s}
+@keyframes shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+/* FASTQ */
+.fastq{font-family:var(--mono);font-size:.9rem;background:var(--surface-2);border-radius:8px;padding:14px 16px;overflow-x:auto;line-height:1.9;white-space:pre}
+.fastq .ln{color:var(--muted);user-select:none;display:inline-block;width:2.2em}
+.fastq .q{cursor:pointer;border-radius:3px;padding:1px 0}
+.fastq .q:hover,.fastq .q.sel{background:var(--brand);color:var(--brand-ink)}
+.fastq .trim{opacity:.35;text-decoration:line-through}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+@media (max-width:700px){.two{grid-template-columns:minmax(0,1fr)}}
+.panel{border:1px solid var(--line);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.panel h3{font-size:1rem}
+.bigq{font-family:var(--display);font-size:2.4rem;font-weight:800;line-height:1;color:var(--brand);font-variant-numeric:tabular-nums}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:.9rem}
+.kv dt{color:var(--muted)}.kv dd{margin:0;font-family:var(--mono)}
+
+/* pileup */
+.pile-wrap{overflow-x:auto;padding-bottom:6px}
+.pile{display:grid;gap:2px;font-family:var(--mono);font-size:.78rem;min-width:max-content}
+.prow{display:grid;grid-auto-flow:column;grid-auto-columns:16px;gap:1px}
+.pc{height:17px;display:grid;place-items:center;border-radius:2px;color:var(--muted)}
+.pc.m{color:var(--muted);background:var(--surface-2)}
+.pc.x{color:#fff;font-weight:600}
+.pc.col-sel{outline:1.5px solid var(--brand)}
+.pc.ref{font-weight:600;cursor:pointer;background:transparent}
+.pc.ref:hover{background:var(--brand-soft)}
+.covrow{display:grid;grid-auto-flow:column;grid-auto-columns:16px;gap:1px;align-items:end;height:44px}
+.covrow i{display:block;background:var(--brand-line);border-radius:2px 2px 0 0;cursor:pointer}
+.covrow i.sel{background:var(--brand)}
+.gt{display:flex;flex-direction:column;gap:6px}
+.gtbar{display:grid;grid-template-columns:44px 1fr 56px;gap:10px;align-items:center;font-family:var(--mono);font-size:.84rem}
+.gtbar .track{height:12px;border-radius:6px;background:var(--surface-2);overflow:hidden}
+.gtbar .track i{display:block;height:100%;background:var(--brand);transition:width .25s}
+.gtbar.win{font-weight:600}
+
+/* quiz */
+.quiz{display:flex;flex-direction:column;gap:14px}
+.q{border-left:3px solid var(--brand-line);padding-left:16px;display:flex;flex-direction:column;gap:10px}
+.q p{font-weight:500}
+.opts{display:flex;flex-direction:column;gap:6px}
+.opt{text-align:left;border:1px solid var(--line);background:var(--surface);padding:9px 12px;border-radius:8px;cursor:pointer;color:var(--ink);font-size:.93rem}
+.opt:hover:not(:disabled){border-color:var(--brand)}
+.opt.right{background:var(--good-soft);border-color:var(--good);color:var(--good)}
+.opt.wrong{background:var(--bad-soft);border-color:var(--bad);color:var(--bad)}
+.opt:disabled{cursor:default}
+.why{font-size:.9rem;color:var(--muted)}
+
+/* compare */
+.compare{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+@media (max-width:700px){.compare{grid-template-columns:minmax(0,1fr)}}
+.compare .panel ul{margin:0;padding-left:1.1em;display:flex;flex-direction:column;gap:6px;font-size:.93rem}
+.foot{border-top:1px solid var(--line);padding-top:18px;font-size:.84rem;color:var(--muted)}
+
+/* assembly additions */
+a.chip{text-decoration:none;color:var(--brand);border-color:var(--brand-line)}
+a.chip:hover{background:var(--brand-soft)}
+.sel{font:inherit;font-size:.9rem;padding:7px 10px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink);max-width:100%}
+.olc{display:flex;flex-direction:column;gap:3px;font-family:var(--mono);font-size:.9rem;min-width:max-content}
+.olcrow{display:flex;align-items:center;white-space:pre;background:none;border:0;padding:2px 0;color:var(--ink);font:inherit;cursor:pointer;text-align:left;border-radius:4px}
+.olcrow:hover{background:var(--surface-2)}
+.olcrow span{display:inline-block;width:1.2ch;text-align:center}
+.olcrow .lbl{width:92px;text-align:left;font-family:var(--body);font-size:.78rem;color:var(--muted)}
+.olcrow .pad{width:auto}
+.olcrow .ov{background:var(--warn-soft);font-weight:600}
+.olcrow.cons{cursor:default;border-top:1px solid var(--line);padding-top:6px;margin-top:4px;font-weight:600}
+.olcrow.cons:hover{background:none}
+.graphbox{background:var(--surface-2);border-radius:10px;overflow:hidden}
+.graphbox svg{display:block;width:100%;height:auto}
+.contigs{display:flex;flex-direction:column;gap:6px}
+.tig{display:flex;flex-direction:column;gap:2px;font-size:.82rem;color:var(--muted)}
+.tig code{font-size:.9rem;overflow-wrap:anywhere;letter-spacing:.04em}
+.tig code b{font-weight:600}
+ul.plain{margin:0;padding-left:1.1em;display:flex;flex-direction:column;gap:8px;font-size:.93rem}
+
+/* rna-seq additions */
+.batches{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.batch{border:1.5px dashed var(--line);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:10px;min-height:120px}
+.batch h3{font-size:.95rem}
+.batch-list{display:flex;flex-wrap:wrap;gap:8px}
+.sample{border-radius:999px;padding:6px 14px;font-size:.88rem;cursor:pointer;border:1.5px solid;font-weight:500}
+.sample.ctrl{background:var(--brand-soft);border-color:var(--brand);color:var(--brand)}
+.sample.trt{background:var(--warn-soft);border-color:var(--warn);color:var(--warn)}
+.stack{display:flex;height:34px;border-radius:8px;overflow:hidden}
+.stack div{display:grid;place-items:center;color:#fff;font-family:var(--mono);font-size:.78rem;font-weight:600;transition:width .3s}
+.tablewrap{overflow-x:auto}
+.mtx{border-collapse:collapse;width:100%;font-size:.88rem;font-variant-numeric:tabular-nums;min-width:520px}
+.mtx th,.mtx td{padding:7px 10px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+.mtx th:first-child,.mtx td:first-child{text-align:left}
+.mtx th{font-weight:600;font-size:.8rem;color:var(--muted);vertical-align:bottom}
+.mtx th span{font-weight:400;font-family:var(--mono);font-size:.74rem}
+.mtx td{font-family:var(--mono)}
+.mtx td:first-child{font-family:var(--body);font-weight:500}
+.mtx tbody tr[data-i]{cursor:pointer}
+.mtx tbody tr[data-i]:hover{background:var(--surface-2)}
+.mtx tr.sel{background:var(--brand-soft)!important}
+.mtx tr.sf td{color:var(--muted);font-style:italic}
+.volc{display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:16px;align-items:start}
+@media (max-width:760px){.volc{grid-template-columns:minmax(0,1fr)}}
+#volcano{cursor:crosshair}
+
+/* chip-seq additions */
+.mtrack{cursor:pointer}
+.mtrack:focus{outline:none}
+.mtrack:focus-visible rect:first-child{stroke:var(--brand);stroke-width:2}
+.sites{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:6px}
+.site{display:flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--surface);border-radius:6px;padding:5px 8px;cursor:pointer;font-family:var(--mono);font-size:.86rem;opacity:.45;color:var(--ink)}
+.site.on{opacity:1;border-color:var(--brand-line)}
+.site.decoy .sn{color:var(--bad)}
+.site .sn{font-family:var(--body);font-size:.72rem;color:var(--muted);width:48px;text-align:left}
+.site b{font-weight:600}
+.logoL{font-family:var(--mono);font-size:50px;font-weight:700}
+svg text.logoL.tA{fill:var(--A)}svg text.logoL.tC{fill:var(--C)}svg text.logoL.tG{fill:var(--G)}svg text.logoL.tT{fill:var(--T)}
+.seqline{font-family:var(--mono);font-size:.9rem;overflow-wrap:anywhere;line-height:1.9;letter-spacing:.05em;background:var(--surface-2);padding:10px 12px;border-radius:8px}
+.seqline .hit{background:var(--warn-soft);font-weight:700;border-radius:2px}
+</style>
+
+<div class="layout">
+  <nav class="rail" aria-label="Tutorial stages">
+    <div class="eyebrow">ChIP-seq</div>
+    <ol id="railList">
+      <li><a href="#ip" data-sec="ip"><span class="n">1</span>Immunoprecipitation</a></li>
+      <li><a href="#shift" data-sec="shift"><span class="n">2</span>Reads to signal</a></li>
+      <li><a href="#peaks" data-sec="peaks"><span class="n">3</span>Peak calling</a></li>
+      <li><a href="#marks" data-sec="marks"><span class="n">4</span>Marks &amp; replicates</a></li>
+      <li><a href="#motif" data-sec="motif"><span class="n">5</span>Motifs</a></li>
+    </ol>
+    <div class="score">
+      <span>Checkpoint questions</span>
+      <b id="scoreNum">0 / 10</b>
+      <div class="meter"><i id="scoreBar"></i></div>
+      <button class="btn" id="resetQuiz" type="button">Reset answers</button>
+    </div>
+  </nav>
+
+  <main>
+    <header class="hero">
+      <div class="eyebrow">BIO 116 · Bioinformatics · Interactive tutorial</div>
+      <h1><span class="dot"></span>Where proteins touch DNA</h1>
+      <p class="lede">Chromatin immunoprecipitation followed by sequencing (ChIP-seq) maps where a protein binds the genome, or where a histone modification sits. You'll follow a CTCF experiment from antibody pull-down to called peaks and the motif behind them. Each stage has a model to play with and two checkpoint questions.</p>
+      <div class="meta">
+        <span class="chip">Audience: undergraduate bioinformatics</span>
+        <span class="chip">About 45 minutes</span>
+        <span class="chip">5 stages · 6 simulations · 10 questions</span>
+        <a class="chip" href="https://claude.ai/artifact/TC9CSb15fd16UWGKytCgwU">Part 1: Sequencing</a>
+        <a class="chip" href="https://claude.ai/artifact/9kstF4xeY7CLFHXWeZqZMC">Part 2: Assembly</a>
+        <a class="chip" href="https://claude.ai/artifact/2TG4o5nZdGL9oviNivC7rA">Part 3: RNA-seq</a>
+        <a class="chip" href="https://claude.ai/artifact/DBJZpbgM1Gpxsi7fEU1htm">Part 4: Single-cell</a>
+      </div>
+      <div class="flow" aria-label="ChIP-seq workflow overview">
+        <div class="phase">Wet lab &amp; signal</div>
+        <div class="phase dry">Interpretation</div>
+        <a href="#ip"><span class="c">1</span><b>Immunoprecipitation</b><span>Crosslink, shear, pull down</span></a>
+        <a href="#shift"><span class="c">2</span><b>Reads to signal</b><span>Strand shift and fragment size</span></a>
+        <a href="#peaks"><span class="c">3</span><b>Peak calling</b><span>Enrichment over input control</span></a>
+        <a href="#marks"><span class="c">4</span><b>Marks &amp; replicates</b><span>Sharp vs broad; reproducibility</span></a>
+        <a href="#motif"><span class="c">5</span><b>Motifs</b><span>What sequence the protein reads</span></a>
+      </div>
+    </header>
+
+    <!-- 1 IP -->
+    <section class="stage" id="ip">
+      <div class="stage-head">
+        <div class="eyebrow">Stage 1 of 5</div>
+        <h2><span class="dot"></span>Immunoprecipitation</h2>
+        <p class="sub">Enriching the DNA your protein was sitting on</p>
+      </div>
+      <div class="prose">
+        <p>Cells are treated with formaldehyde, which <span class="term">crosslinks</span> proteins to the DNA they touch. Chromatin is sheared to 200–500 bp, and an <span class="term">antibody</span> against the protein of interest pulls down its fragments. Crosslinks are reversed, and the recovered DNA is made into a library as in Part 1.</p>
+        <p>The pull-down is never pure: most reads still come from random background DNA. A matched <span class="term">input</span> control (sheared chromatin with no antibody) shows how background varies along the genome. The share of reads that fall in peaks (<span class="term">FRiP</span>) summarises enrichment; ENCODE flags transcription factor experiments below about 1%.</p>
+      </div>
+      <div class="steps">
+        <div class="step"><span class="c">1</span><div><b>Crosslink</b><span>Formaldehyde fixes protein–DNA contacts</span></div></div>
+        <div class="step"><span class="c">2</span><div><b>Shear</b><span>Sonicate or digest to ~200–500 bp</span></div></div>
+        <div class="step"><span class="c">3</span><div><b>Immunoprecipitate</b><span>Antibody on beads captures the protein</span></div></div>
+        <div class="step"><span class="c">4</span><div><b>Reverse &amp; purify</b><span>Heat releases the DNA; protein is digested</span></div></div>
+        <div class="step"><span class="c">5</span><div><b>Library &amp; sequence</b><span>Usually 20–40M single-end reads</span></div></div>
+      </div>
+      <div class="lab">
+        <div class="lab-head"><h3>Antibody quality and depth</h3><span class="tag">Simulation</span></div>
+        <p class="hint">A 10 kb window containing three CTCF sites. The genome-wide model assumes 40,000 sites of ~300 bp in a 3.1 Gb genome.</p>
+        <div class="controls">
+          <label class="ctl" for="enr">Antibody enrichment at sites <output id="enrOut">20×</output>
+            <input type="range" id="enr" min="1" max="80" step="1" value="20"></label>
+          <label class="ctl" for="dep">Sequencing depth <output id="depOut">20M reads</output>
+            <input type="range" id="dep" min="2" max="60" step="1" value="20"></label>
+        </div>
+        <svg class="chart" id="ipChart" viewBox="0 0 640 230" role="img" aria-label="ChIP and input coverage tracks"></svg>
+        <div class="stats">
+          <div class="stat"><span>FRiP (genome-wide)</span><b id="frip">–</b></div>
+          <div class="stat"><span>Reads in peaks</span><b id="rip">–</b></div>
+          <div class="stat"><span>Reads per site</span><b id="rps">–</b></div>
+        </div>
+        <div class="callout" id="ipMsg"></div>
+      </div>
+      <div class="quiz" data-quiz="ip"></div>
+    </section>
+
+    <!-- 2 SHIFT -->
+    <section class="stage" id="shift">
+      <div class="stage-head">
+        <div class="eyebrow">Stage 2 of 5</div>
+        <h2><span class="dot"></span>From reads to signal</h2>
+        <p class="sub">Why ChIP reads come in two offset piles</p>
+      </div>
+      <div class="prose">
+        <p>A bound fragment is about 200 bp, but a single-end read covers only its first 50 bp. Reads from the top strand start at the fragment's left end; reads from the bottom strand start at its right end. So a binding site shows a pile of + strand reads just upstream and a pile of − strand reads just downstream, about one fragment length apart.</p>
+        <p>Peak callers estimate the <span class="term">fragment length</span> from this offset, often by <span class="term">strand cross-correlation</span>, then shift each read (or extend it) toward the fragment centre. The combined signal then peaks right over the binding site.</p>
+      </div>
+      <div class="lab">
+        <div class="lab-head"><h3>Shift the strands</h3><span class="tag">Simulation</span></div>
+        <div class="controls">
+          <label class="ctl" for="shiftS">Shift each read toward the centre by <output id="shiftOut">0 bp</output>
+            <input type="range" id="shiftS" min="0" max="200" step="5" value="0"></label>
+        </div>
+        <svg class="chart" id="strandChart" viewBox="0 0 640 260" role="img" aria-label="Strand-specific read starts around a binding site"></svg>
+        <div class="scope-legend"><span><i style="background:var(--C)"></i>+ strand read starts</span><span><i style="background:var(--T)"></i>− strand read starts</span><span><i style="background:var(--brand)"></i>Combined, shifted signal</span></div>
+        <h3 style="font-size:1rem">Strand cross-correlation</h3>
+        <svg class="chart" id="ccChart" viewBox="0 0 640 170" role="img" aria-label="Cross-correlation by strand shift"></svg>
+        <div class="stats">
+          <div class="stat"><span>Current shift (both strands)</span><b id="shiftTot">–</b></div>
+          <div class="stat"><span>Estimated fragment length</span><b id="fragEst">–</b></div>
+          <div class="stat"><span>Peak width (half max)</span><b id="fwhm">–</b></div>
+        </div>
+        <div class="callout" id="shiftMsg"></div>
+      </div>
+      <div class="quiz" data-quiz="shift"></div>
+    </section>
+
+    <!-- 3 PEAKS -->
+    <section class="stage" id="peaks">
+      <div class="stage-head">
+        <div class="eyebrow">Stage 3 of 5</div>
+        <h2><span class="dot"></span>Peak calling</h2>
+        <p class="sub">Is this pile of reads more than background?</p>
+      </div>
+      <div class="prose">
+        <p>A peak caller such as MACS2/MACS3 slides a window along the genome and asks how surprising the ChIP read count is, given the expected background. MACS models background as <span class="term">Poisson</span> and takes the local rate λ as the largest of the genome-wide average and the input's rate in 1 kb and 10 kb windows around the site. Using the input corrects for regions that give extra reads in any library: open chromatin that shears easily, copy-number gains, and repeats.</p>
+        <p>Some regions produce huge artefactual signal in almost every experiment, such as satellite repeats and rDNA. ENCODE maintains a <span class="term">blacklist</span> of these, and peaks there are removed.</p>
+      </div>
+      <div class="lab">
+        <div class="lab-head"><h3>Call peaks in a 20 kb window</h3><span class="tag">Simulation</span></div>
+        <p class="hint">Six true CTCF sites (triangles) of varying strength. The region also holds an amplified stretch with extra reads in both ChIP and input, and one blacklisted satellite repeat.</p>
+        <div class="controls">
+          <label class="toggle"><input type="checkbox" id="useCtl" checked> Use input control for local λ</label>
+          <label class="toggle"><input type="checkbox" id="useBl"> Remove blacklisted regions</label>
+          <label class="ctl" for="pth">Threshold −log₁₀ p <output id="pthOut">5</output>
+            <input type="range" id="pth" min="1" max="15" step="0.5" value="5"></label>
+        </div>
+        <div class="seqwrap"><svg class="chart" id="peakChart" viewBox="0 0 640 300" role="img" aria-label="Peak calling tracks" style="min-width:560px"></svg></div>
+        <div class="stats">
+          <div class="stat"><span>Peaks called</span><b id="pkN">–</b></div>
+          <div class="stat"><span>True sites found</span><b id="pkTP">–</b></div>
+          <div class="stat"><span>False peaks</span><b id="pkFP">–</b></div>
+        </div>
+        <div class="callout" id="pkMsg"></div>
+      </div>
+      <div class="quiz" data-quiz="peaks"></div>
+    </section>
+
+    <!-- 4 MARKS -->
+    <section class="stage" id="marks">
+      <div class="stage-head">
+        <div class="eyebrow">Stage 4 of 5</div>
+        <h2><span class="dot"></span>Histone marks and replicates</h2>
+        <p class="sub">Not every signal is a sharp peak</p>
+      </div>
+      <div class="prose">
+        <p>Transcription factors give narrow peaks a few hundred bp wide. Histone modifications cover nucleosomes over larger stretches, and each mark has a typical shape and meaning. Sharp marks are called in narrow mode; broad marks need broad-domain callers (MACS2 --broad, SICER, epic2). Combining several marks gives <span class="term">chromatin states</span> (ChromHMM).</p>
+      </div>
+      <div class="lab">
+        <div class="lab-head"><h3>Five tracks over one locus</h3><span class="tag">Explorer</span></div>
+        <p class="hint">An active gene (<i>GENE-A</i>, with an upstream enhancer) and a Polycomb-repressed gene (<i>GENE-B</i>). Click a track to read about it.</p>
+        <div class="seqwrap"><svg class="chart" id="markChart" viewBox="0 0 640 360" role="img" aria-label="Histone mark tracks over a locus" style="min-width:560px"></svg></div>
+        <div class="callout" id="markMsg"></div>
+      </div>
+      <div class="prose">
+        <p>Peaks must also reproduce. ENCODE's <span class="term">IDR</span> (irreproducible discovery rate) method ranks peaks by strength in each of two replicates. Real peaks rank consistently in both; noise peaks rank randomly. Keeping peaks until the ranks stop agreeing gives a reproducible set.</p>
+      </div>
+      <div class="lab">
+        <div class="lab-head"><h3>Do the replicates agree?</h3><span class="tag">Simulation</span></div>
+        <p class="hint">400 candidate peaks from each replicate. 180 are real binding sites. Keep peaks that rank in the top N of both replicates.</p>
+        <label class="ctl" for="topN">Top N per replicate <output id="topNOut">150</output>
+          <input type="range" id="topN" min="20" max="400" step="10" value="150"></label>
+        <div class="two">
+          <div class="panel"><h3>Signal, replicate 1 vs 2</h3><svg class="chart" id="repScatter" viewBox="0 0 300 260" role="img" aria-label="Replicate signal scatter"></svg></div>
+          <div class="panel"><h3>Reproducible peaks</h3>
+            <div class="stats" style="grid-template-columns:repeat(2,minmax(0,1fr))">
+              <div class="stat"><span>In top N of both</span><b id="repBoth">–</b></div>
+              <div class="stat"><span>Real among them</span><b id="repReal">–</b></div>
+              <div class="stat"><span>Precision</span><b id="repPrec">–</b></div>
+              <div class="stat"><span>Real sites recovered</span><b id="repRec">–</b></div>
+            </div>
+            <div class="callout" id="repMsg"></div>
+          </div>
+        </div>
+      </div>
+      <div class="quiz" data-quiz="marks"></div>
+    </section>
+
+    <!-- 5 MOTIF -->
+    <section class="stage" id="motif">
+      <div class="stage-head">
+        <div class="eyebrow">Stage 5 of 5</div>
+        <h2><span class="dot"></span>Motif discovery</h2>
+        <p class="sub">The sequence the protein recognises</p>
+      </div>
+      <div class="prose">
+        <p>Sequence-specific transcription factors bind short DNA patterns. Tools such as MEME and HOMER find words over-represented at peak summits and summarise them as a <span class="term">position weight matrix</span> (PWM). A <span class="term">sequence logo</span> draws it: stack height at each position is the information content in bits (maximum 2 for DNA), and letter heights are proportional to their frequency.</p>
+        <p>A PWM can then scan any sequence, adding up log-odds scores to predict new binding sites. Most predicted sites are not bound in a given cell, because chromatin accessibility and partner proteins matter too.</p>
+      </div>
+      <div class="lab">
+        <div class="lab-head"><h3>Build a CTCF logo</h3><span class="tag">Explorer</span></div>
+        <p class="hint">Aligned 14 bp windows from peak summits. The last three came from false peaks. Toggle sequences in or out and watch the logo change.</p>
+        <div class="sites" id="sites"></div>
+        <svg class="chart" id="logo" viewBox="0 0 640 200" role="img" aria-label="Sequence logo"></svg>
+        <div class="stats">
+          <div class="stat"><span>Sequences used</span><b id="motN">–</b></div>
+          <div class="stat"><span>Total information</span><b id="motIC">–</b></div>
+          <div class="stat"><span>Consensus</span><b id="motCons" style="font-size:.95rem">–</b></div>
+        </div>
+      </div>
+      <div class="lab">
+        <div class="lab-head"><h3>Scan a sequence</h3><span class="tag">Tool</span></div>
+        <p class="hint">The PWM above scores every 14 bp window of this 96 bp region (forward strand). Windows above the threshold are predicted sites.</p>
+        <label class="ctl" for="scanT">Score threshold (bits) <output id="scanTOut">8</output>
+          <input type="range" id="scanT" min="0" max="20" step="0.5" value="8"></label>
+        <div class="seqline" id="scanSeq"></div>
+        <svg class="chart" id="scanChart" viewBox="0 0 640 150" role="img" aria-label="PWM score along sequence"></svg>
+        <div class="callout" id="scanMsg"></div>
+      </div>
+      <div class="quiz" data-quiz="motif"></div>
+    </section>
+
+    <section class="stage" id="beyond">
+      <div class="stage-head">
+        <div class="eyebrow">Wrap-up</div>
+        <h2><span class="dot"></span>ChIP-seq and its successors</h2>
+        <p class="sub">Same question, less material, less background</p>
+      </div>
+      <div class="compare">
+        <div class="panel">
+          <h3>ChIP-seq</h3>
+          <ul>
+            <li>Millions of cells; crosslinking and sonication</li>
+            <li>High background, so an input control is essential</li>
+            <li>20–40M reads per sample</li>
+            <li>The reference method: ENCODE, Roadmap Epigenomics</li>
+            <li>Works for most proteins with a good antibody</li>
+          </ul>
+        </div>
+        <div class="panel">
+          <h3>CUT&amp;RUN and CUT&amp;Tag</h3>
+          <ul>
+            <li>Hundreds to thousands of cells, native chromatin</li>
+            <li>Antibody-tethered MNase or Tn5 cuts only near the target</li>
+            <li>Very low background; 3–10M reads suffice</li>
+            <li>CUT&amp;Tag works in single cells</li>
+            <li>Weaker for some transcription factors and very transient binding</li>
+          </ul>
+        </div>
+      </div>
+      <div class="panel">
+        <h3>Modern frontiers</h3>
+        <ul class="plain">
+          <li><b>Accessibility without antibodies.</b> ATAC-seq uses Tn5 to mark open chromatin, and footprinting within ATAC peaks infers which factors are bound.</li>
+          <li><b>Single-cell chromatin.</b> scATAC-seq and single-cell CUT&amp;Tag profile regulatory landscapes cell by cell, alongside RNA in multiome assays (Part 4).</li>
+          <li><b>Base-resolution binding.</b> ChIP-exo and ChIP-nexus trim fragments with exonuclease to pinpoint contact sites.</li>
+          <li><b>Learning the grammar.</b> Deep learning models (BPNet, Enformer, AlphaGenome) predict binding profiles and expression from DNA sequence alone, and score how variants disrupt motifs.</li>
+        </ul>
+      </div>
+      <p class="foot">Simulations use simplified models for teaching: coverage is Poisson around smooth expected profiles, the peak caller is a single-window Poisson test in the style of MACS, and the replicate model uses log-normal noise. Motif sequences are generated around a CTCF-like consensus.</p>
+    </section>
+  </main>
+</div>
+
+<script>
+(function(){
+const $=s=>document.querySelector(s);
+const BASES="ACGT";
+function rng(seed){return function(){seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function gauss(r){let u=0;while(!u)u=r();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*r());}
+function pois(r,l){if(l>40)return Math.max(0,Math.round(l+Math.sqrt(l)*gauss(r)));const L=Math.exp(-l);let k=0,p=1;do{k++;p*=r();}while(p>L);return k-1;}
+const fmt=n=>Math.round(n).toLocaleString("en-US");
+const store={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d;}catch(e){return d;}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}};
+const svgNS="http://www.w3.org/2000/svg";
+function el(tag,attrs,parent){const e=document.createElementNS(svgNS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);if(parent)parent.appendChild(e);return e;}
+function area(s,vals,xs,ys,y1,col,op){let d="M"+xs(0)+" "+y1;vals.forEach((v,i)=>{d+=" L"+xs(i).toFixed(1)+" "+ys(v).toFixed(1)+" L"+xs(i+1).toFixed(1)+" "+ys(v).toFixed(1);});d+=" L"+xs(vals.length)+" "+y1+"Z";return el("path",{d,fill:col,"fill-opacity":op==null?1:op},s);}
+function logPoisSF(k,l){ // log10 P(X>=k)
+  if(k<=0)return 0;let lt=-l+k*Math.log(l)-lgf(k),s=0,t=0;for(let i=k;i<k+400;i++){s+=Math.exp(t);t+=Math.log(l/(i+1));if(t<-40)break;}return (lt+Math.log(s))/Math.LN10;}
+const LGF=[0];for(let i=1;i<2000;i++)LGF[i]=LGF[i-1]+Math.log(i);const lgf=k=>k<2000?LGF[k]:k*Math.log(k)-k+.5*Math.log(2*Math.PI*k);
+
+/* ---------- 1 IP ---------- */
+function renderIP(){
+  const e=+$("#enr").value,dep=+$("#dep").value;$("#enrOut").textContent=e+"×";$("#depOut").textContent=dep+"M reads";
+  const frac=40000*300/3.1e9,frip=e*frac/(e*frac+(1-frac)),rip=frip*dep*1e6;
+  $("#frip").textContent=(100*frip).toFixed(1)+"%";$("#rip").textContent=fmt(rip);$("#rps").textContent=fmt(rip/40000);
+  const NB=200,BW=50,base=dep*1e6*200/3.1e9*(1-frip)/(1-frac),sites=[2500,5600,8200],str=[1,.5,.25];
+  const r=rng(12),chip=[],inp=[];
+  for(let b=0;b<NB;b++){const x=b*BW+25;let lam=base*(1+.25*Math.sin(b/9));sites.forEach((s,k)=>lam+=base*(e-1)*str[k]*Math.exp(-((x-s)**2)/(2*110*110))*2);chip.push(pois(r,lam));inp.push(pois(r,base*(1+.25*Math.sin(b/9))));}
+  const s=$("#ipChart");s.innerHTML="";const x0=60,x1=630,xs=i=>x0+i/NB*(x1-x0),mx=Math.max(...chip,...inp,3);
+  const tr=(vals,y0,y1,col,lab)=>{const ys=v=>y1-v/mx*(y1-y0);el("line",{x1:x0,x2:x1,y1,y2:y1,stroke:"var(--line)"},s);area(s,vals,xs,ys,y1,col);el("text",{x:x0-6,y:y0+10,"text-anchor":"end",style:"fill:var(--ink);font-weight:600"},s).textContent=lab;el("text",{x:x0-6,y:y0+24,"text-anchor":"end"},s).textContent="0–"+mx;};
+  tr(chip,10,100,"var(--brand)","ChIP");tr(inp,115,190,"var(--muted)","Input");
+  sites.forEach((x,k)=>{const px=x0+x/(NB*BW)*(x1-x0);el("path",{d:"M"+(px-5)+" 206 L"+(px+5)+" 206 L"+px+" 198Z",fill:"var(--warn)"},s);el("text",{x:px,y:222,"text-anchor":"middle"},s).textContent=["strong","medium","weak"][k]+" site";});
+  const m=$("#ipMsg");
+  if(frip<.01){m.className="callout bad";m.textContent="FRiP "+(100*frip).toFixed(1)+"%: the antibody barely enriches. Peaks are hard to tell from background noise, and ENCODE would flag this experiment. Validate the antibody (for example by knockdown or peptide competition) before sequencing deeper.";}
+  else if(rip/40000<15){m.className="callout warn";m.textContent="Enrichment is fine, but at "+dep+"M reads each site gets only ~"+Math.round(rip/40000)+" reads, so weak sites disappear into noise. Sequence deeper.";}
+  else{m.className="callout good";m.textContent="Good experiment: FRiP "+(100*frip).toFixed(1)+"% with ~"+Math.round(rip/40000)+" reads per site. Even so, "+(100-100*frip).toFixed(0)+"% of reads are background, which is why the input control matters.";}
+}
+["enr","dep"].forEach(id=>$("#"+id).addEventListener("input",renderIP));
+
+/* ---------- 2 Strand shift ---------- */
+const FRAG=190,RL=50,SW=[-400,400],SB=5;
+const STR=(()=>{const r=rng(33),plus=new Float64Array((SW[1]-SW[0])/SB),minus=new Float64Array(plus.length);
+  for(let i=0;i<600;i++){const c=gauss(r)*18,L=FRAG+gauss(r)*25,st=c-L/2,en=c+L/2;
+    if(r()<.5){const b=Math.floor((st-SW[0])/SB);if(b>=0&&b<plus.length)plus[b]++;}else{const b=Math.floor((en-SW[0])/SB);if(b>=0&&b<minus.length)minus[b]++;}}
+  for(let i=0;i<300;i++){const x=SW[0]+r()*(SW[1]-SW[0]),b=Math.floor((x-SW[0])/SB);(r()<.5?plus:minus)[b]++;}
+  const sm=a=>a.map((_,i)=>{let s=0,n=0;for(let j=-2;j<=2;j++)if(a[i+j]!=null){s+=a[i+j];n++;}return s/n;});
+  return{plus:sm(plus),minus:sm(minus)};})();
+const CC=(()=>{const out=[],p=STR.plus,m=STR.minus,n=p.length,mp=p.reduce((a,b)=>a+b)/n,mm=m.reduce((a,b)=>a+b)/n;
+  for(let L=0;L<=400;L+=SB){const k=L/SB;let s=0,sp=0,sq=0;for(let i=0;i+k<n;i++){const a=p[i]-mp,b=m[i+k]-mm;s+=a*b;sp+=a*a;sq+=b*b;}out.push([L,s/Math.sqrt(sp*sq)]);}return out;})();
+function renderShift(){
+  const sh=+$("#shiftS").value;$("#shiftOut").textContent=sh+" bp";
+  const s=$("#strandChart");s.innerHTML="";const x0=40,x1=630,n=STR.plus.length,xs=x=>x0+(x-SW[0])/(SW[1]-SW[0])*(x1-x0);
+  const k=Math.round(sh/SB),comb=new Float64Array(n);for(let i=0;i<n;i++){if(i-k>=0)comb[i]+=STR.plus[i-k];if(i+k<n)comb[i]+=STR.minus[i+k];}
+  const mx=Math.max(...STR.plus,...STR.minus)*1.1,mc=Math.max(...comb)*1.05,mid=110;
+  const ys=v=>mid-v/mx*(mid-14),ym=v=>mid+v/mx*(mid-14);
+  el("line",{x1:x0,x2:x1,y1:mid,y2:mid,stroke:"var(--line)"},s);
+  let dp="M"+xs(SW[0])+" "+mid,dm=dp;for(let i=0;i<n;i++){const x=SW[0]+i*SB+sh;dp+=" L"+xs(Math.min(SW[1],x)).toFixed(1)+" "+ys(STR.plus[i]).toFixed(1);}
+  for(let i=0;i<n;i++){const x=SW[0]+i*SB-sh;dm+=" L"+xs(Math.max(SW[0],x)).toFixed(1)+" "+ym(STR.minus[i]).toFixed(1);}
+  el("path",{d:dp+" L"+xs(SW[1])+" "+mid+"Z",fill:"var(--C)","fill-opacity":.55},s);el("path",{d:dm+" L"+xs(SW[1])+" "+mid+"Z",fill:"var(--T)","fill-opacity":.55},s);
+  el("text",{x:x0,y:20,style:"fill:var(--C)"},s).textContent="+ strand";el("text",{x:x0,y:210,style:"fill:var(--T)"},s).textContent="− strand";
+  const cy0=220,cy1=250,cys=v=>cy1-v/mc*(cy1-cy0);area(s,Array.from(comb),i=>xs(SW[0]+i*SB),cys,cy1,"var(--brand)");
+  el("line",{x1:xs(0),x2:xs(0),y1:10,y2:cy1,stroke:"var(--warn)","stroke-dasharray":"3 3"},s);el("text",{x:xs(0)+4,y:20,style:"fill:var(--warn)"},s).textContent="binding site";
+  [-400,-200,0,200,400].forEach(v=>el("text",{x:xs(v),y:cy1+10,"text-anchor":"middle"},s).textContent=(v>0?"+":"")+v);
+  // fwhm
+  const cm=Math.max(...comb);let lo=0,hi=n-1;const pk=comb.indexOf(cm);while(lo<pk&&comb[lo]<cm/2)lo++;while(hi>pk&&comb[hi]<cm/2)hi--;const fw=(hi-lo+1)*SB;
+  // cc
+  const c=$("#ccChart");c.innerHTML="";const cx0=50,cx1=630,cyy0=10,cyy1=130,cmx=Math.max(...CC.map(p=>p[1])),cmn=Math.min(0,...CC.map(p=>p[1])),cxs=L=>cx0+L/400*(cx1-cx0),ccy=v=>cyy1-(v-cmn)/(cmx-cmn)*(cyy1-cyy0);
+  el("line",{x1:cx0,x2:cx1,y1:ccy(0),y2:ccy(0),stroke:"var(--line)"},c);
+  el("path",{d:CC.map((p,i)=>(i?"L":"M")+cxs(p[0]).toFixed(1)+" "+ccy(p[1]).toFixed(1)).join(" "),fill:"none",stroke:"var(--brand)","stroke-width":2},c);
+  const best=CC.reduce((a,b)=>b[1]>a[1]?b:a);el("circle",{cx:cxs(best[0]),cy:ccy(best[1]),r:5,fill:"var(--warn)"},c);
+  el("text",{x:cxs(best[0])+8,y:ccy(best[1])+4,style:"fill:var(--warn)"},c).textContent="max at "+best[0]+" bp";
+  el("line",{x1:cxs(2*sh),x2:cxs(2*sh),y1:cyy0,y2:cyy1,stroke:"var(--ink)","stroke-dasharray":"3 3"},c);
+  [0,100,200,300,400].forEach(v=>el("text",{x:cxs(v),y:cyy1+16,"text-anchor":"middle"},c).textContent=v);
+  el("text",{x:cx1,y:cyy1+32,"text-anchor":"end"},c).textContent="shift between strands (bp) · dashed line: your total shift";
+  $("#shiftTot").textContent=2*sh+" bp";$("#fragEst").textContent=best[0]+" bp";$("#fwhm").textContent=fw+" bp";
+  const m=$("#shiftMsg"),d=Math.abs(2*sh-best[0]);
+  if(sh===0){m.className="callout";m.textContent="Unshifted, the two strands form separate piles about "+best[0]+" bp apart, and the combined signal is wide and double-humped. Slide the shift up.";}
+  else if(d<=20){m.className="callout good";m.textContent="Shifting each strand by "+sh+" bp (total "+2*sh+" bp, close to the "+best[0]+" bp fragment length) stacks both piles over the site. The peak is now "+fw+" bp wide and centred on the binding site.";}
+  else if(2*sh>best[0]){m.className="callout warn";m.textContent="Over-shifted: the strands have crossed past each other and the peak splits again.";}
+  else{m.className="callout";m.textContent="Closer. The piles are merging; keep going until the total shift matches the cross-correlation maximum.";}
+}
+$("#shiftS").addEventListener("input",renderShift);
+
+/* ---------- 3 Peak calling ---------- */
+const PB=50,PNB=400,TRUE=[[2200,3],[5200,1.6],[8600,5],[11800,1.25],[15600,2.2],[18300,1.45]],AMP=[6400,8000],BL=[13200,13700];
+const PK=(()=>{const r=rng(55),chip=[],inp=[];const base=4;
+  for(let b=0;b<PNB;b++){const x=b*PB+25;let bias=1+.2*Math.sin(b/13);if(x>=AMP[0]&&x<AMP[1])bias*=3;if(x>=BL[0]&&x<BL[1])bias*=12;
+    let lam=base*bias;TRUE.forEach(([s,f])=>lam+=base*(f-1)*4*Math.exp(-((x-s)**2)/(2*90*90)));chip.push(pois(r,lam));inp.push(pois(r,base*bias));}
+  return{chip,inp,base};})();
+function renderPeaks(){
+  const useC=$("#useCtl").checked,useB=$("#useBl").checked,th=+$("#pth").value;$("#pthOut").textContent=th;
+  const {chip,inp}=PK,W=4,gl=chip.reduce((a,b)=>a+b)/PNB,sig=new Float64Array(PNB),lp=new Float64Array(PNB);
+  const win=(a,c,h)=>{let s=0,n=0;for(let i=Math.max(0,c-h);i<=Math.min(PNB-1,c+h);i++){s+=a[i];n++;}return s/n;};
+  for(let b=0;b<PNB;b++){let k=0;for(let i=b;i<Math.min(PNB,b+W);i++)k+=chip[i];let lam=gl;if(useC)lam=Math.max(gl,win(inp,b+2,10),win(inp,b+2,100));lam*=W;lp[b]=-logPoisSF(k,lam);if(lp[b]>=th)for(let i=b;i<Math.min(PNB,b+W);i++)sig[i]=1;}
+  const peaks=[];let st=-1;for(let b=0;b<=PNB;b++){if(b<PNB&&sig[b]){if(st<0)st=b;}else if(st>=0){peaks.push([st*PB,b*PB]);st=-1;}}
+  const kept=peaks.filter(p=>!(useB&&p[1]>BL[0]&&p[0]<BL[1]));
+  const hit=TRUE.map(([s])=>kept.some(p=>p[0]<=s+100&&p[1]>=s-100));const fps=kept.filter(p=>!TRUE.some(([s])=>p[0]<=s+100&&p[1]>=s-100));
+  const s=$("#peakChart");s.innerHTML="";const x0=60,x1=630,xs=i=>x0+i/PNB*(x1-x0),xb=x=>x0+x/(PNB*PB)*(x1-x0),mx=Math.max(...chip)*1.05;
+  el("rect",{x:xb(AMP[0]),y:4,width:xb(AMP[1])-xb(AMP[0]),height:196,fill:"var(--warn-soft)"},s);el("text",{x:xb(AMP[0])+4,y:16,style:"fill:var(--warn)"},s).textContent="amplified";
+  el("rect",{x:xb(BL[0]),y:4,width:xb(BL[1])-xb(BL[0]),height:196,fill:useB?"var(--surface-2)":"var(--bad-soft)"},s);el("text",{x:xb(BL[1])+4,y:16,style:"fill:var(--bad)"},s).textContent="blacklist";
+  const tr=(vals,y0,y1,col,lab)=>{const ys=v=>y1-Math.min(v,mx)/mx*(y1-y0);el("line",{x1:x0,x2:x1,y1,y2:y1,stroke:"var(--line)"},s);area(s,vals,xs,ys,y1,col);el("text",{x:x0-6,y:y0+12,"text-anchor":"end",style:"fill:var(--ink);font-weight:600"},s).textContent=lab;};
+  tr(chip,24,110,"var(--brand)","ChIP");tr(inp,124,196,"var(--muted)","Input");
+  // -log10 p track
+  const ly0=214,ly1=254,lmx=Math.max(20,...lp),lys=v=>ly1-Math.min(v,lmx)/lmx*(ly1-ly0);
+  el("text",{x:x0-6,y:ly0+12,"text-anchor":"end",style:"fill:var(--ink);font-weight:600"},s).textContent="−log p";
+  el("path",{d:Array.from(lp).map((v,i)=>(i?"L":"M")+xs(i+2).toFixed(1)+" "+lys(v).toFixed(1)).join(" "),fill:"none",stroke:"var(--ink)","stroke-width":1},s);
+  el("line",{x1:x0,x2:x1,y1:lys(th),y2:lys(th),stroke:"var(--bad)","stroke-dasharray":"3 3"},s);
+  // peaks row
+  el("text",{x:x0-6,y:274,"text-anchor":"end",style:"fill:var(--ink);font-weight:600"},s).textContent="Peaks";
+  peaks.forEach(p=>{const dropped=!kept.includes(p),isFP=fps.includes(p);el("rect",{x:xb(p[0]),y:264,width:Math.max(3,xb(p[1])-xb(p[0])),height:12,rx:2,fill:dropped?"var(--line)":isFP?"var(--bad)":"var(--good)"},s);});
+  TRUE.forEach(([x])=>el("path",{d:"M"+(xb(x)-5)+" 292 L"+(xb(x)+5)+" 292 L"+xb(x)+" 283Z",fill:"var(--warn)"},s));
+  $("#pkN").textContent=kept.length;$("#pkTP").textContent=hit.filter(Boolean).length+" of 6";$("#pkFP").textContent=fps.length;
+  const inAmp=fps.some(p=>p[1]>AMP[0]&&p[0]<AMP[1]),inBl=fps.some(p=>p[1]>BL[0]&&p[0]<BL[1]),m=$("#pkMsg");
+  if(inAmp){m.className="callout bad";m.textContent="False peaks in the amplified region: without the input, extra DNA copies look like binding. Turn on the input control so λ rises there too.";}
+  else if(inBl){m.className="callout warn";m.textContent="The satellite repeat produces a peak even against the input, because its signal is so extreme and unstable. Remove blacklisted regions.";}
+  else if(fps.length){m.className="callout warn";m.textContent=fps.length+" background fluctuation"+(fps.length>1?"s pass":" passes")+" this loose threshold. Raise it.";}
+  else if(hit.filter(Boolean).length<6){m.className="callout";m.textContent="No false peaks, but "+(6-hit.filter(Boolean).length)+" weak true site"+(6-hit.filter(Boolean).length>1?"s are":" is")+" missed. A lower threshold or deeper sequencing would help; there is always a trade-off.";}
+  else{m.className="callout good";m.textContent="All six sites found with no false peaks. MACS would also report a q-value per peak, correcting for the millions of windows tested genome-wide.";}
+}
+["useCtl","useBl"].forEach(id=>$("#"+id).addEventListener("change",renderPeaks));$("#pth").addEventListener("input",renderPeaks);
+
+/* ---------- 4a Marks ---------- */
+const LOC=60000,GA=[12000,30000],GB=[42000,52000],ENH=6000;
+const MARKS=[
+ {n:"CTCF",shape:"sharp",col:"var(--brand)",f:x=>[4000,31000,38000,55000].reduce((a,s)=>a+9*Math.exp(-((x-s)**2)/(2*200*200)),0),d:"CTCF, a transcription factor: narrow peaks a few hundred bp wide, often at insulator sites flanking domains. Called in narrow mode."},
+ {n:"H3K4me3",shape:"sharp",col:"var(--good)",f:x=>7*Math.exp(-((x-GA[0]-400)**2)/(2*700*700))+1.2*Math.exp(-((x-GB[0])**2)/(2*600*600)),d:"H3K4me3 marks active promoters: a strong 1–2 kb peak around the transcription start site of GENE-A. The weak signal at GENE-B is typical of bivalent, poised promoters."},
+ {n:"H3K27ac",shape:"sharp",col:"var(--warn)",f:x=>6*Math.exp(-((x-GA[0])**2)/(2*900*900))+5*Math.exp(-((x-ENH)**2)/(2*800*800)),d:"H3K27ac marks active promoters and active enhancers. The upstream peak with no H3K4me3 is the enhancer. Unusually large clusters of H3K27ac are called super-enhancers."},
+ {n:"H3K36me3",shape:"broad",col:"var(--C)",f:x=>x>GA[0]+1500&&x<GA[1]?1.5+2.5*(x-GA[0])/(GA[1]-GA[0]):0,d:"H3K36me3 is deposited during elongation, so it coats the body of GENE-A and rises toward the 3′ end. Broad, low signal: use a broad-domain caller."},
+ {n:"H3K27me3",shape:"broad",col:"var(--T)",f:x=>x>GB[0]-6000&&x<GB[1]+5000?2.6:0,d:"H3K27me3 is laid down by Polycomb and covers the silenced GENE-B in a domain tens of kb wide. No sharp peaks at all. Narrow-peak callers break it into fragments."}];
+let selMark=0;
+function renderMarks(){
+  const s=$("#markChart");s.innerHTML="";const x0=80,x1=630,NBm=300,bw=LOC/NBm,xs=i=>x0+i/NBm*(x1-x0),xb=x=>x0+x/LOC*(x1-x0),r=rng(71);
+  MARKS.forEach((mk,k)=>{const y0=10+k*62,y1=y0+50,vals=[];for(let i=0;i<NBm;i++)vals.push(Math.max(0,pois(r,(.4+mk.f(i*bw+bw/2))*3)/3));
+    const mx=Math.max(...vals)*1.05,ys=v=>y1-v/mx*(y1-y0);
+    const g=el("g",{class:"mtrack"+(k===selMark?" on":""),tabindex:0,role:"button"},s);el("rect",{x:0,y:y0-4,width:640,height:58,fill:k===selMark?"var(--brand-soft)":"transparent",rx:6},g);
+    el("line",{x1:x0,x2:x1,y1,y2:y1,stroke:"var(--line)"},g);area(g,vals,xs,ys,y1,mk.col,.9);
+    el("text",{x:x0-8,y:y0+22,"text-anchor":"end",style:"fill:var(--ink);font-weight:600"},g).textContent=mk.n;el("text",{x:x0-8,y:y0+36,"text-anchor":"end"},g).textContent=mk.shape;
+    const pick=()=>{selMark=k;renderMarks();};g.addEventListener("click",pick);g.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();pick();}});});
+  const gy=335;el("line",{x1:x0,x2:x1,y1:gy,y2:gy,stroke:"var(--muted)"},s);
+  [[GA,"GENE-A (active)"],[GB,"GENE-B (repressed)"]].forEach(([g,l])=>{el("rect",{x:xb(g[0]),y:gy-6,width:xb(g[1])-xb(g[0]),height:12,rx:2,fill:"var(--muted)"},s);el("path",{d:"M"+xb(g[0])+" "+(gy-6)+" v-10 h12",fill:"none",stroke:"var(--ink)","stroke-width":1.5},s);el("text",{x:xb(g[0]),y:gy+22},s).textContent=l;});
+  el("rect",{x:xb(ENH)-6,y:gy-6,width:12,height:12,fill:"var(--warn)"},s);el("text",{x:xb(ENH),y:gy+22,"text-anchor":"middle"},s).textContent="enhancer";
+  const m=$("#markMsg");m.className="callout";m.textContent=MARKS[selMark].d;
+}
+
+/* ---------- 4b Replicates ---------- */
+const REPS=(()=>{const r=rng(88),out=[];for(let i=0;i<400;i++){const real=i<180,s=real?Math.exp(1.5+.9*gauss(r)):Math.exp(.6+.35*gauss(r));out.push({real,a:s*Math.exp(.35*gauss(r)),b:s*Math.exp(.35*gauss(r))});}
+  const ra=out.map((o,i)=>i).sort((x,y)=>out[y].a-out[x].a),rb=out.map((o,i)=>i).sort((x,y)=>out[y].b-out[x].b);ra.forEach((i,k)=>out[i].ra=k);rb.forEach((i,k)=>out[i].rb=k);return out;})();
+function renderRep(){
+  const N=+$("#topN").value;$("#topNOut").textContent=N;
+  const s=$("#repScatter");s.innerHTML="";const x0=40,x1=290,y0=10,y1=220,lmin=Math.log(.5),lmax=Math.log(Math.max(...REPS.map(o=>Math.max(o.a,o.b)))*1.1),xs=v=>x0+(Math.log(v)-lmin)/(lmax-lmin)*(x1-x0),ys=v=>y1-(Math.log(v)-lmin)/(lmax-lmin)*(y1-y0);
+  el("rect",{x:x0,y:y0,width:x1-x0,height:y1-y0,fill:"none",stroke:"var(--line)"},s);
+  const ta=REPS.find(o=>o.ra===N-1),tb=REPS.find(o=>o.rb===N-1);
+  if(ta&&tb){el("rect",{x:xs(ta.a),y:y0,width:x1-xs(ta.a),height:ys(tb.b)-y0,fill:"var(--good-soft)",opacity:.7},s);}
+  let both=0,real=0;REPS.forEach(o=>{const k=o.ra<N&&o.rb<N;if(k){both++;if(o.real)real++;}el("circle",{cx:xs(o.a).toFixed(1),cy:ys(o.b).toFixed(1),r:k?2.8:2,fill:o.real?"var(--brand)":"var(--muted)","fill-opacity":k?.9:.4},s);});
+  el("text",{x:(x0+x1)/2,y:y1+18,"text-anchor":"middle"},s).textContent="replicate 1 signal (log)";
+  el("text",{x:12,y:(y0+y1)/2,"text-anchor":"middle",transform:"rotate(-90 12 "+(y0+y1)/2+")"},s).textContent="replicate 2 signal (log)";
+  el("text",{x:x1-4,y:y0+14,"text-anchor":"end",style:"fill:var(--good)"},s).textContent="kept";
+  $("#repBoth").textContent=both;$("#repReal").textContent=real;$("#repPrec").textContent=both?Math.round(100*real/both)+"%":"–";$("#repRec").textContent=real+" of 180";
+  const m=$("#repMsg"),prec=both?real/both:1;
+  if(prec<.85){m.className="callout warn";m.textContent="Past this depth, noise peaks start passing in both replicates by chance. The IDR cutoff sits where rank agreement breaks down.";}
+  else if(real<150){m.className="callout";m.textContent="High precision, but only "+real+" of 180 real sites kept. Weaker real peaks rank inconsistently and fall below N in one replicate.";}
+  else{m.className="callout good";m.textContent=real+" real sites with "+Math.round(100*prec)+"% precision: a good reproducible set. Grey points are noise peaks, clustered at low signal with no agreement between replicates.";}
+}
+$("#topN").addEventListener("input",renderRep);
+
+/* ---------- 5 Motif ---------- */
+const CONS="CCACCAGGGGGCGC";
+const SITES=(()=>{const r=rng(141),out=[];const loose=new Set([0,1,3,4,12,13]);
+  for(let i=0;i<14;i++){let s="";for(let j=0;j<14;j++){const mr=loose.has(j)?.3:.07;s+=r()<mr?BASES[Math.floor(r()*4)]:CONS[j];}out.push({s,real:true,on:true});}
+  for(let i=0;i<3;i++){let s="";for(let j=0;j<14;j++)s+=BASES[Math.floor(r()*4)];out.push({s,real:false,on:true});}return out;})();
+let PWM=null;
+function buildPWM(){const on=SITES.filter(x=>x.on),n=on.length;const f=[];for(let j=0;j<14;j++){const c={A:.25,C:.25,G:.25,T:.25};on.forEach(x=>c[x.s[j]]++);const t=n+1;f.push(Object.fromEntries(BASES.split("").map(b=>[b,c[b]/t])));}return{f,n};}
+function renderMotif(){
+  const box=$("#sites");box.innerHTML="";
+  SITES.forEach((x,i)=>{const b=document.createElement("button");b.type="button";b.className="site"+(x.on?" on":"")+(x.real?"":" decoy");b.innerHTML='<span class="sn">'+(x.real?"peak "+(i+1):"false "+(i-13))+"</span>"+[...x.s].map(c=>'<b class="t'+c+'">'+c+"</b>").join("");b.addEventListener("click",()=>{x.on=!x.on;renderMotif();});box.appendChild(b);});
+  PWM=buildPWM();const {f,n}=PWM;
+  const s=$("#logo");s.innerHTML="";const x0=50,x1=630,y0=10,y1=160,bw=(x1-x0)/14,ys=v=>y1-v/2*(y1-y0);
+  [0,1,2].forEach(v=>{el("line",{x1:x0,x2:x1,y1:ys(v),y2:ys(v),stroke:"var(--line)","stroke-width":v?.6:1},s);el("text",{x:x0-6,y:ys(v)+4,"text-anchor":"end"},s).textContent=v;});
+  el("text",{x:14,y:(y0+y1)/2,"text-anchor":"middle",transform:"rotate(-90 14 "+(y0+y1)/2+")"},s).textContent="bits";
+  let ict=0,cons="";
+  f.forEach((col,j)=>{let H=0;BASES.split("").forEach(b=>{if(col[b]>0)H-=col[b]*Math.log2(col[b]);});const ic=Math.max(0,2-H);ict+=ic;
+    const sorted=BASES.split("").sort((a,b)=>col[a]-col[b]);cons+=sorted[3];let y=y1;
+    sorted.forEach(b=>{const h=col[b]*ic/2*(y1-y0);if(h<.5)return;const t=el("text",{x:0,y:0,"text-anchor":"middle",class:"logoL t"+b,transform:"translate("+(x0+bw*(j+.5)).toFixed(1)+" "+y.toFixed(1)+") scale("+(bw/36).toFixed(3)+" "+(h/36).toFixed(3)+")"},s);t.textContent=b;y-=h;});
+    el("text",{x:x0+bw*(j+.5),y:y1+16,"text-anchor":"middle"},s).textContent=j+1;});
+  $("#motN").textContent=n+" ("+SITES.filter(x=>x.on&&!x.real).length+" false)";$("#motIC").textContent=ict.toFixed(1)+" bits";$("#motCons").textContent=cons;
+  renderScan();
+}
+const SCAN=(()=>{const r=rng(202);let s="";for(let i=0;i<96;i++)s+=BASES[Math.floor(r()*4)];const put=(p,w)=>{s=s.slice(0,p)+w+s.slice(p+14);};put(12,CONS);put(58,"CCTCCAGGGGGAGA");return s;})();
+function renderScan(){
+  const th=+$("#scanT").value;$("#scanTOut").textContent=th;const f=PWM.f,sc=[];
+  for(let i=0;i+14<=SCAN.length;i++){let v=0;for(let j=0;j<14;j++)v+=Math.log2(f[j][SCAN[i+j]]/.25);sc.push(v);}
+  const hits=sc.map((v,i)=>v>=th?i:-1).filter(i=>i>=0),cover=new Set();hits.forEach(i=>{for(let j=0;j<14;j++)cover.add(i+j);});
+  $("#scanSeq").innerHTML=[...SCAN].map((c,i)=>'<span class="t'+c+(cover.has(i)?" hit":"")+'">'+c+"</span>").join("");
+  const s=$("#scanChart");s.innerHTML="";const x0=50,x1=630,y0=10,y1=110,mx=Math.max(20,...sc),mn=Math.min(-20,...sc),xs=i=>x0+(i+7)/SCAN.length*(x1-x0),ys=v=>y1-(v-mn)/(mx-mn)*(y1-y0);
+  [mn,0,mx].forEach(v=>{el("line",{x1:x0,x2:x1,y1:ys(v),y2:ys(v),stroke:"var(--line)","stroke-width":v===0?1:.6},s);el("text",{x:x0-6,y:ys(v)+4,"text-anchor":"end"},s).textContent=Math.round(v);});
+  el("path",{d:sc.map((v,i)=>(i?"L":"M")+xs(i).toFixed(1)+" "+ys(v).toFixed(1)).join(" "),fill:"none",stroke:"var(--brand)","stroke-width":1.6},s);
+  el("line",{x1:x0,x2:x1,y1:ys(th),y2:ys(th),stroke:"var(--bad)","stroke-dasharray":"4 3"},s);
+  hits.forEach(i=>el("circle",{cx:xs(i),cy:ys(sc[i]),r:4,fill:"var(--warn)"},s));
+  el("text",{x:x1,y:y1+20,"text-anchor":"end"},s).textContent="window start position → · log-odds score (bits)";
+  const real=[12,58],found=real.filter(p=>hits.some(h=>Math.abs(h-p)<=1)).length,fp=hits.filter(h=>!real.some(p=>Math.abs(h-p)<=1)).length,m=$("#scanMsg");
+  if(fp){m.className="callout warn";m.textContent=fp+" random window"+(fp>1?"s score":" scores")+" above "+th+" bits. Across 3 billion bases, even strict thresholds predict millions of sites, most never bound.";}
+  else if(found<2){m.className="callout";m.textContent=found?"The strong site at position 13 is found; the weaker variant at position 59 (two mismatches) falls below the threshold.":"No windows pass. Lower the threshold.";}
+  else{m.className="callout good";m.textContent="Both sites found (positions 13 and 59) with no random hits. The weaker one has mismatches at low-information positions, so it still scores well. Real scanners (FIMO, HOMER) also scan the reverse strand.";}
+}
+$("#scanT").addEventListener("input",renderScan);
+
+/* ---------- Quiz ---------- */
+const QUIZ={
+ ip:[
+  {q:"What is the input control in a ChIP-seq experiment?",o:["A second antibody","Sheared chromatin sequenced without immunoprecipitation","Reads from a knockout cell line","Unmapped reads"],a:1,w:"Input shows background read density: shearing bias, copy number and mappability, without any enrichment."},
+  {q:"A transcription factor ChIP has FRiP = 0.3%. What does that suggest?",o:["Excellent enrichment","Poor enrichment; most reads are background","Too many reads","The genome is small"],a:1,w:"ENCODE expects FRiP ≥ 1% for TFs. 0.3% means the antibody barely enriched bound DNA."}],
+ shift:[
+  {q:"Why do + and − strand reads pile up on opposite sides of a binding site?",o:["The protein binds each strand separately","Single-end reads come from the two ends of each ~200 bp fragment","Sequencing errors","The input control shifts them"],a:1,w:"Each read starts at one fragment end, so the two strands' piles sit about one fragment length apart."},
+  {q:"Strand cross-correlation peaks at a 210 bp shift. What does 210 bp estimate?",o:["Read length","Average fragment length","Peak width","Motif length"],a:1,w:"The strand offset that best aligns the two piles is the typical fragment length."}],
+ peaks:[
+  {q:"A region is amplified 3× in a cancer cell line. Without an input control, what happens?",o:["Nothing","It may be called as a peak because it yields more reads in any library","Peaks there are hidden","The reads fail to align"],a:1,w:"Extra DNA copies mean more reads. The input shows the same excess, so using it as local λ cancels it."},
+  {q:"Why remove ENCODE blacklist regions?",o:["They contain no genes","They give artefactual high signal in nearly all experiments","They are unmappable, so they have no reads","They are always true peaks"],a:1,w:"Satellites, rDNA and similar regions attract reads regardless of antibody, creating false peaks."}],
+ marks:[
+  {q:"Which mark forms broad domains over Polycomb-silenced genes?",o:["H3K4me3","H3K27ac","H3K27me3","CTCF"],a:2,w:"H3K27me3, deposited by PRC2, covers repressed regions in wide domains."},
+  {q:"A peak ranks 12th in replicate 1 and 3,500th in replicate 2. What does IDR make of it?",o:["Highly reproducible","Likely irreproducible, since its ranks disagree","A super-enhancer","A blacklist artefact"],a:1,w:"IDR keeps peaks whose ranks agree between replicates."}],
+ motif:[
+  {q:"In a DNA sequence logo, a position with a single letter 2 bits tall means…",o:["That position is always that base","Two bases are equally likely","The position is unimportant","The motif is on the reverse strand"],a:0,w:"2 bits is the maximum for DNA: one base with probability 1."},
+  {q:"A PWM scan predicts 500,000 strong CTCF sites genome-wide, but ChIP finds ~50,000 bound. Why?",o:["The PWM is wrong","Binding also depends on chromatin accessibility, methylation and cofactors","ChIP misses 90% of sites","Motifs only work in bacteria"],a:1,w:"A good motif is needed but not sufficient. Chromatin context decides which sites are bound in a cell."}]
+};
+let answers=store.get("chip-quiz",{});
+function renderQuiz(){
+  document.querySelectorAll("[data-quiz]").forEach(box=>{
+    const sec=box.dataset.quiz;box.innerHTML='<div class="eyebrow">Checkpoint</div>';
+    QUIZ[sec].forEach((item,qi)=>{
+      const key=sec+qi, ans=answers[key], d=document.createElement("div");d.className="q";
+      d.innerHTML="<p>"+(qi+1)+". "+item.q+"</p>";
+      const opts=document.createElement("div");opts.className="opts";
+      item.o.forEach((o,oi)=>{const b=document.createElement("button");b.type="button";b.className="opt";b.textContent=o;
+        if(ans!=null){b.disabled=true;if(oi===item.a)b.classList.add("right");else if(oi===ans)b.classList.add("wrong");}
+        b.addEventListener("click",()=>{answers[key]=oi;store.set("chip-quiz",answers);renderQuiz();});opts.appendChild(b);});
+      d.appendChild(opts);
+      if(ans!=null){const w=document.createElement("p");w.className="why";w.textContent=(ans===item.a?"Correct. ":"Not quite. ")+item.w;d.appendChild(w);}
+      box.appendChild(d);
+    });
+  });
+  let right=0;for(const sec in QUIZ){let sr=0;QUIZ[sec].forEach((it,qi)=>{if(answers[sec+qi]===it.a){right++;sr++;}});
+    const a=document.querySelector('.rail a[data-sec="'+sec+'"]');if(a)a.classList.toggle("done",sr===QUIZ[sec].length);}
+  $("#scoreNum").textContent=right+" / 10";$("#scoreBar").style.width=(right*10)+"%";
+}
+$("#resetQuiz").addEventListener("click",()=>{answers={};store.set("chip-quiz",answers);renderQuiz();});
+
+if("IntersectionObserver" in window){
+  const links=[...document.querySelectorAll(".rail a")];
+  const io=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting)links.forEach(l=>l.classList.toggle("active",l.dataset.sec===e.target.id));});},{rootMargin:"-40% 0px -55% 0px"});
+  document.querySelectorAll("section.stage[id]").forEach(s=>io.observe(s));
+}
+
+renderIP(); renderShift(); renderPeaks(); renderMarks(); renderRep(); renderMotif(); renderQuiz();
+})();
+</script>
