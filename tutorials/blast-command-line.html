@@ -1,0 +1,793 @@
+<title>BLAST+ on the Command Line</title>
+<meta name="description" content="Bio 116 supplemental tutorial: installing BLAST+, building databases, running and tuning searches, and scripting results, with real outputs.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Literata:opsz,wght@7..72,500;7..72,650&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&display=swap">
+<style>
+
+:root{
+  --bg:#FAF8F9; --panel:#FFFFFF; --panel-2:#F3EEF1; --ink:#1F1A21; --muted:#645B68; --line:#E3DAE0;
+  --heme:#A8173A; --heme-soft:#F7DDE3; --plum:#4C2C63; --plum-soft:#EBE2F1;
+  --r-hyd:#D9E6F7; --r-aro:#E3DAF5; --r-pos:#F8D8DE; --r-neg:#F5E1C4; --r-pol:#D5EEDF; --r-spe:#ECE8D2;
+  --good:#1E6B45; --warn:#8A5A00;
+  --display:"Literata", Georgia, "Times New Roman", serif;
+  --body:"Source Sans 3", "Segoe UI", Arial, sans-serif;
+  --mono:"JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#141015; --panel:#1C171E; --panel-2:#251F28; --ink:#EEE8EF; --muted:#A99EAD; --line:#352D38;
+    --heme:#F2708A; --heme-soft:#4A1E2A; --plum:#C9A9E2; --plum-soft:#33263E;
+    --r-hyd:#1E3350; --r-aro:#33294F; --r-pos:#4C2230; --r-neg:#48341E; --r-pol:#1B3E2D; --r-spe:#383422;
+    --good:#6FD19E; --warn:#E9B45A;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#141015; --panel:#1C171E; --panel-2:#251F28; --ink:#EEE8EF; --muted:#A99EAD; --line:#352D38;
+  --heme:#F2708A; --heme-soft:#4A1E2A; --plum:#C9A9E2; --plum-soft:#33263E;
+  --r-hyd:#1E3350; --r-aro:#33294F; --r-pos:#4C2230; --r-neg:#48341E; --r-pol:#1B3E2D; --r-spe:#383422;
+  --good:#6FD19E; --warn:#E9B45A;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.6;margin:0}
+.wrap{max-width:1180px;margin:0 auto;padding-inline:20px;padding-block:0 64px;display:grid;grid-template-columns:200px minmax(0,1fr);gap:48px}
+@media (max-width:980px){.wrap{grid-template-columns:minmax(0,1fr);gap:0}.toc{display:none}}
+@media (max-width:480px){.wrap{padding-inline:16px}body{font-size:16px}}
+.toc{position:sticky;top:env(safe-area-inset-top,0px);align-self:start;padding-top:40px;font-size:14px}
+.toc b{display:block;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.toc ol{list-style:none;margin:0;padding:0;display:grid;gap:2px;counter-reset:t}
+.toc a{display:block;color:var(--muted);text-decoration:none;padding:4px 8px;border-left:2px solid var(--line);counter-increment:t}
+.toc a::before{content:counter(t) ". ";font-variant-numeric:tabular-nums}
+.toc a:hover,.toc a.on{color:var(--ink);border-left-color:var(--heme)}
+main{min-width:0}
+.prose{max-width:68ch}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;line-height:1.2;font-weight:650}
+h1{font-size:clamp(2.2rem,5vw,3.4rem);margin:0 0 16px;letter-spacing:-.01em}
+h2{font-size:1.75rem;margin:0 0 12px}
+h3{font-size:1.2rem;margin:28px 0 8px;font-weight:500}
+p{margin:0 0 14px}
+a{color:var(--heme)}
+a:focus-visible,button:focus-visible,select:focus-visible,input:focus-visible,summary:focus-visible,td:focus-visible{outline:2px solid var(--heme);outline-offset:2px}
+code,.mono{font-family:var(--mono);font-size:.88em}
+.eyebrow{font-size:13px;letter-spacing:.09em;text-transform:uppercase;color:var(--heme);font-weight:700;margin-bottom:12px}
+header.hero{padding-block:48px 24px;border-bottom:1px solid var(--line);margin-bottom:8px}
+.lede{font-size:1.15rem;max-width:62ch;color:var(--ink)}
+.meta{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0 26px;padding:0;list-style:none}
+.meta li{font-size:14px;padding:4px 10px;border:1px solid var(--line);border-radius:999px;color:var(--muted);background:var(--panel)}
+section{padding-block:40px 8px;border-bottom:1px solid var(--line);scroll-margin-top:12px}
+section:last-of-type{border-bottom:0}
+.snum{font-family:var(--mono);font-size:13px;color:var(--heme);display:block;margin-bottom:6px}
+.goals{margin:0;padding-left:20px}
+.goals li{margin-bottom:4px}
+.note{font-size:15px;color:var(--muted);border-left:3px solid var(--plum);padding:4px 0 4px 14px;margin:18px 0;max-width:68ch}
+.eq{font-family:var(--mono);font-size:15px;background:var(--panel-2);border-radius:6px;padding:14px 16px;overflow-x:auto;white-space:pre;margin:14px 0 18px;max-width:100%;line-height:1.7}
+.tablewrap{overflow-x:auto;margin:16px 0 20px}
+table.data{border-collapse:collapse;font-size:15px;min-width:560px;width:100%}
+table.data th,table.data td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+table.data th{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:700}
+table.data td.num{font-variant-numeric:tabular-nums}
+
+/* tool panels */
+.tool{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px;margin:20px 0 24px}
+.tool-title{font-family:var(--display);font-size:1.05rem;font-weight:650;margin:0 0 12px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:baseline}
+.tool-title small{font-family:var(--body);font-weight:400;font-size:13px;color:var(--muted)}
+.controls{display:flex;flex-wrap:wrap;gap:12px 16px;align-items:flex-end;margin-bottom:14px}
+.field{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted);min-width:0}
+.field.grow{flex:1 1 220px}
+.field input[type=text]{font-family:var(--mono);text-transform:uppercase}
+select,input[type=text],input[type=number]{font:inherit;font-size:15px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:6px 8px;min-width:0;max-width:100%}
+input[type=number]{width:80px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.seg label{padding:6px 12px;font-size:14px;color:var(--ink);cursor:pointer;background:var(--bg)}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg label:has(input:checked){background:var(--plum);color:var(--bg)}
+.seg label:has(input:focus-visible){outline:2px solid var(--heme);outline-offset:-2px}
+button{font:inherit;font-size:14px;font-weight:600;border-radius:6px;padding:7px 14px;cursor:pointer;border:1px solid var(--line);background:var(--bg);color:var(--ink)}
+button.primary{background:var(--heme);border-color:var(--heme);color:var(--bg)}
+button:hover{border-color:var(--heme)}
+.btnrow{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}
+.chips button{font-weight:400;border-radius:999px;padding:4px 12px}
+
+/* stats */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:8px;overflow:hidden;margin:0 0 14px}
+.stat{background:var(--panel);padding:10px 12px}
+.stat b{display:block;font-family:var(--mono);font-size:1.25rem;font-weight:600;font-variant-numeric:tabular-nums}
+.stat span{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+
+/* alignment display */
+.aln{font-family:var(--mono);font-size:14px;line-height:1.45;overflow-x:auto;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:12px 14px;white-space:pre;max-width:100%}
+.aln .blk{margin-bottom:12px}
+.aln .blk:last-child{margin-bottom:0}
+.aln .nm{color:var(--muted)}
+.aln .mid{color:var(--muted)}
+.r{border-radius:2px}
+.c-hyd{background:var(--r-hyd)} .c-aro{background:var(--r-aro)} .c-pos{background:var(--r-pos)}
+.c-neg{background:var(--r-neg)} .c-pol{background:var(--r-pol)} .c-spe{background:var(--r-spe)}
+.plain .r{background:none}
+.key{outline:2px solid var(--heme);outline-offset:-1px;font-weight:600;color:var(--heme)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;color:var(--muted);margin:10px 0 0}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{display:inline-block;width:14px;height:14px;border-radius:3px}
+.check{font-size:14px;margin:0 0 12px;display:flex;flex-wrap:wrap;gap:6px 18px}
+.ok{color:var(--good);font-weight:600}
+.no{color:var(--warn);font-weight:600}
+
+/* DP explorer */
+.dpwrap{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--bg);max-width:100%}
+table.dp{border-collapse:collapse;font-family:var(--mono);font-size:12px;margin:0}
+table.dp th{font-weight:600;color:var(--muted);width:34px;height:30px;text-align:center;background:var(--panel-2)}
+table.dp th.idx{font-size:10px;font-weight:400}
+table.dp td{width:34px;height:30px;text-align:center;border:1px solid var(--line);position:relative;font-variant-numeric:tabular-nums;cursor:pointer;color:var(--ink)}
+table.dp td.empty{color:transparent;cursor:default}
+table.dp td .ar{position:absolute;top:0;left:2px;font-size:8px;color:var(--muted);line-height:1.1}
+table.dp td.src{outline:2px dashed var(--plum);outline-offset:-3px}
+table.dp td.cur{background:var(--plum-soft);font-weight:600}
+table.dp td.path{background:var(--heme-soft);color:var(--heme);font-weight:600}
+table.dp td.sel{outline:2px solid var(--heme);outline-offset:-2px}
+.calc{font-family:var(--mono);font-size:13px;background:var(--panel-2);border-radius:8px;padding:12px 14px;margin:12px 0;white-space:pre;overflow-x:auto;line-height:1.6;min-height:7.5em}
+.calc b{color:var(--heme)}
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px}
+@media (max-width:760px){.two{grid-template-columns:minmax(0,1fr)}}
+
+/* BLOSUM heatmap */
+.hm{border-collapse:collapse;font-family:var(--mono);font-size:11px}
+.hm th{width:26px;height:24px;color:var(--muted);font-weight:600}
+.hm td{width:26px;height:24px;text-align:center;cursor:pointer;font-variant-numeric:tabular-nums;border:1px solid var(--bg)}
+.hm td.sel{outline:2px solid var(--ink);outline-offset:-2px}
+.hm th.hl{color:var(--heme)}
+.readout{font-size:15px;background:var(--panel-2);border-radius:8px;padding:12px 14px;min-height:5.5em}
+.readout .big{font-family:var(--mono);font-size:1.6rem;font-weight:600;color:var(--heme);display:block}
+
+/* plots */
+canvas{display:block;max-width:100%;background:var(--bg);border:1px solid var(--line);border-radius:8px}
+svg text{font-family:var(--body)}
+.hist{width:100%;height:auto;display:block;max-width:100%}
+
+/* identity matrix */
+table.idm{border-collapse:collapse;font-size:14px;min-width:520px}
+table.idm th,table.idm td{padding:8px 10px;text-align:center;border:1px solid var(--line)}
+table.idm th{font-weight:600;color:var(--muted);font-size:13px}
+table.idm td{font-family:var(--mono);font-variant-numeric:tabular-nums}
+
+/* questions */
+details{border:1px solid var(--line);border-radius:8px;background:var(--panel);padding:12px 16px;margin:0 0 10px;max-width:72ch}
+summary{cursor:pointer;font-weight:600}
+details p{margin:10px 0 0}
+.refs{font-size:15px;padding-left:20px}
+.refs li{margin-bottom:6px}
+footer{font-size:13px;color:var(--muted);padding-top:24px}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+
+/* ---- command-line tutorial additions ---- */
+:root{--s1:#2a78d6;--s2:#eb6834;--s3:#1baf7a;--term:#1E1A21;--term-ink:#EDE6EE;--term-dim:#A99EAD;--term-acc:#F2A0B2}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--s1:#3987e5;--s2:#d95926;--s3:#199e70;--term:#0E0B0F;--term-ink:#EDE6EE;--term-dim:#9A8F9E;--term-acc:#F2708A}}
+:root[data-theme="dark"]{--s1:#3987e5;--s2:#d95926;--s3:#199e70;--term:#0E0B0F;--term-ink:#EDE6EE;--term-dim:#9A8F9E;--term-acc:#F2708A}
+.route{list-style:none;margin:20px 0 4px;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+@media (max-width:760px){.route{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}}
+@media (max-width:440px){.route{grid-template-columns:minmax(0,1fr)}}
+.route li{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:4px}
+.route a{color:inherit;text-decoration:none}
+.route .n{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--heme);color:var(--bg);font-family:var(--mono);font-size:13px;font-weight:600}
+.route span.d{font-size:14px;color:var(--muted);line-height:1.45}
+.term{position:relative;background:var(--term);color:var(--term-ink);font-family:var(--mono);font-size:13px;line-height:1.55;border-radius:8px;margin:14px 0;max-width:100%}
+.term pre{margin:0;padding:14px 16px;overflow-x:auto;white-space:pre}
+.term .p{color:var(--term-acc);user-select:none}
+.term .c{color:var(--term-dim)}
+.term .o{color:var(--term-ink);opacity:.86}
+.term .hl{color:var(--term-ink);background:rgba(242,112,138,.22);border-radius:2px}
+.term button.copy{position:absolute;top:8px;right:8px;font-family:var(--body);font-size:12px;padding:3px 10px;border-radius:6px;border:1px solid rgba(255,255,255,.25);background:transparent;color:var(--term-ink);cursor:pointer}
+.term button.copy:hover,.term button.copy:focus-visible{background:rgba(255,255,255,.12)}
+.term .lab{display:block;font-family:var(--body);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--term-dim);padding:10px 16px 0}
+.task{border-left:4px solid var(--heme);background:var(--panel);padding:10px 16px;border-radius:0 8px 8px 0;margin:14px 0}
+.task b.t{display:block;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--heme);margin-bottom:4px}
+.task ol{margin:0;padding-left:20px}
+.muted{color:var(--muted)}
+.ok{color:var(--good);font-weight:700}.miss{color:var(--warn);font-weight:700}
+.colpick{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px}
+.colpick label{display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:12.5px;padding:3px 9px;border:1px solid var(--line);border-radius:999px;background:var(--panel-2);cursor:pointer}
+.colpick input{accent-color:var(--heme);margin:0}
+.colpick label:has(input:checked){border-color:var(--heme);background:var(--heme-soft)}
+table.tsv{border-collapse:collapse;font-family:var(--mono);font-size:12.5px;width:max-content;min-width:100%}
+table.tsv th,table.tsv td{padding:4px 10px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+table.tsv th{font-size:11.5px;color:var(--muted);font-weight:600;background:var(--panel-2)}
+table.tsv td.t,table.tsv th.t{text-align:left}
+table.hm{border-collapse:collapse;font-family:var(--mono);font-size:12.5px}
+table.hm th,table.hm td{padding:6px 8px;text-align:center;border:1px solid var(--line);font-variant-numeric:tabular-nums;white-space:nowrap}
+table.hm th{font-size:11.5px;color:var(--muted);font-weight:600;background:var(--panel-2)}
+table.hm td.self{color:var(--muted);background:var(--panel-2)}
+table.hm td.none{color:var(--warn);font-weight:600}
+.locus{width:100%;height:auto;display:block}
+.segbtn{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;flex-wrap:wrap}
+.segbtn button{border:0;border-right:1px solid var(--line);border-radius:0;background:var(--panel);color:var(--ink);font-family:var(--mono);font-size:13px;padding:6px 12px;cursor:pointer}
+.segbtn button:last-child{border-right:0}
+.segbtn button[aria-pressed="true"]{background:var(--heme);color:var(--bg)}
+.segbtn button:focus-visible{outline:2px solid var(--plum);outline-offset:-2px}
+input[type=range]{accent-color:var(--heme);width:100%}
+</style>
+
+<div class="wrap">
+<nav class="toc" aria-label="Contents">
+  <b>Contents</b>
+  <ol>
+    <li><a href="#why">Why the command line</a></li>
+    <li><a href="#install">Install BLAST+</a></li>
+    <li><a href="#kit">The toolkit</a></li>
+    <li><a href="#files">Get the sequences</a></li>
+    <li><a href="#ex1">Exercise 1: build a database</a></li>
+    <li><a href="#ex2">Exercise 2: first search</a></li>
+    <li><a href="#tab">Tabular output</a></li>
+    <li><a href="#ex3">Exercise 3: options</a></li>
+    <li><a href="#ex4">Exercise 4: nucleotides</a></li>
+    <li><a href="#script">Many queries, scripts</a></li>
+    <li><a href="#ncbidb">NCBI databases, -remote</a></li>
+    <li><a href="#repro">Reproducibility</a></li>
+    <li><a href="#check">Check yourself</a></li>
+    <li><a href="#sources">Sources</a></li>
+  </ol>
+</nav>
+
+<main>
+<header class="hero">
+  <div class="eyebrow">Bio 116 · Supplemental tutorial · Hands-on BLAST+</div>
+  <h1>BLAST on the command line</h1>
+  <p class="lede">The companion tutorial ran BLAST on NCBI's website. Here you run the same programs on your own computer with NCBI's BLAST+ package. You install it, build your own databases, run protein and nucleotide searches, and turn the results into tables a script can read. Every command on this page was run exactly as shown, and every output is real.</p>
+  <ul class="meta">
+    <li>About 60 minutes</li>
+    <li>Needs: a terminal (macOS, Linux, or Windows with WSL); about 10 MB of files</li>
+    <li>Follows: BLAST at NCBI</li>
+  </ul>
+  <ol class="route" aria-label="The four exercises">
+    <li><a href="#ex1"><span class="n">1</span></a><b>Build a database</b><span class="d">Turn the E. coli proteome into a BLAST database.</span></li>
+    <li><a href="#ex2"><span class="n">2</span></a><b>First search</b><span class="d">Does E. coli have a hemoglobin? Six human and plant globins go looking.</span></li>
+    <li><a href="#ex3"><span class="n">3</span></a><b>Options</b><span class="d">See how one real hit responds to database size, matrix and task.</span></li>
+    <li><a href="#ex4"><span class="n">4</span></a><b>Nucleotides</b><span class="d">Map β-globin mRNA onto the human β-globin gene cluster.</span></li>
+  </ol>
+</header>
+
+<section id="why" aria-labelledby="why-h">
+  <span class="snum">1</span>
+  <div class="prose">
+  <h2 id="why-h">Why the command line?</h2>
+  <p>Both routes run the same algorithm. They suit different jobs.</p>
+  </div>
+  <div class="tablewrap"><table class="data">
+    <thead><tr><th></th><th>NCBI website</th><th>BLAST+ on your computer</th></tr></thead>
+    <tbody>
+      <tr><td><b>Best for</b></td><td>A few queries, exploring results by eye</td><td>Hundreds or millions of queries, pipelines</td></tr>
+      <tr><td><b>Databases</b></td><td>NCBI's collections only</td><td>Any FASTA file you have, plus NCBI's downloadable databases</td></tr>
+      <tr><td><b>Unpublished data</b></td><td>Your sequence is sent to NCBI</td><td>Stays on your machine</td></tr>
+      <tr><td><b>Output</b></td><td>Interactive page, downloads</td><td>Text, tables, JSON or XML, ready for scripts</td></tr>
+      <tr><td><b>Reproducibility</b></td><td>Databases change daily</td><td>You control the program version and the database</td></tr>
+      <tr><td><b>Defaults</b></td><td>blastp: E ≤ 0.05, 100 targets, word size 5</td><td>blastp: E ≤ 10, 500 targets, word size 3</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section id="install" aria-labelledby="install-h">
+  <span class="snum">2</span>
+  <div class="prose">
+  <h2 id="install-h">Install BLAST+</h2>
+  <p>Pick one route. Conda works the same way on macOS, Linux and WSL, so use it if you are unsure.</p>
+  </div>
+  <div class="two">
+    <div>
+      <div class="term"><span class="lab">Conda (any system)</span><pre><span class="p">$ </span>conda create -n blast -c conda-forge -c bioconda blast
+<span class="p">$ </span>conda activate blast</pre></div>
+      <div class="term"><span class="lab">macOS with Homebrew</span><pre><span class="p">$ </span>brew install blast</pre></div>
+    </div>
+    <div>
+      <div class="term"><span class="lab">Ubuntu, Debian, WSL</span><pre><span class="p">$ </span>sudo apt install ncbi-blast+</pre></div>
+      <div class="term"><span class="lab">NCBI installers</span><pre><span class="c"># .dmg, .exe and .tar.gz files from</span>
+https://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/LATEST/</pre></div>
+    </div>
+  </div>
+  <div class="prose">
+  <p>Then check that it works:</p>
+  </div>
+  <div class="term"><pre><span class="p">$ </span>blastp -version
+<span class="o">blastp: 2.12.0+
+ Package: blast 2.12.0, build Apr  1 2024 07:01:27</span></pre></div>
+  <div class="prose">
+  <p class="note">The outputs on this page come from BLAST+ 2.12.0, the version Ubuntu 24.04's package manager installs. NCBI's current release is 2.17.0 (July 2025), which is what conda and the NCBI installers give you. The commands are the same. Your numbers should match ours, apart from small differences in speed-related tasks such as <code>blastp-fast</code>. Two Ubuntu/Debian quirks: the database download script is installed as <code>update_blastdb</code> instead of <code>update_blastdb.pl</code>, and <code>rpsblast</code> as <code>rpsblast+</code>.</p>
+  </div>
+</section>
+
+<section id="kit" aria-labelledby="kit-h">
+  <span class="snum">3</span>
+  <div class="prose">
+  <h2 id="kit-h">The toolkit</h2>
+  <p>BLAST+ is a set of separate programs. Each search program is named for its query and database types. Every program prints its full list of options with <code>-help</code>.</p>
+  </div>
+  <div class="tablewrap"><table class="data">
+    <thead><tr><th>Program</th><th>Query</th><th>Database</th><th>Use it to…</th></tr></thead>
+    <tbody>
+      <tr><td><code>blastp</code></td><td>protein</td><td>protein</td><td>find protein homologs</td></tr>
+      <tr><td><code>blastn</code></td><td>DNA</td><td>DNA</td><td>find matching genes, transcripts and genome regions</td></tr>
+      <tr><td><code>blastx</code></td><td>DNA, translated in 6 frames</td><td>protein</td><td>find out what protein a DNA or RNA sequence might encode</td></tr>
+      <tr><td><code>tblastn</code></td><td>protein</td><td>DNA, translated in 6 frames</td><td>find genes (annotated or not) for a protein in a genome</td></tr>
+      <tr><td><code>tblastx</code></td><td>DNA, translated</td><td>DNA, translated</td><td>compare distant DNA at the protein level (slow)</td></tr>
+      <tr><td><code>psiblast</code>, <code>deltablast</code></td><td>protein</td><td>protein</td><td>reach distant homologs with profiles</td></tr>
+      <tr><td><code>makeblastdb</code></td><td colspan="2">FASTA file</td><td>build a BLAST database</td></tr>
+      <tr><td><code>blastdbcmd</code></td><td colspan="2">BLAST database</td><td>describe a database, pull sequences back out</td></tr>
+      <tr><td><code>update_blastdb.pl</code></td><td colspan="2">NCBI server</td><td>download NCBI's prebuilt databases</td></tr>
+      <tr><td><code>blast_formatter</code></td><td colspan="2">saved search (<code>-outfmt 11</code>)</td><td>reformat results without searching again</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section id="files" aria-labelledby="files-h">
+  <span class="snum">4</span>
+  <div class="prose">
+  <h2 id="files-h">Get the sequences</h2>
+  <p>Make a working folder and download five files from NCBI with <code>curl</code>. These links use NCBI's E-utilities <code>efetch</code> service. If you run many downloads, add a one-second pause between them.</p>
+  </div>
+  <div class="term"><button class="copy" type="button">Copy</button><pre><span class="p">$ </span>mkdir blast_lab &amp;&amp; cd blast_lab
+<span class="p">$ </span>E=https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi
+<span class="c"># E. coli K-12 MG1655: every protein, and the genome</span>
+<span class="p">$ </span>curl -s "$E?db=nuccore&amp;id=NC_000913.3&amp;rettype=fasta_cds_aa" &gt; ecoli_k12.faa
+<span class="p">$ </span>curl -s "$E?db=nuccore&amp;id=NC_000913.3&amp;rettype=fasta" &gt; ecoli_k12.fna
+<span class="c"># six globins: human α, β, myoglobin, cytoglobin, neuroglobin; soybean leghemoglobin</span>
+<span class="p">$ </span>curl -s "$E?db=protein&amp;id=P69905,P68871,P02144,Q8WWM9,Q9NPG2,P02238&amp;rettype=fasta" &gt; globins.faa
+<span class="c"># human β-globin mRNA, and the 82 kb β-globin gene cluster</span>
+<span class="p">$ </span>curl -s "$E?db=nuccore&amp;id=NM_000518.5&amp;rettype=fasta" &gt; hbb_mrna.fna
+<span class="p">$ </span>curl -s "$E?db=nuccore&amp;id=NG_000007.3&amp;rettype=fasta" &gt; hbb_locus.fna
+<span class="p">$ </span>grep -c "&gt;" *.f*a
+<span class="o">ecoli_k12.faa:4318
+ecoli_k12.fna:1
+globins.faa:6
+hbb_locus.fna:1
+hbb_mrna.fna:1</span></pre></div>
+  <div class="prose">
+  <h3>Tidy the headers</h3>
+  <p>NCBI's protein-per-gene file has long headers like this:</p>
+  </div>
+  <div class="term"><pre><span class="o">&gt;lcl|NC_000913.3_prot_NP_417047.1_2533 [gene=hmp] [locus_tag=b2552] [db_xref=UniProtKB/Swiss-Prot:P24232] [protein=nitric oxide dioxygenase] [protein_id=NP_417047.1] [location=2685835..2687025] [gbkey=CDS]</span></pre></div>
+  <div class="prose">
+  <p>BLAST uses the first word of a header as the sequence ID and reports it in every result. Short, unique IDs make results much easier to read. This <code>awk</code> script keeps the E. coli locus tag (b0001, b0002, …), gene name and product. Save it as <code>tidy.awk</code>:</p>
+  </div>
+  <div class="term"><button class="copy" type="button">Copy</button><pre><span class="c"># turn NCBI "fasta_cds_aa" headers into  &gt;locus_tag gene product</span>
+/^&gt;/ { match($0, /locus_tag=[^]]*/); id = substr($0, RSTART+10, RLENGTH-10)
+       match($0, /gene=[^]]*/);      g  = substr($0, RSTART+5,  RLENGTH-5)
+       match($0, /protein=[^]]*/);   p  = substr($0, RSTART+8,  RLENGTH-8)
+       if (n[id]++) id = id "_" n[id]          <span class="c"># a few genes encode two products</span>
+       print "&gt;" id " " g " " p; next }
+{ print }</pre></div>
+  <div class="term"><pre><span class="p">$ </span>awk -f tidy.awk ecoli_k12.faa &gt; ecoli.faa
+<span class="p">$ </span>grep hmp ecoli.faa
+<span class="o">&gt;b2552 hmp nitric oxide dioxygenase</span></pre></div>
+  <div class="prose">
+  <p class="note">The <code>if (n[id]++)</code> line is needed. Nine locus tags appear twice in the file. One example is <i>dnaX</i> (b0470), which makes two proteins, τ and γ, through ribosomal frameshifting. <code>makeblastdb -parse_seqids</code> rejects duplicate IDs, so the second copy becomes <code>b0470_2</code>.</p>
+  </div>
+</section>
+
+<section id="ex1" aria-labelledby="ex1-h">
+  <span class="snum">5</span>
+  <div class="prose">
+  <h2 id="ex1-h">Exercise 1: build a database</h2>
+  <p>BLAST does not search FASTA files directly. <code>makeblastdb</code> first converts them into an indexed database.</p>
+  </div>
+  <div class="term"><button class="copy" type="button">Copy</button><pre id="oMakedb"></pre></div>
+  <div class="prose">
+  <ul class="goals">
+    <li><code>-dbtype prot</code> or <code>nucl</code>: what kind of sequences these are.</li>
+    <li><code>-out ecoli</code>: the database name. You pass this name to <code>-db</code> later.</li>
+    <li><code>-title</code>: a readable description printed in reports.</li>
+    <li><code>-parse_seqids</code>: index the IDs, so you can fetch sequences back by name.</li>
+  </ul>
+  <p>The folder now holds about ten files named <code>ecoli.p??</code> (<code>.phr</code> headers, <code>.psq</code> sequences, <code>.pin</code> index, and others). Nucleotide databases use <code>.n??</code>. Keep them together and never edit them. Now ask the database about itself, and pull a sequence back out:</p>
+  </div>
+  <div class="term"><pre id="oInfo"></pre></div>
+  <div class="term"><pre id="oEntry"></pre></div>
+</section>
+
+<section id="ex2" aria-labelledby="ex2-h">
+  <span class="snum">6</span>
+  <div class="prose">
+  <h2 id="ex2-h">Exercise 2: first search</h2>
+  <p><i>E. coli</i> has a globin: the flavohemoglobin Hmp (b2552), a nitric oxide dioxygenase with an N-terminal globin domain. Will human β-globin find it? First pull β-globin out of <code>globins.faa</code>, then search.</p>
+  </div>
+  <div class="term"><button class="copy" type="button">Copy</button><pre><span class="p">$ </span>awk '/^&gt;/{p = /HBB_HUMAN/} p' globins.faa &gt; hbb.faa
+<span class="p">$ </span>blastp -query hbb.faa -db ecoli -out hbb_vs_ecoli.txt
+<span class="p">$ </span>less hbb_vs_ecoli.txt</pre></div>
+  <div class="prose">
+  <p>With no <code>-outfmt</code>, BLAST+ writes the classic pairwise report. This is the middle of it:</p>
+  </div>
+  <div class="term"><pre id="oHbbPair"></pre></div>
+  <div class="task"><b class="t">Read it</b>
+    <ol>
+      <li>The best E-value is 0.50. Nothing is significant. Would you expect four random proteins to score this well by chance in a database of 4,318? (Yes: that is what E = 0.5 to 8.7 means.)</li>
+      <li>Hmp is not in the list at all. β-globin and Hmp's globin domain have drifted too far apart for blastp to connect them at E ≤ 10.</li>
+      <li>The footer lists the gapped λ = 0.267 and K = 0.041 for BLOSUM62 with gap costs 11/1. These are the same constants NCBI's servers printed in the web tutorial.</li>
+    </ol>
+  </div>
+  <div class="prose">
+  <p>Now search with all six globins at once. A FASTA file with several sequences gives several searches in one run. This time ask for a table: <code>-outfmt 6</code>, three hits per query.</p>
+  </div>
+  <div class="term"><button class="copy" type="button">Copy</button><pre id="oAllSix"><span class="p">$ </span>blastp -query globins.faa -db ecoli -outfmt 6 -evalue 10 -max_target_seqs 3
+<span class="o">Warning: [blastp] Examining 5 or more matches is recommended
+sp|P69905.2|HBA_HUMAN	b3946	30.508	59	31	2	81	129	149	207	1.5	25.4
+sp|P69905.2|HBA_HUMAN	b1635	38.462	26	16	0	115	140	118	143	5.9	23.5
+sp|P69905.2|HBA_HUMAN	b2647	22.535	71	50	1	4	74	627	692	6.8	23.9
+sp|P68871.2|HBB_HUMAN	b2184	29.787	47	33	0	57	103	82	128	0.50	27.3
+sp|P68871.2|HBB_HUMAN	b2577	32.143	56	32	2	86	137	240	293	2.4	25.0
+sp|P68871.2|HBB_HUMAN	b1168	27.907	43	31	0	69	111	404	446	5.9	23.9
+sp|P02144.2|MYG_HUMAN	b0628	34.483	58	35	2	28	83	216	272	0.072	29.6
+sp|P02144.2|MYG_HUMAN	b2950	27.368	95	54	3	25	114	87	171	0.66	26.9
+sp|P02144.2|MYG_HUMAN	b0002	28.070	57	33	2	70	123	131	182	2.0	25.4
+sp|Q8WWM9.1|CYGB_HUMAN	b1422	35.294	34	22	0	77	110	73	106	1.6	26.2
+sp|Q8WWM9.1|CYGB_HUMAN	b0145	26.531	49	36	0	8	56	84	132	3.8	24.6
+sp|Q8WWM9.1|CYGB_HUMAN	b2802	36.364	33	20	1	157	188	290	322	9.2	23.9
+</span><span class="hl">sp|Q9NPG2.1|NGB_HUMAN	b2552	22.414	116	76	2	27	142	28	129	6.39e-06	41.6</span><span class="o">
+sp|Q9NPG2.1|NGB_HUMAN	b1581	29.630	54	35	2	84	135	127	179	4.8	24.3
+sp|Q9NPG2.1|NGB_HUMAN	b0575	20.513	39	31	0	10	48	433	471	5.6	24.3
+sp|P02238.2|LGB3_SOYBN	b2877	26.549	113	72	4	24	135	73	175	0.31	27.3
+sp|P02238.2|LGB3_SOYBN	b0757	27.000	100	59	4	37	127	238	332	0.56	26.9
+sp|P02238.2|LGB3_SOYBN	b3515	25.000	84	49	3	11	84	90	169	1.0	26.2</span></pre></div>
+  <div class="prose">
+  <p><b>Only neuroglobin finds Hmp</b>, with E = 6.4 × 10⁻⁶. Every other row is noise with E between 0.07 and 9. Neuroglobin is an ancient branch of the animal globins that has changed slowly, so it has kept more sequence in common with bacterial globins. Here is the alignment:</p>
+  </div>
+  <div class="term"><pre id="oNgbPair"></pre></div>
+  <div class="prose">
+  <p class="note">About the warning: <code>-max_target_seqs</code> is not simply "print the top N". BLAST applies the limit during the search, so a small value can change which hits you get, not only how many. Shah et al. (2019) showed that this misunderstood option had affected published analyses. Use a generous value, or at least 5, and filter afterwards.</p>
+  </div>
+</section>
+
+<section id="tab" aria-labelledby="tab-h">
+  <span class="snum">7</span>
+  <div class="prose">
+  <h2 id="tab-h">Tabular output</h2>
+  <p>For anything beyond reading by eye, use a table. <code>-outfmt 6</code> writes one line per alignment (HSP), with tab-separated columns. <code>-outfmt 7</code> is the same table plus <code>#</code> comment lines that name the columns and count the hits.</p>
+  </div>
+  <div class="term"><pre id="oFmt7"></pre></div>
+  <div class="prose">
+  <p>The twelve default columns are <code>qaccver saccver pident length mismatch gapopen qstart qend sstart send evalue bitscore</code> (keyword <code>std</code>). You can choose your own by listing them in quotes after the 6 or 7. For example, <code>qcovhsp</code> (query coverage) and <code>stitle</code> (the subject's description) are often useful:</p>
+  </div>
+  <div class="term"><pre id="oFmt6c"></pre></div>
+  <div class="tool">
+    <div class="tool-title">Build your own -outfmt <small>real all-against-all output from the six globins</small></div>
+    <div class="colpick" id="colPick" role="group" aria-label="Output columns"></div>
+    <div class="term"><button class="copy" type="button">Copy</button><pre id="colCmd"></pre></div>
+    <div class="tablewrap"><table class="tsv" id="colTable"></table></div>
+    <p class="note" id="colNote" style="margin-bottom:0"></p>
+  </div>
+  <div class="tablewrap"><table class="data">
+    <thead><tr><th>Column</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td><code>pident</code></td><td>percent identical positions over the alignment length (not over the whole query)</td></tr>
+      <tr><td><code>length</code></td><td>alignment length, including gaps</td></tr>
+      <tr><td><code>qstart qend sstart send</code></td><td>where the alignment sits in query and subject (1-based). For DNA, <code>sstart &gt; send</code> means the minus strand.</td></tr>
+      <tr><td><code>evalue bitscore</code></td><td>the significance and the normalized score, as on the web</td></tr>
+      <tr><td><code>qcovhsp</code>, <code>qcovs</code></td><td>percent of the query covered by this alignment, or by all alignments to this subject</td></tr>
+      <tr><td><code>qlen slen</code></td><td>full lengths of query and subject</td></tr>
+      <tr><td><code>stitle</code></td><td>the subject's description line</td></tr>
+      <tr><td><code>staxids sscinames</code></td><td>taxonomy (needs NCBI's <code>taxdb</code> files next to the database)</td></tr>
+    </tbody>
+  </table></div>
+  <div class="prose">
+  <p>Other formats: <code>0</code> pairwise (default), <code>5</code> XML, <code>11</code> ASN.1 archive (reformat later with <code>blast_formatter</code>), <code>15</code> JSON. Write to a file with <code>-out</code>.</p>
+  </div>
+</section>
+
+<section id="ex3" aria-labelledby="ex3-h">
+  <span class="snum">8</span>
+  <div class="prose">
+  <h2 id="ex3-h">Exercise 3: options that change results</h2>
+  <p>The neuroglobin–Hmp hit is a real but distant relationship, which makes it a sensitive test. Rerun the search with one option changed at a time:</p>
+  </div>
+  <div class="term"><button class="copy" type="button">Copy</button><pre><span class="p">$ </span>awk '/^&gt;/{p = /NGB_HUMAN/} p' globins.faa &gt; ngb.faa
+<span class="p">$ </span>blastp -query ngb.faa -db ecoli -outfmt "6 sseqid pident length evalue bitscore" <span class="hl">-matrix BLOSUM45</span></pre></div>
+  <div class="tablewrap"><table class="data">
+    <thead><tr><th>Option added</th><th>Hmp found?</th><th class="num">E-value</th><th class="num">Bits</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td><i>none (defaults)</i></td><td><span class="ok">yes</span></td><td class="num">6.39e-06</td><td class="num">41.6</td><td>BLOSUM62, gaps 11/1, word size 3, composition-based statistics on</td></tr>
+      <tr><td><code>-matrix BLOSUM45</code></td><td><span class="ok">yes</span></td><td class="num">6.21e-06</td><td class="num">40.7</td><td>matrix built from more distant pairs</td></tr>
+      <tr><td><code>-matrix BLOSUM80</code></td><td><span class="ok">yes</span></td><td class="num">2.95e-05</td><td class="num">41.3</td><td>matrix built from closer pairs; slightly weaker here</td></tr>
+      <tr><td><code>-comp_based_stats 0</code></td><td><span class="ok">yes</span></td><td class="num">2.98e-05</td><td class="num">39.7</td><td>turns off composition correction</td></tr>
+      <tr><td><code>-seg yes</code></td><td><span class="ok">yes</span></td><td class="num">6.39e-06</td><td class="num">41.6</td><td>masks low-complexity query regions (none in neuroglobin)</td></tr>
+      <tr><td><code>-word_size 2</code></td><td><span class="ok">yes</span></td><td class="num">6.39e-06</td><td class="num">41.6</td><td>more seeds; no change for this pair</td></tr>
+      <tr><td><code>-task blastp-fast</code></td><td><span class="miss">no</span></td><td class="num">—</td><td class="num">—</td><td>longer words, fewer seeds, faster. No hits at all at E ≤ 10.</td></tr>
+      <tr><td><code>-dbsize 186063409</code></td><td><span class="ok">yes</span></td><td class="num">8.89e-04</td><td class="num">41.6</td><td>computes E as if the database were Swiss-Prot's size</td></tr>
+    </tbody>
+  </table></div>
+  <div class="tool">
+    <div class="tool-title">Same score, different database <small>E grows in proportion to database size</small></div>
+    <div class="controls">
+      <div class="field grow"><label for="dbSlider">Database size (residues): <b id="dbLab"></b></label><input type="range" id="dbSlider" min="0" max="1000" value="0"></div>
+    </div>
+    <div class="readout" id="dbOut" aria-live="polite"></div>
+  </div>
+  <div class="prose">
+  <p>The score of the alignment (41.6 bits) did not change with <code>-dbsize</code>, but its E-value rose 139-fold. Swiss-Prot has 186,063,409 residues and our E. coli database has 1,337,980, a ratio of 139. A hit that is convincing in a small, focused database can drop to borderline in a large one. So always report the database with the E-value.</p>
+  </div>
+</section>
+
+<section id="ex4" aria-labelledby="ex4-h">
+  <span class="snum">9</span>
+  <div class="prose">
+  <h2 id="ex4-h">Exercise 4: nucleotide searches</h2>
+  <h3>blastn: map an mRNA onto its gene cluster</h3>
+  <p>Human β-globin mRNA (NM_000518.5, 628 nt) against the 81,706 bp β-globin cluster (NG_000007.3). For a one-off comparison you do not need a database: <code>-subject</code> takes a FASTA file directly. blastn has several <code>-task</code> modes, and the default <code>megablast</code> is tuned for near-identical matches.</p>
+  </div>
+  <div class="term"><button class="copy" type="button">Copy</button><pre><span class="p">$ </span>for t in megablast dc-megablast blastn; do
+    blastn -task $t -query hbb_mrna.fna -subject hbb_locus.fna -evalue 1e-5 \
+      -outfmt "6 pident length qstart qend sstart send evalue bitscore" &gt; locus_$t.tsv
+  done</pre></div>
+  <div class="tool">
+    <div class="tool-title">Where the mRNA aligns <small>each bar is one HSP; gene positions from the NG_000007.3 record</small></div>
+    <div class="controls"><div class="segbtn" id="taskBtns" role="group" aria-label="blastn task"></div></div>
+    <svg class="locus" id="locusSvg" viewBox="0 0 760 190" role="img" aria-label="Map of the beta-globin gene cluster showing where the beta-globin mRNA aligns"></svg>
+    <div class="tablewrap"><table class="tsv" id="locusTable"></table></div>
+  </div>
+  <div class="prose">
+  <ul class="goals">
+    <li><b>Exons appear as separate hits.</b> The mRNA has no introns, so each exon of the gene aligns on its own. Query positions 1–143, 141–365 and 365–628 are the three exons.</li>
+    <li><b>megablast</b> (word size 28) finds <i>HBB</i> at 100% identity, its close paralog <i>HBD</i> (δ), and one exon of <i>HBE1</i> (ε): 7 HSPs.</li>
+    <li><b>dc-megablast</b> (discontiguous seeds, meant for cross-species comparisons) adds both γ genes (<i>HBG1</i>, <i>HBG2</i>), another ε exon and the pseudogene <i>HBBP1</i>: 15 HSPs.</li>
+    <li><b>blastn</b> (word size 11) also finds the last ε exon: 16 HSPs. Smaller seeds find more distant matches, as with protein word size.</li>
+  </ul>
+  <h3>tblastn: find a gene in a genome</h3>
+  <p>tblastn translates the database in all six reading frames. It finds protein-coding regions even when no one has annotated them. Build a nucleotide database from the E. coli genome and search with neuroglobin:</p>
+  </div>
+  <div class="term"><button class="copy" type="button">Copy</button><pre><span class="p">$ </span>makeblastdb -in ecoli_k12.fna -dbtype nucl -out ecoli_genome -parse_seqids
+<span class="p">$ </span>tblastn -query ngb.faa -db ecoli_genome -evalue 1e-3 \
+    -outfmt "6 qseqid sseqid pident length qstart qend sstart send evalue bitscore"
+<span class="o">sp|Q9NPG2.1|NGB_HUMAN	ref|NC_000913.3|	23.684	114	27	140	2685916	2686215	4.15e-05	39.7</span></pre></div>
+  <div class="prose">
+  <p>Genome positions 2,685,916–2,686,215 fall inside the <i>hmp</i> gene (2,685,835–2,687,025). tblastn found the same globin domain straight from the DNA.</p>
+  <h3>blastx: what does this transcript encode?</h3>
+  <p>blastx works the other way round: it translates a DNA query and searches proteins. Build a small database from the six globins and ask what the β-globin mRNA encodes:</p>
+  </div>
+  <div class="term"><button class="copy" type="button">Copy</button><pre><span class="p">$ </span>makeblastdb -in globins.faa -dbtype prot -out globins -parse_seqids
+<span class="p">$ </span>blastx -query hbb_mrna.fna -db globins -outfmt "6 sseqid pident length qstart qend sstart send evalue bitscore"
+<span class="hl">sp|P68871.2|HBB_HUMAN	100.000	147	51	491	1	147	3.77e-110	301</span><span class="o">
+sp|P68871.2|HBB_HUMAN	29.167	24	428	357	38	61	6.4	14.6
+sp|P69905.2|HBA_HUMAN	43.448	145	60	488	3	141	7.18e-37	115
+sp|Q8WWM9.1|CYGB_HUMAN	28.788	132	72	452	23	154	5.95e-20	72.4
+sp|Q8WWM9.1|CYGB_HUMAN	38.889	18	169	116	171	188	7.1	14.6
+sp|P02238.2|LGB3_SOYBN	83.333	6	570	553	22	27	1.1	16.9
+sp|Q9NPG2.1|NGB_HUMAN	37.500	16	60	107	125	140	1.5	16.5</span></pre></div>
+  <div class="prose">
+  <p>The top line gives the coding region: nucleotides 51–491 translate to all 147 residues of β-globin at 100% identity. Where <code>qstart &gt; qend</code> (for example 428 → 357) the match is on the reverse strand. Those rows are chance hits with E-values around 1 to 7.</p>
+  </div>
+</section>
+
+<section id="script" aria-labelledby="script-h">
+  <span class="snum">10</span>
+  <div class="prose">
+  <h2 id="script-h">Many queries and scripts</h2>
+  <p>A tabular file is easy to process. Here, every globin is searched against every other, and a short Python script picks each protein's best non-self hit.</p>
+  </div>
+  <div class="term"><button class="copy" type="button">Copy</button><pre><span class="p">$ </span>blastp -query globins.faa -db globins -evalue 10 -out allvall.tsv \
+    -outfmt "6 qseqid sseqid pident length evalue bitscore"</pre></div>
+  <div class="tool">
+    <div class="tool-title">All against all <small>best E-value for each query (row) and subject (column); darker = more significant</small></div>
+    <div class="tablewrap"><table class="hm" id="hmTable"></table></div>
+    <p class="note" style="margin-bottom:0">Look for the gaps. β-globin and myoglobin never find each other, in either direction, even though they share a fold and heme-binding histidines. Leghemoglobin → myoglobin is missing too. Also compare mirror cells: α → leghemoglobin and leghemoglobin → α both give E = 0.002, but most pairs differ a little between directions. Composition-based statistics adjust the scores for each query, so a search is not exactly symmetric.</p>
+  </div>
+  <div class="two">
+    <div>
+      <div class="term"><span class="lab">best_hits.py</span><button class="copy" type="button">Copy</button><pre>import csv
+cols = "qseqid sseqid pident length evalue bitscore".split()
+best = {}
+with open("allvall.tsv") as fh:
+    for row in csv.reader(fh, delimiter="\t"):
+        hit = dict(zip(cols, row))
+        if hit["qseqid"] == hit["sseqid"]:
+            continue                                   <span class="c"># skip self-hits</span>
+        q = hit["qseqid"].split("|")[2]                <span class="c"># sp|P68871.2|HBB_HUMAN -&gt; HBB_HUMAN</span>
+        if q not in best or float(hit["bitscore"]) &gt; float(best[q]["bitscore"]):
+            best[q] = hit
+for q, h in best.items():
+    print(f'{q:12s} -&gt; {h["sseqid"].split("|")[2]:12s} {h["pident"]:&gt;7s}% id  E = {h["evalue"]}')</pre></div>
+    </div>
+    <div>
+      <div class="term"><pre><span class="p">$ </span>python3 best_hits.py
+<span class="o">HBA_HUMAN    -&gt; HBB_HUMAN     43.448% id  E = 1.10e-37
+HBB_HUMAN    -&gt; HBA_HUMAN     43.448% id  E = 1.13e-37
+MYG_HUMAN    -&gt; CYGB_HUMAN    28.667% id  E = 4.31e-21
+CYGB_HUMAN   -&gt; MYG_HUMAN     29.412% id  E = 2.01e-22
+NGB_HUMAN    -&gt; CYGB_HUMAN    25.385% id  E = 2.30e-09
+LGB3_SOYBN   -&gt; CYGB_HUMAN    24.812% id  E = 3.85e-06</span></pre></div>
+      <div class="prose"><p>α and β pick each other, as expected. But myoglobin's best hit is cytoglobin, not a hemoglobin, because it never found β-globin at all. The best BLAST hit is not always the closest relative.</p></div>
+    </div>
+  </div>
+  <div class="prose">
+  <h3>Useful habits</h3>
+  <ul class="goals">
+    <li><code>-num_threads 4</code> uses four CPU cores.</li>
+    <li>Loop over files in the shell: <code>for f in *.faa; do blastp -query "$f" -db ecoli -outfmt 6 -out "${f%.faa}.tsv"; done</code></li>
+    <li>Sort a table by bit score, best first: <code>sort -t$'\t' -k12,12gr hits.tsv</code></li>
+    <li>Save the full search once with <code>-outfmt 11</code>, then make any other format with <code>blast_formatter -archive file.asn -outfmt 6</code>.</li>
+    <li>The Python library Biopython can read BLAST XML output (<code>-outfmt 5</code>) with <code>Bio.Blast</code>.</li>
+  </ul>
+  </div>
+</section>
+
+<section id="ncbidb" aria-labelledby="ncbidb-h">
+  <span class="snum">11</span>
+  <div class="prose">
+  <h2 id="ncbidb-h">NCBI's databases, and -remote</h2>
+  <p>You can download NCBI's prebuilt BLAST databases (swissprot, nr, core_nt, refseq_protein, and others) instead of building your own. They are updated regularly and include taxonomy information.</p>
+  </div>
+  <div class="term"><button class="copy" type="button">Copy</button><pre><span class="p">$ </span>update_blastdb.pl --showall                 <span class="c"># list what is available</span>
+<span class="p">$ </span>update_blastdb.pl --decompress swissprot    <span class="c"># download and unpack Swiss-Prot</span>
+<span class="p">$ </span>blastp -query hbb.faa -db swissprot -evalue 0.05 -max_target_seqs 100 -seg yes</pre></div>
+  <div class="prose">
+  <p>The last command uses the settings NCBI's FAQ recommends for reproducing web blastp results. Check the database sizes first. Swiss-Prot is about half a million sequences and fits on a laptop. nr and core_nt are hundreds of gigabytes.</p>
+  <p>Any BLAST+ search program can also send the search to NCBI's servers instead of running locally, by adding <code>-remote</code> and naming an NCBI database:</p>
+  </div>
+  <div class="term"><pre><span class="p">$ </span>blastp -query hbb.faa -db swissprot -remote -outfmt 6</pre></div>
+  <div class="prose">
+  <p class="note">We could not run these three commands in our build environment, which blocks NCBI's download server and the BLAST+ remote service, so no output is shown. A <code>-remote</code> search waits in NCBI's queue like a web search and is meant for occasional use. Scripted searches of <code>nt</code> are sent to core_nt, as the web tutorial explains. For large jobs, download the database and search locally.</p>
+  </div>
+</section>
+
+<section id="repro" aria-labelledby="repro-h">
+  <span class="snum">12</span>
+  <div class="prose">
+  <h2 id="repro-h">Reproducibility checklist</h2>
+  <p>For a lab notebook or a methods section, record:</p>
+  <ol class="goals">
+    <li>The BLAST+ version (<code>blastp -version</code>).</li>
+    <li>The database: source, download date, and what <code>blastdbcmd -db NAME -info</code> prints (sequence count, residues, date).</li>
+    <li>The exact command, including every option. Keep a script, not just notes.</li>
+    <li>Any filtering you did afterwards, such as E-value, coverage or identity cutoffs.</li>
+  </ol>
+  <p>Methods-section example: <i>"Proteins were searched against the E. coli K-12 MG1655 proteome (NC_000913.3; 4,318 sequences, downloaded 25 September 2026) with BLASTP 2.12.0+ (BLOSUM62, gap costs 11/1, conditional compositional score adjustment, E ≤ 10)."</i></p>
+  </div>
+</section>
+
+<section id="check" aria-labelledby="check-h">
+  <span class="snum">13</span>
+  <h2 id="check-h">Check yourself</h2>
+  <details><summary>1. You run <code>blastp -query q.faa -db proteins.faa</code> and get "No alias or index file found". Why?</summary>
+    <p><code>-db</code> needs a BLAST database, not a FASTA file. Run <code>makeblastdb -in proteins.faa -dbtype prot -out proteins</code> first and pass <code>-db proteins</code>. For a quick one-off comparison, <code>-subject proteins.faa</code> also works without a database.</p></details>
+  <details><summary>2. The same command gives more hits on your laptop than a classmate gets on the NCBI website. Is one of you wrong?</summary>
+    <p>Probably not. The defaults differ: the command line reports up to 500 hits with E ≤ 10, the web up to 100 with E ≤ 0.05, and word sizes differ too. The databases may also differ. Set the options explicitly on both.</p></details>
+  <details><summary>3. Human β-globin found nothing in E. coli, but neuroglobin found Hmp. Does E. coli lack a β-globin homolog?</summary>
+    <p>No. Hmp's globin domain is homologous to all animal globins, β-globin included. Neuroglobin just kept enough similarity for blastp to detect it. A missing BLAST hit is not evidence of absence. A profile method (PSI-BLAST, HMMER) or a structure comparison can find what pairwise BLAST misses.</p></details>
+  <details><summary>4. A hit has E = 6 × 10⁻⁶ in your E. coli database. A reviewer asks for its significance against Swiss-Prot. Do you need to rerun the search?</summary>
+    <p>To see which other hits appear, yes. For this hit alone, <code>-dbsize</code> or the ratio of database sizes gives a good estimate. Swiss-Prot is 139 times larger, so E ≈ 9 × 10⁻⁴, still significant but far less striking.</p></details>
+  <details><summary>5. In <code>-outfmt 6</code> output from blastn, a row has <code>sstart</code> 4,500 and <code>send</code> 3,900. What does that mean?</summary>
+    <p>The query matches the minus (reverse-complement) strand of the subject, between positions 3,900 and 4,500.</p></details>
+  <details><summary>6. Why did the β-globin mRNA produce three separate alignments to the <i>HBB</i> gene instead of one?</summary>
+    <p>The gene has two introns. The mRNA matches the three exons, and BLAST reports each as its own HSP because the intron sequence in between is absent from the query. Gap penalties would make a single alignment across a 100 to 900 nt intron score worse than three separate ones.</p></details>
+  <details><summary>7. Why keep <code>-max_target_seqs</code> at 5 or more, even if you only want the best hit?</summary>
+    <p>The limit is applied during the search, not after. With very small values, the hits BLAST keeps are not guaranteed to be the best ones overall. Ask for more and take the top one yourself.</p></details>
+</section>
+
+<section id="sources" aria-labelledby="sources-h">
+  <span class="snum">14</span>
+  <h2 id="sources-h">Sources</h2>
+  <ul class="goals">
+    <li>All commands were run on 25 September 2026 with BLAST+ 2.12.0 (Ubuntu 24.04 package <code>ncbi-blast+</code>). Program options and defaults are from its <code>-help</code> output.</li>
+    <li>Sequences downloaded from NCBI on 25 September 2026: NC_000913.3 (genome and CDS translations), NG_000007.3, NM_000518.5, and UniProtKB/Swiss-Prot entries P69905, P68871, P02144, Q8WWM9, Q9NPG2, P02238. Gene coordinates are from the NG_000007.3 and NC_000913.3 annotations.</li>
+    <li><a href="https://blast.ncbi.nlm.nih.gov/doc/blast-help/downloadblastdata.html" target="_blank" rel="noopener">NCBI: Download BLAST software and databases</a>; <a href="https://blast.ncbi.nlm.nih.gov/doc/blast-news/2025-BLAST-News.html" target="_blank" rel="noopener">BLAST News 2025</a> (BLAST+ 2.17.0); <a href="https://www.ncbi.nlm.nih.gov/books/NBK279690/" target="_blank" rel="noopener">BLAST+ user manual</a>; <a href="https://blast.ncbi.nlm.nih.gov/doc/blast-help/FAQ.html" target="_blank" rel="noopener">BLAST FAQ</a>.</li>
+    <li>Camacho C, et al. (2009). BLAST+: architecture and applications. <i>BMC Bioinformatics</i> 10:421. <a href="https://doi.org/10.1186/1471-2105-10-421" target="_blank" rel="noopener">doi:10.1186/1471-2105-10-421</a></li>
+    <li>Shah N, Nute MG, Warnow T, Pop M (2019). Misunderstood parameter of NCBI BLAST impacts the correctness of bioinformatics workflows. <i>Bioinformatics</i> 35:1613–1614. <a href="https://doi.org/10.1093/bioinformatics/bty833" target="_blank" rel="noopener">doi:10.1093/bioinformatics/bty833</a>. NCBI's reply: Madden TL, Busby B, Ye J (2019), <a href="https://academic.oup.com/bioinformatics/article/35/15/2699/5259186" target="_blank" rel="noopener"><i>Bioinformatics</i> 35:2699–2700</a>.</li>
+    <li>Altschul SF, et al. (1997). Gapped BLAST and PSI-BLAST: a new generation of protein database search programs. <i>Nucleic Acids Res</i> 25:3389–3402. <a href="https://doi.org/10.1093/nar/25.17.3389" target="_blank" rel="noopener">doi:10.1093/nar/25.17.3389</a></li>
+  </ul>
+  <footer>Bio 116 · Supplemental tutorial. Program output is reproduced verbatim except that long working-directory paths were shortened. This page is not affiliated with NCBI.</footer>
+</section>
+</main>
+</div>
+
+<script>
+"use strict";
+const DATA = {"makedb": "$ makeblastdb -in ecoli.faa -dbtype prot -out ecoli -title \"E. coli K-12 MG1655 proteins\" -parse_seqids\n\nBuilding a new DB, current time: 09/25/2026 17:24:13\nNew DB name:   ecoli\nNew DB title:  E. coli K-12 MG1655 proteins\nSequence type: Protein\nKeep MBits: T\nMaximum file size: 1000000000B\nAdding sequences from FASTA; added 4318 sequences in 0.161539 seconds.", "info": "$ blastdbcmd -db ecoli -info\nDatabase: E. coli K-12 MG1655 proteins\n\t4,318 sequences; 1,337,980 total residues\n\nDate: Sep 25, 2026  5:24 PM\tLongest sequence: 2,339 residues\n\nBLASTDB Version: 5\n\nVolumes:\n\tecoli", "entry": "$ blastdbcmd -db ecoli -entry b2552\n>b2552 hmp nitric oxide dioxygenase\nMLDAQTIATVKATIPLLVETGPKLTAHFYDRMFTHNPELKEIFNMSNQRNGDQREALFNAIAAYASNIENLPALLPAVEK\nIAQKHTSFQIKPEQYNIVGEHLLATLDEMFSPGQEVLDAWGKAYGVLANVFINREAEIYNENASKAGGWEGTRDFRIVAK\nTPRSALITSFELEPVDGGAVAEYRPGQYLGVWLKPEGFPHQEIRQYSLTRKPDGKGYRIAVKREEGGQVSNWLHNHANVG\nDVVKLVAPAGDFFMAVADDTPVTLISAGVGQTPMLAMLDTLAKAGHTAQVNWFHAAENGDVHAFADEVKELGQSLPRFTA\nHTWYRQPSEADRAKGQFDSEGLMDLSKLEGAFSDPTMQFYLCGPVGFMQFTAKQLVDLGVKQENIHYECFGPHKVL", "hbb_pair": "Database: E. coli K-12 MG1655 proteins\n           4,318 sequences; 1,337,980 total letters\n\n\n\nQuery= sp|P68871.2|HBB_HUMAN RecName: Full=Hemoglobin subunit beta;\nAltName: Full=Beta-globin; AltName: Full=Hemoglobin beta chain;\nContains: RecName: Full=LVV-hemorphin-7; Contains: RecName:\nFull=Spinorphin\n\nLength=147\n                                                                      Score     E\nSequences producing significant alignments:                          (Bits)  Value\n\nb2184 radD DNA repair helicase RadD                                   27.3    0.50 \nb2577 yfiE putative LysR-type DNA-binding transcriptional regulat...  25.0    2.4  \nb1168 pdeG putative cyclic di-GMP phosphodiesterase PdeG              23.9    5.9  \nb3536 bcsE c-di-GMP-binding protein BcsE                              23.5    8.7  \n\n\n>b2184 radD DNA repair helicase RadD\nLength=586\n\n Score = 27.3 bits (59),  Expect = 0.50, Method: Composition-based stats.\n Identities = 14/47 (30%), Positives = 24/47 (51%), Gaps = 0/47 (0%)\n\nQuery  57   GNPKVKAHGKKVLGAFSDGLAHLDNLKGTFATLSELHCDKLHVDPEN  103\n            G  + ++HGK V G+      +LD  +G F+ L    C ++  D E+\nSbjct  82   GLKRKESHGKVVFGSVQSVARNLDAFQGEFSLLIVDECHRIGDDEES  128\n\n\n>b2577 yfiE putative LysR-type DNA-binding transcriptional regulator \nYfiE\nLength=293\n\n Score = 25.0 bits (53),  Expect = 2.4, Method: Compositional matrix adjust.\n Identities = 18/56 (32%), Positives = 24/56 (43%), Gaps = 6/56 (11%)\n\nQuery  86   FATLSELHCDKLHVDPENFRLLGNVLVCVLAHHFGKEFTPP----VQAAYQKVVAG  137\n            FA   EL C +L   P  F      +  + AHH GK  +P     +Q   +  VAG\nSbjct  240  FAVAKELECGELIELP--FGEQSQTITAMCAHHAGKAVSPAMHTFIQCVEESFVAG  293\n\n\n>b1168 pdeG putative cyclic di-GMP phosphodiesterase PdeG\nLength=507\n\n Score = 23.9 bits (50),  Expect = 5.9, Method: Composition-based stats.\n Identities = 12/43 (28%), Positives = 22/43 (51%), Gaps = 0/43 (0%)\n\nQuery  69   LGAFSDGLAHLDNLKGTFATLSELHCDKLHVDPENFRLLGNVL  111\n             G    GL++L +L   +  +      +++ DPE+ R+L  VL\nSbjct  404  FGTGYSGLSYLHDLHIDYIKIDHSFVGRVNADPESTRILDCVL  446\n\n\n>b3536 bcsE c-di-GMP-binding protein BcsE\nLength=523\n\n Score = 23.5 bits (49),  Expect = 8.7, Method: Composition-based stats.\n Identities = 10/18 (56%), Positives = 12/18 (67%), Gaps = 0/18 (0%)\n\nQuery  55   VMGNPKVKAHGKKVLGAF  72\n            +M NP + AHGK VL A \nSbjct  379  MMNNPLLPAHGKGVLVAL  396\n\n\n\nLambda      K        H        a         alpha\n   0.320    0.137    0.422    0.792     4.96 \n\nGapped\nLambda      K        H        a         alpha    sigma\n   0.267   0.0410    0.140     1.90     42.6     43.6 \n\nEffective search space used: 73017360\n\n\n  Database: E. coli K-12 MG1655 proteins\n    Posted date:  Sep 25, 2026  5:24 PM\n  Number of letters in database: 1,337,980\n  Number of sequences in database:  4,318\n\n\n\nMatrix: BLOSUM62\nGap Penalties: Existence: 11, Extension: 1\nNeighboring words threshold: 11\nWindow for multiple hits: 40", "ngb_pair": "Query= sp|Q9NPG2.1|NGB_HUMAN RecName: Full=Neuroglobin; AltName:\nFull=Nitrite reductase\n\nLength=151\n                                                                      Score     E\nSequences producing significant alignments:                          (Bits)  Value\n\nb2552 hmp nitric oxide dioxygenase                                    41.6    6e-06\n\n\n>b2552 hmp nitric oxide dioxygenase\nLength=396\n\n Score = 41.6 bits (96),  Expect = 6e-06, Method: Compositional matrix adjust.\n Identities = 26/116 (22%), Positives = 50/116 (43%), Gaps = 14/116 (12%)\n\nQuery  27   LFARLFALEPDLLPLFQYNCRQFSSPEDCLSSPEFLDHIRKVMLVIDAAVTNVEDLSSLE  86\n             + R+F   P+L  +F  + ++     + L +             I A  +N+E+L +L \nSbjct  28   FYDRMFTHNPELKEIFNMSNQRNGDQREALFN------------AIAAYASNIENLPALL  75\n\nQuery  87   EYLASLGRKHRAVGVKLSSFSTVGESLLYMLEKCLGPAFTPATRAAWSQLYGAVVQ  142\n              +  + +KH +  +K   ++ VGE LL  L++   P        AW + YG +  \nSbjct  76   PAVEKIAQKHTSFQIKPEQYNIVGEHLLATLDEMFSPG--QEVLDAWGKAYGVLAN  129\n\n\n\nLambda      K        H        a         alpha\n   0.320    0.134    0.404    0.792     4.96 \n\nGapped\nLambda      K        H        a         alpha    sigma\n   0.267   0.0410    0.140     1.90     42.6     43.6 \n\nEffective search space used: 75735900\n\n\n  Database: E. coli K-12 MG1655 proteins\n    Posted date:  Sep 25, 2026  5:24 PM\n  Number of letters in database: 1,337,980\n  Number of sequences in database:  4,318\n\n\n\nMatrix: BLOSUM62\nGap Penalties: Existence: 11, Extension: 1\nNeighboring words threshold: 11\nWindow for multiple hits: 40", "fmt7": "$ blastp -query ngb.faa -db ecoli -outfmt 7 -evalue 1\n# BLASTP 2.12.0+\n# Query: sp|Q9NPG2.1|NGB_HUMAN RecName: Full=Neuroglobin; AltName: Full=Nitrite reductase\n# Database: ecoli\n# Fields: query acc.ver, subject acc.ver, % identity, alignment length, mismatches, gap opens, q. start, q. end, s. start, s. end, evalue, bit score\n# 1 hits found\nsp|Q9NPG2.1|NGB_HUMAN\tb2552\t22.414\t116\t76\t2\t27\t142\t28\t129\t6.39e-06\t41.6\n# BLAST processed 1 queries", "fmt6c": "$ blastp -query ngb.faa -db ecoli -outfmt \"6 sseqid pident length qcovhsp evalue bitscore stitle\" -evalue 1\nb2552\t22.414\t116\t77\t6.39e-06\t41.6\thmp nitric oxide dioxygenase", "py": null, "rich": [["sp|P69905.2|HBA_HUMAN", "sp|P69905.2|HBA_HUMAN", "100.000", "142", "0", "0", "1", "142", "1", "142", "9.93e-106", "286", "142", "142", "100", "142", "142", "100.00", "0"], ["sp|P69905.2|HBA_HUMAN", "sp|P68871.2|HBB_HUMAN", "43.448", "145", "74", "3", "3", "141", "4", "146", "1.10e-37", "114", "142", "147", "98", "63", "88", "60.69", "8"], ["sp|P69905.2|HBA_HUMAN", "sp|Q8WWM9.1|CYGB_HUMAN", "28.082", "146", "96", "2", "6", "142", "22", "167", "1.81e-19", "68.9", "142", "190", "96", "41", "73", "50.00", "9"], ["sp|P69905.2|HBA_HUMAN", "sp|P02144.2|MYG_HUMAN", "27.517", "149", "100", "3", "1", "142", "1", "148", "4.50e-13", "51.2", "142", "154", "100", "41", "62", "41.61", "8"], ["sp|P69905.2|HBA_HUMAN", "sp|Q9NPG2.1|NGB_HUMAN", "23.944", "142", "95", "4", "11", "141", "9", "148", "1.42e-05", "30.8", "142", "151", "92", "34", "57", "40.14", "13"], ["sp|P69905.2|HBA_HUMAN", "sp|Q9NPG2.1|NGB_HUMAN", "34.615", "26", "11", "1", "2", "27", "120", "139", "0.58", "16.9", "142", "151", "18", "9", "12", "46.15", "6"], ["sp|P69905.2|HBA_HUMAN", "sp|P02238.2|LGB3_SOYBN", "34.328", "67", "26", "3", "47", "112", "67", "116", "0.002", "24.3", "142", "144", "46", "23", "28", "41.79", "18"], ["sp|P68871.2|HBB_HUMAN", "sp|P68871.2|HBB_HUMAN", "100.000", "147", "0", "0", "1", "147", "1", "147", "2.91e-111", "301", "147", "147", "100", "147", "147", "100.00", "0"], ["sp|P68871.2|HBB_HUMAN", "sp|P69905.2|HBA_HUMAN", "43.448", "145", "74", "3", "4", "146", "3", "141", "1.13e-37", "114", "147", "142", "97", "63", "88", "60.69", "8"], ["sp|P68871.2|HBB_HUMAN", "sp|Q8WWM9.1|CYGB_HUMAN", "28.788", "132", "89", "2", "8", "134", "23", "154", "8.18e-21", "72.8", "147", "190", "86", "38", "71", "53.79", "5"], ["sp|P68871.2|HBB_HUMAN", "sp|Q9NPG2.1|NGB_HUMAN", "23.448", "145", "104", "4", "8", "146", "5", "148", "2.49e-08", "38.5", "147", "151", "95", "34", "62", "42.76", "7"], ["sp|P68871.2|HBB_HUMAN", "sp|Q9NPG2.1|NGB_HUMAN", "37.500", "16", "10", "0", "4", "19", "125", "140", "1.1", "16.2", "147", "151", "11", "6", "10", "62.50", "0"], ["sp|P02144.2|MYG_HUMAN", "sp|P02144.2|MYG_HUMAN", "100.000", "154", "0", "0", "1", "154", "1", "154", "1.18e-115", "312", "154", "154", "100", "154", "154", "100.00", "0"], ["sp|P02144.2|MYG_HUMAN", "sp|Q8WWM9.1|CYGB_HUMAN", "28.667", "150", "104", "1", "6", "152", "22", "171", "4.31e-21", "73.6", "154", "190", "95", "43", "75", "50.00", "3"], ["sp|P02144.2|MYG_HUMAN", "sp|P69905.2|HBA_HUMAN", "27.517", "149", "100", "3", "1", "148", "1", "142", "4.88e-13", "51.2", "154", "142", "96", "41", "62", "41.61", "8"], ["sp|P02144.2|MYG_HUMAN", "sp|Q9NPG2.1|NGB_HUMAN", "23.529", "68", "51", "1", "7", "73", "5", "72", "0.002", "24.6", "154", "151", "44", "16", "27", "39.71", "1"], ["sp|Q8WWM9.1|CYGB_HUMAN", "sp|Q8WWM9.1|CYGB_HUMAN", "100.000", "190", "0", "0", "1", "190", "1", "190", "3.68e-146", "392", "190", "190", "100", "190", "190", "100.00", "0"], ["sp|Q8WWM9.1|CYGB_HUMAN", "sp|P02144.2|MYG_HUMAN", "29.412", "153", "105", "1", "19", "171", "3", "152", "2.01e-22", "77.4", "190", "154", "81", "45", "78", "50.98", "3"], ["sp|Q8WWM9.1|CYGB_HUMAN", "sp|P68871.2|HBB_HUMAN", "28.467", "137", "93", "2", "18", "154", "3", "134", "4.59e-21", "73.6", "190", "147", "72", "39", "73", "53.28", "5"], ["sp|Q8WWM9.1|CYGB_HUMAN", "sp|P69905.2|HBA_HUMAN", "28.859", "149", "97", "2", "19", "167", "3", "142", "2.83e-20", "71.6", "190", "142", "78", "43", "75", "50.34", "9"], ["sp|Q8WWM9.1|CYGB_HUMAN", "sp|Q9NPG2.1|NGB_HUMAN", "25.385", "130", "87", "4", "42", "166", "24", "148", "2.22e-09", "42.4", "190", "151", "66", "33", "56", "43.08", "10"], ["sp|Q8WWM9.1|CYGB_HUMAN", "sp|P02238.2|LGB3_SOYBN", "23.333", "150", "105", "4", "19", "168", "4", "143", "2.84e-06", "33.1", "190", "144", "79", "35", "57", "38.00", "10"], ["sp|Q9NPG2.1|NGB_HUMAN", "sp|Q9NPG2.1|NGB_HUMAN", "100.000", "151", "0", "0", "1", "151", "1", "151", "9.29e-115", "310", "151", "151", "100", "151", "151", "100.00", "0"], ["sp|Q9NPG2.1|NGB_HUMAN", "sp|Q8WWM9.1|CYGB_HUMAN", "25.385", "130", "87", "4", "24", "148", "42", "166", "2.30e-09", "42.0", "151", "190", "83", "33", "56", "43.08", "10"], ["sp|Q9NPG2.1|NGB_HUMAN", "sp|P68871.2|HBB_HUMAN", "23.448", "145", "104", "4", "5", "148", "8", "146", "2.56e-08", "38.5", "151", "147", "95", "34", "62", "42.76", "7"], ["sp|Q9NPG2.1|NGB_HUMAN", "sp|P68871.2|HBB_HUMAN", "37.500", "16", "10", "0", "125", "140", "4", "19", "1.2", "16.2", "151", "147", "11", "6", "10", "62.50", "0"], ["sp|Q9NPG2.1|NGB_HUMAN", "sp|P69905.2|HBA_HUMAN", "23.944", "142", "95", "4", "9", "148", "11", "141", "1.51e-05", "30.8", "151", "142", "93", "34", "57", "40.14", "13"], ["sp|Q9NPG2.1|NGB_HUMAN", "sp|P69905.2|HBA_HUMAN", "34.615", "26", "11", "1", "120", "139", "2", "27", "0.62", "16.9", "151", "142", "13", "9", "12", "46.15", "6"], ["sp|Q9NPG2.1|NGB_HUMAN", "sp|P02144.2|MYG_HUMAN", "23.529", "68", "51", "1", "5", "72", "7", "73", "0.002", "24.6", "151", "154", "45", "16", "27", "39.71", "1"], ["sp|Q9NPG2.1|NGB_HUMAN", "sp|P02238.2|LGB3_SOYBN", "20.833", "144", "89", "4", "8", "149", "11", "131", "0.008", "22.7", "151", "144", "94", "30", "53", "36.81", "25"], ["sp|P02238.2|LGB3_SOYBN", "sp|P02238.2|LGB3_SOYBN", "100.000", "144", "0", "0", "1", "144", "1", "144", "1.89e-105", "286", "144", "144", "100", "144", "144", "100.00", "0"], ["sp|P02238.2|LGB3_SOYBN", "sp|Q8WWM9.1|CYGB_HUMAN", "24.812", "133", "90", "4", "21", "143", "36", "168", "3.85e-06", "32.3", "144", "190", "85", "33", "51", "38.35", "10"], ["sp|P02238.2|LGB3_SOYBN", "sp|P69905.2|HBA_HUMAN", "34.328", "67", "26", "3", "67", "116", "47", "112", "0.002", "24.3", "144", "142", "35", "23", "28", "41.79", "18"], ["sp|P02238.2|LGB3_SOYBN", "sp|Q9NPG2.1|NGB_HUMAN", "20.833", "144", "89", "4", "11", "131", "8", "149", "0.008", "22.7", "144", "151", "84", "30", "53", "36.81", "25"]], "allvall": [["sp|P69905.2|HBA_HUMAN", "sp|P69905.2|HBA_HUMAN", "100.000", "142", "9.93e-106", "286"], ["sp|P69905.2|HBA_HUMAN", "sp|P68871.2|HBB_HUMAN", "43.448", "145", "1.10e-37", "114"], ["sp|P69905.2|HBA_HUMAN", "sp|Q8WWM9.1|CYGB_HUMAN", "28.082", "146", "1.81e-19", "68.9"], ["sp|P69905.2|HBA_HUMAN", "sp|P02144.2|MYG_HUMAN", "27.517", "149", "4.50e-13", "51.2"], ["sp|P69905.2|HBA_HUMAN", "sp|Q9NPG2.1|NGB_HUMAN", "23.944", "142", "1.42e-05", "30.8"], ["sp|P69905.2|HBA_HUMAN", "sp|Q9NPG2.1|NGB_HUMAN", "34.615", "26", "0.58", "16.9"], ["sp|P69905.2|HBA_HUMAN", "sp|P02238.2|LGB3_SOYBN", "34.328", "67", "0.002", "24.3"], ["sp|P68871.2|HBB_HUMAN", "sp|P68871.2|HBB_HUMAN", "100.000", "147", "2.91e-111", "301"], ["sp|P68871.2|HBB_HUMAN", "sp|P69905.2|HBA_HUMAN", "43.448", "145", "1.13e-37", "114"], ["sp|P68871.2|HBB_HUMAN", "sp|Q8WWM9.1|CYGB_HUMAN", "28.788", "132", "8.18e-21", "72.8"], ["sp|P68871.2|HBB_HUMAN", "sp|Q9NPG2.1|NGB_HUMAN", "23.448", "145", "2.49e-08", "38.5"], ["sp|P68871.2|HBB_HUMAN", "sp|Q9NPG2.1|NGB_HUMAN", "37.500", "16", "1.1", "16.2"], ["sp|P02144.2|MYG_HUMAN", "sp|P02144.2|MYG_HUMAN", "100.000", "154", "1.18e-115", "312"], ["sp|P02144.2|MYG_HUMAN", "sp|Q8WWM9.1|CYGB_HUMAN", "28.667", "150", "4.31e-21", "73.6"], ["sp|P02144.2|MYG_HUMAN", "sp|P69905.2|HBA_HUMAN", "27.517", "149", "4.88e-13", "51.2"], ["sp|P02144.2|MYG_HUMAN", "sp|Q9NPG2.1|NGB_HUMAN", "23.529", "68", "0.002", "24.6"], ["sp|Q8WWM9.1|CYGB_HUMAN", "sp|Q8WWM9.1|CYGB_HUMAN", "100.000", "190", "3.68e-146", "392"], ["sp|Q8WWM9.1|CYGB_HUMAN", "sp|P02144.2|MYG_HUMAN", "29.412", "153", "2.01e-22", "77.4"], ["sp|Q8WWM9.1|CYGB_HUMAN", "sp|P68871.2|HBB_HUMAN", "28.467", "137", "4.59e-21", "73.6"], ["sp|Q8WWM9.1|CYGB_HUMAN", "sp|P69905.2|HBA_HUMAN", "28.859", "149", "2.83e-20", "71.6"], ["sp|Q8WWM9.1|CYGB_HUMAN", "sp|Q9NPG2.1|NGB_HUMAN", "25.385", "130", "2.22e-09", "42.4"], ["sp|Q8WWM9.1|CYGB_HUMAN", "sp|P02238.2|LGB3_SOYBN", "23.333", "150", "2.84e-06", "33.1"], ["sp|Q9NPG2.1|NGB_HUMAN", "sp|Q9NPG2.1|NGB_HUMAN", "100.000", "151", "9.29e-115", "310"], ["sp|Q9NPG2.1|NGB_HUMAN", "sp|Q8WWM9.1|CYGB_HUMAN", "25.385", "130", "2.30e-09", "42.0"], ["sp|Q9NPG2.1|NGB_HUMAN", "sp|P68871.2|HBB_HUMAN", "23.448", "145", "2.56e-08", "38.5"], ["sp|Q9NPG2.1|NGB_HUMAN", "sp|P68871.2|HBB_HUMAN", "37.500", "16", "1.2", "16.2"], ["sp|Q9NPG2.1|NGB_HUMAN", "sp|P69905.2|HBA_HUMAN", "23.944", "142", "1.51e-05", "30.8"], ["sp|Q9NPG2.1|NGB_HUMAN", "sp|P69905.2|HBA_HUMAN", "34.615", "26", "0.62", "16.9"], ["sp|Q9NPG2.1|NGB_HUMAN", "sp|P02144.2|MYG_HUMAN", "23.529", "68", "0.002", "24.6"], ["sp|Q9NPG2.1|NGB_HUMAN", "sp|P02238.2|LGB3_SOYBN", "20.833", "144", "0.008", "22.7"], ["sp|P02238.2|LGB3_SOYBN", "sp|P02238.2|LGB3_SOYBN", "100.000", "144", "1.89e-105", "286"], ["sp|P02238.2|LGB3_SOYBN", "sp|Q8WWM9.1|CYGB_HUMAN", "24.812", "133", "3.85e-06", "32.3"], ["sp|P02238.2|LGB3_SOYBN", "sp|P69905.2|HBA_HUMAN", "34.328", "67", "0.002", "24.3"], ["sp|P02238.2|LGB3_SOYBN", "sp|Q9NPG2.1|NGB_HUMAN", "20.833", "144", "0.008", "22.7"]]};
+const esc = s => String(s).replace(/[&<>]/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;"}[c]));
+/* terminal blocks: first line is the command */
+function termFill(id, text) {
+  const lines = text.split("\n"); let out = "";
+  lines.forEach((l, i) => { out += l.startsWith("$ ") ? `<span class="p">$ </span>${esc(l.slice(2))}` : `<span class="o">${esc(l)}</span>`; if (i < lines.length - 1) out += "\n"; });
+  document.getElementById(id).innerHTML = out;
+}
+termFill("oMakedb", DATA.makedb); termFill("oInfo", DATA.info); termFill("oEntry", DATA.entry);
+termFill("oFmt7", DATA.fmt7); termFill("oFmt6c", DATA.fmt6c);
+(() => {
+  const t = DATA.hbb_pair, a = t.indexOf("Query="), b = t.indexOf(">b2577");
+  document.getElementById("oHbbPair").innerHTML = `<span class="o">${esc(t.slice(a, b).trimEnd())}\n\n[… three more alignments …]\n\n${esc(t.slice(t.indexOf("Lambda")).split("\n").slice(0, 8).join("\n"))}</span>`;
+  const n = DATA.ngb_pair, c = n.indexOf(">b2552"), d = n.indexOf("Lambda");
+  document.getElementById("oNgbPair").innerHTML = `<span class="o">${esc(n.slice(c, d).trimEnd())}</span>`;
+})();
+/* copy buttons */
+document.querySelectorAll(".term button.copy").forEach(btn => btn.addEventListener("click", () => {
+  const pre = btn.parentElement.querySelector("pre");
+  const txt = [...pre.childNodes].filter(n => !(n.nodeType === 1 && (n.classList.contains("p") || n.classList.contains("o")))).map(n => n.textContent).join("").split("\n").map(l => l.trimEnd()).join("\n").trim();
+  const done = ok => { btn.textContent = ok ? "Copied" : "Select and copy"; setTimeout(() => btn.textContent = "Copy", 1500); };
+  try { navigator.clipboard.writeText(txt).then(() => done(true), () => { selectPre(pre); done(false); }); } catch (e) { selectPre(pre); done(false); }
+}));
+function selectPre(pre) { const r = document.createRange(); r.selectNodeContents(pre); const s = getSelection(); s.removeAllRanges(); s.addRange(r); }
+/* column builder */
+(() => {
+  const ALL = "qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore qlen slen qcovhsp nident positive ppos gaps".split(" ");
+  const rows = DATA.rich.filter(r => r[0] !== r[1]);
+  const on = new Set(["qseqid", "sseqid", "pident", "evalue", "bitscore", "qcovhsp"]);
+  const pick = document.getElementById("colPick");
+  pick.innerHTML = ALL.map(c => `<label><input type="checkbox" id="col_${c}" value="${c}"${on.has(c) ? " checked" : ""}>${c}</label>`).join("");
+  const short = s => s.includes("|") ? s.split("|")[2] : s;
+  function draw() {
+    const cols = ALL.filter(c => document.getElementById("col_" + c).checked);
+    document.getElementById("colCmd").innerHTML = `<span class="p">$ </span>blastp -query globins.faa -db globins -evalue 10 -outfmt "6 ${cols.join(" ")}"`;
+    const idx = cols.map(c => ALL.indexOf(c));
+    document.getElementById("colTable").innerHTML = cols.length ? `<thead><tr>${cols.map(c => `<th class="${/seqid/.test(c) ? "t" : ""}">${c}</th>`).join("")}</tr></thead><tbody>` +
+      rows.map(r => `<tr>${idx.map((k, j) => `<td class="${/seqid/.test(cols[j]) ? "t" : ""}">${esc(/seqid/.test(cols[j]) ? short(r[k]) : r[k])}</td>`).join("")}</tr>`).join("") + "</tbody>" : "";
+    document.getElementById("colNote").textContent = `${rows.length} non-self alignments shown (self-hits removed). IDs are shortened from sp|ACC|NAME for display.`;
+  }
+  pick.addEventListener("change", draw); draw();
+})();
+/* E vs database size */
+(() => {
+  const E0 = 6.39e-6, N0 = 1337980, lo = Math.log10(N0), hi = Math.log10(5e11);
+  const marks = [[1337980, "our E. coli database"], [186063409, "Swiss-Prot (NCBI, Sept 2026)"]];
+  const s = document.getElementById("dbSlider");
+  const fmt = x => x < 0.01 ? x.toExponential(1).replace("e-", " × 10⁻").replace(/⁻(\d+)/, (m, d) => "⁻" + [...d].map(c => "⁰¹²³⁴⁵⁶⁷⁸⁹"[c]).join("")) : x.toPrecision(2);
+  function upd() {
+    const N = Math.pow(10, lo + (hi - lo) * s.value / 1000), E = E0 * N / N0;
+    document.getElementById("dbLab").textContent = Math.round(N).toLocaleString("en-US");
+    const near = marks.find(m => Math.abs(Math.log10(m[0] / N)) < 0.04);
+    document.getElementById("dbOut").innerHTML = `<span class="big">E ≈ ${fmt(E)}</span>neuroglobin → Hmp, 41.6 bits${near ? ` · <b>${near[1]}</b>` : ""}. ${E < 1e-3 ? "Still clearly significant." : E < 0.05 ? "Significant at the web default cutoff of 0.05, but weak." : "No longer significant at E ≤ 0.05."}`;
+  }
+  s.addEventListener("input", upd); upd();
+})();
+/* locus map */
+(() => {
+  const HSP = {
+    "megablast": [[78.027,223,141,363,27938,28160,1.30e-35,141],[93.007,143,1,143,63133,63275,3.50e-56,209],[96.364,220,147,365,63407,63625,9.14e-102,361],[91.057,123,365,487,64523,64645,2.14e-43,167],[100,143,1,143,70545,70687,7.37e-73,265],[100,225,141,365,70815,71039,1.92e-118,416],[100,264,365,628,71889,72152,4.02e-140,488]],
+    "dc-megablast": [[78.472,144,3,143,27675,27818,1.05e-28,119],[78.027,223,141,363,27938,28160,1.05e-47,182],[73.267,101,43,143,42880,42980,2.48e-11,61.7],[80.804,224,140,363,43099,43322,2.17e-56,211],[74.453,137,365,501,44210,44346,5.12e-20,90.6],[73.267,101,43,143,47804,47904,2.48e-11,61.7],[80.357,224,140,363,48023,48246,2.65e-55,206],[73.723,137,365,501,49128,49264,6.23e-19,86.0],[77.632,228,140,362,54285,54507,6.65e-44,168],[92.466,146,1,146,63133,63278,1.78e-57,214],[95.890,219,147,365,63407,63625,8.08e-100,355],[88.806,134,365,498,64523,64656,1.56e-45,175],[99.315,146,1,146,70545,70690,4.78e-71,260],[100,225,141,365,70815,71039,1.46e-115,407],[100,264,365,628,71889,72152,9.83e-137,477]],
+  };
+  HSP.blastn = HSP["dc-megablast"].slice(0, 2).concat([[78.986,138,365,502,29018,29155,1.05e-28,119]], HSP["dc-megablast"].slice(2));
+  const GENES = [["HBE1", 27671, 29271, "ε"], ["HBG2", 42835, 44428, "Gγ"], ["HBG1", 47759, 49344, "Aγ"], ["HBBP1", 54024, 55662, "ψβ"], ["HBD", 63133, 64778, "δ"], ["HBB", 70545, 72152, "β"]];
+  const W = 760, L = 20, R = 20, X0 = 20000, X1 = 76000, X = x => L + (x - X0) / (X1 - X0) * (W - L - R);
+  let task = "megablast";
+  const btns = document.getElementById("taskBtns");
+  btns.innerHTML = Object.keys(HSP).map(t => `<button type="button" id="task_${t}" aria-pressed="${t === task}">${t}</button>`).join("");
+  btns.addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; task = b.textContent; btns.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x === b)); draw(); });
+  const exonOf = q => q <= 143 ? 0 : q <= 365 ? 1 : 2, EXC = ["var(--s1)", "var(--s2)", "var(--s3)"];
+  function draw() {
+    const H = HSP[task]; let g = "";
+    for (let k = 20000; k <= 76000; k += 10000) g += `<line x1="${X(k)}" x2="${X(k)}" y1="118" y2="124" stroke="var(--muted)"/><text x="${X(k)}" y="138" text-anchor="middle" font-size="11" fill="var(--muted)">${k / 1000} kb</text>`;
+    g += `<line x1="${L}" x2="${W - R}" y1="118" y2="118" stroke="var(--muted)"/>`;
+    GENES.forEach(([n, a, b, sym]) => { g += `<rect x="${X(a)}" y="94" width="${Math.max(3, X(b) - X(a))}" height="18" rx="3" fill="var(--panel-2)" stroke="var(--line)"/><text x="${(X(a) + X(b)) / 2}" y="84" text-anchor="middle" font-size="12" font-weight="700" fill="var(--ink)">${n}</text><text x="${(X(a) + X(b)) / 2}" y="107" text-anchor="middle" font-size="11" fill="var(--muted)">${sym}</text>`; });
+    H.forEach(h => { const x = X(Math.min(h[4], h[5])), w = Math.max(3, X(Math.max(h[4], h[5])) - x), row = exonOf((h[2] + h[3]) / 2), y = 20 + row * 16;
+      g += `<rect x="${x.toFixed(1)}" y="${y}" width="${w.toFixed(1)}" height="11" rx="2" fill="${EXC[row]}"><title>query ${h[2]}–${h[3]} → ${h[4]}–${h[5]}, ${h[0].toFixed(1)}% id, E = ${h[6].toExponential(1)}</title></rect>`; });
+    g += `<g transform="translate(${L} 164)">` + ["exon 1 (query 1–143)", "exon 2 (141–365)", "exon 3 (365–628)"].map((t, i) => `<rect x="${i * 190}" y="-9" width="12" height="11" rx="2" fill="${EXC[i]}"/><text x="${i * 190 + 18}" y="1" font-size="12" fill="var(--ink)">${t}</text>`).join("") + `<text x="580" y="1" font-size="12" font-weight="700" fill="var(--heme)">${H.length} HSPs</text></g>`;
+    document.getElementById("locusSvg").innerHTML = g;
+    const gene = s => (GENES.find(([, a, b]) => s >= a - 50 && s <= b + 50) || ["—"])[0];
+    document.getElementById("locusTable").innerHTML = `<thead><tr><th class="t">gene</th><th>pident</th><th>length</th><th>qstart</th><th>qend</th><th>sstart</th><th>send</th><th>evalue</th><th>bitscore</th></tr></thead><tbody>` +
+      H.map(h => `<tr><td class="t"><i>${gene(h[4])}</i></td><td>${h[0].toFixed(3)}</td>${h.slice(1, 6).map(v => `<td>${v}</td>`).join("")}<td>${h[6].toExponential(2)}</td><td>${h[7]}</td></tr>`).join("") + "</tbody>";
+  }
+  draw();
+})();
+/* all-vs-all heat table */
+(() => {
+  const names = ["HBA_HUMAN", "HBB_HUMAN", "MYG_HUMAN", "CYGB_HUMAN", "NGB_HUMAN", "LGB3_SOYBN"], lab = ["α", "β", "Mb", "Cygb", "Ngb", "Lb"];
+  const best = {};
+  DATA.allvall.forEach(([q, s, , , e]) => { const k = q.split("|")[2] + ">" + s.split("|")[2]; const v = parseFloat(e); if (!(k in best) || v < best[k]) best[k] = v; });
+  const sup = d => [...String(d)].map(c => "⁰¹²³⁴⁵⁶⁷⁸⁹"[c]).join("");
+  const fe = e => e < 1e-3 ? `10⁻${sup(Math.round(-Math.log10(e)))}` : e.toPrecision(1);
+  let h = `<thead><tr><th>query ↓ subject →</th>${lab.map(l => `<th>${l}</th>`).join("")}</tr></thead><tbody>`;
+  names.forEach((q, i) => {
+    h += `<tr><th>${lab[i]} <span class="muted">${q}</span></th>`;
+    names.forEach((s, j) => {
+      if (i === j) { h += `<td class="self">self</td>`; return; }
+      const e = best[q + ">" + s];
+      if (e === undefined) { h += `<td class="none">none</td>`; return; }
+      const a = Math.min(1, -Math.log10(e) / 40);
+      h += `<td style="background:color-mix(in srgb, var(--heme) ${Math.round(a * 70)}%, var(--panel));color:${a > 0.55 ? "var(--bg)" : "var(--ink)"}">${fe(e)}</td>`;
+    });
+    h += "</tr>";
+  });
+  document.getElementById("hmTable").innerHTML = h + "</tbody>";
+})();
+/* toc */
+(() => {
+  const links = [...document.querySelectorAll(".toc a")];
+  const secs = links.map(a => document.querySelector(a.getAttribute("href")));
+  const on = () => { let k = 0; secs.forEach((s, i) => { if (s.getBoundingClientRect().top < 140) k = i; }); links.forEach((a, i) => a.classList.toggle("on", i === k)); };
+  addEventListener("scroll", on, {passive: true}); on();
+})();
+</script>
