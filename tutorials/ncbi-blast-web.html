@@ -209,6 +209,7 @@ table.hits tr.hl td{background:var(--heme-soft)}
     <li><a href="#aln">Reading an alignment</a></li>
     <li><a href="#tools">The results page</a></li>
     <li><a href="#more">Beyond blastp</a></li>
+    <li><a href="#genbank">All of GenBank?</a></li>
     <li><a href="#cli">Web vs command line</a></li>
     <li><a href="#check">Check yourself</a></li>
     <li><a href="#sources">Sources</a></li>
@@ -447,8 +448,48 @@ table.hits tr.hl td{background:var(--heme-soft)}
   </div>
 </section>
 
-<section id="cli" aria-labelledby="cli-h">
+<section id="genbank" aria-labelledby="genbank-h">
   <span class="snum">10</span>
+  <div class="prose">
+  <h2 id="genbank-h">Can BLAST search all of GenBank?</h2>
+  <p><b>Not in a single search.</b> NCBI's own search form says so: <i>"No BLAST database contains all the sequences at NCBI. BLAST databases are organized by informational content (nr, RefSeq, etc.) or by sequencing technique (WGS, EST, etc.)."</i> The default nucleotide database covers only a small part of GenBank.</p>
+  </div>
+  <div class="tool">
+    <div class="tool-title">How big is "everything"? <small>bases, in trillions</small></div>
+    <div class="stats" id="gbStats"></div>
+    <svg id="gbChart" viewBox="0 0 720 150" width="100%" role="img" aria-label="Bar chart comparing the number of bases in GenBank's WGS records, GenBank's traditional records and the core_nt BLAST database"></svg>
+    <p class="note" style="margin-bottom:0">GenBank figures are from NCBI's GenBank and WGS statistics for Release 273 (August 2026). The core_nt figures are from a real blastn search on 25 September 2026. core_nt also includes RefSeq and other NCBI sequences, so the comparison is approximate. The gap is still about 50-fold.</p>
+  </div>
+  <div class="prose">
+  <h3>Why no single database holds it all</h3>
+  <ul class="goals">
+    <li><b>Some data types are separate databases.</b> Whole-genome shotgun contigs (wgs), transcriptome assemblies (TSA), expressed sequence tags (est), genome survey sequences (gss), unfinished high-throughput genomic sequences (HTGS), patent sequences (pat) and raw reads (SRA) are each separate choices in the blastn Database menu. WGS is the biggest part of GenBank by far, and NCBI asks you to limit WGS and TSA searches by organism, BioProject or WGS project.</li>
+    <li><b>The default is a curated core.</b> blastn searches the <b>Core nucleotide database (core_nt)</b> by default. <b>Nucleotide collection (nr/nt)</b> is still on the menu, but since September 2024 NCBI sends non-interactive searches of nt (scripts and the URL API) to core_nt instead. We saw this ourselves: an API request for <code>nt</code> came back from core_nt, with 131,070,239 sequences either way.</li>
+    <li><b>Identical sequences are merged.</b> core_nt and nr are non-redundant, so identical sequences share one entry, named after one representative record. Your favourite accession may be hidden inside another record's entry. On the web, the alignment view has a link that lists all the merged records.</li>
+    <li><b>Only released data.</b> A sequence you submitted appears only after NCBI releases it.</li>
+    <li><b>Proteins live elsewhere.</b> GenBank is a nucleotide archive. The protein translations of its coding regions are searched through protein databases such as nr, which merges identical proteins, and ClusteredNR, which groups similar ones.</li>
+  </ul>
+  <h3>Which database holds my sequence?</h3>
+  </div>
+  <div class="tablewrap"><table class="data">
+    <thead><tr><th>You are looking for…</th><th>Choose (blastn Database menu)</th></tr></thead>
+    <tbody>
+      <tr><td>Genes, mRNAs and other standard GenBank submissions</td><td>Core nucleotide database (core_nt), the default</td></tr>
+      <tr><td>Contigs from genome projects still in pieces</td><td>Whole-genome shotgun contigs (wgs), limited by organism or project</td></tr>
+      <tr><td>Assembled transcriptomes</td><td>Transcriptome Shotgun Assembly (TSA)</td></tr>
+      <tr><td>Raw sequencing reads</td><td>Sequence Read Archive (SRA), chosen by experiment</td></tr>
+      <tr><td>Older single-pass cDNA and genomic reads</td><td>Expressed sequence tags (est); Genomic survey sequences (gss)</td></tr>
+      <tr><td>Curated reference transcripts or genomes</td><td>refseq_select, refseq_rna, RefSeq Reference genomes, RefSeq Genome Database</td></tr>
+      <tr><td>Sequences disclosed in patents</td><td>Patent sequences (pat)</td></tr>
+    </tbody>
+  </table></div>
+  <div class="prose">
+  <p class="note">So a thorough search can take several searches. Start with core_nt. If the organism has a draft genome or transcriptome, repeat the search against wgs or TSA limited to that organism. Report every database you searched. On the command line you can download BLAST databases or build your own, but even NCBI does not offer one file that holds all of GenBank.</p>
+  </div>
+</section>
+
+<section id="cli" aria-labelledby="cli-h">
+  <span class="snum">11</span>
   <div class="prose">
   <h2 id="cli-h">Web versus command line</h2>
   <p>The web defaults differ from BLAST+ on the command line. NCBI's BLAST FAQ says that to reproduce web blastp results with BLAST+, you should add <code>-evalue 0.05 -max_target_seqs 100 -seg yes</code>. Otherwise BLAST+ uses its own defaults (for example an E-value cutoff of 10). Also match the word size, matrix, gap costs and database version shown in the Search Summary.</p>
@@ -458,7 +499,7 @@ table.hits tr.hl td{background:var(--heme-soft)}
 </section>
 
 <section id="check" aria-labelledby="check-h">
-  <span class="snum">11</span>
+  <span class="snum">12</span>
   <h2 id="check-h">Check yourself</h2>
   <details><summary>1. Your search returns exactly 100 hits, all with E-values below 10⁻⁸⁰. What should you suspect?</summary>
     <p>The Max target sequences cap (default 100) has cut the list off. Many more significant hits probably exist. Raise the limit or narrow the search.</p></details>
@@ -472,14 +513,17 @@ table.hits tr.hl td{background:var(--heme-soft)}
     <p>Names describe what a protein does or what was measured, not necessarily its family. Use the alignment, E-value and coverage to judge homology, and look at the record to understand the name.</p></details>
   <details><summary>6. You want to rerun a colleague's web search next year. What do you need from them?</summary>
     <p>The query, program, database and its date or version, and every parameter from the Search Summary: word size, matrix, gap costs, compositional adjustment, filters, Expect threshold, Max target sequences, and any Organism limits.</p></details>
+  <details><summary>7. A classmate says "I BLASTed my sequence against all of GenBank and found nothing." What should you ask?</summary>
+    <p>Which database did they search? The default, core_nt, holds about 131 million sequences, a small part of GenBank. WGS and TSA assemblies, ESTs, HTGS, patents and SRA reads have to be searched separately, and WGS and TSA usually need an organism or project limit. "No hit in core_nt" is not the same as "no hit in GenBank".</p></details>
 </section>
 
 <section id="sources" aria-labelledby="sources-h">
-  <span class="snum">12</span>
+  <span class="snum">13</span>
   <h2 id="sources-h">Sources</h2>
   <ul class="goals">
     <li>NCBI BLAST web interface and <a href="https://blast.ncbi.nlm.nih.gov/doc/blast-help/FAQ.html" target="_blank" rel="noopener">BLAST FAQ</a>, read 25 September 2026. The form defaults and database list in section 2 were taken from the live blastp page.</li>
     <li>Results from NCBI BLASTP 2.17.0+, database swissprot posted 16 September 2026 (487,728 sequences; 186,063,409 residues), searched 25 September 2026.</li>
+    <li>NCBI <a href="https://www.ncbi.nlm.nih.gov/genbank/statistics/" target="_blank" rel="noopener">GenBank and WGS statistics</a> (Release 273, August 2026) and <a href="https://blast.ncbi.nlm.nih.gov/doc/blast-news/2024-BLAST-News.html" target="_blank" rel="noopener">BLAST News 2024</a> ("Non-interactive searches of nt switch to core_nt"), read 25 September 2026. core_nt size from a BLASTN 2.17.0+ search on 25 September 2026.</li>
     <li><a href="https://blast.ncbi.nlm.nih.gov/doc/blast-help/" target="_blank" rel="noopener">BLAST Help</a> and the <a href="https://www.ncbi.nlm.nih.gov/books/NBK279690/" target="_blank" rel="noopener">BLAST+ user manual</a>.</li>
   </ul>
   <footer>Bio 116 · Supplemental tutorial. NCBI's pages change over time; if a label here does not match what you see, the concepts still apply. Results tables are re-typeset from NCBI's output; this page is not affiliated with NCBI.</footer>
@@ -575,6 +619,14 @@ drawEx2();
   document.getElementById("runsTable").innerHTML = `<thead><tr><th>Run</th><th>Query</th><th>Database</th><th>Expect</th><th>Max targets</th><th>Word size</th><th>Comp. adjustment</th><th>Organism</th><th>Hits</th></tr></thead><tbody>` +
     runs.map(r => `<tr>${r.map((c, i) => `<td class="${i >= 3 && i !== 6 && i !== 7 ? "num" : ""}">${c}</td>`).join("")}</tr>`).join("") +
     `</tbody><caption class="muted" style="caption-side:bottom;text-align:left;font-size:13px;padding-top:6px">All runs: blastp, BLOSUM62, gap costs 11/1, low-complexity filter off.</caption>`;
+})();
+/* all of GenBank */
+(() => {
+  const bars = [["GenBank WGS records", 50829714144609, 5132699813, "var(--s2)"], ["GenBank traditional records", 8236878868450, 267383895, "var(--s1)"], ["core_nt (BLAST default)", 1081933534067, 131070239, "var(--s3)"]];
+  document.getElementById("gbStats").innerHTML = bars.map(([l, b, n]) => `<div class="stat"><b>${(b / 1e12).toFixed(2)}</b><span>${l}: ${(n / 1e6).toLocaleString("en-US", {maximumFractionDigits: 0})} M sequences</span></div>`).join("");
+  const W = 720, L = 200, R = 70, max = bars[0][1];
+  document.getElementById("gbChart").innerHTML = bars.map(([l, b, , c], i) => { const y = 14 + i * 44, w = Math.max(2, (W - L - R) * b / max);
+    return `<text x="${L - 10}" y="${y + 19}" text-anchor="end" font-size="13" fill="var(--ink)">${l}</text><rect x="${L}" y="${y}" width="${w.toFixed(1)}" height="28" rx="4" fill="${c}"/><text x="${L + w + 8}" y="${y + 19}" font-size="13" font-family="var(--mono)" fill="var(--ink)">${(b / 1e12).toFixed(2)} T</text>`; }).join("");
 })();
 function tocWire() {
   const links = [...document.querySelectorAll(".toc a")];
