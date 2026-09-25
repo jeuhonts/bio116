@@ -297,6 +297,24 @@ table.data td.num{font-variant-numeric:tabular-nums;font-family:var(--f-mono);fo
 .term{border:1px solid var(--line);border-radius:8px;padding:10px 12px;background:var(--surface)}
 .term dt{font-weight:700}
 .term dd{margin:2px 0 0;color:var(--ink-2);font-size:.92rem}
+
+/* chromosomes, expression, proteins additions */
+.pack-view{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:start}
+.pack-view svg{width:100%;height:auto;background:var(--bg);border:1px solid var(--line);border-radius:8px}
+@media (max-width:700px){.pack-view{grid-template-columns:1fr}}
+.ramp{display:inline-block;width:120px;height:10px;border-radius:3px;background:linear-gradient(90deg,color-mix(in srgb,var(--chart) 22%,var(--surface)),var(--chart))}
+.hw-grid{display:grid;grid-template-columns:minmax(0,320px) minmax(0,1fr);gap:18px;align-items:start}
+.hw-grid svg{width:100%;height:auto}
+@media (max-width:700px){.hw-grid{grid-template-columns:1fr}}
+.fn-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+@media (max-width:900px){.fn-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:460px){.fn-grid{grid-template-columns:1fr}}
+.fn{border:1px solid var(--line);border-radius:var(--r);background:var(--surface);padding:12px 14px;display:grid;gap:4px;align-content:start}
+.fn h3{font-size:1rem}
+.fc{display:inline-flex;align-items:center;gap:8px}
+.fc-bar{position:relative;display:inline-block;width:120px;height:10px;background:var(--surface-2);border-radius:3px}
+.fc-bar::after{content:"";position:absolute;left:50%;top:-2px;bottom:-2px;width:1px;background:var(--ink-2)}
+.fc-bar span{position:absolute;top:0;height:10px;border-radius:3px}
 footer{border-top:1px solid var(--line);padding-block:20px;color:var(--muted);font-size:.85rem}
 footer .in{max-width:1280px;margin:0 auto;padding-inline:16px}
 </style>
@@ -332,7 +350,7 @@ footer .in{max-width:1280px;margin:0 auto;padding-inline:16px}
 <section class="ch hero" id="intro" data-title="Start here" data-num="00">
   <p class="eyebrow">Bio116 · Bioinformatics · Biology review</p>
   <h1>The biology you need before you write your first alignment</h1>
-  <p class="lede">Bioinformatics treats living systems as data. This primer walks through the biology behind that data, from the cell down to a single base, and every idea comes with something you can try. Chapter 10 runs real analyses on the course sequence file, <code>triplets.txt</code>.</p>
+  <p class="lede">Bioinformatics treats living systems as data. This primer walks through the biology behind that data, from the cell down to a single base, and every idea comes with something you can try. Chapter 12 runs real analyses on the course sequence file, <code>triplets.txt</code>.</p>
   <div class="strand-banner" aria-label="A short DNA duplex" id="banner"></div>
   <div class="aud-grid">
     <div class="aud">
@@ -467,9 +485,77 @@ footer .in{max-width:1280px;margin:0 auto;padding-inline:16px}
   <div class="quiz" data-quiz="dna"></div>
 </section>
 
+<!-- ============ CHROMOSOMES ============ -->
+<section class="ch" id="chromosomes" data-title="Chromosomes" data-num="03">
+  <div class="ch-head"><span class="num">Chapter 03</span><h2>Chromosomes: packing two metres into a nucleus</h2><p>A chromosome is one very long DNA molecule plus the proteins that fold it. How it is folded affects which genes can be read, and chromosome names and coordinates show up in every genomics file.</p></div>
+  <div class="bench">
+    <div class="bench-head"><h3>Levels of packing</h3><span class="hint">Step from bare DNA to a condensed metaphase chromosome.</span></div>
+    <div class="bench-body">
+      <div class="steps" id="pack-steps" role="group" aria-label="Packing level"></div>
+      <div class="pack-view">
+        <svg id="pack-svg" viewBox="0 0 420 150" role="img" aria-label="Cartoon of the selected packing level"></svg>
+        <div id="pack-text" aria-live="polite" style="display:grid;gap:8px;align-content:start"></div>
+      </div>
+    </div>
+  </div>
+  <div class="two">
+    <div class="panel">
+      <p class="eyebrow">Euchromatin</p>
+      <h3>Open and active</h3>
+      <ul>
+        <li>Loosely packed. Transcription factors and RNA polymerase can reach the DNA.</li>
+        <li>Rich in genes. Histone tails are often <b>acetylated</b>.</li>
+        <li>Shows up as open-chromatin peaks in ATAC-seq data.</li>
+      </ul>
+    </div>
+    <div class="panel">
+      <p class="eyebrow">Heterochromatin</p>
+      <h3>Compact and quiet</h3>
+      <ul>
+        <li>Tightly packed and mostly silent.</li>
+        <li><b>Constitutive</b> heterochromatin is always packed: centromeres, telomeres, many repeats.</li>
+        <li><b>Facultative</b> heterochromatin is packed only in some cells, like the inactive X chromosome in female cells.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="bench">
+    <div class="bench-head"><h3>Anatomy of a chromosome</h3><span class="hint">A duplicated chromosome as it looks during cell division. Click a part.</span></div>
+    <div class="bench-body">
+      <div class="chart-wrap scroll-x"><svg id="chr-anat" viewBox="0 0 640 230" role="img" aria-label="Diagram of a metaphase chromosome with p and q arms, centromere, telomeres and bands" style="min-width:520px"></svg></div>
+      <div class="part-info" id="chr-anat-info" aria-live="polite">Click a part of the chromosome.</div>
+    </div>
+  </div>
+  <div class="bench">
+    <div class="bench-head"><h3>The human karyotype</h3><span class="hint">All 24 human chromosome types, drawn to scale (GRCh38). Shading shows gene density. Click one for details.</span></div>
+    <div class="bench-body">
+      <div class="chart-wrap scroll-x" id="kary-wrap"><div class="tip" id="kary-tip" hidden></div></div>
+      <div class="controls small muted"><span>Genes per Mb:</span><span class="ramp" aria-hidden="true"></span><span>fewer → more</span></div>
+      <div class="part-info" id="kary-info" aria-live="polite">Click a chromosome.</div>
+    </div>
+  </div>
+  <div class="bench">
+    <div class="bench-head"><h3>Band address decoder</h3><span class="hint">Genes are often located by cytogenetic band, like <i>CFTR</i> at 7q31.2.</span></div>
+    <div class="bench-body">
+      <div class="controls">
+        <label class="fld" for="band-in">Band address<input type="text" id="band-in" class="seqin" value="7q31.2" spellcheck="false" autocomplete="off" style="width:10em"></label>
+        <div class="chips" id="band-presets"></div>
+      </div>
+      <div class="part-info" id="band-out" aria-live="polite"></div>
+    </div>
+  </div>
+  <div class="prose">
+    <h3>Counting chromosomes</h3>
+    <p>Human body cells are <b>diploid</b>: 23 pairs, 46 chromosomes. Pairs 1–22 are <b>autosomes</b>, numbered roughly from largest to smallest. The 23rd pair is the sex chromosomes, XX or XY. Eggs and sperm are <b>haploid</b>, with 23. A karyotype is written as the count, then the sex chromosomes, then any changes: <code>46,XX</code> is typical, and <code>47,XY,+21</code> is a male with trisomy 21 (Down syndrome).</p>
+    <p>During <b>meiosis</b>, each pair of matching chromosomes swaps segments. This is called crossing over or <b>recombination</b>. Genes close together on a chromosome are usually inherited together. That linkage is what makes genetic mapping and genome-wide association studies (GWAS) possible.</p>
+  </div>
+  <div class="lens cs"><span class="tag">CS lens</span><p>Chromosome names are not standard across databases. UCSC calls chromosome 1 <code>chr1</code> and the mitochondrial genome <code>chrM</code>. Ensembl and NCBI use <code>1</code> and <code>MT</code>. Mixing a BAM file from one with an annotation file from the other silently returns zero overlaps. Reference files also contain extra sequences, such as <code>chrUn_…</code> (unplaced) and <code>_alt</code> haplotypes, which most pipelines need to handle or filter.</p></div>
+  <div class="lens bio"><span class="tag">Bio depth</span><p>Telomeres are thousands of copies of <code>TTAGGG</code> that shorten with each division unless the enzyme telomerase extends them. Human centromeres are built from a 171 bp repeat called α-satellite, repeated over millions of bases. Both regions were missing from the reference genome until the telomere-to-telomere (T2T) assembly in 2022.</p></div>
+  <div class="quiz" data-quiz="chromosomes"></div>
+</section>
+
 <!-- ============ 3 GENOMES ============ -->
-<section class="ch" id="genomes" data-title="Genomes and genes" data-num="03">
-  <div class="ch-head"><span class="num">Chapter 03</span><h2>Genomes and genes</h2><p>A genome is all the DNA of an organism. Genes are the parts that get transcribed into RNA, and they are a small share of the whole in humans.</p></div>
+<section class="ch" id="genomes" data-title="Genomes and genes" data-num="04">
+  <div class="ch-head"><span class="num">Chapter 04</span><h2>Genomes and genes</h2><p>A genome is all the DNA of an organism. Genes are the parts that get transcribed into RNA, and they are a small share of the whole in humans.</p></div>
   <div class="bench">
     <div class="bench-head"><h3>Genome size is not complexity</h3><span class="hint">Approximate haploid genome sizes, log scale. Hover a bar for gene counts.</span></div>
     <div class="bench-body">
@@ -492,7 +578,7 @@ footer .in{max-width:1280px;margin:0 auto;padding-inline:16px}
   </div>
   <div class="prose">
     <h3>What the rest of the genome is made of</h3>
-    <p>Roughly half of the human genome is repeated sequence. The most abundant single family is the <b>Alu element</b>, a ~300 bp sequence present in over a million copies and making up about 10% of our DNA. Alus copy themselves through an RNA intermediate and end in a poly-A tail. You will find two of them in the course sequence in Chapter 10.</p>
+    <p>Roughly half of the human genome is repeated sequence. The most abundant single family is the <b>Alu element</b>, a ~300 bp sequence present in over a million copies and making up about 10% of our DNA. Alus copy themselves through an RNA intermediate and end in a poly-A tail. You will find two of them in the course sequence in Chapter 12.</p>
     <ul>
       <li><b>Transposable elements</b> (Alu, LINE-1, endogenous retroviruses): sequences that copy and paste themselves around the genome.</li>
       <li><b>Tandem repeats</b>: short units repeated head to tail. Microsatellites have 1–6 bp units, minisatellites 10–60 bp. They vary in length between people, which makes them useful in forensics.</li>
@@ -507,8 +593,8 @@ footer .in{max-width:1280px;margin:0 auto;padding-inline:16px}
 </section>
 
 <!-- ============ 4 CENTRAL DOGMA ============ -->
-<section class="ch" id="dogma" data-title="The central dogma" data-num="04">
-  <div class="ch-head"><span class="num">Chapter 04</span><h2>The central dogma: DNA → RNA → protein</h2><p>Information flows from DNA to RNA by <b>transcription</b>, and from RNA to protein by <b>translation</b>. Step through one toy gene to watch it happen.</p></div>
+<section class="ch" id="dogma" data-title="The central dogma" data-num="05">
+  <div class="ch-head"><span class="num">Chapter 05</span><h2>The central dogma: DNA → RNA → protein</h2><p>Information flows from DNA to RNA by <b>transcription</b>, and from RNA to protein by <b>translation</b>. Step through one toy gene to watch it happen.</p></div>
   <div class="bench">
     <div class="bench-head"><h3>From gene to protein</h3><span class="hint">A made-up gene with two exons and one intron.</span></div>
     <div class="bench-body">
@@ -539,8 +625,8 @@ footer .in{max-width:1280px;margin:0 auto;padding-inline:16px}
 </section>
 
 <!-- ============ 5 GENETIC CODE ============ -->
-<section class="ch" id="code" data-title="The genetic code" data-num="05">
-  <div class="ch-head"><span class="num">Chapter 05</span><h2>The genetic code</h2><p>64 codons map to 20 amino acids and a stop signal. The code is redundant, and that redundancy has a structure.</p></div>
+<section class="ch" id="code" data-title="The genetic code" data-num="06">
+  <div class="ch-head"><span class="num">Chapter 06</span><h2>The genetic code</h2><p>64 codons map to 20 amino acids and a stop signal. The code is redundant, and that redundancy has a structure.</p></div>
   <div class="bench">
     <div class="bench-head"><h3>Standard codon table</h3><span class="hint">Click a codon to highlight its synonyms. Rows are the first base, columns the second, and the third base varies inside each cell.</span></div>
     <div class="bench-body">
@@ -573,9 +659,115 @@ footer .in{max-width:1280px;margin:0 auto;padding-inline:16px}
   <div class="quiz" data-quiz="code"></div>
 </section>
 
-<!-- ============ 6 PROTEINS ============ -->
-<section class="ch" id="proteins" data-title="Proteins" data-num="06">
-  <div class="ch-head"><span class="num">Chapter 06</span><h2>Proteins: sequence becomes shape</h2><p>A protein is a chain of amino acids that folds into a 3D shape. Its function depends on that shape, and the shape depends on the chemistry of each residue.</p></div>
+<!-- ============ EXPRESSION ============ -->
+<section class="ch" id="expression" data-title="Gene expression and regulation" data-num="07">
+  <div class="ch-head"><span class="num">Chapter 07</span><h2>Gene expression and regulation</h2><p>Every cell carries the same genes, but each one uses only some of them. Regulation decides which genes are on, how strongly, and when. Most omics data measures the result of that regulation.</p></div>
+  <div class="scroll-x">
+    <table class="data">
+      <thead><tr><th>Level of control</th><th>What happens</th><th>How it is measured</th></tr></thead>
+      <tbody>
+        <tr><td><b>1. Chromatin</b></td><td>DNA is opened or closed by histone marks and DNA methylation at CpG sites.</td><td>ATAC-seq, ChIP-seq, bisulfite sequencing</td></tr>
+        <tr><td><b>2. Transcription</b></td><td>Transcription factors bind promoters and enhancers and recruit RNA polymerase, or block it.</td><td>ChIP-seq for the factor, RNA-seq for the output</td></tr>
+        <tr><td><b>3. RNA processing</b></td><td>Alternative splicing picks which exons end up in the mRNA.</td><td>RNA-seq (splice junction reads), long-read RNA sequencing</td></tr>
+        <tr><td><b>4. RNA stability</b></td><td>MicroRNAs and RNA-binding proteins speed up or slow down mRNA decay.</td><td>Small RNA-seq, decay time courses</td></tr>
+        <tr><td><b>5. Translation</b></td><td>How often ribosomes start on an mRNA.</td><td>Ribosome profiling (Ribo-seq)</td></tr>
+        <tr><td><b>6. Protein</b></td><td>Modifications switch proteins on or off; degradation removes them.</td><td>Mass spectrometry</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="bench">
+    <div class="bench-head"><h3>A bacterial switch: the <i>lac</i> operon</h3><span class="hint">E. coli only makes lactose-digesting enzymes when lactose is present and glucose is scarce.</span></div>
+    <div class="bench-body">
+      <div class="controls">
+        <div class="seg" role="group" aria-label="Lactose"><button type="button" data-lac="lac" data-v="1" aria-pressed="true">Lactose present</button><button type="button" data-lac="lac" data-v="0" aria-pressed="false">No lactose</button></div>
+        <div class="seg" role="group" aria-label="Glucose"><button type="button" data-lac="glu" data-v="1" aria-pressed="false">Glucose present</button><button type="button" data-lac="glu" data-v="0" aria-pressed="true">No glucose</button></div>
+      </div>
+      <div class="chart-wrap scroll-x"><svg id="lac-svg" viewBox="0 0 760 170" role="img" aria-label="Diagram of the lac operon showing which proteins are bound" style="min-width:600px"></svg></div>
+      <div class="verdict" id="lac-out" aria-live="polite"></div>
+    </div>
+  </div>
+  <div class="bench">
+    <div class="bench-head"><h3>A eukaryotic gene's control panel</h3><span class="hint">A simplified cartoon. Turn each layer on or off and watch the output.</span></div>
+    <div class="bench-body">
+      <div class="controls" id="euk-ctl">
+        <button type="button" class="btn" data-euk="open" aria-pressed="true">Histones acetylated (open chromatin)</button>
+        <button type="button" class="btn" data-euk="meth" aria-pressed="false">Promoter CpGs methylated</button>
+        <button type="button" class="btn" data-euk="act" aria-pressed="true">Activator bound at enhancer</button>
+        <button type="button" class="btn" data-euk="rep" aria-pressed="false">Repressor bound</button>
+      </div>
+      <div class="chart-wrap scroll-x"><svg id="euk-svg" viewBox="0 0 760 200" role="img" aria-label="Cartoon of a eukaryotic gene with enhancer, promoter and nucleosomes" style="min-width:600px"></svg></div>
+      <div class="verdict" id="euk-out" aria-live="polite"></div>
+    </div>
+  </div>
+  <div class="prose">
+    <p><b>Transcription factors</b> are proteins that recognise short DNA motifs, typically 6–12 bp, like the TATA box you met in Chapter 05 or the <code>CACGTG</code> "E-box". Humans have about 1,600 of them. <b>Enhancers</b> are binding sites for activators that can sit tens or hundreds of kilobases from the gene they control. The DNA loops round so the enhancer touches the promoter. This is why a variant far from any gene can still change how a gene is expressed.</p>
+  </div>
+  <div class="bench">
+    <div class="bench-head"><h3>Alternative splicing</h3><span class="hint">One gene, several proteins. Include or skip the middle exons.</span></div>
+    <div class="bench-body">
+      <div class="controls">
+        <button type="button" class="btn" data-ex="1" aria-pressed="true">Include exon 2 (96 nt)</button>
+        <button type="button" class="btn" data-ex="2" aria-pressed="true">Include exon 3 (89 nt)</button>
+      </div>
+      <div class="chart-wrap scroll-x"><svg id="splice-svg" viewBox="0 0 760 170" role="img" aria-label="Exon diagram showing which exons are joined" style="min-width:600px"></svg></div>
+      <div class="verdict" id="splice-out" aria-live="polite"></div>
+      <p class="small muted">About 95% of human multi-exon genes are alternatively spliced. Each distinct mRNA is called an <b>isoform</b> or transcript, and annotation files list them separately.</p>
+    </div>
+  </div>
+  <div class="bench">
+    <div class="bench-head"><h3>Measuring expression: why RNA-seq counts need normalising</h3><span class="hint">Toy data: four genes in two samples. Switch the unit and read the fold changes.</span></div>
+    <div class="bench-body">
+      <div class="seg" role="group" aria-label="Unit" id="rs-unit">
+        <button type="button" data-u="raw" aria-pressed="true">Raw counts</button>
+        <button type="button" data-u="cpm" aria-pressed="false">CPM</button>
+        <button type="button" data-u="tpm" aria-pressed="false">TPM</button>
+      </div>
+      <div class="scroll-x"><table class="data" id="rs-table"></table></div>
+      <div class="part-info" id="rs-note" aria-live="polite"></div>
+    </div>
+  </div>
+  <div class="lens cs"><span class="tag">CS lens</span><p>An RNA-seq experiment ends as a matrix: genes as rows, samples as columns, read counts in the cells. Differential expression tools such as DESeq2 and edgeR fit a statistical model (negative binomial) to those counts. They need <b>biological replicates</b>, several samples per condition, to tell real change from noise. A fold change without replicates is an anecdote. Reported results are usually log₂ fold change plus a p-value adjusted for testing ~20,000 genes at once.</p></div>
+  <div class="lens bio"><span class="tag">Bio depth</span><p>Transcription factor motifs are fuzzy. They are described as a <b>position weight matrix</b>: for each position, how often each base appears in known binding sites. Databases such as JASPAR store thousands of them, drawn as sequence logos. A 6 bp motif occurs by chance about once every 4 kb on each strand, so most matches in a genome are never bound. Chromatin accessibility data helps separate real sites from chance.</p></div>
+  <div class="quiz" data-quiz="expression"></div>
+</section>
+
+<!-- ============ PROTEINS ============ -->
+<section class="ch" id="proteins" data-title="Protein structure and function" data-num="08">
+  <div class="ch-head"><span class="num">Chapter 08</span><h2>Proteins: structure and function</h2><p>A protein is a chain of amino acids that folds into a 3D shape. The shape decides what it does, and the chemistry of each residue decides the shape.</p></div>
+  <div class="two">
+    <div class="panel">
+      <h3>The backbone</h3>
+      <svg viewBox="0 0 340 110" role="img" aria-label="A peptide chain: repeating N, C-alpha, C units with side chains R" style="width:100%;height:auto">
+        <g style="font-family:var(--f-mono);font-size:14px">
+          <text x="4" y="62" style="fill:var(--cls-pos)">H₃N⁺</text>
+          <path d="M44 57h20M84 57h20M124 57h20M164 57h20M204 57h20M244 57h20M284 57h16" style="stroke:var(--ink-2);stroke-width:2"/>
+          <text x="66" y="62" style="fill:var(--ink)">Cα</text><text x="108" y="62" style="fill:var(--ink)">C</text><text x="146" y="62" style="fill:var(--ink)">N</text><text x="186" y="62" style="fill:var(--ink)">Cα</text><text x="228" y="62" style="fill:var(--ink)">C</text><text x="266" y="62" style="fill:var(--ink)">N</text>
+          <text x="302" y="62" style="fill:var(--cls-neg)">…COO⁻</text>
+          <path d="M74 44v-18M194 44v-18M112 66v16M232 66v16" style="stroke:var(--ink-2);stroke-width:2"/>
+          <text x="67" y="20" style="fill:var(--accent)">R₁</text><text x="187" y="20" style="fill:var(--accent)">R₂</text>
+          <text x="107" y="98" style="fill:var(--ink)">O</text><text x="227" y="98" style="fill:var(--ink)">O</text>
+          <rect x="102" y="40" width="58" height="30" rx="6" style="fill:none;stroke:var(--primary);stroke-dasharray:4 3"/>
+          <text x="131" y="36" text-anchor="middle" style="fill:var(--primary);font-size:11px;font-family:var(--f-body)">peptide bond</text>
+        </g>
+      </svg>
+      <ul>
+        <li>Amino acids join by <b>peptide bonds</b>, giving a backbone that repeats N–Cα–C.</li>
+        <li>Each residue hangs its side chain (<b>R</b>) off the Cα. The side chains differ; the backbone does not.</li>
+        <li>Chains have direction: the <b>N-terminus</b> is made first and written first; the <b>C-terminus</b> is last.</li>
+        <li>Typical proteins are 100–1,000 residues. The median human protein is roughly 400.</li>
+      </ul>
+    </div>
+    <div class="panel">
+      <h3>Why it folds</h3>
+      <ul>
+        <li><b>Hydrophobic effect</b>: oily side chains cluster away from water, forming the core. This is the main driving force.</li>
+        <li><b>Hydrogen bonds</b> between backbone groups form helices and sheets.</li>
+        <li><b>Salt bridges</b> between + and − side chains, and <b>disulfide bonds</b> between cysteines, add stability.</li>
+        <li>The sequence alone is usually enough to specify the fold (Anfinsen's experiment, 1961). Some proteins need helper <b>chaperones</b> to fold correctly.</li>
+        <li>About a third of human proteins have <b>intrinsically disordered</b> regions that have no fixed shape.</li>
+      </ul>
+    </div>
+  </div>
   <div class="bench">
     <div class="bench-head"><h3>The 20 amino acids</h3><span class="hint">Grouped by side-chain chemistry. Click one for details.</span></div>
     <div class="bench-body">
@@ -585,9 +777,23 @@ footer .in{max-width:1280px;margin:0 auto;padding-inline:16px}
   </div>
   <div class="levels">
     <div class="lvl"><span class="k">Primary</span><svg viewBox="0 0 160 70" aria-hidden="true"><g fill="var(--primary)"><circle cx="14" cy="35" r="9"/><circle cx="36" cy="35" r="9"/><circle cx="58" cy="35" r="9"/><circle cx="80" cy="35" r="9"/><circle cx="102" cy="35" r="9"/><circle cx="124" cy="35" r="9"/><circle cx="146" cy="35" r="9"/></g></svg><p class="small">The amino acid sequence, written N-terminus to C-terminus. This is what bioinformatics mostly works with.</p></div>
-    <div class="lvl"><span class="k">Secondary</span><svg viewBox="0 0 160 70" aria-hidden="true"><path d="M8 35c8-26 18 26 26 0s18 26 26 0 18 26 26 0" fill="none" stroke="var(--accent)" stroke-width="4" stroke-linecap="round"/><path d="M100 20h48l-8-7M100 35h48M148 50h-48l8 7" fill="none" stroke="var(--primary)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg><p class="small">Local shapes held by backbone hydrogen bonds: α-helices and β-sheets.</p></div>
+    <div class="lvl"><span class="k">Secondary</span><svg viewBox="0 0 160 70" aria-hidden="true"><path d="M8 35c8-26 18 26 26 0s18 26 26 0 18 26 26 0" fill="none" stroke="var(--accent)" stroke-width="4" stroke-linecap="round"/><path d="M100 20h48l-8-7M100 35h48M148 50h-48l8 7" fill="none" stroke="var(--primary)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg><p class="small">Local shapes held by backbone hydrogen bonds: α-helices (3.6 residues per turn) and β-strands that pair into sheets.</p></div>
     <div class="lvl"><span class="k">Tertiary</span><svg viewBox="0 0 160 70" aria-hidden="true"><path d="M20 50c-10-30 30-40 45-20s-5 35 20 30 40-40 20-50-50 10-40 25 45 15 65 0" fill="none" stroke="var(--primary)" stroke-width="4" stroke-linecap="round"/></svg><p class="small">The full 3D fold of one chain. Hydrophobic residues tend to be buried in the core.</p></div>
     <div class="lvl"><span class="k">Quaternary</span><svg viewBox="0 0 160 70" aria-hidden="true"><circle cx="60" cy="24" r="17" fill="var(--primary)" opacity=".85"/><circle cx="96" cy="24" r="17" fill="var(--accent)" opacity=".85"/><circle cx="60" cy="50" r="17" fill="var(--accent)" opacity=".85"/><circle cx="96" cy="50" r="17" fill="var(--primary)" opacity=".85"/></svg><p class="small">Several chains assembled together. Haemoglobin is two α and two β subunits.</p></div>
+  </div>
+  <div class="bench">
+    <div class="bench-head"><h3>Helical wheel</h3><span class="hint">Looking down the axis of an α-helix. Each residue sits 100° round from the last.</span></div>
+    <div class="bench-body">
+      <div class="controls">
+        <label class="fld" for="hw-in" style="flex:1 1 260px">Peptide (first 18 residues are drawn)<input type="text" id="hw-in" class="seqin" value="LKKLLKLLKKLLKL" spellcheck="false" autocomplete="off"></label>
+      </div>
+      <div class="chips" id="hw-presets"><span class="small muted">Try:</span></div>
+      <p class="err" id="hw-err" hidden></p>
+      <div class="hw-grid">
+        <svg id="hw-svg" viewBox="0 0 320 320" role="img" aria-label="Helical wheel projection"></svg>
+        <div id="hw-text" class="small" style="display:grid;gap:8px;align-content:start"></div>
+      </div>
+    </div>
   </div>
   <div class="bench">
     <div class="bench-head"><h3>Hydropathy plot</h3><span class="hint">Kyte–Doolittle scale, sliding-window average. Peaks above ~1.6 over 19 residues suggest a membrane-spanning helix.</span></div>
@@ -609,13 +815,91 @@ footer .in{max-width:1280px;margin:0 auto;padding-inline:16px}
       <p class="small muted">The insulin example opens with a hydrophobic <b>signal peptide</b> that sends the protein into the secretory pathway before it is cut off. The made-up example has one 21-residue hydrophobic stretch between two charged, water-soluble segments. That is the signature of a single membrane-spanning helix, and it shows up as one tall peak.</p>
     </div>
   </div>
-  <div class="lens cs"><span class="tag">CS lens</span><p>Protein sequences use a 20-letter alphabet (plus X for unknown), so a protein string carries more information per character than DNA. That is why protein-level searches detect more distant relatives than DNA searches. Predicting shape from sequence was a 50-year open problem until deep learning models such as AlphaFold 2 (2020) reached near-experimental accuracy for many proteins.</p></div>
+  <div class="prose">
+    <h3>Domains: proteins are built from parts</h3>
+    <p>Most proteins are made of <b>domains</b>: compact units, typically 50–250 residues, that fold on their own and often have a job of their own, such as binding DNA or adding phosphate groups. Evolution reuses domains by shuffling them into new combinations. Recognising a known domain in a new sequence is often the fastest way to guess its function. Pfam and InterPro catalogue these families.</p>
+  </div>
+  <div class="bench">
+    <div class="bench-head"><h3>Domain architecture</h3><span class="hint">Five human proteins drawn to scale. Boundaries are approximate. Hover or tap a segment.</span></div>
+    <div class="bench-body">
+      <div class="chart-wrap scroll-x" id="dom-wrap"><div class="tip" id="dom-tip" hidden></div></div>
+      <div class="chips" id="dom-legend" aria-label="Legend"></div>
+      <div class="part-info" id="dom-info" aria-live="polite">Hover or tap a domain.</div>
+    </div>
+  </div>
+  <div class="prose"><h3>What proteins do</h3></div>
+  <div class="fn-grid">
+    <div class="fn"><p class="eyebrow">Catalysis</p><h3>Enzymes</h3><p class="small">Speed up reactions, often millions of times. The substrate binds a pocket called the <b>active site</b>. Example: DNA polymerase, lactase.</p></div>
+    <div class="fn"><p class="eyebrow">Transport</p><h3>Carriers and channels</h3><p class="small">Move molecules around the body or across membranes. Example: haemoglobin carries O₂; aquaporins let water through membranes.</p></div>
+    <div class="fn"><p class="eyebrow">Signalling</p><h3>Receptors and kinases</h3><p class="small">Detect signals and pass them on, often by adding phosphate groups. Example: EGFR, insulin receptor.</p></div>
+    <div class="fn"><p class="eyebrow">Regulation</p><h3>Transcription factors</h3><p class="small">Bind DNA and switch genes on or off. Example: p53 activates repair and cell-death genes after DNA damage.</p></div>
+    <div class="fn"><p class="eyebrow">Structure</p><h3>Scaffolds and fibres</h3><p class="small">Give cells and tissues shape and strength. Example: collagen, keratin, actin.</p></div>
+    <div class="fn"><p class="eyebrow">Defence</p><h3>Antibodies</h3><p class="small">Recognise foreign molecules with variable loops that differ from one antibody to the next.</p></div>
+    <div class="fn"><p class="eyebrow">Movement</p><h3>Motor proteins</h3><p class="small">Turn chemical energy (ATP) into motion. Example: myosin in muscle, kinesin carrying cargo along microtubules.</p></div>
+    <div class="fn"><p class="eyebrow">Storage and hormones</p><h3>Messengers</h3><p class="small">Carry signals between cells or store nutrients. Example: insulin, ferritin (stores iron).</p></div>
+  </div>
+  <div class="bench">
+    <div class="bench-head"><h3>Enzyme kinetics</h3><span class="hint">Michaelis–Menten: how reaction speed depends on substrate concentration.</span></div>
+    <div class="bench-body">
+      <div class="controls">
+        <label class="fld" for="mm-km"><span>K<sub>m</sub>: <span class="mono" id="mm-km-v">2.0</span> mM</span><input type="range" id="mm-km" min="0.2" max="8" step="0.2" value="2"></label>
+        <label class="fld" for="mm-i"><span>Inhibitor [I]/K<sub>i</sub>: <span class="mono" id="mm-i-v">2.0</span></span><input type="range" id="mm-i" min="0" max="6" step="0.5" value="2"></label>
+        <div class="seg" role="group" aria-label="Inhibitor type" id="mm-type">
+          <button type="button" data-t="comp" aria-pressed="true">Competitive</button>
+          <button type="button" data-t="non" aria-pressed="false">Non-competitive</button>
+        </div>
+      </div>
+      <div class="chart-wrap" id="mm-wrap"><div class="tip" id="mm-tip" hidden></div></div>
+      <div class="part-info" id="mm-note" aria-live="polite"></div>
+    </div>
+  </div>
+  <div class="two">
+    <div class="panel">
+      <h3>After translation: modifications</h3>
+      <ul>
+        <li><b>Phosphorylation</b> of S, T or Y: an on/off switch added by kinases, removed by phosphatases.</li>
+        <li><b>Glycosylation</b>: sugar chains, common on secreted and cell-surface proteins.</li>
+        <li><b>Ubiquitination</b> of K: tags a protein for destruction by the proteasome.</li>
+        <li><b>Cleavage</b>: signal peptides and pro-segments are cut off. Insulin loses its signal peptide and C-peptide.</li>
+        <li><b>Acetylation</b> and <b>methylation</b> of K: important on histones (Chapters 03 and 07).</li>
+      </ul>
+    </div>
+    <div class="panel">
+      <h3>Address labels in the sequence</h3>
+      <ul>
+        <li><b>Signal peptide</b> at the N-terminus: a hydrophobic stretch that sends a protein for secretion or to a membrane.</li>
+        <li><b>Nuclear localisation signal</b>: a short basic stretch such as <code>PKKKRKV</code> (from the SV40 virus).</li>
+        <li><b>Transmembrane helices</b>: ~20 hydrophobic residues that span the membrane.</li>
+        <li><b>ER retention</b>: <code>KDEL</code> at the C-terminus keeps a protein in the endoplasmic reticulum.</li>
+        <li>Tools like SignalP and DeepTMHMM predict these from sequence alone.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="prose">
+    <h3>Structure explains disease: sickle-cell haemoglobin</h3>
+    <p>In Chapter 09 you can make the single change <code>c.20A&gt;T</code> in the β-globin gene. It swaps a charged glutamate on the protein's surface for a hydrophobic valine. That valine creates a sticky patch. When oxygen is low, haemoglobin molecules stick to each other through it and form long fibres, which bend red cells into a sickle shape. One base changes one residue, the residue changes a surface, and the surface changes a whole cell.</p>
+  </div>
+  <div class="scroll-x">
+    <table class="data">
+      <thead><tr><th>How structures are found</th><th>How it works</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td><b>X-ray crystallography</b></td><td>Grow a crystal, measure how it scatters X-rays, compute the electron density.</td><td>Most structures in the PDB; needs crystals</td></tr>
+        <tr><td><b>NMR spectroscopy</b></td><td>Measure magnetic interactions between atoms in solution.</td><td>Small proteins; shows motion</td></tr>
+        <tr><td><b>Cryo-electron microscopy</b></td><td>Image thousands of frozen particles and average them.</td><td>Large complexes; rapid growth since ~2015</td></tr>
+        <tr><td><b>Prediction (AlphaFold, RoseTTAFold)</b></td><td>Deep learning from sequence and multiple sequence alignments.</td><td>Covers almost every known protein; check the per-residue confidence (pLDDT)</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="lens cs"><span class="tag">CS lens</span><p>Protein sequences use a 20-letter alphabet (plus X for unknown), so a protein string carries more information per character than DNA. That is why protein-level searches detect more distant relatives. A structure file is a list of atoms with 3D coordinates. The legacy PDB format is fixed-width text, where columns 31–54 hold x, y and z in ångströms (example line below). Newer files use mmCIF, a key–value and table format. Predicting shape from sequence was a 50-year open problem until AlphaFold 2 (2020).</p><div class="fq" aria-label="Example PDB ATOM record"><span class="muted">         1         2         3         4         5         6         7
+12345678901234567890123456789012345678901234567890123456789012345678901234567890</span>
+ATOM      2  CA  MET A   1      11.104  13.207   2.100  1.00 20.00           C</div></div>
+  <div class="lens bio"><span class="tag">Bio depth</span><p>K<sub>m</sub> is the substrate concentration at which an enzyme runs at half its top speed. A low K<sub>m</sub> usually means the enzyme binds its substrate tightly. Competitive inhibitors compete for the active site, so enough substrate outcompetes them: V<sub>max</sub> is unchanged but K<sub>m</sub> appears larger. Many drugs work this way, such as statins inhibiting HMG-CoA reductase.</p></div>
   <div class="quiz" data-quiz="proteins"></div>
 </section>
 
 <!-- ============ 7 VARIATION ============ -->
-<section class="ch" id="variation" data-title="Mutation and variation" data-num="07">
-  <div class="ch-head"><span class="num">Chapter 07</span><h2>Mutation and variation</h2><p>Two people's genomes differ at roughly 4–5 million sites. Most differences do nothing. A few change a protein, and some of those cause disease.</p></div>
+<section class="ch" id="variation" data-title="Mutation and variation" data-num="09">
+  <div class="ch-head"><span class="num">Chapter 09</span><h2>Mutation and variation</h2><p>Two people's genomes differ at roughly 4–5 million sites. Most differences do nothing. A few change a protein, and some of those cause disease.</p></div>
   <div class="bench">
     <div class="bench-head"><h3>Mutation lab</h3><span class="hint">The start of the human β-globin gene (<i>HBB</i>). Click a base, then change, delete or insert.</span></div>
     <div class="bench-body">
@@ -652,8 +936,8 @@ footer .in{max-width:1280px;margin:0 auto;padding-inline:16px}
 </section>
 
 <!-- ============ 8 HOMOLOGY ============ -->
-<section class="ch" id="homology" data-title="Evolution and alignment" data-num="08">
-  <div class="ch-head"><span class="num">Chapter 08</span><h2>Evolution, homology and alignment</h2><p>Sequences are similar because they share an ancestor. Alignment is how we measure that similarity, and it is the core algorithm of the field.</p></div>
+<section class="ch" id="homology" data-title="Evolution and alignment" data-num="10">
+  <div class="ch-head"><span class="num">Chapter 10</span><h2>Evolution, homology and alignment</h2><p>Sequences are similar because they share an ancestor. Alignment is how we measure that similarity, and it is the core algorithm of the field.</p></div>
   <div class="two">
     <div class="panel">
       <h3>Words that are often misused</h3>
@@ -697,8 +981,8 @@ footer .in{max-width:1280px;margin:0 auto;padding-inline:16px}
 </section>
 
 <!-- ============ 9 DATA ============ -->
-<section class="ch" id="data" data-title="Sequencing and file formats" data-num="09">
-  <div class="ch-head"><span class="num">Chapter 09</span><h2>From molecules to files</h2><p>Sequencers do not read a genome from end to end. They produce millions of short, error-prone fragments, and software reassembles the picture.</p></div>
+<section class="ch" id="data" data-title="Sequencing and file formats" data-num="11">
+  <div class="ch-head"><span class="num">Chapter 11</span><h2>From molecules to files</h2><p>Sequencers do not read a genome from end to end. They produce millions of short, error-prone fragments, and software reassembles the picture.</p></div>
   <div class="scroll-x">
     <table class="data">
       <thead><tr><th>Technology</th><th>Read length</th><th>Per-read accuracy</th><th>Good for</th></tr></thead>
@@ -765,8 +1049,8 @@ footer .in{max-width:1280px;margin:0 auto;padding-inline:16px}
 </section>
 
 <!-- ============ 10 BENCH ============ -->
-<section class="ch" id="bench" data-title="Workbench: triplets.txt" data-num="10">
-  <div class="ch-head"><span class="num">Chapter 10</span><h2>Workbench: the course sequence</h2><p>This is the sequence from <code>triplets.txt</code> in the course repository. The file lists one human DNA sequence three times, split into triplets starting at base 1, 2 and 3. Those are its three forward reading frames. Here it is joined back into one string of 10,309 bases so you can analyse it.</p></div>
+<section class="ch" id="bench" data-title="Workbench: triplets.txt" data-num="12">
+  <div class="ch-head"><span class="num">Chapter 12</span><h2>Workbench: the course sequence</h2><p>This is the sequence from <code>triplets.txt</code> in the course repository. The file lists one human DNA sequence three times, split into triplets starting at base 1, 2 and 3. Those are its three forward reading frames. Here it is joined back into one string of 10,309 bases so you can analyse it.</p></div>
   <div class="bench">
     <div class="bench-head"><h3>Composition</h3><span class="hint" id="wb-src"></span></div>
     <div class="bench-body">
@@ -822,13 +1106,13 @@ footer .in{max-width:1280px;margin:0 auto;padding-inline:16px}
       <li>Set the ORF minimum to 100 aa. Does a long ORF prove there is a gene? What other evidence would you want? (Think about introns, RNA-seq data and similarity to known proteins.)</li>
     </ol>
   </div>
-  <div class="lens cs"><span class="tag">CS lens</span><p>Every tool on this page is under 30 lines of JavaScript: counting, a sliding window, a regex, and the codon lookup from Chapter 4. Rewrite each one in Python as practice. Then compare your answers to Biopython's <code>gc_fraction</code>, <code>Seq.reverse_complement()</code> and <code>Seq.translate()</code>.</p></div>
+  <div class="lens cs"><span class="tag">CS lens</span><p>Every tool on this page is under 30 lines of JavaScript: counting, a sliding window, a regex, and the codon lookup from Chapter 05. Rewrite each one in Python as practice. Then compare your answers to Biopython's <code>gc_fraction</code>, <code>Seq.reverse_complement()</code> and <code>Seq.translate()</code>.</p></div>
   <div class="quiz" data-quiz="bench"></div>
 </section>
 
 <!-- ============ GLOSSARY ============ -->
-<section class="ch" id="glossary" data-title="Glossary" data-num="11">
-  <div class="ch-head"><span class="num">Chapter 11</span><h2>Glossary and translation table</h2><p>Terms from both fields, and how they map onto each other.</p></div>
+<section class="ch" id="glossary" data-title="Glossary" data-num="13">
+  <div class="ch-head"><span class="num">Chapter 13</span><h2>Glossary and translation table</h2><p>Terms from both fields, and how they map onto each other.</p></div>
   <div class="scroll-x">
     <table class="data">
       <thead><tr><th>Biology</th><th>Computing analogy</th><th>Where the analogy breaks</th></tr></thead>
@@ -1601,8 +1885,242 @@ $('#wb-own-go').addEventListener('click',()=>{const t=$('#wb-own-in').value.spli
   err.hidden=true;WB.seq=s;wbAll()});
 wbAll();
 
+/* ---------- 3. chromosomes: packing ---------- */
+(function(){
+  const L=[
+   {t:'DNA',sz:'2 nm wide',txt:'The bare double helix. Stretched out, one human cell holds about 2 m of it.',ratio:'1×'},
+   {t:'Nucleosomes',sz:'~11 nm fibre',txt:'147 bp of DNA wraps about 1.7 turns around a core of eight histone proteins (two each of H2A, H2B, H3 and H4). Short linker DNA joins one nucleosome to the next, like beads on a string. Histone tails stick out and carry chemical marks.',ratio:'~6×'},
+   {t:'Chromatin fibre',sz:'~30 nm in the test tube',txt:'Nucleosomes stack and fold further. In living cells this folding is irregular rather than a neat 30 nm coil, and it is looser where genes are active.',ratio:'~40×'},
+   {t:'Loops and domains',sz:'loops of 10 kb–1 Mb',txt:'Proteins called cohesin and CTCF pull the fibre into loops. Regions that touch each other more than the rest are called topologically associating domains (TADs). Enhancers usually act on genes inside the same TAD.',ratio:'~1,000×'},
+   {t:'Metaphase chromosome',sz:'~1 µm wide',txt:'Before division, each chromosome condenses into the familiar X shape: two identical sister chromatids held together at the centromere. This is the form seen in a karyotype.',ratio:'~10,000×'}];
+  const S=$('#pack-steps'),svg=$('#pack-svg');let cur=1;
+  S.innerHTML=L.map((l,i)=>`<button type="button" class="btn step-btn" data-i="${i}"><span class="c">${i+1}</span>${l.t}</button>`).join('');
+  function art(i){let h='';const ink='var(--primary)',ac='var(--accent)';
+    if(i===0){let a='',b='';for(let x=0;x<=420;x+=4){a+=(x?'L':'M')+x+' '+(75+26*Math.sin(x/22)).toFixed(1);b+=(x?'L':'M')+x+' '+(75-26*Math.sin(x/22)).toFixed(1)}
+      for(let x=11;x<420;x+=11){const y1=75+26*Math.sin(x/22),y2=75-26*Math.sin(x/22);h+=`<line x1="${x}" x2="${x}" y1="${y1.toFixed(1)}" y2="${y2.toFixed(1)}" style="stroke:var(--line);stroke-width:2"/>`}
+      h+=`<path d="${a}" style="fill:none;stroke:${ink};stroke-width:3"/><path d="${b}" style="fill:none;stroke:${ac};stroke-width:3"/>`}
+    else if(i===1){h+=`<path d="M0 75H420" style="stroke:${ink};stroke-width:2.5"/>`;for(let k=0;k<6;k++){const x=35+k*70;h+=`<circle cx="${x}" cy="75" r="22" style="fill:var(--primary-soft);stroke:${ink};stroke-width:2"/><path d="M${x-22} 75a22 22 0 0 1 44 0a22 22 0 0 1-40 8" style="fill:none;stroke:${ink};stroke-width:2.5"/><path d="M${x} 53l-4-12M${x+6} 54l6-11" style="stroke:${ac};stroke-width:2"/>`}}
+    else if(i===2){for(let k=0;k<16;k++){const x=26+k*24,y=75+(k%2?16:-16);h+=`<circle cx="${x}" cy="${y}" r="16" style="fill:var(--primary-soft);stroke:${ink};stroke-width:2"/>`}}
+    else if(i===3){h+=`<path d="M10 120H410" style="stroke:${ink};stroke-width:5;stroke-linecap:round"/>`;[[50,70],[140,95],[250,60],[340,80]].forEach(([x,r])=>h+=`<path d="M${x} 120c-30-${r} ${r} -${r+20} ${r/2+20} 0" style="fill:none;stroke:${ink};stroke-width:5;stroke-linecap:round"/><circle cx="${x+4}" cy="120" r="7" style="fill:${ac}"/>`);h+=`<text x="410" y="145" text-anchor="end">pink = cohesin/CTCF anchor</text>`}
+    else{const ch=(y)=>`<path d="M60 ${y}h120a14 14 0 0 1 0 28h-120a14 14 0 0 1 0-28zM215 ${y}h150a14 14 0 0 1 0 28h-150a14 14 0 0 1 0-28z" style="fill:var(--primary);opacity:.9"/>`;
+      h+=ch(44)+ch(80)+`<rect x="186" y="44" width="24" height="64" rx="10" style="fill:${ac}"/><text x="198" y="138" text-anchor="middle">centromere</text>`}
+    svg.innerHTML=h}
+  const show=i=>{cur=i;art(i);const l=L[i];$$('#pack-steps .btn').forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.i===i)));
+    $('#pack-text').innerHTML=`<p class="eyebrow">Level ${i+1} of 5 · ${esc(l.sz)}</p><p>${esc(l.txt)}</p><div class="stat" style="max-width:220px"><div class="k">Compaction vs bare DNA</div><div class="v">${l.ratio}</div></div>`};
+  S.addEventListener('click',e=>{const b=e.target.closest('[data-i]');if(b)show(+b.dataset.i)});show(1)})();
+
+/* ---------- 3. chromosomes: anatomy ---------- */
+(function(){const svg=$('#chr-anat');const INFO={
+  p:['p arm','The short arm, from French <i>petit</i>. Drawn on top in karyotypes. Bands are numbered outward from the centromere.'],
+  q:['q arm','The long arm (q follows p in the alphabet). Most genes on a typical chromosome sit on q simply because it is longer.'],
+  cen:['Centromere','The constriction where sister chromatids are held together and where spindle fibres attach during division. In humans it is built from α-satellite repeats. Its position defines the arms.'],
+  tel:['Telomeres','Protective caps at each end made of TTAGGG repeats. They stop chromosome ends being mistaken for broken DNA, and shorten as cells divide.'],
+  sis:['Sister chromatids','After DNA replication, each chromosome is two identical copies joined at the centromere. They separate during cell division, one to each daughter cell. Outside division, a chromosome is a single, unpacked chromatid.'],
+  band:['Bands','Staining with Giemsa dye (G-banding) gives a reproducible pattern of dark and light bands. Dark bands tend to be AT-rich and gene-poor; light bands are GC-rich and gene-rich. Bands give every region an address, like 7q31.2.']};
+  let sel='cen';
+  function draw(){const y1=58,y2=106,h=38,pL=50,pR=222,qL=250,qR=600;let s='';
+    const arm=(x1,x2,y,k)=>`<g class="gpart${sel===k?' sel':''}" data-k="${k}" tabindex="0" role="button" aria-label="${INFO[k][0]}"><rect x="${x1}" y="${y}" width="${x2-x1}" height="${h}" rx="19" style="fill:var(--primary-soft);stroke:var(--primary);stroke-width:1.5"/></g>`;
+    s+=arm(pL,pR,y1,'p')+arm(pL,pR,y2,'p')+arm(qL,qR,y1,'q')+arm(qL,qR,y2,'q');
+    const bands=[[80,14],[118,20],[165,12],[196,10],[272,16],[315,22],[362,12],[400,26],[455,14],[495,20],[540,12]];
+    s+=`<g class="gpart${sel==='band'?' sel':''}" data-k="band" tabindex="0" role="button" aria-label="Bands">`;bands.forEach(([x,w])=>[y1,y2].forEach(y=>s+=`<rect x="${x}" y="${y+2}" width="${w}" height="${h-4}" style="fill:var(--primary);opacity:.75"/>`));s+='</g>';
+    s+=`<g class="gpart${sel==='cen'?' sel':''}" data-k="cen" tabindex="0" role="button" aria-label="Centromere"><rect x="${pR-8}" y="${y1+6}" width="${qL-pR+16}" height="${y2+h-y1-12}" rx="12" style="fill:var(--accent)"/></g>`;
+    s+=`<g class="gpart${sel==='tel'?' sel':''}" data-k="tel" tabindex="0" role="button" aria-label="Telomeres">`;[[pL,y1],[pL,y2],[qR-12,y1],[qR-12,y2]].forEach(([x,y])=>s+=`<rect x="${x}" y="${y+4}" width="12" height="${h-8}" rx="5" style="fill:var(--nG)"/>`);s+='</g>';
+    s+=`<g class="gpart${sel==='sis'?' sel':''}" data-k="sis" tabindex="0" role="button" aria-label="Sister chromatids"><rect x="${qR+6}" y="${y1}" width="30" height="${y2+h-y1}" style="fill:transparent"/><path d="M${qR+10} ${y1+4}h10v${y2+h-y1-8}h-10" style="fill:none;stroke:var(--ink-2);stroke-width:1.5"/></g>`;
+    s+=`<text x="${(pL+pR)/2}" y="40" text-anchor="middle" style="fill:var(--ink)">p arm (short)</text><text x="${(qL+qR)/2}" y="40" text-anchor="middle" style="fill:var(--ink)">q arm (long)</text><text x="${(pR+qL)/2}" y="${y2+h+26}" text-anchor="middle" style="fill:var(--accent)">centromere</text><text x="${pL+6}" y="${y2+h+26}" style="fill:var(--ink-2)">telomere</text><text x="${qR+30}" y="${(y1+y2+h)/2+4}" text-anchor="end" transform="rotate(-90 ${qR+30} ${(y1+y2+h)/2})" style="fill:var(--ink-2)">2 chromatids</text>`;
+    svg.innerHTML=s}
+  function info(k){sel=k;$('#chr-anat-info').innerHTML=`<b>${INFO[k][0]}.</b> ${INFO[k][1]}`;draw()}
+  svg.addEventListener('click',e=>{const g=e.target.closest('.gpart');if(g)info(g.dataset.k)});
+  svg.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){const g=e.target.closest('.gpart');if(g){e.preventDefault();info(g.dataset.k)}}});info('cen')})();
+
+/* ---------- 3. chromosomes: karyotype ---------- */
+const CHR=[// name, length Mb (GRCh38), centromere Mb (approx), protein-coding genes (approx), note
+ ['1',248.96,123.4,2050,'The largest chromosome, about 8% of the genome.'],
+ ['2',242.19,93.9,1300,'Formed when two ancestral ape chromosomes fused. That is why chimpanzees and gorillas have 48 chromosomes and we have 46.'],
+ ['3',198.30,90.9,1080,''],['4',190.21,50.0,750,'<i>HTT</i> at 4p16.3: an expanded CAG repeat here causes Huntington disease.'],
+ ['5',181.54,48.8,880,''],['6',170.81,59.8,1040,'The HLA (MHC) region at 6p21.3 is the most variable part of the genome and decides transplant matching.'],
+ ['7',159.35,60.1,920,'<i>CFTR</i> at 7q31.2: mutations cause cystic fibrosis.'],['8',145.14,45.2,680,''],
+ ['9',138.39,43.0,780,'<i>ABL1</i> at 9q34.12 fuses with <i>BCR</i> on chromosome 22 in the "Philadelphia chromosome" of chronic myeloid leukaemia.'],
+ ['10',133.80,39.8,730,''],['11',135.09,53.4,1300,'<i>HBB</i> (β-globin) at 11p15.4, home of the sickle-cell mutation. Also carries the largest cluster of olfactory receptor genes.'],
+ ['12',133.28,35.5,1030,''],['13',114.36,17.7,320,'Acrocentric and gene-poor. <i>BRCA2</i> at 13q13.1. Trisomy 13 (Patau syndrome) is one of the few survivable trisomies, probably because so few genes are affected.'],
+ ['14',107.04,17.2,610,'Acrocentric. Carries the antibody heavy-chain genes (IGH) near the q-arm tip.'],['15',101.99,19.0,600,'Acrocentric. <i>FBN1</i> at 15q21.1: mutations cause Marfan syndrome.'],
+ ['16',90.34,36.8,860,'Carries the α-globin genes near the p-arm tip.'],['17',83.26,25.1,1180,'Gene-rich. <i>TP53</i> at 17p13.1 and <i>BRCA1</i> at 17q21.31, two of the most studied cancer genes.'],
+ ['18',80.37,18.5,270,'Gene-poor. Trisomy 18 (Edwards syndrome).'],['19',58.62,26.2,1470,'The most gene-dense chromosome. <i>APOE</i> at 19q13.32 is the strongest common genetic risk factor for Alzheimer disease.'],
+ ['20',64.44,28.1,540,''],['21',46.71,12.0,230,'The smallest chromosome, despite its number. Acrocentric. Trisomy 21 causes Down syndrome. <i>APP</i> at 21q21.3.'],
+ ['22',50.82,15.0,440,'Acrocentric. <i>BCR</i> at 22q11.23. The 22q11.2 deletion is one of the most common microdeletion syndromes.'],
+ ['X',156.04,60.6,840,'One X is mostly silenced in each XX cell (X-inactivation), so both sexes get similar doses. <i>DMD</i> (dystrophin) at Xp21.2 is the largest human gene.'],
+ ['Y',57.23,10.4,60,'Few genes and many repeats. <i>SRY</i> at Yp11.2 switches on male development. Much of the q arm is heterochromatin that is rarely sequenced.']];
+const ACRO=new Set(['13','14','15','21','22']);
+const kary={sel:null};
+function drawKaryotype(hl){const wrap=$('#kary-wrap');const W=800,H=280,top=16,maxL=250,sc=(H-top-44)/maxL,cw=W/24,bw=14;
+  const dens=CHR.map(c=>c[3]/c[1]),dmin=Math.min(...dens),dmax=Math.max(...dens);
+  let h=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Ideogram of the 24 human chromosomes drawn to scale" style="min-width:640px">`;
+  CHR.forEach((c,i)=>{const x=i*cw+cw/2-bw/2,len=c[1]*sc,cen=c[2]*sc;const p=Math.round(22+78*Math.sqrt((dens[i]-dmin)/(dmax-dmin)));const on=kary.sel===i;
+    const fill=`color-mix(in srgb, var(--chart) ${p}%, var(--surface))`;const pa=hl&&hl.chr===c[0]?hl.arm:null;
+    h+=`<g class="kchr" data-i="${i}" style="cursor:pointer"><rect x="${i*cw}" y="0" width="${cw}" height="${H}" style="fill:transparent"/>`;
+    h+=`<rect x="${x}" y="${top}" width="${bw}" height="${Math.max(cen-2,4)}" rx="6" style="fill:${fill};stroke:${on||pa==='p'?'var(--accent)':'var(--primary)'};stroke-width:${on||pa==='p'?2.5:1}"/>`;
+    h+=`<rect x="${x}" y="${top+cen+2}" width="${bw}" height="${len-cen-2}" rx="6" style="fill:${fill};stroke:${on||pa==='q'?'var(--accent)':'var(--primary)'};stroke-width:${on||pa==='q'?2.5:1}"/>`;
+    h+=`<circle cx="${x+bw/2}" cy="${top+cen}" r="3" style="fill:var(--accent)"/>`;
+    h+=`<text x="${x+bw/2}" y="${H-24}" text-anchor="middle" style="fill:var(--ink);${on?'font-weight:700':''}">${c[0]}</text></g>`});
+  h+=`<text x="4" y="${H-6}">Bar length ∝ chromosome size in Mb. Pink dot = centromere.</text></svg>`;
+  wrap.querySelectorAll('svg').forEach(s=>s.remove());wrap.insertAdjacentHTML('beforeend',h);const svg=wrap.querySelector('svg');
+  svg.addEventListener('mousemove',e=>{const g=e.target.closest('.kchr');if(!g){$('#kary-tip').hidden=true;return}const c=CHR[+g.dataset.i];const p=svgPoint(svg,e,W);
+    tip($('#kary-tip'),wrap,p.px,p.py,`<b>Chromosome ${c[0]}</b><br>${fmt(c[1],1)} Mb · ~${fmt(c[3])} protein-coding genes<br>${(c[3]/c[1]).toFixed(1)} genes per Mb`)});
+  svg.addEventListener('mouseleave',()=>$('#kary-tip').hidden=true);
+  svg.addEventListener('click',e=>{const g=e.target.closest('.kchr');if(g)karySelect(+g.dataset.i)})}
+function karySelect(i,hl){kary.sel=i;const c=CHR[i];drawKaryotype(hl);
+  const type=ACRO.has(c[0])?'acrocentric (centromere near one end; the tiny p arm carries ribosomal RNA genes)':c[2]/c[1]>0.40?'metacentric (centromere near the middle)':'submetacentric (centromere off-centre)';
+  $('#kary-info').innerHTML=`<b>Chromosome ${c[0]}</b> · ${fmt(c[1],1)} Mb · centromere at ~${fmt(c[2],0)} Mb, ${type} · ~${fmt(c[3])} protein-coding genes (${(c[3]/c[1]).toFixed(1)} per Mb).${c[4]?'<br>'+c[4]:''}`}
+drawKaryotype();
+
+/* ---------- 3. chromosomes: band decoder ---------- */
+(function(){const P=[['7q31.2','CFTR'],['11p15.4','HBB'],['17p13.1','TP53'],['4p16.3','HTT'],['Xp21.2','DMD'],['21q21.3','APP']];
+  $('#band-presets').innerHTML=P.map(([b,g])=>`<button type="button" class="chip" data-b="${b}"><i>${g}</i> ${b}</button>`).join('');
+  function run(){const v=$('#band-in').value.trim().replace(/^chr/i,'');const m=/^(\d{1,2}|X|Y)([pq])(\d)?(\d)?(?:\.(\d+))?$/i.exec(v);const out=$('#band-out');
+    if(!m){out.innerHTML='<span class="err">Write it as chromosome, arm, then numbers, for example <code>7q31.2</code> or <code>Xp21</code>.</span>';return}
+    const chr=m[1].toUpperCase(),arm=m[2].toLowerCase();const i=CHR.findIndex(c=>c[0]===chr);if(i<0){out.innerHTML=`<span class="err">Humans have chromosomes 1–22, X and Y. There is no chromosome ${esc(chr)}.</span>`;return}
+    const parts=[`<li><b>${chr}</b>: chromosome ${chr}</li>`,`<li><b>${arm}</b>: the ${arm==='p'?'short (p) arm':'long (q) arm'}</li>`];
+    if(m[3])parts.push(`<li><b>${m[3]}</b>: region ${m[3]}, counting outward from the centromere</li>`);
+    if(m[4])parts.push(`<li><b>${m[4]}</b>: band ${m[4]} within that region</li>`);
+    if(m[5])parts.push(`<li><b>.${m[5]}</b>: sub-band ${m[5]}, visible only at higher resolution</li>`);
+    if(ACRO.has(chr)&&arm==='p')parts.push('<li class="muted">This p arm is tiny and mostly repeats (acrocentric chromosome).</li>');
+    out.innerHTML=`<b>${esc(v)}</b> reads as: <ul style="margin:6px 0 0;padding-left:1.2em">${parts.join('')}</ul><p class="small muted" style="margin-top:6px">The arm is outlined on the karyotype above. Say it as "${chr} ${arm} ${[m[3],m[4]].filter(Boolean).join(' ')}${m[5]?' point '+m[5].split('').join(' '):''}", not "thirty-one".</p>`;
+    karySelect(i,{chr,arm})}
+  $('#band-in').addEventListener('input',run);$('#band-presets').addEventListener('click',e=>{const b=e.target.closest('[data-b]');if(!b)return;$('#band-in').value=b.dataset.b;run()});run()})();
+
+/* ---------- 7. expression: lac operon ---------- */
+(function(){const st={lac:1,glu:0};const svg=$('#lac-svg');
+  function draw(){const rep=!st.lac,cap=!st.glu,lvl=rep?0:cap?1:0.25;const y=110;let h='';
+    const box=(x,w,t,fill,txtc)=>`<rect x="${x}" y="${y-14}" width="${w}" height="28" rx="4" style="fill:${fill};stroke:var(--primary)"/><text x="${x+w/2}" y="${y+5}" text-anchor="middle" style="fill:${txtc||'var(--ink)'};font-size:12px">${t}</text>`;
+    h+=`<line x1="10" x2="750" y1="${y}" y2="${y}" style="stroke:var(--muted);stroke-width:2"/>`;
+    h+=box(20,90,'lacI','var(--surface-2)')+box(165,55,'CAP site','var(--surface)')+box(220,60,'promoter','var(--accent-soft)')+box(280,55,'operator','var(--surface)')+box(345,170,'lacZ','var(--primary)','var(--primary-ink)')+box(515,110,'lacY','var(--primary)','var(--primary-ink)')+box(625,100,'lacA','var(--primary)','var(--primary-ink)');
+    h+=`<text x="65" y="${y+38}" text-anchor="middle">makes repressor</text><text x="535" y="${y+38}" text-anchor="middle">β-galactosidase · permease · transacetylase</text>`;
+    // repressor
+    const rx=rep?307:95,ry=rep?y-34:y-60;h+=`<g><rect x="${rx-26}" y="${ry-16}" width="52" height="30" rx="10" style="fill:var(--cls-neg);opacity:.9"/><text x="${rx}" y="${ry+4}" text-anchor="middle" style="fill:#fff;font-size:11px">LacI</text></g>`;
+    if(!rep)h+=`<circle cx="${rx+30}" cy="${ry-10}" r="6" style="fill:var(--nG)"/><text x="${rx+40}" y="${ry-6}" style="font-size:11px">allolactose</text>`;
+    else h+=`<line x1="${rx}" x2="${rx}" y1="${ry+14}" y2="${y-14}" style="stroke:var(--cls-neg);stroke-width:2"/>`;
+    if(cap)h+=`<g><ellipse cx="192" cy="${y-32}" rx="26" ry="15" style="fill:var(--cls-pos)"/><text x="192" y="${y-28}" text-anchor="middle" style="fill:#fff;font-size:10px">CAP·cAMP</text></g>`;
+    if(!rep)h+=`<g><ellipse cx="250" cy="${y-34}" rx="30" ry="18" style="fill:var(--nG);opacity:.9"/><text x="250" y="${y-30}" text-anchor="middle" style="fill:#1b1400;font-size:11px">RNA pol</text></g>`;
+    if(lvl>0){const sw=lvl>0.5?7:2.5;h+=`<path d="M285 ${y-58}H720" style="stroke:var(--accent);stroke-width:${sw};stroke-linecap:round;${lvl<0.5?'stroke-dasharray:6 6':''}"/><path d="M720 ${y-58-sw-3}l14 ${sw+3}-14 ${sw+3}z" style="fill:var(--accent)"/><text x="500" y="${y-70}" text-anchor="middle" style="fill:var(--ink-2)">mRNA (${lvl>0.5?'lots':'a little'})</text>`}
+    svg.innerHTML=h;
+    const [b,t,d]=rep?['nonsense','Off','No lactose: the LacI repressor sits on the operator and blocks RNA polymerase. There is nothing to digest, so making the enzymes would waste energy.']:cap?['silent','High','Lactose is present, so allolactose (made from lactose) pulls the repressor off. Glucose is scarce, so cAMP is high and CAP·cAMP helps RNA polymerase bind strongly.']:['missense','Low','The repressor is off, but glucose is available. cAMP stays low, CAP does not bind, and the promoter works only weakly. The cell uses glucose first.'];
+    $('#lac-out').innerHTML=`<span class="badge ${b}">${t}</span><span>${d}</span>`}
+  $$('[data-lac]').forEach(btn=>btn.addEventListener('click',()=>{st[btn.dataset.lac]=+btn.dataset.v;$$(`[data-lac="${btn.dataset.lac}"]`).forEach(x=>x.setAttribute('aria-pressed',String(x===btn)));draw()}));draw()})();
+
+/* ---------- 7. expression: eukaryotic panel ---------- */
+(function(){const st={open:true,meth:false,act:true,rep:false};const svg=$('#euk-svg');
+  function level(){if(st.meth)return[0.03,'Silenced','Methylated CpGs in the promoter recruit proteins that compact the chromatin. The gene stays off even if activators are around. This kind of silencing can be passed on through cell divisions: it is part of <b>epigenetic</b> memory.'];
+    if(!st.open)return[0.08,'Very low','Without acetylation, nucleosomes pack tightly over the promoter and the transcription machinery cannot reach the DNA.'];
+    let v=0.2;if(st.act)v+=0.7;if(st.rep)v*=0.2;
+    const why=[st.act?'The activator on the enhancer loops over and recruits the machinery to the promoter.':'Without an activator, only a low basal level of transcription happens.',st.rep?'The repressor blocks much of the output.':''].join(' ');
+    return[v,v>0.7?'High':v>0.3?'Moderate':v>0.1?'Low':'Very low',why]}
+  function draw(){const [v,t,d]=level();const y=120;let h=`<line x1="10" x2="750" y1="${y}" y2="${y}" style="stroke:var(--muted);stroke-width:2"/>`;
+    h+=`<rect x="40" y="${y-12}" width="80" height="24" rx="4" style="fill:var(--surface-2);stroke:var(--primary)"/><text x="80" y="${y+30}" text-anchor="middle">enhancer</text>`;
+    h+=`<rect x="330" y="${y-12}" width="70" height="24" rx="4" style="fill:var(--accent-soft);stroke:var(--accent)"/><text x="365" y="${st.meth?y+76:y+36}" text-anchor="middle">promoter</text>`;
+    h+=`<rect x="410" y="${y-14}" width="320" height="28" rx="4" style="fill:var(--primary);opacity:.85"/><text x="570" y="${y+5}" text-anchor="middle" style="fill:var(--primary-ink)">gene</text>`;
+    const nuc=st.open&&!st.meth?[170,250,480,610]:[300,330,360,390,420];nuc.forEach(x=>h+=`<circle cx="${x}" cy="${y}" r="17" style="fill:var(--surface);stroke:var(--ink-2);stroke-width:2;opacity:.95"/>`+(st.open&&!st.meth?`<path d="M${x} ${y-17}l-4-10M${x+7} ${y-15}l5-9" style="stroke:var(--ok);stroke-width:2"/>`:''));
+    if(st.meth)[340,355,370,385].forEach(x=>h+=`<line x1="${x}" x2="${x}" y1="${y+14}" y2="${y+46}" style="stroke:var(--ink-2)"/><circle cx="${x}" cy="${y+50}" r="5" style="fill:var(--ink)"/>`);
+    if(st.act){h+=`<ellipse cx="80" cy="${y-30}" rx="30" ry="15" style="fill:var(--cls-pos)"/><text x="80" y="${y-26}" text-anchor="middle" style="fill:#fff;font-size:11px">activator</text>`;if(st.open&&!st.meth)h+=`<path d="M110 ${y-36}C200 ${y-110} 300 ${y-110} 345 ${y-46}" style="fill:none;stroke:var(--cls-pos);stroke-width:2;stroke-dasharray:5 4"/><text x="225" y="${y-92}" text-anchor="middle">DNA loops to bring them together</text>`}
+    if(st.rep)h+=`<ellipse cx="450" cy="${y-30}" rx="28" ry="14" style="fill:var(--cls-neg)"/><text x="450" y="${y-26}" text-anchor="middle" style="fill:#fff;font-size:11px">repressor</text>`;
+    if(v>0.1)h+=`<ellipse cx="370" cy="${y-34}" rx="30" ry="16" style="fill:var(--nG);opacity:.9"/><text x="370" y="${y-30}" text-anchor="middle" style="fill:#1b1400;font-size:11px">Pol II</text>`;
+    h+=`<text x="10" y="18" style="fill:var(--ink-2)">Output</text><rect x="60" y="8" width="300" height="14" rx="4" style="fill:var(--surface-2)"/><rect x="60" y="8" width="${Math.max(4,300*v)}" height="14" rx="4" style="fill:var(--chart)"/>`;
+    if(st.meth)h+=`<text x="440" y="${y+56}">● = methyl group on a CpG</text>`;
+    svg.innerHTML=h;const cls=t==='High'?'silent':t==='Moderate'?'inframe':t==='Low'?'missense':'nonsense';
+    $('#euk-out').innerHTML=`<span class="badge ${cls}">${t}</span><span>${d}</span><span class="small muted" style="width:100%">This is a cartoon, not a model. Real genes combine dozens of inputs.</span>`}
+  $('#euk-ctl').addEventListener('click',e=>{const b=e.target.closest('[data-euk]');if(!b)return;const k=b.dataset.euk;st[k]=!st[k];b.setAttribute('aria-pressed',String(st[k]));draw()});draw()})();
+
+/* ---------- 7. expression: splicing ---------- */
+(function(){const EX=[['Exon 1',117,'has ATG'],['Exon 2',96,''],['Exon 3',89,''],['Exon 4',148,'has stop']];const inc=[true,true,true,true];const svg=$('#splice-svg');
+  function draw(){const xs=[[30,150],[250,330],[420,495],[590,730]];let h=`<text x="10" y="18" style="fill:var(--ink-2)">pre-mRNA</text><line x1="20" x2="740" y1="55" y2="55" style="stroke:var(--muted);stroke-width:2"/>`;
+    xs.forEach(([a,b],i)=>h+=`<rect x="${a}" y="40" width="${b-a}" height="30" rx="4" style="fill:${inc[i]?'var(--primary)':'var(--surface-2)'};stroke:var(--primary)"/><text x="${(a+b)/2}" y="60" text-anchor="middle" style="fill:${inc[i]?'var(--primary-ink)':'var(--ink-2)'}">${EX[i][0]} · ${EX[i][1]}</text>`);
+    const on=xs.map((x,i)=>i).filter(i=>inc[i]);for(let k=0;k+1<on.length;k++){const a=xs[on[k]][1],b=xs[on[k+1]][0];h+=`<path d="M${a} 40Q${(a+b)/2} ${on[k+1]-on[k]>1?-6:10} ${b} 40" style="fill:none;stroke:var(--accent);stroke-width:2"/>`}
+    h+=`<text x="10" y="112" style="fill:var(--ink-2)">mRNA</text>`;const tot=on.reduce((s,i)=>s+EX[i][1],0);let x=80;const sc=640/450;
+    on.forEach(i=>{const w=EX[i][1]*sc;h+=`<rect x="${x}" y="100" width="${w-2}" height="24" rx="3" style="fill:var(--primary)"/><text x="${x+w/2}" y="116" text-anchor="middle" style="fill:var(--primary-ink);font-size:11px">${i+1}</text>`;x+=w});
+    h+=`<text x="80" y="148">${tot} nt coding sequence</text>`;svg.innerHTML=h;
+    const skipped=EX.filter((e,i)=>!inc[i]).reduce((s,e)=>s+e[1],0);
+    if(skipped%3===0){const aa=(tot-3)/3;$('#splice-out').innerHTML=`<span class="badge ${skipped?'inframe':'silent'}">${skipped?'In frame':'Full length'}</span><span>${skipped?`Skipping ${skipped} nt (a multiple of 3) keeps the reading frame. The protein is ${aa} amino acids, missing the part encoded by the skipped exon. This is a real, distinct isoform.`:`All four exons: ${tot} nt, a protein of ${aa} amino acids.`}</span>`}
+    else $('#splice-out').innerHTML=`<span class="badge frameshift">Frameshift</span><span>Skipping ${skipped} nt is not a multiple of 3, so exon 4 is read in the wrong frame. A premature stop codon is likely, and the cell usually destroys such mRNAs by nonsense-mediated decay. Some genes use this deliberately to switch themselves off.</span>`}
+  $$('[data-ex]').forEach(b=>b.addEventListener('click',()=>{const i=+b.dataset.ex;inc[i]=!inc[i];b.setAttribute('aria-pressed',String(inc[i]));draw()}));draw()})();
+
+/* ---------- 7. expression: RNA-seq normalisation ---------- */
+(function(){const G=[['Gene A (housekeeping)',1.5,3000,6000],['Gene B (long)',6,1200,2400],['Gene C',1,200,1600],['Gene D',2,800,800]];const LIB=[10e6,20e6];let u='raw';
+  const NOTE={raw:'Every gene looks about twice as high in sample 2, only because sample 2 was sequenced twice as deeply (20 M vs 10 M reads). Raw counts cannot be compared between samples.',
+   cpm:'<b>Counts per million</b> divides by library size. Now A and B are unchanged, C is up 4× and D is down 2×. But CPM still favours long genes: within one sample, B collects more reads than C partly because it is 6× longer.',
+   tpm:'<b>Transcripts per million</b> divides by gene length (in kb) first, then scales each sample to sum to one million. Use it to compare genes within a sample. Look at the fold changes, though: A and B now appear to drop even though they did not change. Because TPM always sums to a million, C\'s big rise pushes everything else down. Differential expression tools (DESeq2, edgeR) use other normalisations built to avoid this composition effect.'};
+  function vals(){const rpk=G.map(g=>[g[2]/g[1],g[3]/g[1]]);const sum=[0,1].map(s=>rpk.reduce((a,r)=>a+r[s],0));
+    return G.map((g,i)=>u==='raw'?[g[2],g[3]]:u==='cpm'?[g[2]/LIB[0]*1e6,g[3]/LIB[1]*1e6]:[rpk[i][0]/sum[0]*1e6,rpk[i][1]/sum[1]*1e6])}
+  function draw(){const V=vals();let h=`<thead><tr><th>Gene</th><th>Length</th><th>Sample 1</th><th>Sample 2</th><th>log₂ fold change (2 vs 1)</th></tr></thead><tbody>`;
+    V.forEach((v,i)=>{const lf=Math.log2(v[1]/v[0]);const w=Math.min(60,Math.abs(lf)*30);
+      h+=`<tr><td>${G[i][0]}</td><td class="num">${G[i][1]} kb</td><td class="num">${fmt(v[0],u==='raw'?0:1)}</td><td class="num">${fmt(v[1],u==='raw'?0:1)}</td><td><span class="fc"><span class="fc-bar"><span style="${lf>=0?'left:50%':'right:50%'};width:${w}px;background:${lf>=0?'var(--chart)':'var(--chart-2)'}"></span></span><span class="num">${lf>=0?'+':''}${lf.toFixed(2)}</span></span></td></tr>`});
+    h+=`<tr><td class="muted">Library size</td><td></td><td class="num muted">10 M reads</td><td class="num muted">20 M reads</td><td class="small muted">+1 = doubled, −1 = halved</td></tr></tbody>`;
+    $('#rs-table').innerHTML=h;$('#rs-note').innerHTML=NOTE[u]+(u!=='raw'?'':'<br><span class="muted">True biology in this toy: A and B unchanged, C up 4×, D down 2×.</span>')}
+  $('#rs-unit').addEventListener('click',e=>{const b=e.target.closest('[data-u]');if(!b)return;u=b.dataset.u;$$('#rs-unit button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));draw()});draw()})();
+
+/* ---------- 8. proteins: helical wheel ---------- */
+(function(){const P=[['LK peptide (designed, amphipathic)','LKKLLKLLKKLLKL'],['Transmembrane-like (made up)','LLVAIFGVLLAVLIGALL'],['All charged (made up)','EEKKEEKKEEKKEEKK']];
+  $('#hw-presets').insertAdjacentHTML('beforeend',P.map(([n,s])=>`<button type="button" class="chip" data-hw="${s}">${n}</button>`).join(''));
+  function draw(){const s=$('#hw-in').value.toUpperCase().replace(/[\s\d]/g,'');const err=$('#hw-err');const bad=s.replace(/[ACDEFGHIKLMNPQRSTVWY]/g,'');
+    if(bad||s.length<3){err.textContent=bad?`"${bad[0]}" is not an amino acid code.`:'Enter at least 3 residues.';err.hidden=false;return}err.hidden=true;
+    const seq=s.slice(0,18),cx=160,cy=160,R=112;let h='',mx=0,my=0,H=0;const pos=[...seq].map((a,i)=>{const t=(i*100-90)*Math.PI/180;const h2=AA[a][3];mx+=h2*Math.cos(t);my+=h2*Math.sin(t);H+=h2;return[cx+R*Math.cos(t),cy+R*Math.sin(t)]});
+    const n=seq.length;const mu=Math.hypot(mx,my)/n;H/=n;
+    pos.forEach((p,i)=>{if(i)h+=`<line x1="${pos[i-1][0].toFixed(1)}" y1="${pos[i-1][1].toFixed(1)}" x2="${p[0].toFixed(1)}" y2="${p[1].toFixed(1)}" style="stroke:var(--line);stroke-width:1"/>`});
+    const ang=Math.atan2(my,mx),len=Math.min(90,mu*40);if(mu>0.05)h+=`<line x1="${cx}" y1="${cy}" x2="${(cx+len*Math.cos(ang)).toFixed(1)}" y2="${(cy+len*Math.sin(ang)).toFixed(1)}" style="stroke:var(--ink);stroke-width:2.5"/><circle cx="${(cx+len*Math.cos(ang)).toFixed(1)}" cy="${(cy+len*Math.sin(ang)).toFixed(1)}" r="4" style="fill:var(--ink)"/>`;
+    pos.forEach((p,i)=>{const a=seq[i];h+=`<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="17" style="fill:var(--surface);stroke:var(${CLS[AA[a][2]][1]});stroke-width:3.5"/><text x="${p[0].toFixed(1)}" y="${(p[1]+5).toFixed(1)}" text-anchor="middle" style="fill:var(--ink);font-family:var(--f-mono);font-size:14px;font-weight:600">${a}</text><text x="${(p[0]+(p[0]-cx)*.26).toFixed(1)}" y="${(p[1]+(p[1]-cy)*.26+4).toFixed(1)}" text-anchor="middle" style="font-size:10px">${i+1}</text>`});
+    $('#hw-svg').innerHTML=h;
+    const kind=mu>1.6&&Math.abs(H)<2.5?'<b>Strongly amphipathic.</b> One face is oily and the other is polar or charged. Helices like this sit on membrane surfaces or pack against the rest of a protein with their oily face.':H>1.5?'<b>Hydrophobic all round.</b> Every face is oily, as in a transmembrane helix buried in the lipid bilayer.':H<-1.5?'<b>Polar all round.</b> This helix, if it forms, would be happy fully exposed to water.':'<b>Mixed.</b> No strong pattern of faces.';
+    $('#hw-text').innerHTML=`<div class="stats"><div class="stat"><div class="k">Mean hydropathy</div><div class="v">${H>=0?'+':''}${H.toFixed(2)}</div></div><div class="stat"><div class="k">Hydrophobic moment</div><div class="v">${mu.toFixed(2)}</div></div></div><p>${kind}</p><p class="muted">An α-helix has 3.6 residues per turn, so residues i, i+3, i+4 and i+7 end up on the same face. The arrow points toward the hydrophobic face; its length is the hydrophobic moment (Kyte–Doolittle values). Circle outlines use the amino acid class colours from the grid above.</p>${s.length>18?`<p class="small muted">Showing the first 18 of ${s.length} residues.</p>`:''}`}
+  $('#hw-in').addEventListener('input',draw);$('#hw-presets').addEventListener('click',e=>{const b=e.target.closest('[data-hw]');if(!b)return;$('#hw-in').value=b.dataset.hw;draw()});draw()})();
+
+/* ---------- 8. proteins: domain architecture ---------- */
+(function(){const CAT={sig:['Signal peptide','--accent'],tm:['Membrane-spanning','--cls-hyd'],enz:['Enzyme / catalytic','--chart'],bind:['Ligand or partner binding','--cls-pol'],dna:['DNA-binding','--cls-pos'],reg:['Regulatory or disordered','--cls-spe']};
+  const PR=[
+   ['Insulin (INS)',110,[['sig',1,24,'Signal peptide','Directs the new chain into the secretory pathway, then is cut off.'],['bind',25,54,'B chain','Ends up in mature insulin, joined to the A chain by two disulfide bonds.'],['reg',57,87,'C-peptide','Cut out during processing. Measured clinically as a marker of the body\'s own insulin production.'],['bind',90,110,'A chain','Second chain of mature insulin.']]],
+   ['Haemoglobin β (HBB)',147,[['bind',3,147,'Globin domain','A single all-helical fold that holds a haem group, which binds oxygen. The sickle-cell change is at residue 7.']]],
+   ['p53 (TP53)',393,[['reg',1,61,'Transactivation domain','Disordered region that recruits the transcription machinery.'],['reg',64,92,'Proline-rich region','Needed for p53\'s full activity.'],['dna',94,292,'DNA-binding domain','Recognises p53 response elements. Most cancer mutations in TP53 fall here.'],['reg',323,356,'Tetramerisation domain','Four p53 chains assemble into the active tetramer.'],['reg',364,393,'C-terminal regulatory region','Disordered and heavily modified by acetylation and phosphorylation.']]],
+   ['EGF receptor (EGFR)',1210,[['sig',1,24,'Signal peptide','Targets the receptor to the cell membrane.'],['bind',25,645,'Extracellular region','Binds EGF and related growth factors outside the cell.'],['tm',646,668,'Transmembrane helix','A single helix crosses the membrane.'],['enz',712,979,'Tyrosine kinase domain','Adds phosphate groups to tyrosines. Drugs such as gefitinib block it in some lung cancers.'],['reg',980,1210,'C-terminal tail','Its tyrosines get phosphorylated and become docking sites for signalling proteins.']]],
+   ['CFTR',1480,[['tm',78,390,'Membrane-spanning domain 1','Six transmembrane helices forming half of a chloride channel.'],['enz',390,650,'Nucleotide-binding domain 1','Binds and hydrolyses ATP to open the channel. Phe508 is here; its deletion (ΔF508) is the most common cystic fibrosis mutation.'],['reg',650,830,'Regulatory (R) domain','Disordered. Must be phosphorylated before the channel can open.'],['tm',850,1170,'Membrane-spanning domain 2','Six more transmembrane helices.'],['enz',1200,1440,'Nucleotide-binding domain 2','Second ATP-binding domain.']]]];
+  const W=800,ml=160,mr=20,rh=46,top=10,max=1480,X=v=>ml+v/max*(W-ml-mr);const H=top+PR.length*rh+14;
+  let h=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Domain diagrams of five proteins drawn to scale" style="min-width:620px">`;
+  PR.forEach((p,i)=>{const y=top+i*rh+14;h+=`<text x="${ml-10}" y="${y+12}" text-anchor="end" style="fill:var(--ink)">${esc(p[0])}</text><text x="${ml-10}" y="${y+26}" text-anchor="end" style="font-size:11px">${fmt(p[1])} aa</text><rect x="${ml}" y="${y+6}" width="${X(p[1])-ml}" height="6" rx="3" style="fill:var(--line)"/>`;
+    p[2].forEach((d,j)=>{const x1=X(d[1]-1),x2=X(d[2]);h+=`<rect class="dom" data-p="${i}" data-d="${j}" x="${x1.toFixed(1)}" y="${y}" width="${Math.max(3,x2-x1-1).toFixed(1)}" height="18" rx="4" style="fill:var(${CAT[d[0]][1]});cursor:pointer"/>`});
+    if(i===4){const x=X(508);h+=`<line x1="${x}" x2="${x}" y1="${y-4}" y2="${y+22}" style="stroke:var(--ink);stroke-width:2"/><text x="${x}" y="${y+34}" text-anchor="middle" style="font-size:11px;fill:var(--ink)">F508</text>`}
+    if(i===1){const x=X(7);h+=`<line x1="${x}" x2="${x}" y1="${y-4}" y2="${y+22}" style="stroke:var(--ink);stroke-width:2"/><text x="${x+4}" y="${y+34}" style="font-size:11px;fill:var(--ink)">E7 (sickle)</text>`}});
+  h+='</svg>';$('#dom-legend').innerHTML=Object.values(CAT).map(([n,c])=>`<span class="small" style="display:inline-flex;align-items:center;gap:6px;margin-right:10px"><span style="width:10px;height:10px;border-radius:2px;background:var(${c})"></span>${n}</span>`).join('');
+  const wrap=$('#dom-wrap');wrap.insertAdjacentHTML('beforeend',h);const svg=wrap.querySelector('svg');
+  const info=(i,j)=>{const p=PR[i],d=p[2][j];$('#dom-info').innerHTML=`<b>${esc(p[0])}: ${esc(d[3])}</b> (residues ~${d[1]}–${d[2]}, ${CAT[d[0]][0].toLowerCase()}). ${esc(d[4])}`};
+  svg.addEventListener('mousemove',e=>{const r=e.target.closest('.dom');if(!r){$('#dom-tip').hidden=true;return}const i=+r.dataset.p,j=+r.dataset.d,d=PR[i][2][j];const p=svgPoint(svg,e,W);tip($('#dom-tip'),wrap,p.px,p.py,`<b>${esc(d[3])}</b><br>~${d[1]}–${d[2]}`);info(i,j)});
+  svg.addEventListener('mouseleave',()=>$('#dom-tip').hidden=true);svg.addEventListener('click',e=>{const r=e.target.closest('.dom');if(r)info(+r.dataset.p,+r.dataset.d)})})();
+
+/* ---------- 8. proteins: Michaelis-Menten ---------- */
+(function(){let type='comp';
+  function draw(){const Km=+$('#mm-km').value,I=+$('#mm-i').value;$('#mm-km-v').textContent=Km.toFixed(1);$('#mm-i-v').textContent=I.toFixed(1);
+    const Kapp=type==='comp'?Km*(1+I):Km,Vapp=type==='non'?1/(1+I):1;const W=800,H=260,ml=46,mr=150,mt=14,mb=38,Smax=20;
+    const X=s=>ml+s/Smax*(W-ml-mr),Y=v=>mt+(1-v/1.05)*(H-mt-mb);const f0=s=>s/(Km+s),f1=s=>Vapp*s/(Kapp+s);
+    let h=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Reaction rate against substrate concentration, with and without inhibitor"><g class="grid">${[0,.25,.5,.75,1].map(v=>`<line x1="${ml}" x2="${W-mr}" y1="${Y(v)}" y2="${Y(v)}"/>`).join('')}</g>`;
+    [0,.25,.5,.75,1].forEach(v=>h+=`<text x="${ml-6}" y="${Y(v)+4}" text-anchor="end">${v}</text>`);[0,5,10,15,20].forEach(s=>h+=`<text x="${X(s)}" y="${H-mb+18}" text-anchor="middle">${s}</text>`);
+    h+=`<text x="${W-mr}" y="${H-4}" text-anchor="end">[S] substrate (mM)</text><text x="${ml}" y="${mt-2}" style="font-size:11px">rate v / V<tspan baseline-shift="sub" style="font-size:9px">max</tspan></text>`;
+    const path=f=>{let d='';for(let k=0;k<=200;k++){const s=k/200*Smax;d+=(k?'L':'M')+X(s).toFixed(1)+' '+Y(f(s)).toFixed(1)}return d};
+    if(Km<=Smax)h+=`<line x1="${X(Km)}" x2="${X(Km)}" y1="${Y(0)}" y2="${Y(.5)}" style="stroke:var(--chart);stroke-dasharray:4 4"/>`;
+    if(I>0&&type==='comp'&&Kapp<=Smax)h+=`<line x1="${X(Kapp)}" x2="${X(Kapp)}" y1="${Y(0)}" y2="${Y(.5)}" style="stroke:var(--chart-2);stroke-dasharray:4 4"/>`;
+    h+=`<line x1="${ml}" x2="${W-mr}" y1="${Y(.5)}" y2="${Y(.5)}" style="stroke:var(--ink-2);stroke-dasharray:2 4"/><text x="${ml+4}" y="${Y(.5)-5}" style="fill:var(--ink-2);font-size:11px">half of V<tspan baseline-shift="sub" style="font-size:9px">max</tspan></text>`;
+    h+=`<path d="${path(f0)}" style="fill:none;stroke:var(--chart);stroke-width:2"/>`;if(I>0)h+=`<path d="${path(f1)}" style="fill:none;stroke:var(--chart-2);stroke-width:2"/>`;
+    h+=`<text x="${X(Smax)+8}" y="${Y(f0(Smax))+4}" style="fill:var(--ink)">no inhibitor</text>`;if(I>0)h+=`<text x="${X(Smax)+8}" y="${Y(f1(Smax))+(Math.abs(f1(Smax)-f0(Smax))<.06?16:4)}" style="fill:var(--ink)">with inhibitor</text>`;
+    h+=`<line class="xh" x1="0" x2="0" y1="${mt}" y2="${H-mb}" style="stroke:var(--ink-2);visibility:hidden"/><rect class="hit" x="${ml}" y="${mt}" width="${W-ml-mr}" height="${H-mt-mb}" style="fill:transparent"/></svg>`;
+    const wrap=$('#mm-wrap');wrap.querySelectorAll('svg').forEach(s=>s.remove());wrap.insertAdjacentHTML('beforeend',h);const svg=wrap.querySelector('svg'),xh=svg.querySelector('.xh');
+    const mv=e=>{const p=svgPoint(svg,e,W);const s=Math.max(0,Math.min(Smax,(p.x-ml)/(W-ml-mr)*Smax));xh.setAttribute('x1',X(s));xh.setAttribute('x2',X(s));xh.style.visibility='visible';
+      tip($('#mm-tip'),wrap,X(s)*p.scale,Y(f0(s))*p.scale,`[S] = ${s.toFixed(1)} mM<br>no inhibitor: <b>${f0(s).toFixed(2)}</b>${I>0?`<br>with inhibitor: <b>${f1(s).toFixed(2)}</b>`:''}`)};
+    svg.addEventListener('mousemove',mv);svg.addEventListener('touchmove',mv,{passive:true});svg.addEventListener('mouseleave',()=>{$('#mm-tip').hidden=true;xh.style.visibility='hidden'});
+    $('#mm-note').innerHTML=`v = V<sub>max</sub>·[S] / (K<sub>m</sub> + [S]). Dashed verticals mark K<sub>m</sub>, where the rate reaches half its maximum. `+(I===0?'Move the inhibitor slider above zero to compare.':type==='comp'?`<b>Competitive:</b> the inhibitor competes for the active site. Apparent K<sub>m</sub> rises to ${Kapp.toFixed(1)} mM, but at high enough [S] the enzyme still reaches V<sub>max</sub>.`:`<b>Non-competitive:</b> the inhibitor binds elsewhere and disables a fraction of enzyme. V<sub>max</sub> drops to ${(Vapp*100).toFixed(0)}% and adding more substrate cannot fix it. K<sub>m</sub> is unchanged.`)}
+  ['mm-km','mm-i'].forEach(id=>$('#'+id).addEventListener('input',draw));
+  $('#mm-type').addEventListener('click',e=>{const b=e.target.closest('[data-t]');if(!b)return;type=b.dataset.t;$$('#mm-type button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));draw()});draw()})();
+
 /* ---------- quizzes ---------- */
 const QUIZ={
+ chromosomes:[['What is a nucleosome?',['A gene found inside the nucleus','About 147 bp of DNA wrapped around eight histone proteins','A chromosome during cell division','A ribosome inside the nucleus'],1,'Nucleosomes are the first level of DNA packing: beads of histone with DNA wound round them.'],
+  ['In the band address 17p13.1, what does "p" mean?',['The protein-coding strand','The short arm','The long arm','The copy from the father'],1,'p is the short arm (petit); q is the long arm.'],
+  ['Your BAM file names chromosomes "chr1" but your annotation file uses "1". What happens if you intersect them without fixing it?',['The tool converts the names automatically','You get no overlaps, often with no error message','All coordinates shift by one','Only chromosome 1 fails'],1,'Most tools match names as exact strings. Check and harmonise chromosome names before comparing files.']],
+ expression:[['In the lac operon, what happens when lactose is present and glucose is absent?',['Off','Low','High','Only lacI is made'],2,'The repressor comes off, and CAP·cAMP boosts the promoter.'],
+  ['Skipping a 100 nt exon from a coding sequence will…',['keep the reading frame','shift the reading frame','remove exactly 33 amino acids','have no effect on the protein'],1,'100 is not a multiple of 3, so every codon after the skipped exon is read in a new frame.'],
+  ['Sample 2 was sequenced with twice as many reads as sample 1. Why can\'t you compare their raw counts directly?',['Long genes break the aligner','Deeper sequencing inflates every count, so counts must be scaled by library size','Raw counts are always wrong','RNA degrades during sequencing'],1,'Normalisation (CPM or a model-based method) removes the effect of sequencing depth.']],
  cells:[['Which statement about prokaryotic genes is most accurate?',['They are usually interrupted by many introns','They are densely packed and often grouped in operons','They are enclosed in a nucleus','They sit on several linear chromosomes'],1,'Bacterial genomes are compact, mostly coding, and often group related genes into operons that are transcribed together.'],
   ['A neuron and a liver cell from the same person differ mainly because…',['they carry different genomes','they express different genes from the same genome','neurons have no DNA','liver cells have extra chromosomes'],1,'Almost all cells share one genome. Cell identity comes from which genes are switched on.'],
   ['Which experiment measures how strongly each gene is being transcribed?',['Whole-genome sequencing','RNA-seq','X-ray crystallography','Bisulfite sequencing'],1,'RNA-seq sequences the RNA in a sample, so read counts per gene reflect transcription levels.']],
@@ -1620,7 +2138,8 @@ const QUIZ={
   ['Which amino acids have only one codon in the standard code?',['Leu and Ser','Met and Trp','Gly and Ala','Cys and His'],1,'Methionine (AUG) and tryptophan (UGG) each have a single codon.']],
  proteins:[['Which residues are most likely to be buried in a protein\'s core?',['Charged ones like K and E','Hydrophobic ones like L, I and V','Only glycine','Polar ones like S and T'],1,'Hydrophobic side chains avoid water and pack into the core.'],
   ['Which amino acid forms disulfide bonds?',['Cysteine','Methionine','Serine','Proline'],0,'Two cysteine thiol groups can oxidise to form an S–S bond.'],
-  ['Why can protein searches find more distant relatives than DNA searches?',['Proteins are longer than genes','Protein sequence changes more slowly, because many DNA changes are synonymous, and 20 letters carry more signal','DNA cannot be aligned','Proteins never mutate'],1,'Synonymous changes erase similarity at the DNA level while the protein stays the same, and a 20-letter alphabet makes chance matches rarer.']],
+  ['Why can protein searches find more distant relatives than DNA searches?',['Proteins are longer than genes','Protein sequence changes more slowly, because many DNA changes are synonymous, and 20 letters carry more signal','DNA cannot be aligned','Proteins never mutate'],1,'Synonymous changes erase similarity at the DNA level while the protein stays the same, and a 20-letter alphabet makes chance matches rarer.'],
+  ['A competitive inhibitor is added to an enzyme. What changes?',['Vmax drops; Km stays the same','Apparent Km rises; Vmax stays the same','Neither changes','The enzyme is destroyed'],1,'Enough substrate outcompetes the inhibitor, so the top speed is still reachable, but you need more substrate to get there.']],
  variation:[['A substitution changes GAG (Glu) to GAA (Glu). What type is it?',['Missense','Nonsense','Silent (synonymous)','Frameshift'],2,'Both codons code for glutamate, so the protein is unchanged.'],
   ['Deleting a single base from a coding sequence usually causes…',['a silent change','a frameshift','an in-frame deletion','no change to the protein'],1,'One base is not a multiple of 3, so every downstream codon shifts.'],
   ['Which file format stores variant calls?',['FASTA','FASTQ','VCF','PDB'],2,'VCF (Variant Call Format) holds one row per variant site.']],
@@ -1646,7 +2165,9 @@ $$('[data-dot]').forEach(d=>{if(!QUIZ[d.dataset.dot])d.style.visibility='hidden'
 updateProgress();
 
 /* ---------- glossary ---------- */
-const GL=[['Allele','One version of a gene or site. You inherit one allele from each parent at most positions.'],['Alignment','An arrangement of two or more sequences that lines up positions thought to share an ancestor, with gaps for insertions and deletions.'],['Alu element','A ~300 bp primate-specific repeat with over a million copies in the human genome, ending in an A-rich tail.'],['Amino acid','One of the 20 building blocks of proteins, each with a one-letter code.'],['Antiparallel','The two DNA strands run in opposite 5′→3′ directions.'],['Assembly','Reconstructing a genome sequence from many overlapping reads.'],['BAM / SAM','Formats for reads aligned to a reference. SAM is text; BAM is its compressed binary form.'],['BLAST','A fast heuristic search that finds local alignments between a query and a database.'],['Codon','Three consecutive bases in a coding sequence that specify one amino acid or a stop.'],['Coding strand','The DNA strand with the same sequence as the mRNA (T instead of U). Also called the sense strand.'],['Contig','A continuous stretch of sequence produced by assembly.'],['Coverage (depth)','How many reads overlap a given base, on average or at one position.'],['CpG island','A stretch of DNA richer in CG dinucleotides than expected. Often marks promoters.'],['E-value','In BLAST, the number of hits this good expected by chance. Smaller is more significant.'],['Exon','A segment of a gene kept in the mature RNA after splicing.'],['FASTA','A text format: a ">" header line followed by sequence lines.'],['FASTQ','A four-line-per-read format with sequence and per-base quality scores.'],['Frameshift','An insertion or deletion whose length is not a multiple of 3, shifting all downstream codons.'],['Gene','A region of DNA transcribed into a functional RNA, which may be translated into protein.'],['Genome','All the DNA of an organism (or organelle).'],['Haploid / diploid','One copy of each chromosome (sperm, egg) versus two copies (most human cells).'],['Homolog','A sequence that shares common ancestry with another. Includes orthologs and paralogs.'],['Indel','An insertion or deletion of bases.'],['Intron','A segment removed from RNA by splicing. Usually starts with GT and ends with AG.'],['k-mer','A substring of length k. Used in assembly, read counting and fast search.'],['Missense','A substitution that changes one amino acid to another.'],['Motif','A short sequence pattern with biological meaning, such as a binding site.'],['Nonsense','A substitution that creates a premature stop codon.'],['Nucleotide','A sugar, a phosphate and a base: the unit of DNA or RNA.'],['Open reading frame (ORF)','A stretch from a start codon to the next in-frame stop codon.'],['Ortholog','Homologs in different species that diverged by speciation.'],['Paralog','Homologs in the same genome that diverged by gene duplication.'],['Phred score','Base quality: Q = −10·log₁₀(error probability). Q30 means 1 error in 1,000.'],['Promoter','DNA upstream of a gene where transcription machinery binds.'],['Read','One sequenced fragment reported by a sequencer.'],['Reference genome','A standard assembled genome (such as GRCh38) that reads are compared against.'],['Reverse complement','The sequence of the opposite strand, read 5′→3′.'],['RNA-seq','Sequencing a sample\'s RNA to measure gene expression.'],['SNP / SNV','A single-nucleotide variant. "SNP" usually means one common in the population.'],['Splicing','Removing introns from pre-mRNA and joining exons together.'],['Template strand','The DNA strand RNA polymerase reads. It is complementary to the RNA.'],['Transcription','Making RNA from a DNA template.'],['Translation','Making protein from an mRNA template at the ribosome.'],['UTR','Untranslated region at the 5′ or 3′ end of an mRNA.'],['VCF','Variant Call Format: one row per variant site with position, alleles, quality and genotypes.']];
+const GL=[['Active site','The pocket of an enzyme where the substrate binds and the reaction happens.'],['Alternative splicing','Joining different combinations of exons from one gene to make different mRNAs.'],['Aneuploidy','Having an extra or missing chromosome, as in trisomy 21.'],['Centromere','The constricted region that joins sister chromatids and attaches to the spindle during division.'],['Chromatin','DNA packaged with histones and other proteins.'],['CPM / TPM','Counts per million and transcripts per million: RNA-seq units that correct for sequencing depth, and (TPM) gene length.'],['DNA methylation','A methyl group added to cytosine, usually at CpG sites. Promoter methylation tends to silence genes.'],['Domain','A compact part of a protein that folds on its own and often has its own function.'],['Enhancer','A regulatory DNA region, often far from the gene, where activators bind to boost transcription.'],['Enzyme','A protein (or RNA) that speeds up a chemical reaction without being used up.'],['Epigenetics','Heritable changes in gene activity that do not change the DNA sequence, such as methylation and histone marks.'],['Euchromatin / heterochromatin','Loosely packed, active chromatin versus tightly packed, mostly silent chromatin.'],['Fold change','The ratio of expression between two conditions, usually reported as log₂.'],['Histone','A protein that DNA wraps around. Its tails carry chemical marks that affect gene activity.'],['Isoform','One of several versions of a transcript or protein made from the same gene.'],['Karyotype','The full set of chromosomes of a cell, and the notation for it, such as 46,XX.'],['Kₘ','The substrate concentration at which an enzyme works at half its maximum rate.'],['Nucleosome','About 147 bp of DNA wrapped around a core of eight histones.'],['Operon','A group of bacterial genes transcribed together from one promoter.'],['Post-translational modification','A chemical change to a protein after it is made, such as phosphorylation.'],['Signal peptide','A hydrophobic N-terminal stretch that directs a protein into the secretory pathway.'],['Telomere','Repeats of TTAGGG that cap each chromosome end.'],['Transcription factor','A protein that binds a specific DNA motif and turns genes up or down.'],
+['Allele','One version of a gene or site. You inherit one allele from each parent at most positions.'],['Alignment','An arrangement of two or more sequences that lines up positions thought to share an ancestor, with gaps for insertions and deletions.'],['Alu element','A ~300 bp primate-specific repeat with over a million copies in the human genome, ending in an A-rich tail.'],['Amino acid','One of the 20 building blocks of proteins, each with a one-letter code.'],['Antiparallel','The two DNA strands run in opposite 5′→3′ directions.'],['Assembly','Reconstructing a genome sequence from many overlapping reads.'],['BAM / SAM','Formats for reads aligned to a reference. SAM is text; BAM is its compressed binary form.'],['BLAST','A fast heuristic search that finds local alignments between a query and a database.'],['Codon','Three consecutive bases in a coding sequence that specify one amino acid or a stop.'],['Coding strand','The DNA strand with the same sequence as the mRNA (T instead of U). Also called the sense strand.'],['Contig','A continuous stretch of sequence produced by assembly.'],['Coverage (depth)','How many reads overlap a given base, on average or at one position.'],['CpG island','A stretch of DNA richer in CG dinucleotides than expected. Often marks promoters.'],['E-value','In BLAST, the number of hits this good expected by chance. Smaller is more significant.'],['Exon','A segment of a gene kept in the mature RNA after splicing.'],['FASTA','A text format: a ">" header line followed by sequence lines.'],['FASTQ','A four-line-per-read format with sequence and per-base quality scores.'],['Frameshift','An insertion or deletion whose length is not a multiple of 3, shifting all downstream codons.'],['Gene','A region of DNA transcribed into a functional RNA, which may be translated into protein.'],['Genome','All the DNA of an organism (or organelle).'],['Haploid / diploid','One copy of each chromosome (sperm, egg) versus two copies (most human cells).'],['Homolog','A sequence that shares common ancestry with another. Includes orthologs and paralogs.'],['Indel','An insertion or deletion of bases.'],['Intron','A segment removed from RNA by splicing. Usually starts with GT and ends with AG.'],['k-mer','A substring of length k. Used in assembly, read counting and fast search.'],['Missense','A substitution that changes one amino acid to another.'],['Motif','A short sequence pattern with biological meaning, such as a binding site.'],['Nonsense','A substitution that creates a premature stop codon.'],['Nucleotide','A sugar, a phosphate and a base: the unit of DNA or RNA.'],['Open reading frame (ORF)','A stretch from a start codon to the next in-frame stop codon.'],['Ortholog','Homologs in different species that diverged by speciation.'],['Paralog','Homologs in the same genome that diverged by gene duplication.'],['Phred score','Base quality: Q = −10·log₁₀(error probability). Q30 means 1 error in 1,000.'],['Promoter','DNA upstream of a gene where transcription machinery binds.'],['Read','One sequenced fragment reported by a sequencer.'],['Reference genome','A standard assembled genome (such as GRCh38) that reads are compared against.'],['Reverse complement','The sequence of the opposite strand, read 5′→3′.'],['RNA-seq','Sequencing a sample\'s RNA to measure gene expression.'],['SNP / SNV','A single-nucleotide variant. "SNP" usually means one common in the population.'],['Splicing','Removing introns from pre-mRNA and joining exons together.'],['Template strand','The DNA strand RNA polymerase reads. It is complementary to the RNA.'],['Transcription','Making RNA from a DNA template.'],['Translation','Making protein from an mRNA template at the ribosome.'],['UTR','Untranslated region at the 5′ or 3′ end of an mRNA.'],['VCF','Variant Call Format: one row per variant site with position, alleles, quality and genotypes.']];
+GL.sort((a,b)=>a[0].localeCompare(b[0]));
 function renderGloss(){const q=$('#gl-q').value.trim().toLowerCase();const items=GL.filter(([t,d])=>!q||t.toLowerCase().includes(q)||d.toLowerCase().includes(q));
   $('#gloss').innerHTML=items.length?items.map(([t,d])=>`<div class="term"><dt>${esc(t)}</dt><dd>${esc(d)}</dd></div>`).join(''):'<p class="muted">No terms match. Try a shorter word.</p>'}
 $('#gl-q').addEventListener('input',renderGloss);renderGloss();
