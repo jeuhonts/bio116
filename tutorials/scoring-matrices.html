@@ -447,7 +447,23 @@ p(a)    background frequency of residue a
   </table>
   </div>
   <div class="prose">
-  <p>The query-length rows follow NCBI's BLAST help. There are also specialized matrices: <b>JTT</b> and <b>WAG</b> are built for phylogenetic models, and some matrices are built only from transmembrane segments or from proteins with unusual composition. BLAST itself adjusts BLOSUM62 for each query–subject pair's amino-acid composition by default (<i>compositional adjustment</i>), because a matrix built for average proteins can mislead on biased ones.</p>
+  <p>The query-length rows follow NCBI's BLAST help.</p>
+  <h3 id="special">Specialized matrices</h3>
+  <p>BLOSUM and PAM were built from ordinary soluble proteins. Some kinds of protein follow different substitution rules, and matrices built from them align such proteins better.</p>
+  </div>
+  <div class="tablewrap">
+  <table class="data">
+    <thead><tr><th>Protein type</th><th>Matrices</th><th>Why a special matrix helps</th></tr></thead>
+    <tbody>
+      <tr><td><b>Transmembrane segments</b></td><td>PHAT; SLIM; JTT-TM</td><td>Membrane-spanning helices are mostly hydrophobic. BLOSUM62 rewards hydrophobic matches that are common there by chance, so unrelated membrane proteins look similar. PHAT, built from predicted transmembrane blocks, finds homologs of membrane queries better than general matrices.</td></tr>
+      <tr><td><b>Intrinsically disordered regions</b></td><td>EDSSMat; DUNMat</td><td>Disordered regions are rich in polar, charged and small residues and evolve differently from folded domains. Matrices built from disordered regions score their substitutions more realistically.</td></tr>
+      <tr><td><b>Unusual composition</b> (low-complexity regions, proteins from AT- or GC-rich genomes)</td><td>BLOSUM62 with compositional adjustment; SEG masking</td><td>BLAST adjusts the matrix for each pair's amino-acid composition by default, and SEG can mask low-complexity stretches in the query. Both stop biased composition from producing high scores by itself.</td></tr>
+      <tr><td><b>Phylogenetics</b> (organelle, viral and general)</td><td>JTT, WAG, LG; mtREV (mitochondrial), cpREV (chloroplast), HIVb (HIV)</td><td>These are evolutionary models for estimating distances and trees (as in the phylogeny tutorial), not scoring matrices for database searches.</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="prose">
+  <p><b>Using them.</b> NCBI BLAST offers only its built-in BLOSUM and PAM matrices. To use PHAT or EDSSMat, give the matrix file to a program that accepts one, such as FASTA/SSEARCH or EMBOSS <code>needle</code> and <code>water</code> (option <code>-datafile</code>). Use a specialized matrix only for the kind of sequence it was built from: PHAT for membrane-spanning segments, not for a whole protein that has only one membrane helix. For ordinary globular proteins such as the globins, BLOSUM62 with compositional adjustment remains the right choice.</p>
   </div>
 </section>
 
@@ -479,6 +495,12 @@ p(a)    background frequency of residue a
     <li>Kimura M (1980). A simple method for estimating evolutionary rates of base substitutions through comparative studies of nucleotide sequences. <i>J Mol Evol</i> 16:111–120. <a href="https://doi.org/10.1007/BF01731581" target="_blank" rel="noopener">doi:10.1007/BF01731581</a></li>
     <li>Jones DT, Taylor WR, Thornton JM (1992). The rapid generation of mutation data matrices from protein sequences. <i>CABIOS</i> 8:275–282. <a href="https://doi.org/10.1093/bioinformatics/8.3.275" target="_blank" rel="noopener">doi:10.1093/bioinformatics/8.3.275</a></li>
     <li>Whelan S, Goldman N (2001). A general empirical model of protein evolution derived from multiple protein families using a maximum-likelihood approach. <i>Mol Biol Evol</i> 18:691–699. <a href="https://doi.org/10.1093/oxfordjournals.molbev.a003851" target="_blank" rel="noopener">doi:10.1093/oxfordjournals.molbev.a003851</a></li>
+    <li>Ng PC, Henikoff JG, Henikoff S (2000). PHAT: a transmembrane-specific substitution matrix. <i>Bioinformatics</i> 16:760–766. <a href="https://academic.oup.com/bioinformatics/article/16/9/760/307630" target="_blank" rel="noopener">Bioinformatics article</a></li>
+    <li>Jones DT, Taylor WR, Thornton JM (1994). A mutation data matrix for transmembrane proteins. <i>FEBS Lett</i> 339:269–275. <a href="https://pubmed.ncbi.nlm.nih.gov/8112466/" target="_blank" rel="noopener">PubMed 8112466</a></li>
+    <li>Müller T, Rahmann S, Rehmsmeier M (2001). Non-symmetric score matrices and the detection of homologous transmembrane proteins. <i>Bioinformatics</i> 17 (Suppl 1):S182–S189. <a href="https://academic.oup.com/bioinformatics/article/17/suppl_1/S182/262106" target="_blank" rel="noopener">Bioinformatics article</a></li>
+    <li>Trivedi R, Nagarajaram HA (2019). Amino acid substitution scoring matrices specific to intrinsically disordered regions in proteins. <i>Sci Rep</i> 9:16380. <a href="https://doi.org/10.1038/s41598-019-52532-8" target="_blank" rel="noopener">doi:10.1038/s41598-019-52532-8</a></li>
+    <li>Yu Y-K, Altschul SF (2005). The construction of amino acid substitution matrices for the comparison of proteins with non-standard compositions. <i>Bioinformatics</i> 21:902–911. <a href="https://academic.oup.com/bioinformatics/article/21/7/902/268768" target="_blank" rel="noopener">Bioinformatics article</a></li>
+    <li>Trivedi R, Nagarajaram HA (2020). Substitution scoring matrices for proteins: an overview. <i>Protein Sci</i> 29:2150–2163. <a href="https://doi.org/10.1002/pro.3954" target="_blank" rel="noopener">doi:10.1002/pro.3954</a></li>
   </ol>
   <footer>Bio 116 · Scoring matrices tutorial. Previous: Aligning the Globins, Inside BLAST.</footer>
 </section>
