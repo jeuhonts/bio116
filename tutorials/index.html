@@ -1,0 +1,283 @@
+<title>Bio 116 Sequence Analysis</title>
+<meta name="description" content="Course index for the Bio 116 interactive tutorials on sequence alignment and database searching.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Literata:opsz,wght@7..72,500;7..72,650&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&display=swap">
+<style>
+
+:root{
+  --bg:#FAF8F9; --panel:#FFFFFF; --panel-2:#F3EEF1; --ink:#1F1A21; --muted:#645B68; --line:#E3DAE0;
+  --heme:#A8173A; --heme-soft:#F7DDE3; --plum:#4C2C63; --plum-soft:#EBE2F1;
+  --r-hyd:#D9E6F7; --r-aro:#E3DAF5; --r-pos:#F8D8DE; --r-neg:#F5E1C4; --r-pol:#D5EEDF; --r-spe:#ECE8D2;
+  --good:#1E6B45; --warn:#8A5A00;
+  --display:"Literata", Georgia, "Times New Roman", serif;
+  --body:"Source Sans 3", "Segoe UI", Arial, sans-serif;
+  --mono:"JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#141015; --panel:#1C171E; --panel-2:#251F28; --ink:#EEE8EF; --muted:#A99EAD; --line:#352D38;
+    --heme:#F2708A; --heme-soft:#4A1E2A; --plum:#C9A9E2; --plum-soft:#33263E;
+    --r-hyd:#1E3350; --r-aro:#33294F; --r-pos:#4C2230; --r-neg:#48341E; --r-pol:#1B3E2D; --r-spe:#383422;
+    --good:#6FD19E; --warn:#E9B45A;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#141015; --panel:#1C171E; --panel-2:#251F28; --ink:#EEE8EF; --muted:#A99EAD; --line:#352D38;
+  --heme:#F2708A; --heme-soft:#4A1E2A; --plum:#C9A9E2; --plum-soft:#33263E;
+  --r-hyd:#1E3350; --r-aro:#33294F; --r-pos:#4C2230; --r-neg:#48341E; --r-pol:#1B3E2D; --r-spe:#383422;
+  --good:#6FD19E; --warn:#E9B45A;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.6;margin:0}
+.wrap{max-width:1180px;margin:0 auto;padding-inline:20px;padding-block:0 64px;display:grid;grid-template-columns:200px minmax(0,1fr);gap:48px}
+@media (max-width:980px){.wrap{grid-template-columns:minmax(0,1fr);gap:0}.toc{display:none}}
+@media (max-width:480px){.wrap{padding-inline:16px}body{font-size:16px}}
+.toc{position:sticky;top:env(safe-area-inset-top,0px);align-self:start;padding-top:40px;font-size:14px}
+.toc b{display:block;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.toc ol{list-style:none;margin:0;padding:0;display:grid;gap:2px;counter-reset:t}
+.toc a{display:block;color:var(--muted);text-decoration:none;padding:4px 8px;border-left:2px solid var(--line);counter-increment:t}
+.toc a::before{content:counter(t) ". ";font-variant-numeric:tabular-nums}
+.toc a:hover,.toc a.on{color:var(--ink);border-left-color:var(--heme)}
+main{min-width:0}
+.prose{max-width:68ch}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;line-height:1.2;font-weight:650}
+h1{font-size:clamp(2.2rem,5vw,3.4rem);margin:0 0 16px;letter-spacing:-.01em}
+h2{font-size:1.75rem;margin:0 0 12px}
+h3{font-size:1.2rem;margin:28px 0 8px;font-weight:500}
+p{margin:0 0 14px}
+a{color:var(--heme)}
+a:focus-visible,button:focus-visible,select:focus-visible,input:focus-visible,summary:focus-visible,td:focus-visible{outline:2px solid var(--heme);outline-offset:2px}
+code,.mono{font-family:var(--mono);font-size:.88em}
+.eyebrow{font-size:13px;letter-spacing:.09em;text-transform:uppercase;color:var(--heme);font-weight:700;margin-bottom:12px}
+header.hero{padding-block:48px 24px;border-bottom:1px solid var(--line);margin-bottom:8px}
+.lede{font-size:1.15rem;max-width:62ch;color:var(--ink)}
+.meta{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0 26px;padding:0;list-style:none}
+.meta li{font-size:14px;padding:4px 10px;border:1px solid var(--line);border-radius:999px;color:var(--muted);background:var(--panel)}
+section{padding-block:40px 8px;border-bottom:1px solid var(--line);scroll-margin-top:12px}
+section:last-of-type{border-bottom:0}
+.snum{font-family:var(--mono);font-size:13px;color:var(--heme);display:block;margin-bottom:6px}
+.goals{margin:0;padding-left:20px}
+.goals li{margin-bottom:4px}
+.note{font-size:15px;color:var(--muted);border-left:3px solid var(--plum);padding:4px 0 4px 14px;margin:18px 0;max-width:68ch}
+.eq{font-family:var(--mono);font-size:15px;background:var(--panel-2);border-radius:6px;padding:14px 16px;overflow-x:auto;white-space:pre;margin:14px 0 18px;max-width:100%;line-height:1.7}
+.tablewrap{overflow-x:auto;margin:16px 0 20px}
+table.data{border-collapse:collapse;font-size:15px;min-width:560px;width:100%}
+table.data th,table.data td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+table.data th{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:700}
+table.data td.num{font-variant-numeric:tabular-nums}
+
+/* tool panels */
+.tool{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px;margin:20px 0 24px}
+.tool-title{font-family:var(--display);font-size:1.05rem;font-weight:650;margin:0 0 12px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:baseline}
+.tool-title small{font-family:var(--body);font-weight:400;font-size:13px;color:var(--muted)}
+.controls{display:flex;flex-wrap:wrap;gap:12px 16px;align-items:flex-end;margin-bottom:14px}
+.field{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted);min-width:0}
+.field.grow{flex:1 1 220px}
+.field input[type=text]{font-family:var(--mono);text-transform:uppercase}
+select,input[type=text],input[type=number]{font:inherit;font-size:15px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:6px 8px;min-width:0;max-width:100%}
+input[type=number]{width:80px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.seg label{padding:6px 12px;font-size:14px;color:var(--ink);cursor:pointer;background:var(--bg)}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg label:has(input:checked){background:var(--plum);color:var(--bg)}
+.seg label:has(input:focus-visible){outline:2px solid var(--heme);outline-offset:-2px}
+button{font:inherit;font-size:14px;font-weight:600;border-radius:6px;padding:7px 14px;cursor:pointer;border:1px solid var(--line);background:var(--bg);color:var(--ink)}
+button.primary{background:var(--heme);border-color:var(--heme);color:var(--bg)}
+button:hover{border-color:var(--heme)}
+.btnrow{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}
+.chips button{font-weight:400;border-radius:999px;padding:4px 12px}
+
+/* stats */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:8px;overflow:hidden;margin:0 0 14px}
+.stat{background:var(--panel);padding:10px 12px}
+.stat b{display:block;font-family:var(--mono);font-size:1.25rem;font-weight:600;font-variant-numeric:tabular-nums}
+.stat span{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+
+/* alignment display */
+.aln{font-family:var(--mono);font-size:14px;line-height:1.45;overflow-x:auto;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:12px 14px;white-space:pre;max-width:100%}
+.aln .blk{margin-bottom:12px}
+.aln .blk:last-child{margin-bottom:0}
+.aln .nm{color:var(--muted)}
+.aln .mid{color:var(--muted)}
+.r{border-radius:2px}
+.c-hyd{background:var(--r-hyd)} .c-aro{background:var(--r-aro)} .c-pos{background:var(--r-pos)}
+.c-neg{background:var(--r-neg)} .c-pol{background:var(--r-pol)} .c-spe{background:var(--r-spe)}
+.plain .r{background:none}
+.key{outline:2px solid var(--heme);outline-offset:-1px;font-weight:600;color:var(--heme)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;color:var(--muted);margin:10px 0 0}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{display:inline-block;width:14px;height:14px;border-radius:3px}
+.check{font-size:14px;margin:0 0 12px;display:flex;flex-wrap:wrap;gap:6px 18px}
+.ok{color:var(--good);font-weight:600}
+.no{color:var(--warn);font-weight:600}
+
+/* DP explorer */
+.dpwrap{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--bg);max-width:100%}
+table.dp{border-collapse:collapse;font-family:var(--mono);font-size:12px;margin:0}
+table.dp th{font-weight:600;color:var(--muted);width:34px;height:30px;text-align:center;background:var(--panel-2)}
+table.dp th.idx{font-size:10px;font-weight:400}
+table.dp td{width:34px;height:30px;text-align:center;border:1px solid var(--line);position:relative;font-variant-numeric:tabular-nums;cursor:pointer;color:var(--ink)}
+table.dp td.empty{color:transparent;cursor:default}
+table.dp td .ar{position:absolute;top:0;left:2px;font-size:8px;color:var(--muted);line-height:1.1}
+table.dp td.src{outline:2px dashed var(--plum);outline-offset:-3px}
+table.dp td.cur{background:var(--plum-soft);font-weight:600}
+table.dp td.path{background:var(--heme-soft);color:var(--heme);font-weight:600}
+table.dp td.sel{outline:2px solid var(--heme);outline-offset:-2px}
+.calc{font-family:var(--mono);font-size:13px;background:var(--panel-2);border-radius:8px;padding:12px 14px;margin:12px 0;white-space:pre;overflow-x:auto;line-height:1.6;min-height:7.5em}
+.calc b{color:var(--heme)}
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px}
+@media (max-width:760px){.two{grid-template-columns:minmax(0,1fr)}}
+
+/* BLOSUM heatmap */
+.hm{border-collapse:collapse;font-family:var(--mono);font-size:11px}
+.hm th{width:26px;height:24px;color:var(--muted);font-weight:600}
+.hm td{width:26px;height:24px;text-align:center;cursor:pointer;font-variant-numeric:tabular-nums;border:1px solid var(--bg)}
+.hm td.sel{outline:2px solid var(--ink);outline-offset:-2px}
+.hm th.hl{color:var(--heme)}
+.readout{font-size:15px;background:var(--panel-2);border-radius:8px;padding:12px 14px;min-height:5.5em}
+.readout .big{font-family:var(--mono);font-size:1.6rem;font-weight:600;color:var(--heme);display:block}
+
+/* plots */
+canvas{display:block;max-width:100%;background:var(--bg);border:1px solid var(--line);border-radius:8px}
+svg text{font-family:var(--body)}
+.hist{width:100%;height:auto;display:block;max-width:100%}
+
+/* identity matrix */
+table.idm{border-collapse:collapse;font-size:14px;min-width:520px}
+table.idm th,table.idm td{padding:8px 10px;text-align:center;border:1px solid var(--line)}
+table.idm th{font-weight:600;color:var(--muted);font-size:13px}
+table.idm td{font-family:var(--mono);font-variant-numeric:tabular-nums}
+
+/* questions */
+details{border:1px solid var(--line);border-radius:8px;background:var(--panel);padding:12px 16px;margin:0 0 10px;max-width:72ch}
+summary{cursor:pointer;font-weight:600}
+details p{margin:10px 0 0}
+.refs{font-size:15px;padding-left:20px}
+.refs li{margin-bottom:6px}
+footer{font-size:13px;color:var(--muted);padding-top:24px}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+
+/* ---- index page ---- */
+.solo{max-width:900px;margin:0 auto;padding-inline:20px;padding-block:0 64px}
+@media (max-width:480px){.solo{padding-inline:16px}}
+.course{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:14px}
+.card{display:grid;grid-template-columns:56px minmax(0,1fr);gap:4px 18px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px 20px}
+@media (max-width:560px){.card{grid-template-columns:minmax(0,1fr)}}
+.num{font-family:var(--display);font-size:2.2rem;font-weight:650;color:var(--heme);line-height:1;grid-row:span 4}
+@media (max-width:560px){.num{grid-row:auto}}
+.card h2{margin:0;font-size:1.4rem}
+.card h2 a{color:var(--ink);text-decoration:none}
+.card h2 a:hover{text-decoration:underline;text-decoration-color:var(--heme)}
+.card .sub{font-size:14px;color:var(--muted);display:flex;flex-wrap:wrap;gap:4px 14px}
+.card p{margin:4px 0 0;max-width:68ch}
+.card .tools{font-size:14px;color:var(--muted);margin-top:6px}
+.card .go{margin-top:10px;display:inline-block;font-weight:600;color:var(--heme);text-decoration:none}
+.card .go:hover{text-decoration:underline}
+.thread{list-style:none;margin:12px 0 0;padding:0;display:grid;gap:0;border-left:2px solid var(--line)}
+.thread li{position:relative;padding:8px 0 12px 22px;max-width:70ch}
+.thread li::before{content:"";position:absolute;left:-6px;top:15px;width:10px;height:10px;border-radius:50%;background:var(--heme);border:2px solid var(--bg)}
+.thread b{font-family:var(--mono);font-size:13px;color:var(--heme);display:block}
+</style>
+
+<div class="solo">
+<header class="hero">
+  <div class="eyebrow">Bio 116 · Bioinformatics</div>
+  <h1>Sequence Analysis Tutorials</h1>
+  <p class="lede">Five interactive tutorials that take you from aligning two proteins to aligning a whole family. Every tutorial uses the same five globins, so each new method can be tested on sequences you already know. Everything runs in your browser; there is nothing to install.</p>
+  <ul class="meta">
+    <li>5 tutorials, about 4 hours in total</li>
+    <li>Take them in order</li>
+    <li>Assumes: amino-acid chemistry, basic probability</li>
+  </ul>
+</header>
+
+<section aria-labelledby="course-h" style="border-bottom:0">
+  <h2 id="course-h" class="sr" style="position:absolute;left:-9999px">Tutorials</h2>
+  <ol class="course">
+    <li class="card">
+      <span class="num">1</span>
+      <h2><a href="https://claude.ai/artifact/8PRFukqvrmYHCX73rTa7KG" target="_blank" rel="noopener">Aligning the Globins</a></h2>
+      <div class="sub"><span>Pairwise alignment</span><span>About 45 minutes</span></div>
+      <p>How to score and build an alignment of two proteins. Fill a Needleman–Wunsch or Smith–Waterman matrix one cell at a time, align whole globins with affine gaps, and test whether a score could be chance.</p>
+      <div class="tools">Tools: BLOSUM62 explorer · step-through DP matrix · globin aligner with dot plot · shuffle test</div>
+    </li>
+    <li class="card">
+      <span class="num">2</span>
+      <h2><a href="https://claude.ai/artifact/RjApWHNLK5rZS7Qz4JkyFN" target="_blank" rel="noopener">Inside BLAST</a></h2>
+      <div class="sub"><span>Database searching</span><span>About 50 minutes</span></div>
+      <p>How BLAST skips almost the whole alignment matrix: neighborhood words, two-hit seeding, X-drop extension and E-values. Then run a mini-BLAST and PSI-BLAST, and learn to run real BLAST and read its output.</p>
+      <div class="tools">Tools: neighborhood explorer · hit map · X-drop chart · E-value calculator · mini-BLAST · PSI-BLAST iterations</div>
+    </li>
+    <li class="card">
+      <span class="num">3</span>
+      <h2><a href="https://claude.ai/artifact/NkY4R5d5JiDaxT6nC8A7j3" target="_blank" rel="noopener">PAM and BLOSUM</a></h2>
+      <div class="sub"><span>Scoring matrices</span><span>About 45 minutes</span></div>
+      <p>Where substitution scores come from. Build a BLOSUM-style matrix from a real globin block, extrapolate a PAM series, and see why each matrix suits one evolutionary distance.</p>
+      <div class="tools">Tools: block-to-matrix builder · DNA PAM extrapolator · eight-matrix explorer · one pair, eight matrices</div>
+    </li>
+    <li class="card">
+      <span class="num">4</span>
+      <h2><a href="https://claude.ai/artifact/VUvD6s5ZoXuMAqPMrycVGu" target="_blank" rel="noopener">Profile HMMs and HMMER</a></h2>
+      <div class="sub"><span>Family models</span><span>About 55 minutes</span></div>
+      <p>Turn a family alignment into a profile hidden Markov model. Score sequences with Viterbi and Forward, calibrate E-values, and learn the HMMER programs and their output.</p>
+      <div class="tools">Tools: live model diagram · sequence logo · mini-hmmsearch with training choices · Stockholm export</div>
+    </li>
+    <li class="card">
+      <span class="num">5</span>
+      <h2><a href="https://claude.ai/artifact/4D5YgQXgv5XyVQGn3zEZif" target="_blank" rel="noopener">Aligning Many Globins</a></h2>
+      <div class="sub"><span>Multiple sequence alignment</span><span>About 50 minutes</span></div>
+      <p>Align all five globins at once with the progressive method behind Clustal. Build the guide tree, watch gaps freeze at each merge, test all 120 merge orders, and learn to run and judge modern aligners.</p>
+      <div class="tools">Tools: distance matrix and guide tree · progressive aligner · all-orders experiment · Clustal and FASTA export</div>
+    </li>
+  </ol>
+</section>
+
+<section aria-labelledby="cast-h">
+  <div class="prose">
+  <h2 id="cast-h">The five globins</h2>
+  <p>All five fold into the same eight-helix shape and hold heme between a distal (E7) and a proximal (F8) histidine. Whether an alignment puts those histidines in the same column is the check used throughout the course.</p>
+  </div>
+  <div class="tablewrap">
+  <table class="data">
+    <thead><tr><th>Protein</th><th>Organism</th><th>UniProt</th><th>Role in the course</th></tr></thead>
+    <tbody>
+      <tr><td><b>Hemoglobin α</b></td><td><i>Homo sapiens</i></td><td>P69905</td><td>Close paralog of β (about 43% identical)</td></tr>
+      <tr><td><b>Hemoglobin β</b></td><td><i>Homo sapiens</i></td><td>P68871</td><td>The usual query</td></tr>
+      <tr><td><b>Myoglobin</b></td><td><i>Homo sapiens</i></td><td>P02144</td><td>More distant animal globin (about 25% to β)</td></tr>
+      <tr><td><b>Myoglobin</b></td><td><i>Physeter macrocephalus</i> (sperm whale)</td><td>P02185</td><td>Near-duplicate of human myoglobin (about 84%)</td></tr>
+      <tr><td><b>Leghemoglobin A</b></td><td><i>Glycine max</i> (soybean)</td><td>P02238</td><td>The hard case: a true homolog at about 20% identity</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section aria-labelledby="thread-h">
+  <div class="prose">
+  <h2 id="thread-h">Follow leghemoglobin through the course</h2>
+  <p>Soybean leghemoglobin is homologous to the animal globins but sits in the twilight zone of sequence identity. Each tutorial tests a new method on it.</p>
+  </div>
+  <ol class="thread">
+    <li><b>1 · Pairwise alignment</b>Aligned to β-globin with BLOSUM62, both heme histidines line up. With identity scoring they do not. Against shuffled sequences, the real score stands well clear.</li>
+    <li><b>2 · BLAST and PSI-BLAST</b>BLAST misses it at every threshold. PSI-BLAST picks up the myoglobins but still cannot reach leghemoglobin, because the small database has no intermediate sequences.</li>
+    <li><b>3 · Scoring matrices</b>Matrices built for close relatives shrink its alignment with β-globin to a fragment: 4 residues with PAM30, 48 with PAM70. Matrices for distant relatives keep an alignment of about 90 residues.</li>
+    <li><b>4 · Profile HMMs</b>A model trained on hemoglobins finds it in the course database, but not at Swiss-Prot scale. Adding near-identical myoglobins to the training set tilts the model away from it.</li>
+    <li><b>5 · Multiple alignment</b>The guide tree adds it last. With cheap gap extension, its distal histidine slides 18 columns out of place.</li>
+  </ol>
+</section>
+
+<section aria-labelledby="notes-h">
+  <div class="prose">
+  <h2 id="notes-h">Notes</h2>
+  <ul class="goals">
+    <li>Each tutorial opens in a new tab. The links work only for people the pages have been shared with.</li>
+    <li>The in-browser tools are teaching versions of the real algorithms. Each tutorial says what it simplifies and shows how to run the real software (BLAST+, HMMER, Clustal Omega, MAFFT, MUSCLE).</li>
+    <li>Sequences are the UniProt entries above, with the initiator methionine removed so residue numbers match the classic literature.</li>
+  </ul>
+  </div>
+  <footer>Bio 116 · Sequence analysis tutorials.</footer>
+</section>
+</div>
