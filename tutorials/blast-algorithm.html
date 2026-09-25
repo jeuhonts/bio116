@@ -1,0 +1,1110 @@
+<title>Inside BLAST</title>
+<meta name="description" content="Bio 116 tutorial: how the BLAST algorithm works, how to run BLAST, and how to read its results.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Literata:opsz,wght@7..72,500;7..72,650&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&display=swap">
+<style>
+
+:root{
+  --bg:#FAF8F9; --panel:#FFFFFF; --panel-2:#F3EEF1; --ink:#1F1A21; --muted:#645B68; --line:#E3DAE0;
+  --heme:#A8173A; --heme-soft:#F7DDE3; --plum:#4C2C63; --plum-soft:#EBE2F1;
+  --r-hyd:#D9E6F7; --r-aro:#E3DAF5; --r-pos:#F8D8DE; --r-neg:#F5E1C4; --r-pol:#D5EEDF; --r-spe:#ECE8D2;
+  --good:#1E6B45; --warn:#8A5A00;
+  --display:"Literata", Georgia, "Times New Roman", serif;
+  --body:"Source Sans 3", "Segoe UI", Arial, sans-serif;
+  --mono:"JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#141015; --panel:#1C171E; --panel-2:#251F28; --ink:#EEE8EF; --muted:#A99EAD; --line:#352D38;
+    --heme:#F2708A; --heme-soft:#4A1E2A; --plum:#C9A9E2; --plum-soft:#33263E;
+    --r-hyd:#1E3350; --r-aro:#33294F; --r-pos:#4C2230; --r-neg:#48341E; --r-pol:#1B3E2D; --r-spe:#383422;
+    --good:#6FD19E; --warn:#E9B45A;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#141015; --panel:#1C171E; --panel-2:#251F28; --ink:#EEE8EF; --muted:#A99EAD; --line:#352D38;
+  --heme:#F2708A; --heme-soft:#4A1E2A; --plum:#C9A9E2; --plum-soft:#33263E;
+  --r-hyd:#1E3350; --r-aro:#33294F; --r-pos:#4C2230; --r-neg:#48341E; --r-pol:#1B3E2D; --r-spe:#383422;
+  --good:#6FD19E; --warn:#E9B45A;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.6;margin:0}
+.wrap{max-width:1180px;margin:0 auto;padding-inline:20px;padding-block:0 64px;display:grid;grid-template-columns:200px minmax(0,1fr);gap:48px}
+@media (max-width:980px){.wrap{grid-template-columns:minmax(0,1fr);gap:0}.toc{display:none}}
+@media (max-width:480px){.wrap{padding-inline:16px}body{font-size:16px}}
+.toc{position:sticky;top:env(safe-area-inset-top,0px);align-self:start;padding-top:40px;font-size:14px}
+.toc b{display:block;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.toc ol{list-style:none;margin:0;padding:0;display:grid;gap:2px;counter-reset:t}
+.toc a{display:block;color:var(--muted);text-decoration:none;padding:4px 8px;border-left:2px solid var(--line);counter-increment:t}
+.toc a::before{content:counter(t) ". ";font-variant-numeric:tabular-nums}
+.toc a:hover,.toc a.on{color:var(--ink);border-left-color:var(--heme)}
+main{min-width:0}
+.prose{max-width:68ch}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;line-height:1.2;font-weight:650}
+h1{font-size:clamp(2.2rem,5vw,3.4rem);margin:0 0 16px;letter-spacing:-.01em}
+h2{font-size:1.75rem;margin:0 0 12px}
+h3{font-size:1.2rem;margin:28px 0 8px;font-weight:500}
+p{margin:0 0 14px}
+a{color:var(--heme)}
+a:focus-visible,button:focus-visible,select:focus-visible,input:focus-visible,summary:focus-visible,td:focus-visible{outline:2px solid var(--heme);outline-offset:2px}
+code,.mono{font-family:var(--mono);font-size:.88em}
+.eyebrow{font-size:13px;letter-spacing:.09em;text-transform:uppercase;color:var(--heme);font-weight:700;margin-bottom:12px}
+header.hero{padding-block:48px 24px;border-bottom:1px solid var(--line);margin-bottom:8px}
+.lede{font-size:1.15rem;max-width:62ch;color:var(--ink)}
+.meta{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0 26px;padding:0;list-style:none}
+.meta li{font-size:14px;padding:4px 10px;border:1px solid var(--line);border-radius:999px;color:var(--muted);background:var(--panel)}
+section{padding-block:40px 8px;border-bottom:1px solid var(--line);scroll-margin-top:12px}
+section:last-of-type{border-bottom:0}
+.snum{font-family:var(--mono);font-size:13px;color:var(--heme);display:block;margin-bottom:6px}
+.goals{margin:0;padding-left:20px}
+.goals li{margin-bottom:4px}
+.note{font-size:15px;color:var(--muted);border-left:3px solid var(--plum);padding:4px 0 4px 14px;margin:18px 0;max-width:68ch}
+.eq{font-family:var(--mono);font-size:15px;background:var(--panel-2);border-radius:6px;padding:14px 16px;overflow-x:auto;white-space:pre;margin:14px 0 18px;max-width:100%;line-height:1.7}
+.tablewrap{overflow-x:auto;margin:16px 0 20px}
+table.data{border-collapse:collapse;font-size:15px;min-width:560px;width:100%}
+table.data th,table.data td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+table.data th{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:700}
+table.data td.num{font-variant-numeric:tabular-nums}
+
+/* tool panels */
+.tool{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px;margin:20px 0 24px}
+.tool-title{font-family:var(--display);font-size:1.05rem;font-weight:650;margin:0 0 12px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:baseline}
+.tool-title small{font-family:var(--body);font-weight:400;font-size:13px;color:var(--muted)}
+.controls{display:flex;flex-wrap:wrap;gap:12px 16px;align-items:flex-end;margin-bottom:14px}
+.field{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted);min-width:0}
+.field.grow{flex:1 1 220px}
+.field input[type=text]{font-family:var(--mono);text-transform:uppercase}
+select,input[type=text],input[type=number]{font:inherit;font-size:15px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:6px 8px;min-width:0;max-width:100%}
+input[type=number]{width:80px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.seg label{padding:6px 12px;font-size:14px;color:var(--ink);cursor:pointer;background:var(--bg)}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg label:has(input:checked){background:var(--plum);color:var(--bg)}
+.seg label:has(input:focus-visible){outline:2px solid var(--heme);outline-offset:-2px}
+button{font:inherit;font-size:14px;font-weight:600;border-radius:6px;padding:7px 14px;cursor:pointer;border:1px solid var(--line);background:var(--bg);color:var(--ink)}
+button.primary{background:var(--heme);border-color:var(--heme);color:var(--bg)}
+button:hover{border-color:var(--heme)}
+.btnrow{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}
+.chips button{font-weight:400;border-radius:999px;padding:4px 12px}
+
+/* stats */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:8px;overflow:hidden;margin:0 0 14px}
+.stat{background:var(--panel);padding:10px 12px}
+.stat b{display:block;font-family:var(--mono);font-size:1.25rem;font-weight:600;font-variant-numeric:tabular-nums}
+.stat span{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+
+/* alignment display */
+.aln{font-family:var(--mono);font-size:14px;line-height:1.45;overflow-x:auto;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:12px 14px;white-space:pre;max-width:100%}
+.aln .blk{margin-bottom:12px}
+.aln .blk:last-child{margin-bottom:0}
+.aln .nm{color:var(--muted)}
+.aln .mid{color:var(--muted)}
+.r{border-radius:2px}
+.c-hyd{background:var(--r-hyd)} .c-aro{background:var(--r-aro)} .c-pos{background:var(--r-pos)}
+.c-neg{background:var(--r-neg)} .c-pol{background:var(--r-pol)} .c-spe{background:var(--r-spe)}
+.plain .r{background:none}
+.key{outline:2px solid var(--heme);outline-offset:-1px;font-weight:600;color:var(--heme)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;color:var(--muted);margin:10px 0 0}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{display:inline-block;width:14px;height:14px;border-radius:3px}
+.check{font-size:14px;margin:0 0 12px;display:flex;flex-wrap:wrap;gap:6px 18px}
+.ok{color:var(--good);font-weight:600}
+.no{color:var(--warn);font-weight:600}
+
+/* DP explorer */
+.dpwrap{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--bg);max-width:100%}
+table.dp{border-collapse:collapse;font-family:var(--mono);font-size:12px;margin:0}
+table.dp th{font-weight:600;color:var(--muted);width:34px;height:30px;text-align:center;background:var(--panel-2)}
+table.dp th.idx{font-size:10px;font-weight:400}
+table.dp td{width:34px;height:30px;text-align:center;border:1px solid var(--line);position:relative;font-variant-numeric:tabular-nums;cursor:pointer;color:var(--ink)}
+table.dp td.empty{color:transparent;cursor:default}
+table.dp td .ar{position:absolute;top:0;left:2px;font-size:8px;color:var(--muted);line-height:1.1}
+table.dp td.src{outline:2px dashed var(--plum);outline-offset:-3px}
+table.dp td.cur{background:var(--plum-soft);font-weight:600}
+table.dp td.path{background:var(--heme-soft);color:var(--heme);font-weight:600}
+table.dp td.sel{outline:2px solid var(--heme);outline-offset:-2px}
+.calc{font-family:var(--mono);font-size:13px;background:var(--panel-2);border-radius:8px;padding:12px 14px;margin:12px 0;white-space:pre;overflow-x:auto;line-height:1.6;min-height:7.5em}
+.calc b{color:var(--heme)}
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px}
+@media (max-width:760px){.two{grid-template-columns:minmax(0,1fr)}}
+
+/* BLOSUM heatmap */
+.hm{border-collapse:collapse;font-family:var(--mono);font-size:11px}
+.hm th{width:26px;height:24px;color:var(--muted);font-weight:600}
+.hm td{width:26px;height:24px;text-align:center;cursor:pointer;font-variant-numeric:tabular-nums;border:1px solid var(--bg)}
+.hm td.sel{outline:2px solid var(--ink);outline-offset:-2px}
+.hm th.hl{color:var(--heme)}
+.readout{font-size:15px;background:var(--panel-2);border-radius:8px;padding:12px 14px;min-height:5.5em}
+.readout .big{font-family:var(--mono);font-size:1.6rem;font-weight:600;color:var(--heme);display:block}
+
+/* plots */
+canvas{display:block;max-width:100%;background:var(--bg);border:1px solid var(--line);border-radius:8px}
+svg text{font-family:var(--body)}
+.hist{width:100%;height:auto;display:block;max-width:100%}
+
+/* identity matrix */
+table.idm{border-collapse:collapse;font-size:14px;min-width:520px}
+table.idm th,table.idm td{padding:8px 10px;text-align:center;border:1px solid var(--line)}
+table.idm th{font-weight:600;color:var(--muted);font-size:13px}
+table.idm td{font-family:var(--mono);font-variant-numeric:tabular-nums}
+
+/* questions */
+details{border:1px solid var(--line);border-radius:8px;background:var(--panel);padding:12px 16px;margin:0 0 10px;max-width:72ch}
+summary{cursor:pointer;font-weight:600}
+details p{margin:10px 0 0}
+.refs{font-size:15px;padding-left:20px}
+.refs li{margin-bottom:6px}
+footer{font-size:13px;color:var(--muted);padding-top:24px}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+
+/* ---- BLAST tutorial additions ---- */
+[hidden]{display:none!important}
+.pipe{list-style:none;margin:22px 0 6px;padding:0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+@media (max-width:760px){.pipe{grid-template-columns:minmax(0,1fr)}}
+.pipe li{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px 12px 10px;display:flex;flex-direction:column;gap:4px}
+.pipe a{color:inherit;text-decoration:none}
+.pipe .n{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--heme);color:var(--bg);font-family:var(--mono);font-size:13px;font-weight:600}
+.pipe b{font-size:15px}
+.pipe span.d{font-size:13px;color:var(--muted);line-height:1.4}
+.part{font-family:var(--display);font-size:1rem;color:var(--plum);letter-spacing:.02em;margin:0;padding-block:36px 0}
+.seqpick{font-family:var(--mono);font-size:14px;line-height:1.9;word-break:break-all;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 12px;max-height:12em;overflow-y:auto}
+.seqpick button{font:inherit;padding:0 1px;border:0;border-radius:2px;background:none;color:var(--ink);cursor:pointer;font-weight:400}
+.seqpick button.w{background:var(--heme);color:var(--bg)}
+.seqpick button:hover{background:var(--plum-soft)}
+.seqpick button.w:hover{background:var(--heme)}
+.nb{display:flex;flex-wrap:wrap;gap:6px;max-height:15em;overflow-y:auto;padding:2px}
+.nb span{font-family:var(--mono);font-size:13px;padding:2px 7px;border-radius:4px;background:var(--panel-2);font-variant-numeric:tabular-nums}
+.nb span.self{background:var(--heme-soft);color:var(--heme);font-weight:600}
+.nb span i{font-style:normal;color:var(--muted);margin-left:4px;font-size:11px}
+.bo{font-family:var(--mono);font-size:13px;line-height:1.5;white-space:pre;overflow-x:auto;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:12px 14px;max-width:100%}
+.bo .hd{color:var(--heme);font-weight:600}
+.bo .mu{color:var(--muted)}
+table.hits{border-collapse:collapse;font-size:14px;min-width:640px;width:100%}
+table.hits th,table.hits td{padding:7px 9px;border-bottom:1px solid var(--line);text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+table.hits th{font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);font-weight:700}
+table.hits td:first-child,table.hits th:first-child,table.hits td:nth-child(2),table.hits th:nth-child(2){text-align:left}
+table.hits tr.sel td{background:var(--heme-soft)}
+table.hits tbody tr{cursor:pointer}
+table.hits tbody tr:hover td{background:var(--panel-2)}
+.pill{display:inline-block;font-size:12px;font-weight:700;padding:1px 8px;border-radius:999px;letter-spacing:.02em}
+.pill.strong{background:color-mix(in srgb,var(--good) 18%,var(--panel));color:var(--good)}
+.pill.gray{background:color-mix(in srgb,var(--warn) 18%,var(--panel));color:var(--warn)}
+.pill.chance{background:var(--panel-2);color:var(--muted)}
+.missed{font-size:14px;color:var(--muted);margin:10px 0 0;padding-left:18px}
+.missed li{margin-bottom:3px}
+.anno{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px;margin:14px 0}
+.anno div{border-top:3px solid var(--plum);background:var(--panel);padding:10px 12px;font-size:15px;border-radius:0 0 6px 6px}
+.anno b{font-family:var(--mono);font-size:13px;display:block;color:var(--plum);margin-bottom:2px}
+.copyrow{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:0 0 8px;flex-wrap:wrap}
+textarea{font-family:var(--mono);font-size:13px;width:100%;min-height:6em;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:8px}
+.muted{color:var(--muted)}
+</style>
+
+<div class="wrap">
+<nav class="toc" aria-label="Contents">
+  <b>Contents</b>
+  <ol>
+    <li><a href="#speed">Why not Smith–Waterman?</a></li>
+    <li><a href="#words">Words and neighborhoods</a></li>
+    <li><a href="#hits">Finding hits</a></li>
+    <li><a href="#xdrop">Ungapped extension</a></li>
+    <li><a href="#gapped">Gapped extension</a></li>
+    <li><a href="#evalue">Scores and E-values</a></li>
+    <li><a href="#search">Run a mini-BLAST</a></li>
+    <li><a href="#programs">Choosing a program</a></li>
+    <li><a href="#running">Running real BLAST</a></li>
+    <li><a href="#reading">Reading the results</a></li>
+    <li><a href="#check">Check yourself</a></li>
+    <li><a href="#refs">References</a></li>
+  </ol>
+</nav>
+
+<main>
+<header class="hero">
+  <div class="eyebrow">Bio 116 · Tutorial · Database searching</div>
+  <h1>Inside BLAST</h1>
+  <p class="lede">Smith–Waterman finds the best local alignment, but it is far too slow to run against every protein ever sequenced. BLAST gets close to the same answer thousands of times faster by skipping almost the whole matrix. In this tutorial you take BLAST apart one step at a time, run a working mini-BLAST on the globins from the last tutorial, and then learn to run the real thing and read its output.</p>
+  <ul class="meta">
+    <li>About 50 minutes</li>
+    <li>Follows: Aligning the Globins</li>
+    <li>All tools run in your browser</li>
+  </ul>
+  <ol class="pipe" aria-label="The BLAST pipeline">
+    <li><a href="#words"><span class="n">1</span></a><b>Neighborhood words</b><span class="d">List every 3-letter word that scores ≥ T against each query word.</span></li>
+    <li><a href="#hits"><span class="n">2</span></a><b>Hits on a diagonal</b><span class="d">Look up database words; act only on two nearby hits on one diagonal.</span></li>
+    <li><a href="#xdrop"><span class="n">3</span></a><b>Ungapped X-drop</b><span class="d">Extend both ways; stop when the score falls X below its best.</span></li>
+    <li><a href="#gapped"><span class="n">4</span></a><b>Gapped extension</b><span class="d">Align promising segments again, now allowing gaps.</span></li>
+    <li><a href="#evalue"><span class="n">5</span></a><b>E-value</b><span class="d">Ask how many hits this good chance alone would produce.</span></li>
+  </ol>
+</header>
+
+<section id="goals-sec" aria-labelledby="goals-h">
+  <div class="prose">
+  <h2 id="goals-h">By the end you should be able to</h2>
+  <ul class="goals">
+    <li>Explain why exhaustive dynamic programming is impractical for database search.</li>
+    <li>Describe the seed, extend and evaluate steps of BLAST and the parameters that control each (w, T, A, X).</li>
+    <li>Predict how changing T trades speed against sensitivity.</li>
+    <li>Convert a raw score into a bit score and an E-value, and explain why E depends on database size.</li>
+    <li>Choose the right BLAST program, run a search, and read a hit table and pairwise alignment critically.</li>
+  </ul>
+  </div>
+</section>
+
+<p class="part">Part 1 · How BLAST works</p>
+
+<section id="speed" aria-labelledby="speed-h">
+  <span class="snum">1</span>
+  <div class="prose">
+  <h2 id="speed-h">Why not just run Smith–Waterman?</h2>
+  <p>Smith–Waterman fills one cell for every pair of residues. Searching a query of length <i>m</i> against a database of total length <i>n</i> means filling <i>m × n</i> cells. The tool below times the affine-gap Smith–Waterman code from the last tutorial in your own browser, then scales that up to real databases.</p>
+  </div>
+  <div class="tool">
+    <div class="tool-title">Smith–Waterman on your device <small>Query: β-globin, 146 residues</small></div>
+    <div class="stats" id="spStats"></div>
+    <p class="note" style="margin:0">Database sizes are rounded. UniProtKB/Swiss-Prot, the curated protein database, holds roughly 570,000 sequences. NCBI's nr (non-redundant) protein database holds hundreds of millions. BLAST searches Swiss-Prot in seconds.</p>
+  </div>
+  <div class="prose">
+  <p>Most of those cells are wasted. Two unrelated proteins produce a matrix full of zeros and small numbers. The only interesting part of the matrix is a narrow band near a few diagonals. BLAST (Altschul et al. 1990; 1997) finds those diagonals cheaply first and runs expensive alignment only there. It gives up the guarantee of finding the optimal alignment. In return it gets speed, and in practice it misses little that Smith–Waterman would have scored as significant.</p>
+  </div>
+</section>
+
+<section id="words" aria-labelledby="words-h">
+  <span class="snum">2</span>
+  <div class="prose">
+  <h2 id="words-h">Step 1 · Words and the neighborhood</h2>
+  <p>BLAST breaks the query into overlapping <b>words</b> of length <i>w</i>. For proteins <i>w</i> = 3. Requiring exact word matches would miss conservative substitutions, so BLAST also accepts any word that scores at least <b>T</b> against the query word with BLOSUM62. That set is the word's <b>neighborhood</b>. The default is T = 11.</p>
+  </div>
+  <div class="eq">score(HGK, HGR) = s(H,H) + s(G,G) + s(K,R) = 8 + 6 + 2 = 16   ≥ 11  → in the neighborhood
+score(HGK, AGK) = s(H,A) + s(G,G) + s(K,K) = −2 + 6 + 5 = 9    < 11  → not</div>
+  <div class="tool">
+    <div class="tool-title">Neighborhood explorer <small>Click any residue in β-globin to pick the word starting there</small></div>
+    <div class="seqpick" id="nbSeq" aria-label="Beta-globin sequence; each residue is a button"></div>
+    <div class="controls" style="margin-top:14px">
+      <label class="field">Threshold T <input type="number" id="nbT" value="11" min="5" max="20" step="1"></label>
+      <div class="field" style="flex:1 1 260px"><span id="nbSummary" class="muted" style="font-size:15px;color:var(--ink)"></span></div>
+    </div>
+    <div class="nb" id="nbList" aria-live="polite"></div>
+    <div class="stats" id="nbStats" style="margin-top:14px"></div>
+  </div>
+  <div class="prose">
+  <p>Notice two things. Words made of rare, high-scoring residues (W, C, H) have large neighborhoods, because they have points to spare. Words made of common, low-scoring residues (A, S, L) may not even reach T against themselves, so they contribute <i>no</i> seeds. Lowering T makes BLAST more sensitive but multiplies the number of words to look up.</p>
+  </div>
+</section>
+
+<section id="hits" aria-labelledby="hits-h">
+  <span class="snum">3</span>
+  <div class="prose">
+  <h2 id="hits-h">Step 2 · Finding hits in the database</h2>
+  <p>All the neighborhood words for the whole query go into a lookup table that maps each word to the query positions it came from. BLAST then walks along each database sequence once, reading every 3-letter word and looking it up. Each match is a <b>hit</b> at query position <i>i</i> and subject position <i>j</i>. Hits that belong to the same ungapped alignment share a <b>diagonal</b>, <i>j − i</i>.</p>
+  <p>Extending every hit would still be slow, and most hits are noise. The 1997 version of BLAST uses the <b>two-hit method</b>. It only extends when it finds two non-overlapping hits on the same diagonal within <b>A = 40</b> residues of each other. A real similarity usually produces several nearby hits. A random one rarely does.</p>
+  </div>
+  <div class="tool">
+    <div class="tool-title">Hit map <small>Query (rows) against one database sequence (columns)</small></div>
+    <div class="controls">
+      <label class="field">Query <select id="hmQ"></select></label>
+      <label class="field">Subject <select id="hmS"></select></label>
+      <label class="field">Threshold T <input type="number" id="hmT" value="11" min="7" max="16" step="1"></label>
+      <div class="field">Seeding
+        <div class="seg" role="radiogroup" aria-label="Seeding rule">
+          <label><input type="radio" name="hmMode" id="hmTwo" value="two" checked>Two-hit</label>
+          <label><input type="radio" name="hmMode" id="hmOne" value="one">One-hit</label>
+        </div>
+      </div>
+    </div>
+    <div class="two">
+      <div><canvas id="hmCanvas" width="460" height="460" aria-label="Map of word hits between query and subject"></canvas></div>
+      <div>
+        <div class="stats" id="hmStats" style="grid-template-columns:repeat(2,minmax(0,1fr))"></div>
+        <div class="legend">
+          <span><i style="background:var(--muted)"></i>word hit</span>
+          <span><i style="background:var(--heme)"></i>hit that triggered an extension</span>
+          <span><i style="background:var(--plum)"></i>resulting ungapped segment (HSP)</span>
+        </div>
+        <p class="note">Start with β-globin against α-globin. The hits pile up along one long diagonal. Then switch the subject to sperm whale myoglobin. With T = 11 and the two-hit rule, its hits on the true diagonal overlap each other, so nothing is extended. Lower T to 9, or switch to one-hit seeding, and watch what happens to the number of extensions.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="xdrop" aria-labelledby="xdrop-h">
+  <span class="snum">4</span>
+  <div class="prose">
+  <h2 id="xdrop-h">Step 3 · Ungapped extension with X-drop</h2>
+  <p>From a triggering hit, BLAST extends the alignment along the diagonal without gaps, first to the right and then to the left. It keeps a running score and remembers the best score seen so far. As soon as the running score falls more than <b>X</b> below that best, it stops, then trims back to the best point. The result is a <b>high-scoring segment pair</b> (HSP).</p>
+  <p>X is set in bits and converted to raw score. The default of 7 bits is about 15 BLOSUM62 points. A small X stops quickly and can cut a real alignment short at a bad patch. A large X explores further but spends more time on noise.</p>
+  </div>
+  <div class="tool">
+    <div class="tool-title">X-drop extension <small>Best-scoring seed between β-globin and the chosen subject</small></div>
+    <div class="controls">
+      <label class="field">Subject <select id="xdS"></select></label>
+      <label class="field">X (bits) <input type="number" id="xdX" value="7" min="1" max="30" step="1"></label>
+    </div>
+    <svg class="hist" id="xdPlot" viewBox="0 0 640 280" role="img" aria-label="Running score of the ungapped extension"></svg>
+    <div class="stats" id="xdStats" style="margin-top:12px"></div>
+    <div class="bo" id="xdAln"></div>
+  </div>
+</section>
+
+<section id="gapped" aria-labelledby="gapped-h">
+  <span class="snum">5</span>
+  <div class="prose">
+  <h2 id="gapped-h">Step 4 · Gapped extension</h2>
+  <p>Real homologs have indels, so an ungapped HSP is usually only a piece of the true alignment. If an HSP scores above a <b>gap trigger</b> (22 bits, about 42 raw points with BLOSUM62), BLAST runs a gapped dynamic-programming alignment outward from a point inside it. This is Smith–Waterman limited by its own X-drop rule, so it explores only the cells near the HSP. The default gap costs for blastp are 11 to open a gap and 1 per residue.</p>
+  </div>
+  <div class="eq">BLAST gap cost for a gap of length L = existence + L × extension = 11 + L
+(In last tutorial's notation this is open = 12, extend = 1.)</div>
+  <p class="note">The mini-BLAST below uses full Smith–Waterman on the query–subject pair for this step. For sequences this short, that gives the same or a slightly better alignment than BLAST's X-drop version.</p>
+</section>
+
+<section id="evalue" aria-labelledby="evalue-h">
+  <span class="snum">6</span>
+  <div class="prose">
+  <h2 id="evalue-h">Step 5 · Scores, bits and E-values</h2>
+  <p>In the last tutorial you estimated significance by shuffling. Karlin and Altschul (1990) worked out the answer directly. For local alignments of random sequences, the number of distinct alignments scoring at least <i>S</i> by chance is expected to be:</p>
+  </div>
+  <div class="eq">E = K · m · n · e^(−λS)
+
+bit score   S′ = (λS − ln K) / ln 2        so   E = m · n · 2^(−S′)
+P-value     P = 1 − e^(−E)                     (P ≈ E when E is small)
+
+m = query length   n = database length (all residues)   λ, K depend on matrix and gap costs
+BLOSUM62, gaps 11/1:   λ = 0.267   K = 0.041</div>
+  <div class="prose">
+  <p>The <b>raw score</b> depends on the scoring system. The <b>bit score</b> rescales it by λ and K, so bit scores from different matrices are comparable. The <b>E-value</b> adds the size of the search. Every extra doubling of the database doubles E. The same alignment can therefore be convincing against a small database and unremarkable against a huge one.</p>
+  </div>
+  <div class="tool">
+    <div class="tool-title">E-value calculator <small>Starts at β-globin vs α-globin</small></div>
+    <div class="controls">
+      <label class="field">Raw score S <input type="number" id="evS" value="285" min="0" max="3000" step="1"></label>
+      <label class="field">Query length m <input type="number" id="evM" value="146" min="1" max="50000" step="1"></label>
+      <label class="field">Database <select id="evN">
+        <option value="1075">This tutorial's mini database (1,075 residues)</option>
+        <option value="2e8" selected>UniProtKB/Swiss-Prot (~2 × 10⁸ residues)</option>
+        <option value="1e11">NCBI nr (order of 10¹¹ residues)</option>
+      </select></label>
+    </div>
+    <div class="stats" id="evStats"></div>
+    <p class="note" style="margin:0">Try S = 108, the score of whale myoglobin against α-globin. It is overwhelming against the mini database, still significant against Swiss-Prot, and weak against nr. Real BLAST also corrects m and n for edge effects and adjusts for amino-acid composition, so its numbers differ slightly.</p>
+  </div>
+</section>
+
+<section id="search" aria-labelledby="search-h">
+  <span class="snum">7</span>
+  <div class="prose">
+  <h2 id="search-h">Run a mini-BLAST</h2>
+  <p>This puts every step together: neighborhood words, lookup table, two-hit seeding, X-drop ungapped extension, gap trigger, gapped alignment and E-values. The database holds the five globins plus four unrelated proteins as decoys: ubiquitin, cytochrome c, lysozyme and the insulin B chain. Click a row in the hit table to see its alignment.</p>
+  </div>
+  <div class="tool" id="mbTool">
+    <div class="controls">
+      <label class="field">Query <select id="mbQ"><option value="__paste">Paste your own…</option></select></label>
+      <label class="field">Threshold T <input type="number" id="mbT" value="11" min="7" max="16" step="1"></label>
+      <div class="field">Seeding
+        <div class="seg" role="radiogroup" aria-label="Seeding rule">
+          <label><input type="radio" name="mbMode" id="mbTwo" value="two" checked>Two-hit</label>
+          <label><input type="radio" name="mbMode" id="mbOne" value="one">One-hit</label>
+        </div>
+      </div>
+      <label class="field">X (bits) <input type="number" id="mbX" value="7" min="1" max="30" step="1"></label>
+      <label class="field">Report E below <select id="mbE"><option value="10" selected>10 (BLAST+ default)</option><option value="0.05">0.05</option><option value="0.001">0.001</option></select></label>
+      <label class="field">Search space <select id="mbN">
+        <option value="mini" selected>Mini database</option>
+        <option value="2e8">As if Swiss-Prot</option>
+        <option value="1e11">As if nr</option>
+      </select></label>
+    </div>
+    <label class="field" id="mbPasteWrap" hidden>Query sequence (one-letter amino-acid code)
+      <textarea id="mbPaste" spellcheck="false">MVHLTPEEKSAVTALWGKVNVDEVGGEALGRLLVVYPWTQRFFESFGDLSTPDAVMGNPKVKAHGKKVLGAFSDGLAHLDNLKGTFATLSELHCDKLHVDPENFRLLGNVLVCVLAHHFGKEFTPPVQAAYQKVVAGVANALAHKYH</textarea>
+    </label>
+    <div class="stats" id="mbStats"></div>
+    <div class="tablewrap" style="margin-top:0"><table class="hits" id="mbTable"></table></div>
+    <ul class="missed" id="mbMissed"></ul>
+    <h3>Alignment</h3>
+    <div class="bo" id="mbAln"></div>
+    <h3>Tabular output (<code>-outfmt 6</code>)</h3>
+    <div class="bo" id="mbTab"></div>
+  </div>
+  <div class="prose">
+  <h3>Try this</h3>
+  <ul class="goals">
+    <li>Query β-globin with the defaults. Which globins are found? Which are missed, and at which step?</li>
+    <li>Lower T to 9. Myoglobins appear. How many more extensions did it cost?</li>
+    <li>Switch search space to "As if nr". Which hits would you still trust?</li>
+    <li>Query soybean leghemoglobin. No animal globin is found at any T. Leghemoglobin <i>is</i> homologous to them (you saw the aligned histidines last time). What does that tell you about BLAST's limits?</li>
+    <li>Paste a short piece of β-globin, like <code>VHLTPEEKSAVTALWGKV</code>. What happens to the E-values, and why?</li>
+  </ul>
+  </div>
+</section>
+
+<p class="part">Part 2 · Using BLAST</p>
+
+<section id="programs" aria-labelledby="programs-h">
+  <span class="snum">8</span>
+  <div class="prose">
+  <h2 id="programs-h">Choosing a program</h2>
+  <p>The program depends on what your query is and what you want to search. When the question is about proteins, search at the protein level whenever you can. The genetic code's redundancy makes DNA diverge faster than the protein it encodes, so protein comparisons see further back in time.</p>
+  </div>
+  <div class="tablewrap">
+  <table class="data">
+    <thead><tr><th>Program</th><th>Query</th><th>Database</th><th>Typical use</th></tr></thead>
+    <tbody>
+      <tr><td><b>blastp</b></td><td>protein</td><td>protein</td><td>Find homologs of a protein. What we did above.</td></tr>
+      <tr><td><b>blastn</b></td><td>nucleotide</td><td>nucleotide</td><td>Find where a DNA sequence comes from; primers, repeats. <i>megablast</i> (word size 28) for near-identical matches, <i>blastn</i> task (word size 11) for more distant ones.</td></tr>
+      <tr><td><b>blastx</b></td><td>nucleotide, translated in 6 frames</td><td>protein</td><td>What protein might this DNA or RNA read encode?</td></tr>
+      <tr><td><b>tblastn</b></td><td>protein</td><td>nucleotide, translated in 6 frames</td><td>Find unannotated genes for a protein in a genome or transcript set.</td></tr>
+      <tr><td><b>tblastx</b></td><td>nucleotide, translated</td><td>nucleotide, translated</td><td>Compare two DNA sets at the protein level. Very slow; use sparingly.</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section id="running" aria-labelledby="running-h">
+  <span class="snum">9</span>
+  <div class="prose">
+  <h2 id="running-h">Running real BLAST</h2>
+  <h3>On the NCBI website</h3>
+  <ol class="goals">
+    <li>Go to <a href="https://blast.ncbi.nlm.nih.gov/Blast.cgi" target="_blank" rel="noopener">blast.ncbi.nlm.nih.gov</a> and choose <b>Protein BLAST</b>.</li>
+    <li>Paste your query as plain sequence or FASTA, or enter an accession such as <code>P68871</code>.</li>
+    <li>Pick a database. <b>UniProtKB/Swiss-Prot</b> (<code>swissprot</code>) is small and well annotated. <b>nr</b> is comprehensive but full of unreviewed and duplicate entries.</li>
+    <li>Optionally limit the search to an organism or exclude one, such as <i>Homo sapiens</i>, to see only other species.</li>
+    <li>Under <b>Algorithm parameters</b> you can find the expect threshold, word size, matrix (BLOSUM62 by default) and gap costs (11/1 by default). Leave them alone for a first search.</li>
+    <li>Press <b>BLAST</b>. Results come back as Descriptions (the hit table), Graphic Summary, Alignments and Taxonomy tabs.</li>
+  </ol>
+  <h3>On the command line with BLAST+</h3>
+  <p>For many queries, a custom database, or reproducible analysis, install <a href="https://www.ncbi.nlm.nih.gov/books/NBK279690/" target="_blank" rel="noopener">BLAST+</a> (for example <code>conda install -c bioconda blast</code>). Save the mini database below as <code>globins.fasta</code> and β-globin as <code>hbb.fasta</code>, then:</p>
+  </div>
+  <div class="eq"># 1. Build a searchable database from a FASTA file
+makeblastdb -in globins.fasta -dbtype prot -out globins
+
+# 2. Search it, keeping hits with E ≤ 0.001, as a tab-separated table
+blastp -query hbb.fasta -db globins -evalue 1e-3 -outfmt 6
+
+# 3. Or search NCBI's copy of Swiss-Prot over the internet
+blastp -query hbb.fasta -db swissprot -remote -evalue 1e-3 -outfmt 6 -max_target_seqs 50</div>
+  <div class="tool">
+    <div class="copyrow"><b>Mini database as FASTA</b><button id="fastaCopy">Copy FASTA</button></div>
+    <textarea id="fastaBox" readonly rows="8" aria-label="Mini database in FASTA format"></textarea>
+    <p class="note" style="margin:10px 0 0">Sequences are mature chains, without the initiator methionine, so the numbers match the globin tutorial. UniProt's copies include the methionine, so their positions are one higher.</p>
+  </div>
+  <div class="prose">
+  <p>The default columns of <code>-outfmt 6</code> are:</p>
+  </div>
+  <div class="tablewrap">
+  <table class="data">
+    <thead><tr><th>#</th><th>Column</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td class="num">1–2</td><td><code>qaccver saccver</code></td><td>Query and subject IDs</td></tr>
+      <tr><td class="num">3</td><td><code>pident</code></td><td>Percent identity over the aligned region</td></tr>
+      <tr><td class="num">4</td><td><code>length</code></td><td>Alignment length, including gaps</td></tr>
+      <tr><td class="num">5–6</td><td><code>mismatch gapopen</code></td><td>Mismatched columns; number of gaps opened</td></tr>
+      <tr><td class="num">7–10</td><td><code>qstart qend sstart send</code></td><td>Where the alignment starts and ends in each sequence</td></tr>
+      <tr><td class="num">11</td><td><code>evalue</code></td><td>Expected number of chance hits this good</td></tr>
+      <tr><td class="num">12</td><td><code>bitscore</code></td><td>Normalized score</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section id="reading" aria-labelledby="reading-h">
+  <span class="snum">10</span>
+  <div class="prose">
+  <h2 id="reading-h">Reading the results</h2>
+  <p>Here is the β-globin vs α-globin hit from the mini-BLAST, laid out the way NCBI prints a pairwise alignment. In the middle line, a letter means identical, <code>+</code> means a positive BLOSUM62 score, and a blank means zero, negative or a gap.</p>
+  </div>
+  <div class="bo" id="annoAln"></div>
+  <div class="anno">
+    <div><b>Score = … bits (…)</b>Bit score, then raw score in parentheses. Compare hits with bits.</div>
+    <div><b>Expect</b>The E-value: chance hits this good expected in this search. Your main filter.</div>
+    <div><b>Identities</b>Identical columns over alignment length. Only meaningful alongside that length.</div>
+    <div><b>Positives</b>Columns with a positive substitution score: identities plus conservative changes.</div>
+    <div><b>Gaps</b>Gap columns. Many short gaps in a weak hit is a warning sign.</div>
+    <div><b>Query / Sbjct coordinates</b>Which part of each protein aligned. Compare with the full lengths to get coverage.</div>
+  </div>
+  <div class="prose">
+  <h3>Rules of thumb</h3>
+  </div>
+  <div class="tablewrap">
+  <table class="data">
+    <thead><tr><th>What you see</th><th>Reasonable reading</th></tr></thead>
+    <tbody>
+      <tr><td><span class="pill strong">E ≤ 10⁻³</span> in a protein search</td><td>Very likely homologous (Pearson 2013). Tiny E-values such as 10⁻⁵⁰ mean close relatives, not "more homologous".</td></tr>
+      <tr><td><span class="pill gray">10⁻³ &lt; E &lt; 1</span></td><td>Gray zone. Check coverage, conserved functional residues, and a reverse search with the hit as query.</td></tr>
+      <tr><td><span class="pill chance">E ≥ 1</span></td><td>Expected by chance. BLAST can still miss real homologs (see leghemoglobin).</td></tr>
+      <tr><td>High E-value, high identity, short alignment</td><td>A short stretch such as a low-complexity or repeat region. Identity alone means little over 20 residues.</td></tr>
+      <tr><td>Low E-value but low query coverage</td><td>A shared domain, not a whole-protein relationship. Do not transfer whole-protein function.</td></tr>
+      <tr><td>Top hit labeled "hypothetical" or "predicted"</td><td>Annotation is usually inferred from an earlier BLAST. Look further down for an experimentally characterized hit (Swiss-Prot helps here).</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="prose">
+  <p><b>Homology is not function.</b> α- and β-globin are clear homologs with similar jobs. But gene duplication lets paralogs change function, so a significant hit tells you about shared ancestry first and shared function only with further evidence. To find a likely ortholog in another species, use a <b>reciprocal best hit</b>. Search species B with your protein, take the top hit, and search it back against species A. If it returns your original protein, the two are good ortholog candidates.</p>
+  <p><b>When BLAST comes up empty.</b> No hit is not proof that there are no homologs. For distant relatives, try PSI-BLAST, which builds a position-specific profile from the first round of hits and searches again, or profile HMM tools such as HMMER, or structure comparison.</p>
+  </div>
+</section>
+
+<section id="check" aria-labelledby="check-h">
+  <span class="snum">11</span>
+  <h2 id="check-h">Check yourself</h2>
+  <details><summary>1. Why does protein BLAST seed with neighborhood words instead of exact 3-letter matches?</summary>
+    <p>Related proteins often differ by conservative substitutions, so exact word matches would miss many real seeds. Scoring words with BLOSUM62 and accepting everything ≥ T lets a word like HGR seed from HGK, while keeping the list short enough to look up quickly.</p></details>
+  <details><summary>2. You raise T from 11 to 13. What happens to speed and to sensitivity?</summary>
+    <p>Neighborhoods shrink, so there are fewer words to look up, fewer hits and fewer extensions. The search gets faster. Some real but weak similarities lose their seeds and are missed, so sensitivity drops.</p></details>
+  <details><summary>3. The same alignment has E = 2 × 10⁻⁹ against the mini database and about 4 × 10⁻⁴ against Swiss-Prot. Which is right?</summary>
+    <p>Both. E is the number of chance hits expected <i>in that search</i>, and it grows in proportion to database size. Searching more sequences gives chance more opportunities. Report the E-value for the database you actually searched.</p></details>
+  <details><summary>4. Why compare hits by bit score rather than raw score?</summary>
+    <p>Raw scores depend on the matrix and gap costs. Bit scores are rescaled by λ and K, so a 50-bit hit means the same thing whatever scoring system produced it. The bit score also does not change with database size, unlike E.</p></details>
+  <details><summary>5. A hit has E = 10⁻⁴⁰ but covers only residues 300–420 of your 900-residue query. How do you interpret it?</summary>
+    <p>The two proteins share one domain with near certainty. That says nothing about the other 780 residues. Annotate the domain, not the whole protein.</p></details>
+  <details><summary>6. BLAST with β-globin never finds soybean leghemoglobin, yet they are homologous. Why, and what could you try?</summary>
+    <p>At about 20% identity, their best ungapped segment scores below the gap trigger, and the gapped alignment would not be significant anyway. The sequences sit in the twilight zone. Profile methods (PSI-BLAST, HMMER) pool information from many family members and can detect such relationships. Structure comparison can too.</p></details>
+  <details><summary>7. Why does blastp usually beat blastn for finding homologs of a protein-coding gene?</summary>
+    <p>Synonymous changes let DNA diverge while the protein stays the same. Protein alphabets and substitution matrices also carry more information per position than 4-letter DNA with simple match/mismatch scores. So protein comparisons detect relationships over longer evolutionary distances.</p></details>
+</section>
+
+<section id="refs" aria-labelledby="refs-h">
+  <span class="snum">12</span>
+  <h2 id="refs-h">References and links</h2>
+  <ol class="refs">
+    <li>Altschul SF, Gish W, Miller W, Myers EW, Lipman DJ (1990). Basic local alignment search tool. <i>J Mol Biol</i> 215:403–410.</li>
+    <li>Altschul SF, Madden TL, Schäffer AA, Zhang J, Zhang Z, Miller W, Lipman DJ (1997). Gapped BLAST and PSI-BLAST: a new generation of protein database search programs. <i>Nucleic Acids Res</i> 25:3389–3402.</li>
+    <li>Karlin S, Altschul SF (1990). Methods for assessing the statistical significance of molecular sequence features by using general scoring schemes. <i>PNAS</i> 87:2264–2268.</li>
+    <li>Camacho C, et al. (2009). BLAST+: architecture and applications. <i>BMC Bioinformatics</i> 10:421.</li>
+    <li>Pearson WR (2013). An introduction to sequence similarity ("homology") searching. <i>Curr Protoc Bioinformatics</i> 42:3.1.1–3.1.8.</li>
+  </ol>
+  <p class="prose">Tools: <a href="https://blast.ncbi.nlm.nih.gov/Blast.cgi" target="_blank" rel="noopener">NCBI BLAST</a>, <a href="https://www.uniprot.org/blast" target="_blank" rel="noopener">UniProt BLAST</a>, <a href="https://www.ncbi.nlm.nih.gov/books/NBK279690/" target="_blank" rel="noopener">BLAST+ user manual</a>. Previous tutorial: Aligning the Globins.</p>
+  <footer>Bio 116 · BLAST tutorial. The mini-BLAST here is a teaching model. It follows the published algorithm but simplifies the gapped step and the statistics.</footer>
+</section>
+</main>
+</div>
+
+<script>
+"use strict";
+
+"use strict";
+/* ---------- data ---------- */
+const GLOBINS = [
+  {id:"HBA", short:"α", name:"Hemoglobin α", org:"Homo sapiens", acc:"P69905", e7:58, f8:87,
+   job:"Blood O₂ transport (α₂β₂ tetramer)",
+   seq:"VLSPADKTNVKAAWGKVGAHAGEYGAEALERMFLSFPTTKTYFPHFDLSHGSAQVKGHGKKVADALTNAVAHVDDMPNALSALSDLHAHKLRVDPVNFKLLSHCLLVTLAAHLPAEFTPAVHASLDKFLASVSTVLTSKYR"},
+  {id:"HBB", short:"β", name:"Hemoglobin β", org:"Homo sapiens", acc:"P68871", e7:63, f8:92,
+   job:"Blood O₂ transport (α₂β₂ tetramer)",
+   seq:"VHLTPEEKSAVTALWGKVNVDEVGGEALGRLLVVYPWTQRFFESFGDLSTPDAVMGNPKVKAHGKKVLGAFSDGLAHLDNLKGTFATLSELHCDKLHVDPENFRLLGNVLVCVLAHHFGKEFTPPVQAAYQKVVAGVANALAHKYH"},
+  {id:"MBh", short:"Mb (human)", name:"Myoglobin", org:"Homo sapiens", acc:"P02144", e7:64, f8:93,
+   job:"O₂ storage in muscle (monomer)",
+   seq:"GLSDGEWQLVLNVWGKVEADIPGHGQEVLIRLFKGHPETLEKFDKFKHLKSEDEMKASEDLKKHGATVLTALGGILKKKGHHEAEIKPLAQSHATKHKIPVKYLEFISECIIQVLQSKHPGDFGADAQGAMNKALELFRKDMASNYKELGFQG"},
+  {id:"MBw", short:"Mb (whale)", name:"Myoglobin", org:"Physeter macrocephalus (sperm whale)", acc:"P02185", e7:64, f8:93,
+   job:"O₂ storage for long dives; first protein structure solved",
+   seq:"VLSEGEWQLVLHVWAKVEADVAGHGQDILIRLFKSHPETLEKFDRFKHLKTEAEMKASEDLKKHGVTVLTALGAILKKKGHHEAELKPLAQSHATKHKIPIKYLEFISEAIIHVLHSRHPGDFGADAQGAMNKALELFRKDIAAKYKELGYQG"},
+  {id:"LBA", short:"Lb (soybean)", name:"Leghemoglobin A", org:"Glycine max (soybean)", acc:"P02238", e7:61, f8:92,
+   job:"Buffers O₂ for nitrogen-fixing bacteria in root nodules",
+   seq:"VAFTEKQDALVSSSFEAFKANIPQYSVVFYTSILEKAPAAKDLFSFLANGVDPTNPKLTGHAEKLFALVRDSAGQLKASGTVVADAALGSVHAQKAVTDPQFVVVKEALLKTIKAAVGDKWSDELSRAWEVAYDELAAAIKKA"}
+];
+const G = Object.fromEntries(GLOBINS.map(g => [g.id, g]));
+const label = g => g.id === "HBA" || g.id === "HBB" ? `${g.name} (human)` : `${g.name} (${g.short.replace(/^.*\(|\)$/g,"")})`;
+
+const B62_TXT = `A R N D C Q E G H I L K M F P S T W Y V
+A 4 -1 -2 -2 0 -1 -1 0 -2 -1 -1 -1 -1 -2 -1 1 0 -3 -2 0
+R -1 5 0 -2 -3 1 0 -2 0 -3 -2 2 -1 -3 -2 -1 -1 -3 -2 -3
+N -2 0 6 1 -3 0 0 0 1 -3 -3 0 -2 -3 -2 1 0 -4 -2 -3
+D -2 -2 1 6 -3 0 2 -1 -1 -3 -4 -1 -3 -3 -1 0 -1 -4 -3 -3
+C 0 -3 -3 -3 9 -3 -4 -3 -3 -1 -1 -3 -1 -2 -3 -1 -1 -2 -2 -1
+Q -1 1 0 0 -3 5 2 -2 0 -3 -2 1 0 -3 -1 0 -1 -2 -1 -2
+E -1 0 0 2 -4 2 5 -2 0 -3 -3 1 -2 -3 -1 0 -1 -3 -2 -2
+G 0 -2 0 -1 -3 -2 -2 6 -2 -4 -4 -2 -3 -3 -2 0 -2 -2 -3 -3
+H -2 0 1 -1 -3 0 0 -2 8 -3 -3 -1 -2 -1 -2 -1 -2 -2 2 -3
+I -1 -3 -3 -3 -1 -3 -3 -4 -3 4 2 -3 1 0 -3 -2 -1 -3 -1 3
+L -1 -2 -3 -4 -1 -2 -3 -4 -3 2 4 -2 2 0 -3 -2 -1 -2 -1 1
+K -1 2 0 -1 -3 1 1 -2 -1 -3 -2 5 -1 -3 -1 0 -1 -3 -2 -2
+M -1 -1 -2 -3 -1 0 -2 -3 -2 1 2 -1 5 0 -2 -1 -1 -1 -1 1
+F -2 -3 -3 -3 -2 -3 -3 -3 -1 0 0 -3 0 6 -4 -2 -2 1 3 -1
+P -1 -2 -2 -1 -3 -1 -1 -2 -2 -3 -3 -1 -2 -4 7 -1 -1 -4 -3 -2
+S 1 -1 1 0 -1 0 0 0 -1 -2 -2 0 -1 -2 -1 4 1 -3 -2 -2
+T 0 -1 0 -1 -1 -1 -1 -2 -2 -1 -1 -1 -1 -2 -1 1 5 -2 -2 0
+W -3 -3 -4 -4 -2 -2 -3 -2 -2 -3 -2 -3 -1 1 -4 -3 -2 11 2 -3
+Y -2 -2 -2 -3 -2 -1 -2 -3 2 -1 -1 -2 -1 3 -3 -2 -2 2 7 -1
+V 0 -3 -3 -3 -1 -2 -2 -3 -3 3 1 -2 1 -1 -2 -2 0 -3 -1 4`;
+const AA = "ARNDCQEGHILKMFPSTWYV";
+const B62 = new Int8Array(26 * 26);
+(() => {
+  const lines = B62_TXT.split("\n"), cols = lines[0].split(" ");
+  for (const ln of lines.slice(1)) {
+    const [r, ...v] = ln.split(" ");
+    v.forEach((x, k) => { B62[(r.charCodeAt(0) - 65) * 26 + cols[k].charCodeAt(0) - 65] = +x; });
+  }
+})();
+const IDM = new Int8Array(26 * 26);
+for (const a of AA) for (const b of AA) IDM[(a.charCodeAt(0) - 65) * 26 + b.charCodeAt(0) - 65] = a === b ? 5 : -4;
+const MAT = { b62: B62, id: IDM };
+const sc = (m, a, b) => m[(a.charCodeAt(0) - 65) * 26 + b.charCodeAt(0) - 65];
+
+const CLASS = {};
+for (const [cls, s] of Object.entries({hyd:"AVLIM", aro:"FWY", pos:"KRH", neg:"DE", pol:"STNQ", spe:"GPC"})) for (const c of s) CLASS[c] = cls;
+const CLASS_LABEL = [["hyd","hydrophobic AVLIM"],["aro","aromatic FWY"],["pos","positive KRH"],["neg","negative DE"],["pol","polar STNQ"],["spe","special GPC"]];
+function legendHTML(withKey) {
+  return CLASS_LABEL.map(([c, t]) => `<span><i class="c-${c}"></i>${t}</span>`).join("") +
+    (withKey ? `<span><i class="key" style="outline-offset:-2px"></i>heme-pocket His (E7, F8)</span>` : "");
+}
+const esc = s => s.replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+
+/* ---------- affine-gap alignment (Gotoh) ---------- */
+const NEG = -1e9;
+function align(a, b, {local = false, open = 10, ext = 0.5, mat = B62} = {}) {
+  const n = a.length, m = b.length, W = m + 1, N = (n + 1) * W;
+  const M = new Float64Array(N).fill(NEG), X = new Float64Array(N).fill(NEG), Y = new Float64Array(N).fill(NEG);
+  const pM = new Uint8Array(N), pX = new Uint8Array(N), pY = new Uint8Array(N);
+  M[0] = 0;
+  if (!local) {
+    for (let i = 1; i <= n; i++) { X[i * W] = -(open + (i - 1) * ext); pX[i * W] = i === 1 ? 0 : 1; }
+    for (let j = 1; j <= m; j++) { Y[j] = -(open + (j - 1) * ext); pY[j] = j === 1 ? 0 : 2; }
+  }
+  let best = local ? 0 : NEG, bk = 0;
+  for (let i = 1; i <= n; i++) {
+    const ai = (a.charCodeAt(i - 1) - 65) * 26;
+    for (let j = 1; j <= m; j++) {
+      const k = i * W + j, d = k - W - 1, u = k - W, l = k - 1;
+      let v = M[d], p = 0;
+      if (X[d] > v) { v = X[d]; p = 1; }
+      if (Y[d] > v) { v = Y[d]; p = 2; }
+      if (local && v <= 0) { v = 0; p = 3; }
+      M[k] = v + mat[ai + b.charCodeAt(j - 1) - 65]; pM[k] = p;
+      let x = M[u] - open, px = 0;
+      if (X[u] - ext > x) { x = X[u] - ext; px = 1; }
+      if (Y[u] - open > x) { x = Y[u] - open; px = 2; }
+      X[k] = x; pX[k] = px;
+      let y = M[l] - open, py = 0;
+      if (Y[l] - ext > y) { y = Y[l] - ext; py = 2; }
+      if (X[l] - open > y) { y = X[l] - open; py = 1; }
+      Y[k] = y; pY[k] = py;
+      if (local && M[k] > best) { best = M[k]; bk = k; }
+    }
+  }
+  let i, j, state;
+  if (local) {
+    if (best <= 0) return {score: 0, A: "", B: "", aStart: 0, bStart: 0, path: []};
+    i = Math.floor(bk / W); j = bk % W; state = 0;
+  } else {
+    const k = N - 1; i = n; j = m; best = M[k]; state = 0;
+    if (X[k] > best) { best = X[k]; state = 1; }
+    if (Y[k] > best) { best = Y[k]; state = 2; }
+  }
+  const A = [], B = [], path = [];
+  while (i > 0 || j > 0) {
+    const k = i * W + j;
+    path.push([i, j]);
+    if (state === 0) {
+      const p = pM[k]; A.push(a[i - 1]); B.push(b[j - 1]); i--; j--;
+      if (p === 3) break;
+      state = p;
+    } else if (state === 1) {
+      const p = pX[k]; A.push(a[i - 1]); B.push("-"); i--; state = p;
+    } else {
+      const p = pY[k]; A.push("-"); B.push(b[j - 1]); j--; state = p;
+    }
+    if (local && i === 0 && j === 0) break;
+  }
+  return {score: best, A: A.reverse().join(""), B: B.reverse().join(""), aStart: i, bStart: j, path: path.reverse()};
+}
+
+/* score-only local alignment, rolling rows, for the shuffle test */
+function localScore(a, b, open, ext, mat) {
+  const m = b.length;
+  let Mp = new Float64Array(m + 1), Xp = new Float64Array(m + 1).fill(NEG), Yp = new Float64Array(m + 1).fill(NEG);
+  let Mc = new Float64Array(m + 1), Xc = new Float64Array(m + 1), Yc = new Float64Array(m + 1);
+  const bc = Array.from(b, c => c.charCodeAt(0) - 65);
+  let best = 0;
+  for (let i = 0; i < a.length; i++) {
+    const ai = (a.charCodeAt(i) - 65) * 26;
+    Mc[0] = NEG; Xc[0] = NEG; Yc[0] = NEG;
+    for (let j = 1; j <= m; j++) {
+      let v = Mp[j - 1]; if (Xp[j - 1] > v) v = Xp[j - 1]; if (Yp[j - 1] > v) v = Yp[j - 1]; if (v < 0) v = 0;
+      const mm = v + mat[ai + bc[j - 1]]; Mc[j] = mm; if (mm > best) best = mm;
+      let x = Mp[j] - open; if (Xp[j] - ext > x) x = Xp[j] - ext; if (Yp[j] - open > x) x = Yp[j] - open; Xc[j] = x;
+      let y = Mc[j - 1] - open; if (Yc[j - 1] - ext > y) y = Yc[j - 1] - ext; if (Xc[j - 1] - open > y) y = Xc[j - 1] - open; Yc[j] = y;
+    }
+    [Mp, Mc] = [Mc, Mp]; [Xp, Xc] = [Xc, Xp]; [Yp, Yc] = [Yc, Yp];
+  }
+  return best;
+}
+
+function alnStats(res, mat) {
+  let id = 0, pos = 0, gaps = 0, opens = 0;
+  for (let k = 0; k < res.A.length; k++) {
+    const x = res.A[k], y = res.B[k];
+    if (x === "-" || y === "-") { gaps++; if (k === 0 || (res.A[k-1] !== "-" && res.B[k-1] !== "-") || (x === "-") !== (res.A[k-1] === "-")) opens++; continue; }
+    if (x === y) id++;
+    if (sc(B62, x, y) > 0) pos++;
+  }
+  const L = res.A.length || 1;
+  return {len: res.A.length, id, pos, gaps, opens, pid: 100 * id / L, ppos: 100 * pos / L};
+}
+
+
+
+/* ---------- mini database ---------- */
+const DECOYS = [
+  {id:"UBQ", name:"Ubiquitin", org:"Homo sapiens", acc:"P0CG48", seq:"MQIFVKTLTGKTITLEVEPSDTIENVKAKIQDKEGIPPDQQRLIFAGKQLEDGRTLSDYNIQKESTLHLVLRLRGG"},
+  {id:"CYC", name:"Cytochrome c", org:"Equus caballus", acc:"P00004", seq:"GDVEKGKKIFVQKCAQCHTVEKGGKHKTGPNLHGLFGRKTGQAPGFTYTDANKNKGITWKEETLMEYLENPKKYIPGTKMIFAGIKKKTEREDLIAYLKKATNE"},
+  {id:"LYZ", name:"Lysozyme C", org:"Gallus gallus", acc:"P00698", seq:"KVFGRCELAAAMKRHGLDNYRGYSLGNWVCAAKFESNFNTQATNRNTDGSTDYGILQINSRWWCNDGRTPGSRNLCNIPCSALLSSDITASVNCAKKIVSDGNGMNAWVAWRNRCKGTDVQAWIRGCRL"},
+  {id:"INS", name:"Insulin B chain", org:"Homo sapiens", acc:"P01308", seq:"FVNQHLCGSHLVEALYLVCGERGFFYTPKT"},
+];
+const DB = GLOBINS.map(g => ({id: g.id, name: g.name, org: g.org.replace(/ \(.*\)/, ""), acc: g.acc, seq: g.seq})).concat(DECOYS);
+const DBI = Object.fromEntries(DB.map(d => [d.id, d]));
+const DB_LEN = DB.reduce((s, d) => s + d.seq.length, 0);
+const dbLabel = d => `${d.name} (${d.org})`;
+
+/* Karlin–Altschul parameters for BLOSUM62 (NCBI): ungapped, and gapped with 11/1 */
+const LU = 0.3176, KU = 0.134, LG = 0.267, KG = 0.041;
+const bitsToRawU = b => b * Math.LN2 / LU;
+const GAP_TRIGGER = (22 * Math.LN2 + Math.log(KU)) / LU;   // 22 bits
+
+const fmtE = E => E >= 0.01 ? (E >= 100 ? E.toFixed(0) : E.toPrecision(2)) : E.toExponential(0);
+const fmtN = x => x.toLocaleString("en-US");
+
+/* ---------- BLAST engine ---------- */
+function wordScore(u, v) { return sc(B62, u[0], v[0]) + sc(B62, u[1], v[1]) + sc(B62, u[2], v[2]); }
+function neighbors(word, T) {
+  const out = [];
+  for (const a of AA) { const s0 = sc(B62, word[0], a); if (s0 + 11 + 11 < T) continue;
+    for (const b of AA) { const s1 = s0 + sc(B62, word[1], b);
+      for (const c of AA) { const s = s1 + sc(B62, word[2], c); if (s >= T) out.push([a + b + c, s]); } } }
+  return out.sort((x, y) => y[1] - x[1] || (x[0] < y[0] ? -1 : 1));
+}
+function buildTable(q, T) {
+  const table = new Map(); let entries = 0;
+  for (let i = 0; i + 3 <= q.length; i++) for (const [w] of neighbors(q.substr(i, 3), T)) {
+    let a = table.get(w); if (!a) table.set(w, a = []); a.push(i); entries++;
+  }
+  return {table, entries};
+}
+/* ungapped extension from word hit (i,j); returns HSP plus the running-score traces */
+function extendUngapped(q, s, i, j, X, full = false) {
+  const ws = wordScore(q.substr(i, 3), s.substr(j, 3));
+  let r = 0, br = 0, brk = 0, stopR = 0; const tr = [];
+  for (let k = 0; i + 3 + k < q.length && j + 3 + k < s.length; k++) {
+    r += sc(B62, q[i + 3 + k], s[j + 3 + k]); tr.push(r);
+    if (r > br) { br = r; brk = k + 1; }
+    if (br - r > X) { if (!stopR) stopR = k + 1; if (!full) break; }
+  }
+  let l = 0, bl = 0, blk = 0, stopL = 0; const tl = [];
+  for (let k = 1; i - k >= 0 && j - k >= 0; k++) {
+    l += sc(B62, q[i - k], s[j - k]); tl.push(l);
+    if (l > bl) { bl = l; blk = k; }
+    if (bl - l > X) { if (!stopL) stopL = k; if (!full) break; }
+  }
+  return {score: ws + br + bl, ws, qs: i - blk, qe: i + 3 + brk, ss: j - blk, se: j + 3 + brk, i, j, tr, tl, br, bl, brk, blk,
+          stopR: stopR || tr.length, stopL: stopL || tl.length};
+}
+function scanPair(q, s, table, {two = true, A = 40, X}) {
+  const last = new Map(), extTo = new Map(), hits = [], trig = [], hsps = [];
+  for (let j = 0; j + 3 <= s.length; j++) {
+    const qs = table.get(s.substr(j, 3)); if (!qs) continue;
+    for (const i of qs) {
+      hits.push([i, j]);
+      const d = j - i;
+      if ((extTo.get(d) ?? -1) > j) continue;          // already inside an extended HSP
+      const l = last.get(d);
+      if (two) {
+        if (l !== undefined && j - l < 3) continue;     // overlaps previous hit: ignore
+        if (l === undefined || j - l > A) { last.set(d, j); continue; }
+      }
+      trig.push([i, j]);
+      const h = extendUngapped(q, s, i, j, X);
+      hsps.push(h); extTo.set(d, h.se); last.set(d, j);
+    }
+  }
+  return {hits, trig, hsps};
+}
+function blastSearch(q, {T = 11, two = true, Xbits = 7, space = "mini", evalue = 10} = {}) {
+  const X = bitsToRawU(Xbits), {table, entries} = buildTable(q, T);
+  const N = space === "mini" ? DB_LEN : +space;
+  const found = [], missed = []; let nh = 0, nt = 0, cells = 0;
+  for (const d of DB) {
+    const r = scanPair(q, d.seq, table, {two, X});
+    nh += r.hits.length; nt += r.trig.length;
+    const best = r.hsps.reduce((b, h) => !b || h.score > b.score ? h : b, null);
+    if (!best) { missed.push({d, why: r.hits.length ? `${r.hits.length} word hits, but no ${two ? "pair of hits on one diagonal" : "extension"}` : "no word hits"}); continue; }
+    if (best.score < GAP_TRIGGER) { missed.push({d, why: `best ungapped HSP scored ${best.score}, below the gap trigger (${GAP_TRIGGER.toFixed(0)})`}); continue; }
+    const g = align(q, d.seq, {local: true, open: 12, ext: 1});
+    cells += q.length * d.seq.length;
+    const bits = (LG * g.score - Math.log(KG)) / Math.LN2, E = q.length * N * Math.pow(2, -bits);
+    if (E > evalue) { missed.push({d, why: `aligned, but E = ${fmtE(E)} is above the cutoff`}); continue; }
+    found.push({d, g, st: alnStats(g, B62), bits, E, ung: best.score});
+  }
+  found.sort((a, b) => a.E - b.E || b.bits - a.bits);
+  return {found, missed, nh, nt, entries, words: table.size, N, cells};
+}
+
+/* ---------- BLAST-style pairwise text ---------- */
+function blastText(q, qname, d, f) {
+  const {g, st, bits, E} = f, W = 60, qLen = q.length;
+  let out = `<span class="hd">&gt;${d.id} ${d.name} [${d.org}]</span>\nLength=${d.seq.length}\n\n`;
+  out += ` Score = ${bits.toFixed(1)} bits (${g.score}),  Expect = ${fmtE(E)}\n`;
+  out += ` Identities = ${st.id}/${st.len} (${Math.round(st.pid)}%), Positives = ${st.pos}/${st.len} (${Math.round(st.ppos)}%), Gaps = ${st.gaps}/${st.len} (${Math.round(100 * st.gaps / st.len)}%)\n\n`;
+  let qi = g.aStart, si = g.bStart;
+  for (let k = 0; k < g.A.length; k += W) {
+    const a = g.A.slice(k, k + W), b = g.B.slice(k, k + W);
+    let mid = "";
+    for (let t = 0; t < a.length; t++) mid += a[t] === "-" || b[t] === "-" ? " " : a[t] === b[t] ? a[t] : sc(B62, a[t], b[t]) > 0 ? "+" : " ";
+    const qa = qi + 1, sa = si + 1;
+    qi += a.replace(/-/g, "").length; si += b.replace(/-/g, "").length;
+    out += `Query  ${String(qa).padEnd(4)} ${a}  ${qi}\n       ${" ".repeat(4)} ${mid}\nSbjct  ${String(sa).padEnd(4)} ${b}  ${si}\n\n`;
+  }
+  return out.trimEnd() + `\n<span class="mu">Query ${qname}: ${g.aStart + 1}–${qi} of ${qLen} residues (${Math.round(100 * (qi - g.aStart) / qLen)}% coverage)</span>`;
+}
+
+/* ---------- 1. speed ---------- */
+function drawSpeed() {
+  const a = G.HBB.seq, b = G.MBw.seq; let n = 0; const t0 = performance.now();
+  while (performance.now() - t0 < 150 || n < 3) { localScore(a, b, 12, 1, B62); n++; }
+  const rate = n * a.length * b.length / ((performance.now() - t0) / 1000);
+  const dur = cells => { const s = cells / rate; return s < 90 ? `${s.toFixed(0)} s` : s < 5400 ? `${(s / 60).toFixed(0)} min` : s < 172800 ? `${(s / 3600).toFixed(0)} h` : `${(s / 86400).toFixed(0)} days`; };
+  document.getElementById("spStats").innerHTML = [
+    [`${(rate / 1e6).toFixed(0)} M`, "cells / second here"],
+    [fmtN(146 * DB_LEN), "cells: mini database"],
+    [dur(146 * 2e8), "Swiss-Prot (~2×10⁸ aa)"],
+    [dur(146 * 1e11), "nr (~10¹¹ aa)"]
+  ].map(([v, l]) => `<div class="stat"><b>${v}</b><span>${l}</span></div>`).join("");
+}
+
+/* ---------- 2. neighborhood explorer ---------- */
+let nbPos = 62;   // HGK around the distal His
+function drawNbSeq() {
+  const q = G.HBB.seq;
+  document.getElementById("nbSeq").innerHTML = [...q].map((c, i) => `<button data-i="${i}" title="${c}${i + 1}" class="${i >= nbPos && i < nbPos + 3 ? "w" : ""}">${c}</button>`).join("");
+}
+function nbUpdate() {
+  const q = G.HBB.seq, word = q.substr(nbPos, 3), T = +document.getElementById("nbT").value || 11;
+  document.querySelectorAll("#nbSeq button").forEach(b => { const i = +b.dataset.i; b.classList.toggle("w", i >= nbPos && i < nbPos + 3); });
+  const nb = neighbors(word, T), self = wordScore(word, word);
+  document.getElementById("nbSummary").innerHTML = `Word <b class="mono">${word}</b> at β ${nbPos + 1}–${nbPos + 3} scores <b>${self}</b> against itself. <b>${nb.length}</b> of 8,000 possible words reach T = ${T}.`;
+  document.getElementById("nbList").innerHTML = nb.length ? nb.map(([w, s]) => `<span class="${w === word ? "self" : ""}">${w}<i>${s}</i></span>`).join("")
+    : `<span>None. This word scores ${self} against itself, so it cannot seed anything at T = ${T}.</span>`;
+  const {entries} = buildTable(q, T);
+  let dead = 0; for (let i = 0; i + 3 <= q.length; i++) if (!neighbors(q.substr(i, 3), T).length) dead++;
+  document.getElementById("nbStats").innerHTML = [
+    [fmtN(entries), "lookup entries, whole query"], [(entries / (q.length - 2)).toFixed(1), "neighbors per word, average"], [dead, "query words with no neighbors"]
+  ].map(([v, l]) => `<div class="stat"><b>${v}</b><span>${l}</span></div>`).join("");
+}
+function nbWire() {
+  drawNbSeq();
+  document.getElementById("nbSeq").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; nbPos = Math.min(+b.dataset.i, G.HBB.seq.length - 3); nbUpdate(); });
+  document.getElementById("nbT").addEventListener("input", nbUpdate);
+  nbUpdate();
+}
+
+/* ---------- 3. hit map ---------- */
+function cssVar(n) { return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+function prepCanvas(cv) {
+  const cssW = Math.min(460, cv.parentElement.clientWidth || 460), dpr = window.devicePixelRatio || 1;
+  cv.style.width = cssW + "px"; cv.style.height = cssW + "px";
+  cv.width = Math.round(cssW * dpr); cv.height = Math.round(cssW * dpr);
+  const ctx = cv.getContext("2d"); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  return {ctx, W: cssW};
+}
+function drawHitMap() {
+  const Q = DBI[document.getElementById("hmQ").value], S = DBI[document.getElementById("hmS").value];
+  const T = +document.getElementById("hmT").value || 11, two = document.getElementById("hmTwo").checked;
+  const {table} = buildTable(Q.seq, T), r = scanPair(Q.seq, S.seq, table, {two, X: bitsToRawU(7)});
+  const cv = document.getElementById("hmCanvas"), {ctx, W} = prepCanvas(cv);
+  const pad = 34, size = W - pad - 10, a = Q.seq, b = S.seq, sx = size / b.length, sy = size / a.length;
+  const ink = cssVar("--ink"), muted = cssVar("--muted"), line = cssVar("--line"), heme = cssVar("--heme"), plum = cssVar("--plum"), bg = cssVar("--bg");
+  ctx.fillStyle = bg; ctx.fillRect(0, 0, W, W);
+  ctx.strokeStyle = line; ctx.lineWidth = 1; ctx.strokeRect(pad + .5, pad + .5, size, size);
+  ctx.fillStyle = muted; ctx.font = `11px ${cssVar("--body")}`;
+  ctx.textAlign = "center"; ctx.textBaseline = "bottom";
+  for (let t = 0; t <= b.length; t += 25) ctx.fillText(t, pad + t * sx, pad - 4);
+  ctx.textAlign = "right"; ctx.textBaseline = "middle";
+  for (let t = 0; t <= a.length; t += 25) ctx.fillText(t, pad - 5, pad + t * sy);
+  ctx.save(); ctx.fillStyle = ink; ctx.font = `600 12px ${cssVar("--body")}`;
+  ctx.textAlign = "right"; ctx.textBaseline = "bottom"; ctx.fillText(`${S.id} →`, pad + size, pad - 16);
+  ctx.translate(12, pad + size); ctx.rotate(-Math.PI / 2); ctx.textAlign = "left"; ctx.textBaseline = "middle"; ctx.fillText(`${Q.id} →`, 0, 0);
+  ctx.restore();
+  const dot = Math.max(2, Math.min(sx, sy) * 1.2);
+  ctx.fillStyle = muted;
+  r.hits.forEach(([i, j]) => ctx.fillRect(pad + (j + 1.5) * sx - dot / 2, pad + (i + 1.5) * sy - dot / 2, dot, dot));
+  ctx.strokeStyle = plum; ctx.lineWidth = 3; ctx.lineCap = "round";
+  r.hsps.forEach(h => { ctx.beginPath(); ctx.moveTo(pad + h.ss * sx, pad + h.qs * sy); ctx.lineTo(pad + h.se * sx, pad + h.qe * sy); ctx.stroke(); });
+  ctx.fillStyle = heme; const big = dot + 3;
+  r.trig.forEach(([i, j]) => ctx.fillRect(pad + (j + 1.5) * sx - big / 2, pad + (i + 1.5) * sy - big / 2, big, big));
+  const best = r.hsps.reduce((m, h) => Math.max(m, h.score), 0);
+  document.getElementById("hmStats").innerHTML = [
+    [fmtN(r.hits.length), "word hits"], [r.trig.length, "extensions"], [r.hsps.length ? best : "—", "best HSP score"],
+    [best >= GAP_TRIGGER ? "yes" : "no", `passes gap trigger (${GAP_TRIGGER.toFixed(0)})`]
+  ].map(([v, l]) => `<div class="stat"><b>${v}</b><span>${l}</span></div>`).join("");
+}
+function fillDbSelect(sel, val, only) {
+  sel.insertAdjacentHTML("beforeend", DB.filter(d => !only || only.includes(d.id)).map(d => `<option value="${d.id}">${dbLabel(d)}</option>`).join(""));
+  sel.value = val;
+}
+function hmWire() {
+  fillDbSelect(document.getElementById("hmQ"), "HBB");
+  fillDbSelect(document.getElementById("hmS"), "HBA");
+  ["hmQ", "hmS", "hmTwo", "hmOne"].forEach(id => document.getElementById(id).addEventListener("change", drawHitMap));
+  document.getElementById("hmT").addEventListener("input", drawHitMap);
+  drawHitMap();
+}
+
+/* ---------- 4. X-drop ---------- */
+function drawXdrop() {
+  const q = G.HBB.seq, S = DBI[document.getElementById("xdS").value], s = S.seq;
+  const Xb = Math.max(1, +document.getElementById("xdX").value || 7), X = bitsToRawU(Xb);
+  // best seed: the word hit (T = 11) whose extension scores highest at this X
+  const {table} = buildTable(q, 11);
+  let best = null;
+  for (let j = 0; j + 3 <= s.length; j++) for (const i of table.get(s.substr(j, 3)) || []) {
+    const h = extendUngapped(q, s, i, j, X); if (!best || h.score > best.score) best = h;
+  }
+  const svg = document.getElementById("xdPlot");
+  if (!best) { svg.innerHTML = `<text x="320" y="140" text-anchor="middle" fill="var(--muted)" font-size="14">No word hits between β-globin and ${S.id}.</text>`; document.getElementById("xdStats").innerHTML = ""; document.getElementById("xdAln").textContent = ""; return; }
+  const h = extendUngapped(q, s, best.i, best.j, X, true);
+  // points: x = query position, y = score of segment from the seed word out to that position
+  const pts = [];
+  for (let k = h.tl.length; k >= 1; k--) pts.push([h.i - k, h.ws + h.tl[k - 1], k <= h.stopL]);
+  pts.push([h.i, h.ws, true], [h.i + 2, h.ws, true]);
+  h.tr.forEach((v, k) => pts.push([h.i + 3 + k, h.ws + v, k + 1 <= h.stopR]));
+  const W = 640, H = 280, L = 48, R = 16, T = 26, B = 40;
+  const xmin = pts[0][0], xmax = pts[pts.length - 1][0];
+  const ys = pts.map(p => p[1]); let ymin = Math.min(0, ...ys), ymax = Math.max(...ys);
+  ymin = Math.min(ymin, ymax - X - 5);
+  const Xs = v => L + (v - xmin) / Math.max(1, xmax - xmin) * (W - L - R), Ys = v => H - B - (v - ymin) / (ymax - ymin) * (H - T - B);
+  let g = "";
+  const step = (() => { const raw = (ymax - ymin) / 5, p = Math.pow(10, Math.floor(Math.log10(raw))), f = raw / p; return (f < 1.5 ? 1 : f < 3.5 ? 2 : f < 7.5 ? 5 : 10) * p; })();
+  for (let v = Math.ceil(ymin / step) * step; v <= ymax; v += step) g += `<line x1="${L}" x2="${W - R}" y1="${Ys(v)}" y2="${Ys(v)}" stroke="var(--line)"/><text x="${L - 6}" y="${Ys(v) + 4}" text-anchor="end" font-size="11" fill="var(--muted)">${v}</text>`;
+  const xstep = (xmax - xmin) > 100 ? 25 : 10;
+  for (let v = Math.ceil(xmin / xstep) * xstep; v <= xmax; v += xstep) g += `<text x="${Xs(v)}" y="${H - B + 16}" text-anchor="middle" font-size="11" fill="var(--muted)">${v + 1}</text>`;
+  g += `<text x="${(L + W - R) / 2}" y="${H - 6}" text-anchor="middle" font-size="12" fill="var(--muted)">β-globin position (extension runs along the diagonal into ${S.id})</text>`;
+  // explored region band
+  const exL = h.i - h.stopL, exR = h.i + 2 + h.stopR;
+  g += `<rect x="${Xs(exL)}" y="${T}" width="${Math.max(1, Xs(exR) - Xs(exL))}" height="${H - T - B}" fill="var(--plum-soft)" opacity=".6"/>`;
+  g += `<rect x="${Xs(h.qs)}" y="${T}" width="${Math.max(1, Xs(h.qe - 1) - Xs(h.qs))}" height="${H - T - B}" fill="var(--heme-soft)" opacity=".9"/>`;
+  const path = (sel) => { let d = ""; pts.forEach((p, k) => { if (!sel(p)) return; d += (d ? "L" : "M") + Xs(p[0]).toFixed(1) + " " + Ys(p[1]).toFixed(1); }); return d; };
+  g += `<path d="${path(() => true)}" fill="none" stroke="var(--muted)" stroke-width="1" stroke-dasharray="3 3"/>`;
+  g += `<path d="${path(p => p[2])}" fill="none" stroke="var(--ink)" stroke-width="1.8"/>`;
+  const peakR = h.ws + h.br, peakL = h.ws + h.bl;
+  g += `<line x1="${Xs(h.i + 3)}" x2="${Xs(exR)}" y1="${Ys(peakR - X)}" y2="${Ys(peakR - X)}" stroke="var(--heme)" stroke-dasharray="5 4"/>`;
+  g += `<line x1="${Xs(exL)}" x2="${Xs(h.i)}" y1="${Ys(peakL - X)}" y2="${Ys(peakL - X)}" stroke="var(--heme)" stroke-dasharray="5 4"/>`;
+  g += `<circle cx="${Xs(h.qe - 1)}" cy="${Ys(peakR)}" r="4.5" fill="var(--heme)"/><circle cx="${Xs(h.qs)}" cy="${Ys(peakL)}" r="4.5" fill="var(--heme)"/>`;
+  g += `<rect x="${Xs(h.i)}" y="${Ys(h.ws) - 4}" width="${Math.max(3, Xs(h.i + 2) - Xs(h.i))}" height="8" fill="var(--plum)"/>`;
+  const lx = Xs(h.i + 1), anchor = lx > W - 140 ? "end" : lx < 140 ? "start" : "middle";
+  g += `<text x="${lx}" y="${Ys(h.ws) + 20}" text-anchor="${anchor}" font-size="11" font-weight="700" fill="var(--plum)">seed ${q.substr(h.i, 3)}/${s.substr(h.j, 3)}</text>`;
+  g += `<text x="${W - R}" y="${T - 8}" text-anchor="end" font-size="11" fill="var(--muted)">shaded pink: HSP kept · lavender: explored · dashed red: best − X</text>`;
+  svg.innerHTML = g;
+  const hsp = extendUngapped(q, s, best.i, best.j, X);
+  const qa = q.slice(hsp.qs, hsp.qe), sa = s.slice(hsp.ss, hsp.se);
+  let mid = ""; for (let k = 0; k < qa.length; k++) mid += qa[k] === sa[k] ? qa[k] : sc(B62, qa[k], sa[k]) > 0 ? "+" : " ";
+  document.getElementById("xdStats").innerHTML = [
+    [hsp.score, "HSP score"], [hsp.qe - hsp.qs, "HSP length"], [`${X.toFixed(1)}`, "X in raw points"], [(exR - exL + 1) , "positions explored"],
+    [hsp.score >= GAP_TRIGGER ? "yes" : "no", `passes gap trigger (${GAP_TRIGGER.toFixed(0)})`]
+  ].map(([v, l]) => `<div class="stat"><b>${v}</b><span>${l}</span></div>`).join("");
+  const chunks = []; for (let k = 0; k < qa.length; k += 60) chunks.push(`HBB  ${String(hsp.qs + k + 1).padEnd(4)} ${qa.slice(k, k + 60)}\n     ${" ".repeat(4)} ${mid.slice(k, k + 60)}\n${S.id.padEnd(4)} ${String(hsp.ss + k + 1).padEnd(4)} ${sa.slice(k, k + 60)}`);
+  document.getElementById("xdAln").textContent = chunks.join("\n\n");
+}
+function xdWire() {
+  fillDbSelect(document.getElementById("xdS"), "HBA", ["HBA", "MBh", "MBw", "LBA", "UBQ", "CYC", "LYZ"]);
+  document.getElementById("xdS").addEventListener("change", drawXdrop);
+  document.getElementById("xdX").addEventListener("input", drawXdrop);
+  drawXdrop();
+}
+
+/* ---------- 5. E-value calculator ---------- */
+function evUpdate() {
+  const S = +document.getElementById("evS").value || 0, m = +document.getElementById("evM").value || 1, n = +document.getElementById("evN").value;
+  const bits = (LG * S - Math.log(KG)) / Math.LN2, E = m * n * Math.pow(2, -bits), P = -Math.expm1(-E);
+  const verdict = E <= 1e-3 ? `<span class="pill strong">likely homolog</span>` : E < 1 ? `<span class="pill gray">gray zone</span>` : `<span class="pill chance">chance level</span>`;
+  document.getElementById("evStats").innerHTML = [
+    [bits.toFixed(1), "bit score"], [fmtE(E), "E-value"], [P < 1e-3 ? P.toExponential(0) : P.toFixed(3), "P-value"], [verdict, "reading"]
+  ].map(([v, l]) => `<div class="stat"><b>${v}</b><span>${l}</span></div>`).join("");
+}
+function evWire() { ["evS", "evM", "evN"].forEach(id => document.getElementById(id).addEventListener("input", evUpdate)); evUpdate(); }
+
+/* ---------- 7. mini-BLAST ---------- */
+let mbSel = 0, mbLast = null;
+function mbQuery() {
+  const v = document.getElementById("mbQ").value;
+  document.getElementById("mbPasteWrap").hidden = v !== "__paste";
+  if (v === "__paste") {
+    const seq = document.getElementById("mbPaste").value.replace(/^>.*$/gm, "").toUpperCase().replace(/[^ARNDCQEGHILKMFPSTWYV]/g, "");
+    return {id: "query", seq};
+  }
+  return {id: v, seq: DBI[v].seq};
+}
+function mbRun() {
+  const Q = mbQuery();
+  const opts = {T: +document.getElementById("mbT").value || 11, two: document.getElementById("mbTwo").checked,
+    Xbits: +document.getElementById("mbX").value || 7, space: document.getElementById("mbN").value, evalue: +document.getElementById("mbE").value};
+  if (Q.seq.length < 3) {
+    document.getElementById("mbStats").innerHTML = ""; document.getElementById("mbTable").innerHTML = "";
+    document.getElementById("mbMissed").innerHTML = "<li>Paste at least 3 amino acids to search.</li>";
+    document.getElementById("mbAln").textContent = ""; document.getElementById("mbTab").textContent = ""; return;
+  }
+  const r = blastSearch(Q.seq, opts); mbLast = {r, Q}; mbSel = 0;
+  const swCells = Q.seq.length * DB_LEN;
+  document.getElementById("mbStats").innerHTML = [
+    [fmtN(r.entries), "lookup entries"], [fmtN(r.nh), "word hits"], [r.nt, "ungapped extensions"],
+    [r.found.length, "hits reported"], [`${Math.round(100 * r.cells / swCells)}%`, "of full SW cells used"]
+  ].map(([v, l]) => `<div class="stat"><b>${v}</b><span>${l}</span></div>`).join("");
+  const tbl = document.getElementById("mbTable");
+  tbl.innerHTML = `<thead><tr><th>Description</th><th>Accession</th><th>Max score</th><th>Query cover</th><th>E value</th><th>Per. ident</th><th>Length</th></tr></thead><tbody>` +
+    (r.found.length ? r.found.map((f, k) => {
+      const cover = Math.round(100 * f.g.A.replace(/-/g, "").length / Q.seq.length);
+      const pill = f.E <= 1e-3 ? "strong" : f.E < 1 ? "gray" : "chance";
+      return `<tr data-k="${k}" tabindex="0" class="${k === 0 ? "sel" : ""}"><td>${dbLabel(f.d)}</td><td>${f.d.acc}</td><td>${f.bits.toFixed(1)}</td><td>${cover}%</td><td><span class="pill ${pill}">${fmtE(f.E)}</span></td><td>${f.st.pid.toFixed(1)}%</td><td>${f.d.seq.length}</td></tr>`;
+    }).join("") : `<tr><td colspan="7">No hits below the E-value cutoff.</td></tr>`) + `</tbody>`;
+  document.getElementById("mbMissed").innerHTML = r.missed.map(m => `<li><b>${m.d.id}</b> not reported: ${m.why}.</li>`).join("");
+  document.getElementById("mbTab").textContent = r.found.map(f => {
+    const g = f.g, mism = f.st.len - f.st.id - f.st.gaps, qe = g.aStart + g.A.replace(/-/g, "").length, se = g.bStart + g.B.replace(/-/g, "").length;
+    return [Q.id, f.d.acc, f.st.pid.toFixed(3), f.st.len, mism, f.st.opens, g.aStart + 1, qe, g.bStart + 1, se, f.E < 1e-180 ? "0.0" : f.E.toExponential(2), f.bits.toFixed(1)].join("\t");
+  }).join("\n") || "(no hits)";
+  mbShow();
+}
+function mbShow() {
+  const {r, Q} = mbLast, f = r.found[mbSel];
+  document.querySelectorAll("#mbTable tbody tr").forEach(tr => tr.classList.toggle("sel", +tr.dataset.k === mbSel));
+  document.getElementById("mbAln").innerHTML = f ? blastText(Q.seq, Q.id, f.d, f) : "No alignment to show.";
+}
+function mbWire() {
+  fillDbSelect(document.getElementById("mbQ"), "HBB");
+  const tbl = document.getElementById("mbTable");
+  const pick = e => { const tr = e.target.closest("tr[data-k]"); if (tr) { mbSel = +tr.dataset.k; mbShow(); } };
+  tbl.addEventListener("click", pick);
+  tbl.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pick(e); } });
+  ["mbQ", "mbTwo", "mbOne", "mbE", "mbN"].forEach(id => document.getElementById(id).addEventListener("change", mbRun));
+  ["mbT", "mbX", "mbPaste"].forEach(id => document.getElementById(id).addEventListener("input", mbRun));
+  mbRun();
+}
+
+/* ---------- 9. FASTA + 10. annotated output ---------- */
+function fastaWire() {
+  const fasta = DB.map(d => `>${d.acc} ${d.name} [${d.org}]\n${d.seq.match(/.{1,60}/g).join("\n")}`).join("\n");
+  const box = document.getElementById("fastaBox"); box.value = fasta;
+  document.getElementById("fastaCopy").addEventListener("click", e => {
+    const btn = e.currentTarget;
+    const done = t => { btn.textContent = t; setTimeout(() => btn.textContent = "Copy FASTA", 1600); };
+    try {
+      navigator.clipboard.writeText(fasta).then(() => done("Copied"), () => { box.focus(); box.select(); done("Press Ctrl/Cmd+C"); });
+    } catch { box.focus(); box.select(); done("Press Ctrl/Cmd+C"); }
+  });
+  const r = blastSearch(G.HBB.seq, {});
+  const f = r.found.find(x => x.d.id === "HBA");
+  document.getElementById("annoAln").innerHTML = f ? blastText(G.HBB.seq, "HBB", f.d, f) : "";
+}
+
+/* ---------- table of contents ---------- */
+function tocWire() {
+  const links = [...document.querySelectorAll(".toc a")];
+  const secs = links.map(a => document.querySelector(a.getAttribute("href")));
+  const on = () => { let k = 0; secs.forEach((s, i) => { if (s.getBoundingClientRect().top < 140) k = i; }); links.forEach((a, i) => a.classList.toggle("on", i === k)); };
+  addEventListener("scroll", on, {passive: true}); on();
+}
+
+drawSpeed(); nbWire(); hmWire(); xdWire(); evWire(); mbWire(); fastaWire(); tocWire();
+const redraw = () => drawHitMap();
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", redraw);
+new MutationObserver(redraw).observe(document.documentElement, {attributes: true, attributeFilter: ["data-theme"]});
+addEventListener("resize", () => { clearTimeout(window.__rz); window.__rz = setTimeout(redraw, 120); });
+</script>
