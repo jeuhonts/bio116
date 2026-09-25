@@ -1,0 +1,953 @@
+<title>Aligning Many Globins</title>
+<meta name="description" content="Bio 116 tutorial: multiple sequence alignment, from sum-of-pairs scoring to progressive alignment and modern tools.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Literata:opsz,wght@7..72,500;7..72,650&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&display=swap">
+<style>
+
+:root{
+  --bg:#FAF8F9; --panel:#FFFFFF; --panel-2:#F3EEF1; --ink:#1F1A21; --muted:#645B68; --line:#E3DAE0;
+  --heme:#A8173A; --heme-soft:#F7DDE3; --plum:#4C2C63; --plum-soft:#EBE2F1;
+  --r-hyd:#D9E6F7; --r-aro:#E3DAF5; --r-pos:#F8D8DE; --r-neg:#F5E1C4; --r-pol:#D5EEDF; --r-spe:#ECE8D2;
+  --good:#1E6B45; --warn:#8A5A00;
+  --display:"Literata", Georgia, "Times New Roman", serif;
+  --body:"Source Sans 3", "Segoe UI", Arial, sans-serif;
+  --mono:"JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#141015; --panel:#1C171E; --panel-2:#251F28; --ink:#EEE8EF; --muted:#A99EAD; --line:#352D38;
+    --heme:#F2708A; --heme-soft:#4A1E2A; --plum:#C9A9E2; --plum-soft:#33263E;
+    --r-hyd:#1E3350; --r-aro:#33294F; --r-pos:#4C2230; --r-neg:#48341E; --r-pol:#1B3E2D; --r-spe:#383422;
+    --good:#6FD19E; --warn:#E9B45A;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#141015; --panel:#1C171E; --panel-2:#251F28; --ink:#EEE8EF; --muted:#A99EAD; --line:#352D38;
+  --heme:#F2708A; --heme-soft:#4A1E2A; --plum:#C9A9E2; --plum-soft:#33263E;
+  --r-hyd:#1E3350; --r-aro:#33294F; --r-pos:#4C2230; --r-neg:#48341E; --r-pol:#1B3E2D; --r-spe:#383422;
+  --good:#6FD19E; --warn:#E9B45A;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.6;margin:0}
+.wrap{max-width:1180px;margin:0 auto;padding-inline:20px;padding-block:0 64px;display:grid;grid-template-columns:200px minmax(0,1fr);gap:48px}
+@media (max-width:980px){.wrap{grid-template-columns:minmax(0,1fr);gap:0}.toc{display:none}}
+@media (max-width:480px){.wrap{padding-inline:16px}body{font-size:16px}}
+.toc{position:sticky;top:env(safe-area-inset-top,0px);align-self:start;padding-top:40px;font-size:14px}
+.toc b{display:block;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.toc ol{list-style:none;margin:0;padding:0;display:grid;gap:2px;counter-reset:t}
+.toc a{display:block;color:var(--muted);text-decoration:none;padding:4px 8px;border-left:2px solid var(--line);counter-increment:t}
+.toc a::before{content:counter(t) ". ";font-variant-numeric:tabular-nums}
+.toc a:hover,.toc a.on{color:var(--ink);border-left-color:var(--heme)}
+main{min-width:0}
+.prose{max-width:68ch}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;line-height:1.2;font-weight:650}
+h1{font-size:clamp(2.2rem,5vw,3.4rem);margin:0 0 16px;letter-spacing:-.01em}
+h2{font-size:1.75rem;margin:0 0 12px}
+h3{font-size:1.2rem;margin:28px 0 8px;font-weight:500}
+p{margin:0 0 14px}
+a{color:var(--heme)}
+a:focus-visible,button:focus-visible,select:focus-visible,input:focus-visible,summary:focus-visible,td:focus-visible{outline:2px solid var(--heme);outline-offset:2px}
+code,.mono{font-family:var(--mono);font-size:.88em}
+.eyebrow{font-size:13px;letter-spacing:.09em;text-transform:uppercase;color:var(--heme);font-weight:700;margin-bottom:12px}
+header.hero{padding-block:48px 24px;border-bottom:1px solid var(--line);margin-bottom:8px}
+.lede{font-size:1.15rem;max-width:62ch;color:var(--ink)}
+.meta{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0 26px;padding:0;list-style:none}
+.meta li{font-size:14px;padding:4px 10px;border:1px solid var(--line);border-radius:999px;color:var(--muted);background:var(--panel)}
+section{padding-block:40px 8px;border-bottom:1px solid var(--line);scroll-margin-top:12px}
+section:last-of-type{border-bottom:0}
+.snum{font-family:var(--mono);font-size:13px;color:var(--heme);display:block;margin-bottom:6px}
+.goals{margin:0;padding-left:20px}
+.goals li{margin-bottom:4px}
+.note{font-size:15px;color:var(--muted);border-left:3px solid var(--plum);padding:4px 0 4px 14px;margin:18px 0;max-width:68ch}
+.eq{font-family:var(--mono);font-size:15px;background:var(--panel-2);border-radius:6px;padding:14px 16px;overflow-x:auto;white-space:pre;margin:14px 0 18px;max-width:100%;line-height:1.7}
+.tablewrap{overflow-x:auto;margin:16px 0 20px}
+table.data{border-collapse:collapse;font-size:15px;min-width:560px;width:100%}
+table.data th,table.data td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+table.data th{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:700}
+table.data td.num{font-variant-numeric:tabular-nums}
+
+/* tool panels */
+.tool{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px;margin:20px 0 24px}
+.tool-title{font-family:var(--display);font-size:1.05rem;font-weight:650;margin:0 0 12px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:baseline}
+.tool-title small{font-family:var(--body);font-weight:400;font-size:13px;color:var(--muted)}
+.controls{display:flex;flex-wrap:wrap;gap:12px 16px;align-items:flex-end;margin-bottom:14px}
+.field{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted);min-width:0}
+.field.grow{flex:1 1 220px}
+.field input[type=text]{font-family:var(--mono);text-transform:uppercase}
+select,input[type=text],input[type=number]{font:inherit;font-size:15px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:6px 8px;min-width:0;max-width:100%}
+input[type=number]{width:80px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.seg label{padding:6px 12px;font-size:14px;color:var(--ink);cursor:pointer;background:var(--bg)}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg label:has(input:checked){background:var(--plum);color:var(--bg)}
+.seg label:has(input:focus-visible){outline:2px solid var(--heme);outline-offset:-2px}
+button{font:inherit;font-size:14px;font-weight:600;border-radius:6px;padding:7px 14px;cursor:pointer;border:1px solid var(--line);background:var(--bg);color:var(--ink)}
+button.primary{background:var(--heme);border-color:var(--heme);color:var(--bg)}
+button:hover{border-color:var(--heme)}
+.btnrow{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}
+.chips button{font-weight:400;border-radius:999px;padding:4px 12px}
+
+/* stats */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:8px;overflow:hidden;margin:0 0 14px}
+.stat{background:var(--panel);padding:10px 12px}
+.stat b{display:block;font-family:var(--mono);font-size:1.25rem;font-weight:600;font-variant-numeric:tabular-nums}
+.stat span{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+
+/* alignment display */
+.aln{font-family:var(--mono);font-size:14px;line-height:1.45;overflow-x:auto;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:12px 14px;white-space:pre;max-width:100%}
+.aln .blk{margin-bottom:12px}
+.aln .blk:last-child{margin-bottom:0}
+.aln .nm{color:var(--muted)}
+.aln .mid{color:var(--muted)}
+.r{border-radius:2px}
+.c-hyd{background:var(--r-hyd)} .c-aro{background:var(--r-aro)} .c-pos{background:var(--r-pos)}
+.c-neg{background:var(--r-neg)} .c-pol{background:var(--r-pol)} .c-spe{background:var(--r-spe)}
+.plain .r{background:none}
+.key{outline:2px solid var(--heme);outline-offset:-1px;font-weight:600;color:var(--heme)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;color:var(--muted);margin:10px 0 0}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{display:inline-block;width:14px;height:14px;border-radius:3px}
+.check{font-size:14px;margin:0 0 12px;display:flex;flex-wrap:wrap;gap:6px 18px}
+.ok{color:var(--good);font-weight:600}
+.no{color:var(--warn);font-weight:600}
+
+/* DP explorer */
+.dpwrap{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--bg);max-width:100%}
+table.dp{border-collapse:collapse;font-family:var(--mono);font-size:12px;margin:0}
+table.dp th{font-weight:600;color:var(--muted);width:34px;height:30px;text-align:center;background:var(--panel-2)}
+table.dp th.idx{font-size:10px;font-weight:400}
+table.dp td{width:34px;height:30px;text-align:center;border:1px solid var(--line);position:relative;font-variant-numeric:tabular-nums;cursor:pointer;color:var(--ink)}
+table.dp td.empty{color:transparent;cursor:default}
+table.dp td .ar{position:absolute;top:0;left:2px;font-size:8px;color:var(--muted);line-height:1.1}
+table.dp td.src{outline:2px dashed var(--plum);outline-offset:-3px}
+table.dp td.cur{background:var(--plum-soft);font-weight:600}
+table.dp td.path{background:var(--heme-soft);color:var(--heme);font-weight:600}
+table.dp td.sel{outline:2px solid var(--heme);outline-offset:-2px}
+.calc{font-family:var(--mono);font-size:13px;background:var(--panel-2);border-radius:8px;padding:12px 14px;margin:12px 0;white-space:pre;overflow-x:auto;line-height:1.6;min-height:7.5em}
+.calc b{color:var(--heme)}
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px}
+@media (max-width:760px){.two{grid-template-columns:minmax(0,1fr)}}
+
+/* BLOSUM heatmap */
+.hm{border-collapse:collapse;font-family:var(--mono);font-size:11px}
+.hm th{width:26px;height:24px;color:var(--muted);font-weight:600}
+.hm td{width:26px;height:24px;text-align:center;cursor:pointer;font-variant-numeric:tabular-nums;border:1px solid var(--bg)}
+.hm td.sel{outline:2px solid var(--ink);outline-offset:-2px}
+.hm th.hl{color:var(--heme)}
+.readout{font-size:15px;background:var(--panel-2);border-radius:8px;padding:12px 14px;min-height:5.5em}
+.readout .big{font-family:var(--mono);font-size:1.6rem;font-weight:600;color:var(--heme);display:block}
+
+/* plots */
+canvas{display:block;max-width:100%;background:var(--bg);border:1px solid var(--line);border-radius:8px}
+svg text{font-family:var(--body)}
+.hist{width:100%;height:auto;display:block;max-width:100%}
+
+/* identity matrix */
+table.idm{border-collapse:collapse;font-size:14px;min-width:520px}
+table.idm th,table.idm td{padding:8px 10px;text-align:center;border:1px solid var(--line)}
+table.idm th{font-weight:600;color:var(--muted);font-size:13px}
+table.idm td{font-family:var(--mono);font-variant-numeric:tabular-nums}
+
+/* questions */
+details{border:1px solid var(--line);border-radius:8px;background:var(--panel);padding:12px 16px;margin:0 0 10px;max-width:72ch}
+summary{cursor:pointer;font-weight:600}
+details p{margin:10px 0 0}
+.refs{font-size:15px;padding-left:20px}
+.refs li{margin-bottom:6px}
+footer{font-size:13px;color:var(--muted);padding-top:24px}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+
+/* ---- MSA tutorial additions ---- */
+[hidden]{display:none!important}
+:root{--s1:#2a78d6;--s2:#eb6834;--s3:#1baf7a;--s4:#eda100}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--s1:#3987e5;--s2:#d95926;--s3:#199e70;--s4:#c98500}}
+:root[data-theme="dark"]{--s1:#3987e5;--s2:#d95926;--s3:#199e70;--s4:#c98500}
+.part{font-family:var(--display);font-size:1rem;color:var(--plum);letter-spacing:.02em;margin:0;padding-block:36px 0}
+.msa{font-family:var(--mono);font-size:13.5px;line-height:1.5;overflow-x:auto;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:12px 14px;white-space:pre;max-width:100%}
+.msa .blk{margin-bottom:14px}
+.msa .blk:last-child{margin-bottom:0}
+.msa .nm{color:var(--muted)}
+.msa .cons{color:var(--ink);font-weight:600}
+.msa .ruler{color:var(--heme);font-weight:700}
+.msa .g1{color:var(--s1);font-weight:700}.msa .g2{color:var(--s2);font-weight:700}.msa .g3{color:var(--s3);font-weight:700}.msa .g4{color:var(--s4);font-weight:700}
+.msa .keycol{outline:2px solid var(--heme);outline-offset:-1px}
+.diagram{width:100%;height:auto;display:block;max-width:100%}
+.steps{list-style:none;margin:0 0 14px;padding:0;display:grid;gap:6px}
+.steps li{display:flex;gap:10px;align-items:baseline;font-size:15px}
+.steps .sw{display:inline-block;width:12px;height:12px;border-radius:3px;flex:none;transform:translateY(1px)}
+.chartwrap{position:relative}
+table.data td.hl{background:var(--heme-soft)}
+.copyrow{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:0 0 8px;flex-wrap:wrap}
+textarea{font-family:var(--mono);font-size:12px;width:100%;min-height:8em;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:8px}
+.muted{color:var(--muted)}
+.tabs{display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap}
+.tabs button[aria-pressed="true"]{background:var(--plum);color:var(--bg);border-color:var(--plum)}
+</style>
+
+<div class="wrap">
+<nav class="toc" aria-label="Contents">
+  <b>Contents</b>
+  <ol>
+    <li><a href="#why">Why align many?</a></li>
+    <li><a href="#score">Scoring an MSA</a></li>
+    <li><a href="#hard">Why exact is impossible</a></li>
+    <li><a href="#prog">Progressive alignment</a></li>
+    <li><a href="#order">Does the order matter?</a></li>
+    <li><a href="#beyond">Beyond progressive</a></li>
+    <li><a href="#run">Running the tools</a></li>
+    <li><a href="#judge">Judging an alignment</a></li>
+    <li><a href="#check">Check yourself</a></li>
+    <li><a href="#refs">References</a></li>
+  </ol>
+</nav>
+
+<main>
+<header class="hero">
+  <div class="eyebrow">Bio 116 · Tutorial · Multiple sequence alignment</div>
+  <h1>Aligning Many Globins</h1>
+  <p class="lede">Pairwise alignment compares two sequences. A multiple sequence alignment (MSA) lines up a whole family at once, so that every column holds residues that descend from one ancestral position. In this tutorial you build an MSA of the five course globins with the progressive method used by Clustal. You then test how the guide tree and gap costs change the result and learn to run and judge the modern tools.</p>
+  <ul class="meta">
+    <li>About 50 minutes</li>
+    <li>Follows: all four earlier Bio 116 tutorials</li>
+    <li>All tools run in your browser</li>
+  </ul>
+  <div class="msa" id="heroMsa" aria-label="Five globins aligned from helix E to helix F"></div>
+  <p class="note" style="margin-top:8px">The five globins, aligned in your browser by the progressive method below, from helix E to helix F. The two boxed columns hold the distal (E7) and proximal (F8) histidines. In a correct alignment each is one column across all five proteins. Bottom line: Clustal's conservation symbols (* identical, : strongly similar, . weakly similar).</p>
+</header>
+
+<section id="goals-sec" aria-labelledby="goals-h">
+  <div class="prose">
+  <h2 id="goals-h">By the end you should be able to</h2>
+  <ul class="goals">
+    <li>Say what an MSA claims and list what MSAs are used for.</li>
+    <li>Score an MSA with sum-of-pairs and read Clustal's conservation line.</li>
+    <li>Explain why exact multiple alignment is computationally out of reach.</li>
+    <li>Carry out progressive alignment: distances, guide tree, profile merges.</li>
+    <li>Choose among Clustal Omega, MAFFT, MUSCLE and T-Coffee, and check an alignment critically.</li>
+  </ul>
+  </div>
+</section>
+
+<p class="part">Part 1 · How multiple alignment works</p>
+
+<section id="why" aria-labelledby="why-h">
+  <span class="snum">1</span>
+  <div class="prose">
+  <h2 id="why-h">Why align many sequences?</h2>
+  <p>A pairwise alignment is a hypothesis about two sequences. An MSA extends that hypothesis to a whole family. Each column claims that its residues are homologous, and each gap claims an insertion or deletion. With more sequences, patterns appear that no single pair can show. A column that stays histidine in hemoglobin, myoglobin and leghemoglobin is almost certainly functional.</p>
+  <p>MSAs are the input to most of what comes after this course:</p>
+  <ul class="goals">
+    <li><b>Conserved residues</b>: finding active sites, binding sites and structural cores.</li>
+    <li><b>Family models</b>: PSSMs (PSI-BLAST) and profile HMMs (HMMER, Pfam) are built from MSAs.</li>
+    <li><b>Phylogenetics</b>: every tree-building method treats each column as a character.</li>
+    <li><b>Structure prediction</b>: AlphaFold2 and similar methods read co-varying columns in a deep MSA.</li>
+    <li><b>Variant interpretation</b>: a disease mutation at a column conserved across species is more likely harmful.</li>
+  </ul>
+  </div>
+</section>
+
+<section id="score" aria-labelledby="score-h">
+  <span class="snum">2</span>
+  <div class="prose">
+  <h2 id="score-h">Scoring an MSA</h2>
+  <p>The most common objective is the <b>sum-of-pairs</b> (SP) score. Every MSA implies a pairwise alignment for each pair of its sequences: drop the other rows and any columns that become all-gap. Score each of those with a substitution matrix and gap costs, as in the first tutorial, and add them up. Five sequences give 10 pairs.</p>
+  </div>
+  <div class="eq">SP(MSA) = Σ over pairs (a,b) of  score( alignment of a and b induced by the MSA )
+
+Here: BLOSUM62, gap open 10, extend 0.5 (the pairwise defaults from the first tutorial)</div>
+  <div class="prose">
+  <p>SP has a known weakness. It treats all pairs as independent, so a family with many near-identical members counts the same evidence many times. Viewers such as Jalview and Clustal also print a per-column <b>conservation line</b>. <code>*</code> means every sequence has the identical residue. <code>:</code> means all residues fall in one strongly similar group, such as MILV or FYW. <code>.</code> means one weakly similar group. A blank means no pattern or a gap. You will see this line under every alignment on this page.</p>
+  </div>
+</section>
+
+<section id="hard" aria-labelledby="hard-h">
+  <span class="snum">3</span>
+  <div class="prose">
+  <h2 id="hard-h">Why exact alignment is impossible</h2>
+  <p>Needleman–Wunsch generalizes to N sequences. Replace the 2D matrix with an N-dimensional one. Each cell then looks back at 2<sup>N</sup> − 1 neighbors: every combination of "this sequence advances or has a gap". For globin-length sequences (L ≈ 150) the cost explodes:</p>
+  </div>
+  <div class="tablewrap"><table class="data" id="hardTable" style="max-width:640px"></table></div>
+  <p class="note">Times assume a billion cell updates per second. Maximizing the SP score is NP-hard (Wang &amp; Jiang 1994), so no clever shortcut is expected to make exact alignment practical. Every real MSA program is a heuristic.</p>
+</section>
+
+<section id="prog" aria-labelledby="prog-h">
+  <span class="snum">4</span>
+  <div class="prose">
+  <h2 id="prog-h">Progressive alignment</h2>
+  <p>Feng and Doolittle (1987) proposed the idea behind ClustalW (Thompson et al. 1994) and most tools since. Align the most similar sequences first, while the evidence is strongest, and add more distant ones later.</p>
+  <ol class="goals">
+    <li><b>Distances.</b> Align every pair and turn identity into a distance: d = 1 − identity.</li>
+    <li><b>Guide tree.</b> Cluster the distances into a tree (UPGMA here; ClustalW used neighbor-joining).</li>
+    <li><b>Merge up the tree.</b> At each node, align two groups, sequence to sequence or profile to profile, and freeze the result.</li>
+  </ol>
+  <p>A <b>profile–profile</b> alignment is Needleman–Wunsch with columns in place of residues. The score of two columns is the average BLOSUM62 score over every pair of residues, one from each group.</p>
+  </div>
+
+  <div class="tool" id="progTool">
+    <div class="tool-title">Build the MSA <small>Five globins, BLOSUM62</small></div>
+    <div class="two">
+      <div>
+        <h3 style="margin-top:0">Step 1 · Distances</h3>
+        <div class="tablewrap" style="margin:0"><table class="data" id="distTable" style="min-width:0"></table></div>
+      </div>
+      <div>
+        <h3 style="margin-top:0">Step 2 · Guide tree (UPGMA)</h3>
+        <svg class="diagram" id="treeSvg" viewBox="0 0 380 200" role="img" aria-label="UPGMA guide tree of the five globins"></svg>
+      </div>
+    </div>
+    <h3>Step 3 · Merge up the tree</h3>
+    <div class="controls">
+      <label class="field">Merge order
+        <select id="ordSel">
+          <option value="tree" selected>Follow the guide tree</option>
+          <option value="LBA,HBA,HBB,MBh,MBw">One at a time: LBA, HBA, HBB, MBh, MBw</option>
+          <option value="HBB,HBA,MBh,MBw,LBA">One at a time: HBB, HBA, MBh, MBw, LBA</option>
+          <option value="HBA,LBA,HBB,MBw,MBh">One at a time: HBA, LBA, HBB, MBw, MBh</option>
+        </select>
+      </label>
+      <label class="field">Gap open <input type="number" id="gOpen" value="10" min="1" max="30" step="0.5"></label>
+      <label class="field">Gap extend <input type="number" id="gExt" value="1" min="0" max="5" step="0.5"></label>
+      <button id="randBtn">Try a random order</button>
+    </div>
+    <ul class="steps" id="stepList"></ul>
+    <div class="stats" id="msaStats"></div>
+    <div class="msa" id="msaView"></div>
+    <div class="legend" id="msaLegend"></div>
+  </div>
+  <div class="prose">
+  <h3>Once a gap, always a gap</h3>
+  <p>Gaps are colored and labelled by the merge step that created them. A gap placed at step 1 is never reconsidered. Later steps can only add whole gap columns around it. If an early merge puts a gap in the wrong place, every later sequence has to be aligned around that mistake. This is the central weakness of progressive alignment.</p>
+  <h3>Try this</h3>
+  <ul class="goals">
+    <li>With the guide tree and gaps 10/1, check the stats: both heme histidines are in one column each.</li>
+    <li>Change gap extend to 0.5. Long gap runs get cheap, and leghemoglobin's distal histidine slides 18 columns out of place.</li>
+    <li>Choose "LBA, HBA, …". Starting from the most distant pair puts early, poorly supported gaps into the alignment. Compare the SP score with the guide tree's.</li>
+  </ul>
+  </div>
+</section>
+
+<section id="order" aria-labelledby="order-h">
+  <span class="snum">5</span>
+  <div class="prose">
+  <h2 id="order-h">Does the order matter?</h2>
+  <p>Five sequences can be added one at a time in 120 different orders. The chart below aligns all 120 and plots their SP scores. Change the gap costs in the tool above and press the button to re-run. The guide tree's score is marked for comparison.</p>
+  </div>
+  <div class="tool">
+    <div class="btnrow"><button id="allBtn" class="primary">Re-run with current gap costs</button><span class="muted" id="allProg" style="align-self:center;font-size:14px"></span></div>
+    <div class="stats" id="allStats"></div>
+    <div class="chartwrap"><svg class="diagram" id="allHist" viewBox="0 0 700 260" role="img" aria-label="Histogram of sum-of-pairs scores across all 120 addition orders"></svg></div>
+  </div>
+  <div class="prose">
+  <p>With gaps 10/1, the guide tree comes within a few points of the best order, and about a third of the orders misplace leghemoglobin's distal histidine. The guide tree is a cheap way to pick a good order without trying them all. For hundreds of sequences, trying them all is out of the question.</p>
+  </div>
+</section>
+
+<section id="beyond" aria-labelledby="beyond-h">
+  <span class="snum">6</span>
+  <div class="prose">
+  <h2 id="beyond-h">Beyond progressive alignment</h2>
+  <p>Modern programs keep the progressive backbone but add ways to repair its mistakes or avoid them:</p>
+  </div>
+  <div class="tablewrap">
+  <table class="data">
+    <thead><tr><th>Idea</th><th>What it does</th><th>Used by</th></tr></thead>
+    <tbody>
+      <tr><td><b>Iterative refinement</b></td><td>Split the finished MSA into two groups, realign them, keep the change if the score improves. Repeat. Undoes some "once a gap" errors.</td><td>MUSCLE, MAFFT (-i modes)</td></tr>
+      <tr><td><b>Consistency</b></td><td>Before aligning, collect all pairwise alignments into a library. Reward residue pairings that agree across many pairs (if a~b and b~c, then a~c).</td><td>T-Coffee, ProbCons, MAFFT L-INS-i</td></tr>
+      <tr><td><b>Profile HMMs</b></td><td>Align groups as HMMs rather than as frequency profiles, and use fast embedded guide trees for huge sets.</td><td>Clustal Omega</td></tr>
+      <tr><td><b>Fast homology detection</b></td><td>Use a Fourier transform on residue properties to find matching segments quickly before detailed alignment.</td><td>MAFFT</td></tr>
+      <tr><td><b>Phylogeny-aware gaps</b></td><td>Tell insertions from deletions using the tree, so an insertion is not penalized again in every descendant.</td><td>PRANK</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<p class="part">Part 2 · Using MSA tools</p>
+
+<section id="run" aria-labelledby="run-h">
+  <span class="snum">7</span>
+  <div class="prose">
+  <h2 id="run-h">Running the tools</h2>
+  <p>For a few dozen sequences, the <a href="https://www.ebi.ac.uk/jdispatcher/msa" target="_blank" rel="noopener">EBI multiple sequence alignment services</a> run Clustal Omega, MAFFT, MUSCLE and T-Coffee in the browser. Paste FASTA, pick a tool, and download the result. On the command line:</p>
+  </div>
+  <div class="eq"># Clustal Omega, Clustal-format output
+clustalo -i globins.fasta -o globins.aln --outfmt=clustal
+
+# MAFFT: automatic strategy; or L-INS-i, accurate for up to ~200 sequences
+mafft --auto globins.fasta > globins_mafft.fasta
+mafft --localpair --maxiterate 1000 globins.fasta > globins_linsi.fasta
+
+# MUSCLE version 5
+muscle -align globins.fasta -output globins_muscle.fasta</div>
+  <div class="tool">
+    <div class="tabs" role="group" aria-label="File to show">
+      <button id="tabIn" aria-pressed="true">Input FASTA</button>
+      <button id="tabAln" aria-pressed="false">Result, Clustal format</button>
+      <button id="tabAfa" aria-pressed="false">Result, aligned FASTA</button>
+    </div>
+    <div class="copyrow"><b id="fileName">globins.fasta</b><button id="fileCopy">Copy</button></div>
+    <textarea id="fileBox" readonly rows="10" aria-label="File contents"></textarea>
+  </div>
+  <div class="prose">
+  <p>Align the input with two different programs and compare them with the result on this page. Where they agree, you can be more confident. Where they disagree, the alignment is uncertain. Open the result in <b>Jalview</b> to color it, edit by hand, and see conservation and consensus tracks. Common formats are aligned FASTA (gaps as <code>-</code>), Clustal (<code>.aln</code>, in blocks with the conservation line), Stockholm (<code>.sto</code>, used by HMMER and Pfam), and PHYLIP (used by phylogenetics programs).</p>
+  </div>
+</section>
+
+<section id="judge" aria-labelledby="judge-h">
+  <span class="snum">8</span>
+  <div class="prose">
+  <h2 id="judge-h">Judging an alignment</h2>
+  <p>A program always returns an alignment, even for sequences that are not homologous. The score alone cannot tell you whether it is right. Useful checks:</p>
+  <ul class="goals">
+    <li><b>Known functional residues.</b> Do the residues that must match line up, like the heme histidines on this page? This is the fastest sanity check.</li>
+    <li><b>Structure.</b> Benchmarks such as BAliBASE compare programs against reference alignments made from 3D structures. If structures exist for your family, use them the same way.</li>
+    <li><b>Agreement between methods.</b> Columns that every program aligns the same way are reliable. Regions that change with the program or with the gap costs are not.</li>
+    <li><b>Gappy, variable regions.</b> Loops and termini are often not truly alignable. For phylogenetics, trim them (trimAl, Gblocks) rather than let them add noise.</li>
+    <li><b>Input quality.</b> Fragments, non-homologous sequences and proteins with different domain architectures distort everything. Check your inputs with BLAST or HMMER first.</li>
+  </ul>
+  </div>
+</section>
+
+<section id="check" aria-labelledby="check-h">
+  <span class="snum">9</span>
+  <h2 id="check-h">Check yourself</h2>
+  <details><summary>1. What does a single column of an MSA claim?</summary>
+    <p>That every residue in it descends from the same position in the common ancestor. A gap in the column claims that the sequence lost that position, or that the others gained it.</p></details>
+  <details><summary>2. Why can't we just extend Needleman–Wunsch to five globins?</summary>
+    <p>The matrix becomes five-dimensional: about 151⁵ ≈ 8 × 10¹⁰ cells, each checking 31 predecessors. That is roughly 2.5 × 10¹² operations for five short proteins, and the cost multiplies by about 300 with each added sequence. Maximizing the SP score is NP-hard in general.</p></details>
+  <details><summary>3. Why does progressive alignment start with the most similar sequences?</summary>
+    <p>Close relatives can be aligned with little ambiguity, so the gaps placed early are likely to be right. Because early gaps are frozen, it is best to make the most reliable decisions first and the uncertain ones last.</p></details>
+  <details><summary>4. What does "once a gap, always a gap" mean, and which methods address it?</summary>
+    <p>A gap introduced during an early merge is never removed or moved later. Iterative refinement (MUSCLE, MAFFT) realigns subgroups to fix such errors, and consistency methods (T-Coffee) try to avoid them by using information from all pairs before any merge.</p></details>
+  <details><summary>5. With gap extend 0.5, leghemoglobin's distal histidine is misaligned. Why can a cheaper gap make the alignment worse?</summary>
+    <p>Cheap long gaps let the aligner slide a whole block of the distant sequence sideways to pick up a few extra matches elsewhere. The result may score about as well, but it breaks the true column structure. Gap costs encode what we believe about how often indels happen.</p></details>
+  <details><summary>6. Two programs give different alignments of a loop region. What do you do before building a tree?</summary>
+    <p>Treat the loop as unreliable. Trim it (for example with trimAl), or run the analysis with and without it to see whether conclusions change.</p></details>
+</section>
+
+<section id="refs" aria-labelledby="refs-h">
+  <span class="snum">10</span>
+  <h2 id="refs-h">References</h2>
+  <ol class="refs">
+    <li>Feng DF, Doolittle RF (1987). Progressive sequence alignment as a prerequisite to correct phylogenetic trees. <i>J Mol Evol</i> 25:351–360.</li>
+    <li>Thompson JD, Higgins DG, Gibson TJ (1994). CLUSTAL W: improving the sensitivity of progressive multiple sequence alignment. <i>Nucleic Acids Res</i> 22:4673–4680.</li>
+    <li>Wang L, Jiang T (1994). On the complexity of multiple sequence alignment. <i>J Comput Biol</i> 1:337–348.</li>
+    <li>Notredame C, Higgins DG, Heringa J (2000). T-Coffee: a novel method for fast and accurate multiple sequence alignment. <i>J Mol Biol</i> 302:205–217.</li>
+    <li>Katoh K, Misawa K, Kuma K, Miyata T (2002). MAFFT: a novel method for rapid multiple sequence alignment based on fast Fourier transform. <i>Nucleic Acids Res</i> 30:3059–3066.</li>
+    <li>Edgar RC (2004). MUSCLE: multiple sequence alignment with high accuracy and high throughput. <i>Nucleic Acids Res</i> 32:1792–1797.</li>
+    <li>Löytynoja A, Goldman N (2005). An algorithm for progressive multiple alignment of sequences with insertions. <i>PNAS</i> 102:10557–10562.</li>
+    <li>Sievers F, et al. (2011). Fast, scalable generation of high-quality protein multiple sequence alignments using Clustal Omega. <i>Mol Syst Biol</i> 7:539.</li>
+    <li>Thompson JD, Plewniak F, Poch O (1999). BAliBASE: a benchmark alignment database for the evaluation of multiple alignment programs. <i>Bioinformatics</i> 15:87–88.</li>
+    <li>Waterhouse AM, et al. (2009). Jalview Version 2: a multiple sequence alignment editor and analysis workbench. <i>Bioinformatics</i> 25:1189–1191.</li>
+    <li>Capella-Gutiérrez S, Silla-Martínez JM, Gabaldón T (2009). trimAl: a tool for automated alignment trimming in large-scale phylogenetic analyses. <i>Bioinformatics</i> 25:1972–1973.</li>
+  </ol>
+  <footer>Bio 116 · Multiple sequence alignment tutorial. The aligner on this page is a teaching implementation of progressive alignment with average-BLOSUM62 profile scoring and affine gaps. Real programs add sequence weights, position-specific gap penalties and refinement.</footer>
+</section>
+</main>
+</div>
+
+<script>
+"use strict";
+
+"use strict";
+/* ---------- data ---------- */
+const GLOBINS = [
+  {id:"HBA", short:"α", name:"Hemoglobin α", org:"Homo sapiens", acc:"P69905", e7:58, f8:87,
+   job:"Blood O₂ transport (α₂β₂ tetramer)",
+   seq:"VLSPADKTNVKAAWGKVGAHAGEYGAEALERMFLSFPTTKTYFPHFDLSHGSAQVKGHGKKVADALTNAVAHVDDMPNALSALSDLHAHKLRVDPVNFKLLSHCLLVTLAAHLPAEFTPAVHASLDKFLASVSTVLTSKYR"},
+  {id:"HBB", short:"β", name:"Hemoglobin β", org:"Homo sapiens", acc:"P68871", e7:63, f8:92,
+   job:"Blood O₂ transport (α₂β₂ tetramer)",
+   seq:"VHLTPEEKSAVTALWGKVNVDEVGGEALGRLLVVYPWTQRFFESFGDLSTPDAVMGNPKVKAHGKKVLGAFSDGLAHLDNLKGTFATLSELHCDKLHVDPENFRLLGNVLVCVLAHHFGKEFTPPVQAAYQKVVAGVANALAHKYH"},
+  {id:"MBh", short:"Mb (human)", name:"Myoglobin", org:"Homo sapiens", acc:"P02144", e7:64, f8:93,
+   job:"O₂ storage in muscle (monomer)",
+   seq:"GLSDGEWQLVLNVWGKVEADIPGHGQEVLIRLFKGHPETLEKFDKFKHLKSEDEMKASEDLKKHGATVLTALGGILKKKGHHEAEIKPLAQSHATKHKIPVKYLEFISECIIQVLQSKHPGDFGADAQGAMNKALELFRKDMASNYKELGFQG"},
+  {id:"MBw", short:"Mb (whale)", name:"Myoglobin", org:"Physeter macrocephalus (sperm whale)", acc:"P02185", e7:64, f8:93,
+   job:"O₂ storage for long dives; first protein structure solved",
+   seq:"VLSEGEWQLVLHVWAKVEADVAGHGQDILIRLFKSHPETLEKFDRFKHLKTEAEMKASEDLKKHGVTVLTALGAILKKKGHHEAELKPLAQSHATKHKIPIKYLEFISEAIIHVLHSRHPGDFGADAQGAMNKALELFRKDIAAKYKELGYQG"},
+  {id:"LBA", short:"Lb (soybean)", name:"Leghemoglobin A", org:"Glycine max (soybean)", acc:"P02238", e7:61, f8:92,
+   job:"Buffers O₂ for nitrogen-fixing bacteria in root nodules",
+   seq:"VAFTEKQDALVSSSFEAFKANIPQYSVVFYTSILEKAPAAKDLFSFLANGVDPTNPKLTGHAEKLFALVRDSAGQLKASGTVVADAALGSVHAQKAVTDPQFVVVKEALLKTIKAAVGDKWSDELSRAWEVAYDELAAAIKKA"}
+];
+const G = Object.fromEntries(GLOBINS.map(g => [g.id, g]));
+const label = g => g.id === "HBA" || g.id === "HBB" ? `${g.name} (human)` : `${g.name} (${g.short.replace(/^.*\(|\)$/g,"")})`;
+
+const B62_TXT = `A R N D C Q E G H I L K M F P S T W Y V
+A 4 -1 -2 -2 0 -1 -1 0 -2 -1 -1 -1 -1 -2 -1 1 0 -3 -2 0
+R -1 5 0 -2 -3 1 0 -2 0 -3 -2 2 -1 -3 -2 -1 -1 -3 -2 -3
+N -2 0 6 1 -3 0 0 0 1 -3 -3 0 -2 -3 -2 1 0 -4 -2 -3
+D -2 -2 1 6 -3 0 2 -1 -1 -3 -4 -1 -3 -3 -1 0 -1 -4 -3 -3
+C 0 -3 -3 -3 9 -3 -4 -3 -3 -1 -1 -3 -1 -2 -3 -1 -1 -2 -2 -1
+Q -1 1 0 0 -3 5 2 -2 0 -3 -2 1 0 -3 -1 0 -1 -2 -1 -2
+E -1 0 0 2 -4 2 5 -2 0 -3 -3 1 -2 -3 -1 0 -1 -3 -2 -2
+G 0 -2 0 -1 -3 -2 -2 6 -2 -4 -4 -2 -3 -3 -2 0 -2 -2 -3 -3
+H -2 0 1 -1 -3 0 0 -2 8 -3 -3 -1 -2 -1 -2 -1 -2 -2 2 -3
+I -1 -3 -3 -3 -1 -3 -3 -4 -3 4 2 -3 1 0 -3 -2 -1 -3 -1 3
+L -1 -2 -3 -4 -1 -2 -3 -4 -3 2 4 -2 2 0 -3 -2 -1 -2 -1 1
+K -1 2 0 -1 -3 1 1 -2 -1 -3 -2 5 -1 -3 -1 0 -1 -3 -2 -2
+M -1 -1 -2 -3 -1 0 -2 -3 -2 1 2 -1 5 0 -2 -1 -1 -1 -1 1
+F -2 -3 -3 -3 -2 -3 -3 -3 -1 0 0 -3 0 6 -4 -2 -2 1 3 -1
+P -1 -2 -2 -1 -3 -1 -1 -2 -2 -3 -3 -1 -2 -4 7 -1 -1 -4 -3 -2
+S 1 -1 1 0 -1 0 0 0 -1 -2 -2 0 -1 -2 -1 4 1 -3 -2 -2
+T 0 -1 0 -1 -1 -1 -1 -2 -2 -1 -1 -1 -1 -2 -1 1 5 -2 -2 0
+W -3 -3 -4 -4 -2 -2 -3 -2 -2 -3 -2 -3 -1 1 -4 -3 -2 11 2 -3
+Y -2 -2 -2 -3 -2 -1 -2 -3 2 -1 -1 -2 -1 3 -3 -2 -2 2 7 -1
+V 0 -3 -3 -3 -1 -2 -2 -3 -3 3 1 -2 1 -1 -2 -2 0 -3 -1 4`;
+const AA = "ARNDCQEGHILKMFPSTWYV";
+const B62 = new Int8Array(26 * 26);
+(() => {
+  const lines = B62_TXT.split("\n"), cols = lines[0].split(" ");
+  for (const ln of lines.slice(1)) {
+    const [r, ...v] = ln.split(" ");
+    v.forEach((x, k) => { B62[(r.charCodeAt(0) - 65) * 26 + cols[k].charCodeAt(0) - 65] = +x; });
+  }
+})();
+const IDM = new Int8Array(26 * 26);
+for (const a of AA) for (const b of AA) IDM[(a.charCodeAt(0) - 65) * 26 + b.charCodeAt(0) - 65] = a === b ? 5 : -4;
+const MAT = { b62: B62, id: IDM };
+const sc = (m, a, b) => m[(a.charCodeAt(0) - 65) * 26 + b.charCodeAt(0) - 65];
+
+const CLASS = {};
+for (const [cls, s] of Object.entries({hyd:"AVLIM", aro:"FWY", pos:"KRH", neg:"DE", pol:"STNQ", spe:"GPC"})) for (const c of s) CLASS[c] = cls;
+const CLASS_LABEL = [["hyd","hydrophobic AVLIM"],["aro","aromatic FWY"],["pos","positive KRH"],["neg","negative DE"],["pol","polar STNQ"],["spe","special GPC"]];
+function legendHTML(withKey) {
+  return CLASS_LABEL.map(([c, t]) => `<span><i class="c-${c}"></i>${t}</span>`).join("") +
+    (withKey ? `<span><i class="key" style="outline-offset:-2px"></i>heme-pocket His (E7, F8)</span>` : "");
+}
+const esc = s => s.replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+
+/* ---------- affine-gap alignment (Gotoh) ---------- */
+const NEG = -1e9;
+function align(a, b, {local = false, open = 10, ext = 0.5, mat = B62} = {}) {
+  const n = a.length, m = b.length, W = m + 1, N = (n + 1) * W;
+  const M = new Float64Array(N).fill(NEG), X = new Float64Array(N).fill(NEG), Y = new Float64Array(N).fill(NEG);
+  const pM = new Uint8Array(N), pX = new Uint8Array(N), pY = new Uint8Array(N);
+  M[0] = 0;
+  if (!local) {
+    for (let i = 1; i <= n; i++) { X[i * W] = -(open + (i - 1) * ext); pX[i * W] = i === 1 ? 0 : 1; }
+    for (let j = 1; j <= m; j++) { Y[j] = -(open + (j - 1) * ext); pY[j] = j === 1 ? 0 : 2; }
+  }
+  let best = local ? 0 : NEG, bk = 0;
+  for (let i = 1; i <= n; i++) {
+    const ai = (a.charCodeAt(i - 1) - 65) * 26;
+    for (let j = 1; j <= m; j++) {
+      const k = i * W + j, d = k - W - 1, u = k - W, l = k - 1;
+      let v = M[d], p = 0;
+      if (X[d] > v) { v = X[d]; p = 1; }
+      if (Y[d] > v) { v = Y[d]; p = 2; }
+      if (local && v <= 0) { v = 0; p = 3; }
+      M[k] = v + mat[ai + b.charCodeAt(j - 1) - 65]; pM[k] = p;
+      let x = M[u] - open, px = 0;
+      if (X[u] - ext > x) { x = X[u] - ext; px = 1; }
+      if (Y[u] - open > x) { x = Y[u] - open; px = 2; }
+      X[k] = x; pX[k] = px;
+      let y = M[l] - open, py = 0;
+      if (Y[l] - ext > y) { y = Y[l] - ext; py = 2; }
+      if (X[l] - open > y) { y = X[l] - open; py = 1; }
+      Y[k] = y; pY[k] = py;
+      if (local && M[k] > best) { best = M[k]; bk = k; }
+    }
+  }
+  let i, j, state;
+  if (local) {
+    if (best <= 0) return {score: 0, A: "", B: "", aStart: 0, bStart: 0, path: []};
+    i = Math.floor(bk / W); j = bk % W; state = 0;
+  } else {
+    const k = N - 1; i = n; j = m; best = M[k]; state = 0;
+    if (X[k] > best) { best = X[k]; state = 1; }
+    if (Y[k] > best) { best = Y[k]; state = 2; }
+  }
+  const A = [], B = [], path = [];
+  while (i > 0 || j > 0) {
+    const k = i * W + j;
+    path.push([i, j]);
+    if (state === 0) {
+      const p = pM[k]; A.push(a[i - 1]); B.push(b[j - 1]); i--; j--;
+      if (p === 3) break;
+      state = p;
+    } else if (state === 1) {
+      const p = pX[k]; A.push(a[i - 1]); B.push("-"); i--; state = p;
+    } else {
+      const p = pY[k]; A.push("-"); B.push(b[j - 1]); j--; state = p;
+    }
+    if (local && i === 0 && j === 0) break;
+  }
+  return {score: best, A: A.reverse().join(""), B: B.reverse().join(""), aStart: i, bStart: j, path: path.reverse()};
+}
+
+/* score-only local alignment, rolling rows, for the shuffle test */
+function localScore(a, b, open, ext, mat) {
+  const m = b.length;
+  let Mp = new Float64Array(m + 1), Xp = new Float64Array(m + 1).fill(NEG), Yp = new Float64Array(m + 1).fill(NEG);
+  let Mc = new Float64Array(m + 1), Xc = new Float64Array(m + 1), Yc = new Float64Array(m + 1);
+  const bc = Array.from(b, c => c.charCodeAt(0) - 65);
+  let best = 0;
+  for (let i = 0; i < a.length; i++) {
+    const ai = (a.charCodeAt(i) - 65) * 26;
+    Mc[0] = NEG; Xc[0] = NEG; Yc[0] = NEG;
+    for (let j = 1; j <= m; j++) {
+      let v = Mp[j - 1]; if (Xp[j - 1] > v) v = Xp[j - 1]; if (Yp[j - 1] > v) v = Yp[j - 1]; if (v < 0) v = 0;
+      const mm = v + mat[ai + bc[j - 1]]; Mc[j] = mm; if (mm > best) best = mm;
+      let x = Mp[j] - open; if (Xp[j] - ext > x) x = Xp[j] - ext; if (Yp[j] - open > x) x = Yp[j] - open; Xc[j] = x;
+      let y = Mc[j - 1] - open; if (Yc[j - 1] - ext > y) y = Yc[j - 1] - ext; if (Xc[j - 1] - open > y) y = Xc[j - 1] - open; Yc[j] = y;
+    }
+    [Mp, Mc] = [Mc, Mp]; [Xp, Xc] = [Xc, Xp]; [Yp, Yc] = [Yc, Yp];
+  }
+  return best;
+}
+
+function alnStats(res, mat) {
+  let id = 0, pos = 0, gaps = 0, opens = 0;
+  for (let k = 0; k < res.A.length; k++) {
+    const x = res.A[k], y = res.B[k];
+    if (x === "-" || y === "-") { gaps++; if (k === 0 || (res.A[k-1] !== "-" && res.B[k-1] !== "-") || (x === "-") !== (res.A[k-1] === "-")) opens++; continue; }
+    if (x === y) id++;
+    if (sc(B62, x, y) > 0) pos++;
+  }
+  const L = res.A.length || 1;
+  return {len: res.A.length, id, pos, gaps, opens, pid: 100 * id / L, ppos: 100 * pos / L};
+}
+
+
+/* ---------- progressive multiple alignment engine ---------- */
+const AIX = Object.fromEntries([...AA].map((a, i) => [a, i]));
+const S20 = [...AA].map(a => [...AA].map(b => sc(B62, a, b)));
+/* a profile is {names:[], rows:[[{c, step}]]}; columns are rows[r][col] */
+function seqProfile(name, seq) { return {names: [name], rows: [[...seq].map(c => ({c, step: 0}))]}; }
+function colFreq(p, j) {
+  const f = new Float64Array(20); const n = p.rows.length;
+  for (const r of p.rows) { const c = r[j].c; if (c !== "-") f[AIX[c]] += 1 / n; }
+  return f;
+}
+function colGapFrac(p, j) { let g = 0; for (const r of p.rows) if (r[j].c === "-") g++; return g / p.rows.length; }
+/* profile–profile alignment: column score = average BLOSUM62 over all residue pairs (gaps count 0), affine gaps */
+function alignProfiles(A, B, open = 10, ext = 1) {
+  const n = A.rows[0].length, m = B.rows[0].length;
+  const FA = Array.from({length: n}, (_, i) => colFreq(A, i)), FB = Array.from({length: m}, (_, j) => colFreq(B, j));
+  const S = (i, j) => { const fa = FA[i], fb = FB[j]; let s = 0; for (let a = 0; a < 20; a++) { if (!fa[a]) continue; const ra = S20[a]; for (let b = 0; b < 20; b++) if (fb[b]) s += fa[a] * fb[b] * ra[b]; } return s; };
+  const W = m + 1, N = (n + 1) * W, NEG = -1e9;
+  const M = new Float64Array(N).fill(NEG), X = new Float64Array(N).fill(NEG), Y = new Float64Array(N).fill(NEG);
+  const pM = new Uint8Array(N), pX = new Uint8Array(N), pY = new Uint8Array(N);
+  M[0] = 0;
+  for (let i = 1; i <= n; i++) { X[i * W] = -(open + (i - 1) * ext); pX[i * W] = i === 1 ? 0 : 1; }
+  for (let j = 1; j <= m; j++) { Y[j] = -(open + (j - 1) * ext); pY[j] = j === 1 ? 0 : 2; }
+  for (let i = 1; i <= n; i++) for (let j = 1; j <= m; j++) {
+    const k = i * W + j, d = k - W - 1, u = k - W, l = k - 1;
+    let v = M[d], p = 0; if (X[d] > v) { v = X[d]; p = 1; } if (Y[d] > v) { v = Y[d]; p = 2; }
+    M[k] = v + S(i - 1, j - 1); pM[k] = p;
+    let x = M[u] - open, px = 0; if (X[u] - ext > x) { x = X[u] - ext; px = 1; } if (Y[u] - open > x) { x = Y[u] - open; px = 2; } X[k] = x; pX[k] = px;
+    let y = M[l] - open, py = 0; if (Y[l] - ext > y) { y = Y[l] - ext; py = 2; } if (X[l] - open > y) { y = X[l] - open; py = 1; } Y[k] = y; pY[k] = py;
+  }
+  let i = n, j = m, st = 0, k = N - 1, best = M[k];
+  if (X[k] > best) { best = X[k]; st = 1; } if (Y[k] > best) { best = Y[k]; st = 2; }
+  const ops = [];
+  while (i > 0 || j > 0) {
+    const kk = i * W + j;
+    if (st === 0) { ops.push("M"); st = pM[kk]; i--; j--; }
+    else if (st === 1) { ops.push("A"); st = pX[kk]; i--; }        // column from A only, gap column in B
+    else { ops.push("B"); st = pY[kk]; j--; }
+  }
+  ops.reverse();
+  return {ops, score: best};
+}
+function mergeProfiles(A, B, ops, step) {
+  const rows = [...A.rows.map(() => []), ...B.rows.map(() => [])], na = A.rows.length;
+  let i = 0, j = 0;
+  for (const o of ops) {
+    A.rows.forEach((r, x) => rows[x].push(o === "B" ? {c: "-", step} : r[i]));
+    B.rows.forEach((r, x) => rows[na + x].push(o === "A" ? {c: "-", step} : r[j]));
+    if (o !== "B") i++; if (o !== "A") j++;
+  }
+  return {names: [...A.names, ...B.names], rows};
+}
+/* pairwise distances: 1 − fractional identity of a global alignment */
+function distMatrix(seqs) {
+  const n = seqs.length, D = Array.from({length: n}, () => new Array(n).fill(0));
+  for (let a = 0; a < n; a++) for (let b = a + 1; b < n; b++) { const st = alnStats(align(seqs[a].seq, seqs[b].seq), B62); D[a][b] = D[b][a] = 1 - st.id / st.len; }
+  return D;
+}
+/* UPGMA guide tree; returns merge list [{a, b, h}] over cluster ids (leaves 0..n-1) */
+function upgma(D) {
+  const n = D.length; let clusters = D.map((_, i) => ({id: i, size: 1, h: 0}));
+  const d = new Map(); const key = (x, y) => x < y ? x + "," + y : y + "," + x;
+  for (let a = 0; a < n; a++) for (let b = a + 1; b < n; b++) d.set(key(a, b), D[a][b]);
+  const merges = []; let next = n;
+  while (clusters.length > 1) {
+    let best = null;
+    for (let x = 0; x < clusters.length; x++) for (let y = x + 1; y < clusters.length; y++) {
+      const v = d.get(key(clusters[x].id, clusters[y].id)); if (!best || v < best.v) best = {x, y, v};
+    }
+    const A = clusters[best.x], B = clusters[best.y], C = {id: next++, size: A.size + B.size, h: best.v / 2};
+    for (const O of clusters) if (O !== A && O !== B) d.set(key(C.id, O.id), (d.get(key(A.id, O.id)) * A.size + d.get(key(B.id, O.id)) * B.size) / C.size);
+    merges.push({a: A.id, b: B.id, id: C.id, h: C.h});
+    clusters = clusters.filter(c => c !== A && c !== B).concat(C);
+  }
+  return merges;
+}
+/* run a progressive alignment given a merge order over leaf/cluster ids */
+function progressive(seqs, merges, open = 10, ext = 1) {
+  const prof = new Map(seqs.map((s, i) => [i, seqProfile(s.id, s.seq)]));
+  const steps = [];
+  merges.forEach((mg, k) => {
+    const A = prof.get(mg.a), B = prof.get(mg.b), r = alignProfiles(A, B, open, ext);
+    const P = mergeProfiles(A, B, r.ops, k + 1);
+    prof.set(mg.id, P); steps.push({names: P.names.slice(), left: A.names.slice(), right: B.names.slice(), profile: P});
+  });
+  return {final: prof.get(merges[merges.length - 1].id), steps};
+}
+/* sequential order: add sequences one at a time in the given order */
+function chainMerges(order, n) { const merges = []; let cur = order[0], next = n; for (let k = 1; k < order.length; k++) { merges.push({a: cur, b: order[k], id: next, h: 0}); cur = next++; } return merges; }
+/* sum-of-pairs score: each induced pairwise alignment scored with BLOSUM62 and affine gaps 10/0.5 */
+function spScore(P, open = 10, ext = 0.5) {
+  let tot = 0; const R = P.rows;
+  for (let a = 0; a < R.length; a++) for (let b = a + 1; b < R.length; b++) {
+    let s = 0, gapA = false, gapB = false;
+    for (let j = 0; j < R[a].length; j++) {
+      const x = R[a][j].c, y = R[b][j].c;
+      if (x === "-" && y === "-") continue;
+      if (x === "-") { s -= gapA ? ext : open; gapA = true; gapB = false; }
+      else if (y === "-") { s -= gapB ? ext : open; gapB = true; gapA = false; }
+      else { s += sc(B62, x, y); gapA = gapB = false; }
+    }
+    tot += s;
+  }
+  return tot;
+}
+/* column holding residue number pos (1-based) of row r */
+function colOfResidue(P, r, pos) { let k = 0; for (let j = 0; j < P.rows[r].length; j++) if (P.rows[r][j].c !== "-" && ++k === pos) return j; return -1; }
+
+
+/* ---------- data ---------- */
+const SEQS = GLOBINS.map(g => ({id: g.id, seq: g.seq, e7: g.e7, f8: g.f8, name: label(g)}));
+const IDS = SEQS.map(s => s.id);
+const D = distMatrix(SEQS);
+const TREE = upgma(D);
+const HIS = ["e7", "f8"];
+const STEP_LABEL = k => `step ${k}`;
+
+/* ---------- Clustal conservation line ---------- */
+const STRONG = ["STA", "NEQK", "NHQK", "NDEQ", "QHRK", "MILV", "MILF", "HY", "FYW"];
+const WEAK = ["CSA", "ATV", "SAG", "STNK", "STPA", "SGND", "SNDEQK", "NDEQHK", "NEQHRK", "FVLIM", "HFY"];
+function consSym(col) {
+  if (col.some(c => c === "-")) return " ";
+  if (col.every(c => c === col[0])) return "*";
+  if (STRONG.some(g => col.every(c => g.includes(c)))) return ":";
+  if (WEAK.some(g => col.every(c => g.includes(c)))) return ".";
+  return " ";
+}
+function hisCols(P) {
+  return HIS.map(k => P.names.map((n, r) => colOfResidue(P, r, SEQS.find(s => s.id === n)[k])));
+}
+
+/* ---------- MSA rendering ---------- */
+function renderMSA(el, P, {from = 0, to = P.rows[0].length, width = 60, stepColors = true} = {}) {
+  const hc = hisCols(P), keyCols = new Set(hc.filter(cols => new Set(cols).size === 1).map(cols => cols[0]));
+  const nw = Math.max(...P.names.map(n => n.length)) + 1;
+  const pos = P.rows.map(r => { let k = 0; for (let j = 0; j < from; j++) if (r[j].c !== "-") k++; return k; });
+  let html = "";
+  for (let s = from; s < to; s += width) {
+    const e = Math.min(to, s + width);
+    let ruler = " ".repeat(nw + 5);
+    for (let j = s; j < e; j++) ruler += keyCols.has(j) ? "▼" : (j + 1) % 10 === 0 ? "·" : " ";
+    html += `<div class="blk"><span class="ruler">${ruler}</span>\n`;
+    P.rows.forEach((r, i) => {
+      const start = pos[i] + 1;
+      let line = "";
+      for (let j = s; j < e; j++) {
+        const t = r[j];
+        if (t.c === "-") line += stepColors && t.step ? `<span class="g${t.step}" title="gap from ${STEP_LABEL(t.step)}">-</span>` : "-";
+        else { pos[i]++; line += `<span class="r c-${CLS_OF[t.c]}${keyCols.has(j) ? " keycol" : ""}" title="${P.names[i]} ${t.c}${pos[i]}">${t.c}</span>`; }
+      }
+      html += `<span class="nm">${P.names[i].padEnd(nw)}${String(start).padStart(4)} </span>${line}<span class="nm"> ${pos[i]}</span>\n`;
+    });
+    let cons = ""; for (let j = s; j < e; j++) cons += consSym(P.rows.map(r => r[j].c));
+    html += `${" ".repeat(nw + 5)}<span class="cons">${cons}</span></div>`;
+  }
+  el.innerHTML = html;
+}
+const CLS_OF = {}; for (const [c, s] of Object.entries({hyd: "AVLIM", aro: "FWY", pos: "KRH", neg: "DE", pol: "STNQ", spe: "GPC"})) for (const ch of s) CLS_OF[ch] = c;
+
+/* ---------- section 3: complexity ---------- */
+function drawHard() {
+  const fmt = s => s < 1 ? "< 1 second" : s < 120 ? `${s.toFixed(0)} seconds` : s < 7200 ? `${(s / 60).toFixed(0)} minutes` : s < 172800 ? `${(s / 3600).toFixed(0)} hours` : s < 3.15e7 * 2 ? `${(s / 86400).toFixed(0)} days` : `${(s / 3.15e7).toExponential(1).replace("e+", " × 10^")} years`;
+  const rows = [2, 3, 4, 5, 6, 8, 10].map(N => { const cells = Math.pow(151, N), ops = cells * (Math.pow(2, N) - 1); return [N, cells, Math.pow(2, N) - 1, ops, fmt(ops / 1e9)]; });
+  const sci = x => x < 1e6 ? Math.round(x).toLocaleString("en-US") : x.toExponential(1).replace("e+", " × 10^");
+  document.getElementById("hardTable").innerHTML = `<thead><tr><th>Sequences N</th><th>Cells (151<sup>N</sup>)</th><th>Neighbors per cell</th><th>Operations</th><th>Time</th></tr></thead><tbody>` +
+    rows.map(([N, c, nb, o, t]) => `<tr><td class="num${N === 5 ? " hl" : ""}">${N}${N === 5 ? " (our globins)" : ""}</td><td class="num${N === 5 ? " hl" : ""}">${sci(c)}</td><td class="num${N === 5 ? " hl" : ""}">${nb}</td><td class="num${N === 5 ? " hl" : ""}">${sci(o)}</td><td class="${N === 5 ? "hl" : ""}">${t}</td></tr>`).join("").replace(/10\^(\d+)/g, "10<sup>$1</sup>") + "</tbody>";
+}
+
+/* ---------- section 4: distances + tree ---------- */
+function drawDist() {
+  document.getElementById("distTable").innerHTML = `<thead><tr><th></th>${IDS.map(i => `<th>${i}</th>`).join("")}</tr></thead><tbody>` +
+    IDS.map((r, a) => `<tr><th>${r}</th>${IDS.map((c, b) => a === b ? `<td class="num muted">—</td>` : `<td class="num">${D[a][b].toFixed(2)}</td>`).join("")}</tr>`).join("") + "</tbody>";
+}
+function drawTree() {
+  const svg = document.getElementById("treeSvg"), W = 380, H = 200, L = 60, R = 20, T = 18, B = 34;
+  const hmax = TREE[TREE.length - 1].h;
+  const X = h => L + h / hmax * (W - L - R);   // leaves on the left at h = 0
+  // leaf order from the tree
+  const kids = new Map(TREE.map(m => [m.id, [m.a, m.b]]));
+  const order = []; const walk = id => kids.has(id) ? kids.get(id).forEach(walk) : order.push(id); walk(TREE[TREE.length - 1].id);
+  const ys = new Map(order.map((id, k) => [id, T + k * (H - T - B) / (order.length - 1)]));
+  const hs = new Map(order.map(id => [id, 0]));
+  let g = "";
+  TREE.forEach((m, k) => {
+    const ya = ys.get(m.a), yb = ys.get(m.b), x = X(m.h);
+    g += `<path d="M${X(hs.get(m.a))} ${ya}H${x}V${yb}H${X(hs.get(m.b))}" fill="none" stroke="var(--ink)" stroke-width="1.5"/>`;
+    g += `<circle cx="${x}" cy="${(ya + yb) / 2}" r="9" fill="var(--s${k + 1})"/><text x="${x}" y="${(ya + yb) / 2 + 4}" text-anchor="middle" font-size="11" font-weight="700" fill="var(--bg)">${k + 1}</text>`;
+    ys.set(m.id, (ya + yb) / 2); hs.set(m.id, m.h);
+  });
+  order.forEach(id => g += `<text x="${L - 8}" y="${ys.get(id) + 4}" text-anchor="end" font-size="13" font-family="var(--mono)" fill="var(--ink)">${IDS[id]}</text>`);
+  for (let v = 0; v <= hmax + 1e-9; v += 0.1) g += `<line x1="${X(v)}" x2="${X(v)}" y1="${H - B + 6}" y2="${H - B + 10}" stroke="var(--muted)"/><text x="${X(v)}" y="${H - B + 22}" text-anchor="middle" font-size="10" fill="var(--muted)">${v.toFixed(1)}</text>`;
+  g += `<text x="${(L + W - R) / 2}" y="${H - 2}" text-anchor="middle" font-size="11" fill="var(--muted)">distance / 2 (UPGMA height)</text>`;
+  svg.innerHTML = g;
+}
+
+/* ---------- section 4: build ---------- */
+let orderOverride = null;
+function currentMerges() {
+  const v = document.getElementById("ordSel").value;
+  if (orderOverride) return chainMerges(orderOverride.map(id => IDS.indexOf(id)), IDS.length);
+  if (v === "tree") return TREE;
+  return chainMerges(v.split(",").map(id => IDS.indexOf(id)), IDS.length);
+}
+function gapCosts() { return [Math.max(0.5, +document.getElementById("gOpen").value || 10), Math.max(0, +document.getElementById("gExt").value || 0)]; }
+function build() {
+  const [o, e] = gapCosts(), merges = currentMerges(), R = progressive(SEQS, merges, o, e), P = R.final;
+  document.getElementById("stepList").innerHTML = R.steps.map((s, k) =>
+    `<li><span class="sw" style="background:var(--s${k + 1})"></span><span><b>Step ${k + 1}:</b> ${s.left.join(" + ")} &nbsp;⟷&nbsp; ${s.right.join(" + ")}</span></li>`).join("");
+  const hc = hisCols(P), ok = hc.map(cols => new Set(cols).size === 1);
+  const gaps = P.rows.reduce((s, r) => s + r.filter(t => t.c === "-").length, 0);
+  document.getElementById("msaStats").innerHTML = [
+    [spScore(P).toFixed(0), "SP score (BLOSUM62, 10/0.5)"], [P.rows[0].length, "columns"], [gaps, "gap characters"],
+    [ok[0] ? "one column ✓" : "split ✗", "distal His E7"], [ok[1] ? "one column ✓" : "split ✗", "proximal His F8"]
+  ].map(([v, l]) => `<div class="stat"><b style="${/✗/.test(v) ? "color:var(--warn)" : /✓/.test(v) ? "color:var(--good)" : ""}">${v}</b><span>${l}</span></div>`).join("");
+  renderMSA(document.getElementById("msaView"), P);
+  document.getElementById("msaLegend").innerHTML = R.steps.map((_, k) => `<span><i style="background:var(--s${k + 1})"></i>gap from step ${k + 1}</span>`).join("") + `<span>▼ column holding a heme histidine in all five</span>`;
+  return P;
+}
+function drawHero() {
+  const P = progressive(SEQS, TREE, 10, 1).final;
+  const hc = hisCols(P), c7 = hc[0][0], c8 = hc[1][0];
+  renderMSA(document.getElementById("heroMsa"), P, {from: Math.max(0, c7 - 12), to: Math.min(P.rows[0].length, c8 + 9), width: 80, stepColors: false});
+}
+function progWire() {
+  const rerun = () => { orderOverride = null; build(); };
+  document.getElementById("ordSel").addEventListener("change", rerun);
+  ["gOpen", "gExt"].forEach(id => document.getElementById(id).addEventListener("change", () => build()));
+  let seed = 7;
+  document.getElementById("randBtn").addEventListener("click", () => {
+    const r = (() => { seed = (seed * 16807) % 2147483647; return seed / 2147483647; });
+    const o = IDS.slice(); for (let i = o.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [o[i], o[j]] = [o[j], o[i]]; }
+    orderOverride = o;
+    const sel = document.getElementById("ordSel");
+    let opt = sel.querySelector('option[data-rand]');
+    if (!opt) { opt = document.createElement("option"); opt.dataset.rand = "1"; sel.appendChild(opt); }
+    opt.value = "rand"; opt.textContent = "One at a time: " + o.join(", "); sel.value = "rand";
+    build();
+  });
+  build();
+}
+
+/* ---------- section 5: all orders ---------- */
+function perms(a) { return a.length <= 1 ? [a] : a.flatMap((x, i) => perms([...a.slice(0, i), ...a.slice(i + 1)]).map(p => [x, ...p])); }
+let allRunning = false;
+function runAll() {
+  if (allRunning) return; allRunning = true;
+  const [o, e] = gapCosts(), orders = perms([0, 1, 2, 3, 4]), res = [];
+  const treeP = progressive(SEQS, TREE, o, e).final, treeSP = spScore(treeP);
+  const btn = document.getElementById("allBtn"); btn.disabled = true;
+  let k = 0;
+  const chunk = () => {
+    const end = Math.min(orders.length, k + 6);
+    for (; k < end; k++) {
+      const P = progressive(SEQS, chainMerges(orders[k], 5), o, e).final;
+      const hc = hisCols(P);
+      res.push({o: orders[k], sp: spScore(P), e7: new Set(hc[0]).size === 1, f8: new Set(hc[1]).size === 1});
+    }
+    document.getElementById("allProg").textContent = `Aligned ${k} of ${orders.length} orders (gaps ${o}/${e})`;
+    if (k < orders.length) setTimeout(chunk, 0);
+    else { allRunning = false; btn.disabled = false; drawAll(res, treeSP); }
+  };
+  chunk();
+}
+function drawAll(res, treeSP) {
+  const sps = res.map(r => r.sp), best = res.reduce((m, r) => r.sp > m.sp ? r : m), worst = res.reduce((m, r) => r.sp < m.sp ? r : m);
+  const badE7 = res.filter(r => !r.e7).length, badF8 = res.filter(r => !r.f8).length;
+  document.getElementById("allStats").innerHTML = [
+    [treeSP.toFixed(0), "guide tree SP"], [best.sp.toFixed(0), "best order SP"], [worst.sp.toFixed(0), "worst order SP"],
+    [`${badE7} / 120`, "orders splitting E7 His"], [`${badF8} / 120`, "orders splitting F8 His"]
+  ].map(([v, l]) => `<div class="stat"><b>${v}</b><span>${l}</span></div>`).join("");
+  const W = 700, H = 260, L = 46, Rm = 16, T = 30, B = 42;
+  const lo = Math.floor(Math.min(...sps, treeSP) / 10) * 10, hi = Math.ceil(Math.max(...sps, treeSP) / 10) * 10 + 10;
+  const bw = Math.max(5, Math.ceil((hi - lo) / 28 / 5) * 5), nb = Math.ceil((hi - lo) / bw);
+  const cnt = new Array(nb).fill(0), bad = new Array(nb).fill(0);
+  res.forEach(r => { const b = Math.min(nb - 1, Math.floor((r.sp - lo) / bw)); cnt[b]++; if (!r.e7 || !r.f8) bad[b]++; });
+  const cmax = Math.max(...cnt);
+  const X = v => L + (v - lo) / (nb * bw) * (W - L - Rm), Y = c => H - B - c / cmax * (H - T - B);
+  let g = "";
+  const ystep = cmax > 20 ? 10 : cmax > 8 ? 5 : 2;
+  for (let c = 0; c <= cmax; c += ystep) g += `<line x1="${L}" x2="${W - Rm}" y1="${Y(c)}" y2="${Y(c)}" stroke="var(--line)"/><text x="${L - 6}" y="${Y(c) + 4}" text-anchor="end" font-size="11" fill="var(--muted)">${c}</text>`;
+  cnt.forEach((c, b) => {
+    if (!c) return;
+    const x0 = X(lo + b * bw) + 1, w = Math.max(1, X(lo + (b + 1) * bw) - X(lo + b * bw) - 2), good = c - bad[b];
+    const tip = `SP ${lo + b * bw}–${lo + (b + 1) * bw}: ${c} orders, ${bad[b]} split a heme histidine`;
+    if (good) g += `<rect x="${x0}" y="${Y(good)}" width="${w}" height="${Y(0) - Y(good)}" rx="2" fill="var(--s1)"><title>${tip}</title></rect>`;
+    if (bad[b]) g += `<rect x="${x0}" y="${Y(c)}" width="${w}" height="${Y(good) - Y(c) - (good ? 2 : 0)}" rx="2" fill="var(--s2)"><title>${tip}</title></rect>`;
+  });
+  const xs = (hi - lo) > 200 ? 50 : 20;
+  for (let v = Math.ceil(lo / xs) * xs; v <= lo + nb * bw; v += xs) g += `<text x="${X(v)}" y="${H - B + 16}" text-anchor="middle" font-size="11" fill="var(--muted)">${v}</text>`;
+  g += `<line x1="${L}" x2="${W - Rm}" y1="${Y(0)}" y2="${Y(0)}" stroke="var(--muted)"/>`;
+  g += `<text x="${(L + W - Rm) / 2}" y="${H - 6}" text-anchor="middle" font-size="12" fill="var(--muted)">sum-of-pairs score</text>`;
+  g += `<text x="12" y="${(T + H - B) / 2}" text-anchor="middle" font-size="12" fill="var(--muted)" transform="rotate(-90 12 ${(T + H - B) / 2})">orders</text>`;
+  const tx = X(treeSP), anc = tx > W - 160 ? "end" : "start";
+  g += `<line x1="${tx}" x2="${tx}" y1="${T - 10}" y2="${Y(0)}" stroke="var(--ink)" stroke-width="2" stroke-dasharray="4 3"/><text x="${anc === "end" ? tx - 6 : tx + 6}" y="${T - 2}" text-anchor="${anc}" font-size="12" font-weight="700" fill="var(--ink)">guide tree: ${treeSP.toFixed(0)}</text>`;
+  g += `<g transform="translate(${L} 8)"><rect width="12" height="12" rx="2" fill="var(--s1)"/><text x="18" y="10" font-size="12" fill="var(--ink)">both histidines aligned</text><rect x="190" width="12" height="12" rx="2" fill="var(--s2)"/><text x="208" y="10" font-size="12" fill="var(--ink)">a histidine split</text></g>`;
+  document.getElementById("allHist").innerHTML = g;
+}
+
+/* ---------- section 7: files ---------- */
+function filesWire() {
+  const fasta = SEQS.map(s => `>${s.id} ${s.name}\n${s.seq.match(/.{1,60}/g).join("\n")}`).join("\n") + "\n";
+  const clustal = P => {
+    let out = "CLUSTAL multiple sequence alignment (Bio 116 progressive aligner)\n\n";
+    const L = P.rows[0].length;
+    for (let s = 0; s < L; s += 60) {
+      P.rows.forEach((r, i) => out += P.names[i].padEnd(10) + r.slice(s, s + 60).map(t => t.c).join("") + "\n");
+      let cons = ""; for (let j = s; j < Math.min(L, s + 60); j++) cons += consSym(P.rows.map(r => r[j].c));
+      out += " ".repeat(10) + cons + "\n\n";
+    }
+    return out;
+  };
+  const afa = P => P.rows.map((r, i) => `>${P.names[i]}\n${r.map(t => t.c).join("").match(/.{1,60}/g).join("\n")}`).join("\n") + "\n";
+  const files = {tabIn: ["globins.fasta", () => fasta], tabAln: ["globins.aln", () => clustal(build())], tabAfa: ["globins_aligned.fasta", () => afa(build())]};
+  let cur = "tabIn";
+  const show = id => {
+    cur = id;
+    Object.keys(files).forEach(k => document.getElementById(k).setAttribute("aria-pressed", k === id ? "true" : "false"));
+    document.getElementById("fileName").textContent = files[id][0];
+    document.getElementById("fileBox").value = files[id][1]();
+  };
+  Object.keys(files).forEach(k => document.getElementById(k).addEventListener("click", () => show(k)));
+  document.getElementById("fileCopy").addEventListener("click", e => {
+    const btn = e.currentTarget, box = document.getElementById("fileBox"), done = t => { btn.textContent = t; setTimeout(() => btn.textContent = "Copy", 1600); };
+    try { navigator.clipboard.writeText(box.value).then(() => done("Copied"), () => { box.focus(); box.select(); done("Press Ctrl/Cmd+C"); }); }
+    catch { box.focus(); box.select(); done("Press Ctrl/Cmd+C"); }
+  });
+  show("tabIn");
+}
+
+function tocWire() {
+  const links = [...document.querySelectorAll(".toc a")];
+  const secs = links.map(a => document.querySelector(a.getAttribute("href")));
+  const on = () => { let k = 0; secs.forEach((s, i) => { if (s.getBoundingClientRect().top < 140) k = i; }); links.forEach((a, i) => a.classList.toggle("on", i === k)); };
+  addEventListener("scroll", on, {passive: true}); on();
+}
+
+drawHero(); drawHard(); drawDist(); drawTree(); progWire(); filesWire(); tocWire();
+document.getElementById("allBtn").addEventListener("click", runAll);
+setTimeout(runAll, 50);
+</script>
