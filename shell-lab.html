@@ -1,5 +1,5 @@
 <title>Bio116 Shell Lab</title>
-<meta name="description" content="Interactive UNIX shell lessons for bioinformatics students, with a simulated terminal and real-shaped sequencing files.">
+<meta name="description" content="Interactive command-line lessons for bioinformatics students, with a practice terminal and real-shaped sequencing files.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;600&display=swap">
@@ -83,6 +83,7 @@
 }
 
 * { box-sizing: border-box; }
+[hidden] { display: none !important; }
 body {
   background: var(--ground);
   color: var(--ink);
@@ -179,6 +180,15 @@ p code, li code, td code, .callout code, dd code {
 .callout { border-radius: 8px; padding: 12px 14px; font-size: 15px; background: var(--warn-soft); }
 .callout .lbl { display: block; font: 600 11px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--warn); margin-bottom: 6px; }
 
+.gloss { margin: 0; display: grid; grid-template-columns: max-content minmax(0, 1fr); border-top: 1px solid var(--line); }
+.gloss > div { display: contents; }
+.gloss dt, .gloss dd { padding: 8px 0; border-bottom: 1px solid var(--line); margin: 0; }
+.gloss dt { font-weight: 600; padding-right: 18px; color: var(--pine); }
+.gloss dd { font-size: 15px; }
+@media (max-width: 520px) {
+  .gloss { grid-template-columns: minmax(0, 1fr); }
+  .gloss dt { border-bottom: 0; padding-bottom: 0; }
+}
 .os-tabs { display: flex; flex-wrap: wrap; gap: 4px; padding: 4px; background: var(--surface-2); border-radius: 8px; width: max-content; max-width: 100%; }
 .os-tabs button { border: 0; background: transparent; padding: 7px 14px; border-radius: 6px; cursor: pointer; font-size: 14.5px; color: var(--muted); }
 .os-tabs button[aria-selected="true"] { background: var(--surface); color: var(--ink); font-weight: 600; box-shadow: 0 1px 2px rgba(0,0,0,.08); }
@@ -304,9 +314,9 @@ footer { color: var(--muted); font-size: 14px; border-top: 1px solid var(--line)
 <div class="wrap">
   <header class="top">
     <div>
-      <p class="eyebrow">BIO116 · Unix for bioinformatics</p>
+      <p class="eyebrow">BIO116 · The command line for bioinformatics</p>
       <h1>Shell Lab</h1>
-      <p class="lede">Nine short lessons on the command line, each with a challenge, starting with how to open a shell on your own computer. The terminal on the right is a practice shell loaded with FASTA, FASTQ, GFF and VCF files. Type freely: nothing you do here can break a real computer.</p>
+      <p class="lede">The <b>command line</b> is a way of using a computer by typing instructions instead of clicking. You type into a window called the <b>terminal</b>, and a program called the <b>shell</b> reads each instruction and runs it. Most bioinformatics tools only work this way. These nine short lessons, each with a challenge, start with opening a terminal on your own computer. The terminal on the right is for practice and holds FASTA, FASTQ, GFF and VCF files: type freely, nothing you do there can break a real computer.</p>
     </div>
     <div class="progress" aria-live="polite">
       <span class="progress-label"><strong id="solved-count">0</strong> of <span id="lesson-total">8</span> challenges solved</span>
@@ -374,7 +384,7 @@ footer { color: var(--muted); font-size: 14px; border-top: 1px solid var(--line)
     </div>
   </section>
 
-  <footer>Everything runs in your browser. Files you create are kept on this device between visits; <b>Reset files</b> restores the originals. The practice shell covers the everyday subset of bash and GNU tools, so a few rarely used options are missing.</footer>
+  <footer>Everything runs in your browser. Files you create are kept on this device between visits; <b>Reset files</b> restores the originals. The practice terminal covers the everyday commands and options, so a few rarely used options are missing.</footer>
 </div>
 
 <script>
@@ -551,7 +561,7 @@ CAG  GCA  AGG  AGG  TGG  CAT  GTA  CCC  TCA  GGC  AGT  ACC  TGC  AAG  AGT  CAG  
 GCC  AGG  TTA  CTG  TGC  CCA  TGG  GAG  CCT  GGA  ATG  GGC  CAG  GCT  GAG  GTC  ACA  GCA  CCT  AGA
 `;
 
-const README = `Welcome to the Bio116 practice shell.
+const README = `Welcome to the Bio116 practice terminal.
 
   data/      input files (FASTA, FASTQ, GFF, VCF, a sample sheet)
   results/   put your outputs here
@@ -2143,7 +2153,7 @@ CMDS.help = () => {
   const groups = {};
   REF.forEach(([g, c]) => { if (/^[a-z]/.test(c)) (groups[g] = groups[g] || []).push(c); });
   groups.Other = ['gunzip', 'seq', 'basename', 'dirname', 'file', 'rmdir', 'man', 'clear', 'history', 'whoami', 'date'];
-  const L = ['Commands in this practice shell:', ''];
+  const L = ['Commands in this practice terminal:', ''];
   for (const [g, cs] of Object.entries(groups)) L.push(`  ${(g + ':').padEnd(11)}${cs.join('  ')}`);
   L.push('', 'Also: pipes |, redirection > >> < 2>, wildcards * ?, variables $HOME, ; && ||, and one-line for loops.');
   L.push('Type  man <command>  for notes and an example. Tab completes names; the up arrow recalls commands.');
@@ -2408,10 +2418,20 @@ const firstInt = s => { const m = s.match(/-?\d+/); return m ? +m[0] : null; };
 
 const LESSONS = [
   {
-    id: 'setup', tag: 'Setup', title: 'Open a shell on your computer',
+    id: 'setup', tag: 'Setup', title: 'Open a terminal on your computer',
     body: `
-      <p>A <em>shell</em> is a program that reads the commands you type and runs them. The window it lives in is called a <em>terminal</em>. Linux and macOS come with one. Windows 11 needs a one-time setup to get a proper UNIX shell.</p>
-      <p>You don't need your own shell to start: the practice terminal on this page works in any browser. Set up your computer when you are ready to work with real data.</p>
+      <p>Everything in this course happens at the command line. Here are the words you will keep meeting. Come back to this list whenever one of them trips you up.</p>
+      <dl class="gloss">
+        <div><dt>Command line</dt><dd>Using a computer by typing instructions instead of clicking.</dd></div>
+        <div><dt>Terminal</dt><dd>The window you type in, like the dark panel on this page.</dd></div>
+        <div><dt>Shell</dt><dd>The program inside the terminal that reads each command you type and runs it.</dd></div>
+        <div><dt>bash, zsh</dt><dd>The two most common shells. Linux uses bash and macOS uses zsh; for these lessons they behave the same.</dd></div>
+        <div><dt>UNIX</dt><dd>A family of operating systems that includes Linux and macOS. They share the commands taught here.</dd></div>
+        <div><dt>Prompt</dt><dd>The text at the start of the line, such as <code>student@bio116:~$</code>. It means "ready: type a command".</dd></div>
+        <div><dt>Command, option, argument</dt><dd>In <code>ls -l data</code>, <code>ls</code> is the command, <code>-l</code> is an option that changes how it behaves, and <code>data</code> is the argument it works on.</dd></div>
+        <div><dt>Directory</dt><dd>Another word for folder.</dd></div>
+      </dl>
+      <p>You don't need to set anything up to start: the practice terminal on this page works in any browser. Open a terminal on your own computer when you are ready to work with real data.</p>
       <div class="os-tabs" role="tablist" aria-label="Operating system">
         <button type="button" role="tab" data-os="win" id="tab-win" aria-controls="panel-win">Windows 11</button>
         <button type="button" role="tab" data-os="mac" id="tab-mac" aria-controls="panel-mac">macOS</button>
@@ -2419,7 +2439,7 @@ const LESSONS = [
       </div>
 
       <div class="os-panel" role="tabpanel" data-panel="win" id="panel-win" aria-labelledby="tab-win">
-        <p class="why-os">PowerShell and Command Prompt are Windows shells, and most commands in these lessons don't work there. Install <b>WSL</b> (Windows Subsystem for Linux), which runs a real Ubuntu system inside Windows.</p>
+        <p class="why-os">Windows has its own command lines, PowerShell and Command Prompt, but they use different commands, so most of these lessons won't work there. Install <b>WSL</b> (Windows Subsystem for Linux), which runs a real Ubuntu system inside Windows.</p>
         <ol class="steps">
           <li><b>Open Terminal as administrator.</b><span>Right-click the Start button and choose <b>Terminal (Admin)</b>. Click <b>Yes</b> when Windows asks for permission.</span></li>
           <li><b>Install WSL with Ubuntu.</b><span>Type this and press Enter. It downloads Ubuntu and takes a few minutes.</span><pre class="block">wsl --install</pre></li>
@@ -2429,7 +2449,7 @@ const LESSONS = [
         </ol>
         <p class="alt">Your Windows files are at <code>/mnt/c/Users/YourName</code>. Keep project data in your Linux home folder (<code>~</code>) instead; it is much faster. If the install complains about virtualization, it needs switching on in your computer's BIOS/UEFI settings: ask IT support or search your laptop model plus "enable virtualization".</p>
         <p class="fallback-head">No admin rights? Use Git Bash instead</p>
-        <p class="why-os">On a managed university laptop you may not be allowed to install WSL. <b>Git Bash</b> comes with Git for Windows and gives you bash plus the core tools from these lessons: <code>ls</code>, <code>grep</code>, <code>sed</code>, <code>awk</code>, <code>cut</code>, <code>sort</code>, <code>gzip</code> and <code>ssh</code>.</p>
+        <p class="why-os">On a managed university laptop you may not be allowed to install WSL. <b>Git Bash</b> comes with Git for Windows and gives you the bash shell plus the core tools from these lessons: <code>ls</code>, <code>grep</code>, <code>sed</code>, <code>awk</code>, <code>cut</code>, <code>sort</code>, <code>gzip</code> and <code>ssh</code>.</p>
         <ol class="steps">
           <li><b>Download Git for Windows</b><span>from <a href="https://git-scm.com/downloads/win" target="_blank" rel="noopener">git-scm.com/downloads/win</a>. If the normal installer asks for an administrator password, download the <b>Portable</b> ("thumbdrive edition") version instead. It needs no installation.</span></li>
           <li><b>Install or unpack it.</b><span>Accept the default options. The portable version asks for a folder: pick one inside your user folder, such as <code>Documents\\PortableGit</code>.</span></li>
@@ -2439,7 +2459,7 @@ const LESSONS = [
       </div>
 
       <div class="os-panel" role="tabpanel" data-panel="mac" id="panel-mac" aria-labelledby="tab-mac">
-        <p class="why-os">macOS is a UNIX system, so the shell is already installed.</p>
+        <p class="why-os">macOS is a UNIX system, so a terminal is already installed.</p>
         <ol class="steps">
           <li><b>Open Terminal.</b><span>Press <kbd>⌘</kbd> <kbd>Space</kbd>, type <b>Terminal</b>, press Enter. It also lives in Applications › Utilities.</span></li>
           <li><b>Keep it handy.</b><span>Right-click the Terminal icon in the Dock and choose Options › <b>Keep in Dock</b>.</span></li>
@@ -2449,7 +2469,7 @@ const LESSONS = [
       </div>
 
       <div class="os-panel" role="tabpanel" data-panel="linux" id="panel-linux" aria-labelledby="tab-linux">
-        <p class="why-os">Ubuntu is Linux: the shell is built in, and it is bash, the same shell this page imitates.</p>
+        <p class="why-os">Ubuntu is Linux, so a terminal is built in. Its shell is bash, the same one the practice terminal imitates.</p>
         <ol class="steps">
           <li><b>Open Terminal.</b><span>Press <kbd>Ctrl</kbd> <kbd>Alt</kbd> <kbd>T</kbd>. Or press the <kbd>Super</kbd> (Windows) key, type <b>Terminal</b>, and press Enter.</span></li>
           <li><b>Pin it.</b><span>Right-click the Terminal icon in the dock and choose <b>Pin to Dash</b>.</span></li>
@@ -2478,7 +2498,7 @@ sudo apt install samtools</pre></li>
   {
     id: 'nav', tag: 'Navigation', title: 'Find your way around',
     body: `
-      <p>The shell always has a <em>working directory</em>: the folder your commands act on. Folders form a tree that starts at <code>/</code>. Your home folder is <code>/home/student</code>, written <code>~</code> for short.</p>
+      <p>The command line always has a <em>working directory</em>: the folder (directory) your commands act on. Folders form a tree that starts at <code>/</code>. Your home folder is <code>/home/student</code>, written <code>~</code> for short.</p>
       <p>A path starting with <code>/</code> is <b>absolute</b>, like <code>/home/student/data</code>. Anything else is <b>relative</b> to where you are, like <code>data/reads.fastq</code>. Two special names help you move: <code>.</code> is the current folder and <code>..</code> is the one above it.</p>`,
     tries: [
       ['pwd', 'Print the working directory: where am I?'],
@@ -2492,7 +2512,7 @@ sudo apt install samtools</pre></li>
     after: `<p class="tip">Press <kbd>Tab</kbd> to complete file and folder names. If Tab won't complete, the path doesn't exist, which catches most typos. <kbd>↑</kbd> brings back your last command.</p>`,
     challenge: {
       q: 'Move into the data folder and list its contents in long format with human-readable sizes.',
-      hint: 'Two commands: one changes directory, one lists. ls takes the flags -l and -h, and you can combine them as -lh.',
+      hint: 'Two commands: one changes directory, one lists. ls takes the options -l and -h, and you can combine them as -lh.',
       solution: 'cd ~/data\nls -lh',
       why: 'Checked when you are in ~/data and have run ls with both -l and -h.',
       check: c => c.cwd === HOME + '/data' && /(^|[;&|]\s*)ls\b/.test(c.cmd) && /\s-\w*l/.test(c.cmd) && /\s-\w*h/.test(c.cmd)
@@ -2516,7 +2536,7 @@ sudo apt install samtools</pre></li>
     after: `<div class="callout"><span class="lbl">Good to know</span>Sequencing data usually arrives compressed as <code>.fastq.gz</code>. <code>cat</code> on a .gz file prints binary noise; <code>zcat</code> decompresses as it reads.</div>`,
     challenge: {
       q: 'How many lines are in data/reads.fastq? Run a command that prints the number. Then work out how many reads that is.',
-      hint: 'wc counts things. The -l flag counts lines only.',
+      hint: 'wc counts things. The -l option counts lines only.',
       solution: 'wc -l data/reads.fastq',
       why: '40 lines ÷ 4 lines per read = 10 reads.',
       check: c => /reads\.fastq/.test(c.cmd) && firstInt(c.out) === origLines(fileText(HOME + '/data/reads.fastq') || READS).length
@@ -2546,7 +2566,7 @@ sudo apt install samtools</pre></li>
     ],
     after: `<div class="callout"><span class="lbl">Watch out</span>Always quote the pattern. <code>grep &gt; data/sequences.fasta</code> doesn't search for &gt;: the shell reads <code>&gt;</code> as "write output to this file" and empties your FASTA. Type <code>grep '&gt;'</code> with quotes.</div>`,
     challenge: {
-      q: 'How many sequences are in data/sequences.fasta? Get the shell to print the number.',
+      q: 'How many sequences are in data/sequences.fasta? Run a command that prints the number.',
       hint: 'Every FASTA record has exactly one header line, and every header starts with >. Count those lines.',
       solution: "grep -c '>' data/sequences.fasta",
       why: 'Checked when your output starts with the right count.',
@@ -2589,7 +2609,7 @@ sudo apt install samtools</pre></li>
       <ul class="gff" aria-label="GFF columns">
         <li><b>1</b>seqid</li><li><b>2</b>source</li><li><b>3</b>type</li><li><b>4</b>start</li><li><b>5</b>end</li><li><b>6</b>score</li><li><b>7</b>strand</li><li><b>8</b>phase</li><li><b>9</b>attributes</li>
       </ul>
-      <p><code>sort | uniq -c</code> is the shell's frequency table. <code>uniq</code> only merges lines that sit next to each other, so always sort first.</p>`,
+      <p><code>sort | uniq -c</code> is the command line's frequency table. <code>uniq</code> only merges lines that sit next to each other, so always sort first.</p>`,
     tries: [
       ['head -n 4 data/genes.gff', 'Header line, then features'],
       ['cut -f 1,3,4,5 data/genes.gff | head -n 5', 'Chromosome, type, start, end'],
@@ -2984,7 +3004,7 @@ renderLesson();
 renderRef('');
 renderPrompt();
 if (!getNode(sh.cwd)) sh.cwd = HOME;
-emit(esc('Bio116 practice shell. Type  help  for the command list, or click a command in the lesson.'), 't-note');
+emit(esc('Bio116 practice terminal. Type  help  for the command list, or click a command in the lesson.'), 't-note');
 emit(esc('Your files are in ~/data. Try  ls data  to start.'), 't-note');
 })();
 </script>
