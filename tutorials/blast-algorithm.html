@@ -163,6 +163,12 @@ footer{font-size:13px;color:var(--muted);padding-top:24px}
 
 /* ---- BLAST tutorial additions ---- */
 [hidden]{display:none!important}
+.pill.new{background:var(--heme);color:var(--bg)}
+table.hits.psi td,table.hits.psi th{text-align:center}
+table.hits.psi tbody tr{cursor:default}
+table.hits.psi tbody tr:hover td{background:none}
+.hm.pssm td{cursor:default;width:28px}
+.hm.pssm th.q{color:var(--heme);text-align:left;padding-right:6px;white-space:nowrap;width:auto}
 .pipe{list-style:none;margin:22px 0 6px;padding:0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
 @media (max-width:760px){.pipe{grid-template-columns:minmax(0,1fr)}}
 .pipe li{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px 12px 10px;display:flex;flex-direction:column;gap:4px}
@@ -215,6 +221,7 @@ textarea{font-family:var(--mono);font-size:13px;width:100%;min-height:6em;color:
     <li><a href="#gapped">Gapped extension</a></li>
     <li><a href="#evalue">Scores and E-values</a></li>
     <li><a href="#search">Run a mini-BLAST</a></li>
+    <li><a href="#psi">PSI-BLAST</a></li>
     <li><a href="#programs">Choosing a program</a></li>
     <li><a href="#running">Running real BLAST</a></li>
     <li><a href="#reading">Reading the results</a></li>
@@ -434,16 +441,78 @@ BLOSUM62, gaps 11/1:   λ = 0.267   K = 0.041</div>
     <li>Query β-globin with the defaults. Which globins are found? Which are missed, and at which step?</li>
     <li>Lower T to 9. Myoglobins appear. How many more extensions did it cost?</li>
     <li>Switch search space to "As if nr". Which hits would you still trust?</li>
-    <li>Query soybean leghemoglobin. No animal globin is found at any T. Leghemoglobin <i>is</i> homologous to them (you saw the aligned histidines last time). What does that tell you about BLAST's limits?</li>
+    <li>Query soybean leghemoglobin. No animal globin is found at any T. Leghemoglobin <i>is</i> homologous to them (you saw the aligned histidines last time). What does that tell you about BLAST's limits? The next section tries a profile search.</li>
     <li>Paste a short piece of β-globin, like <code>VHLTPEEKSAVTALWGKV</code>. What happens to the E-values, and why?</li>
   </ul>
+  </div>
+</section>
+
+<section id="psi" aria-labelledby="psi-h">
+  <span class="snum">8</span>
+  <div class="prose">
+  <h2 id="psi-h">One step further: PSI-BLAST</h2>
+  <p>A single query sequence tells BLAST only which residue sits at each position of one protein. The family tells you more: which positions never change (the F8 histidine), which accept any hydrophobic residue, and which vary freely. <b>PSI-BLAST</b> (Position-Specific Iterated BLAST; Altschul et al. 1997) learns this from its own hits and uses it to search again.</p>
+  <ol class="goals">
+    <li>Run an ordinary BLAST search.</li>
+    <li>Take every hit with E below the <b>inclusion threshold</b> (0.005 by default) and stack its alignment under the query, column by column.</li>
+    <li>From the residues in each column, build a <b>position-specific scoring matrix</b> (PSSM): one row of 20 scores for every query position.</li>
+    <li>Search the database again, scoring with the PSSM instead of BLOSUM62.</li>
+    <li>Repeat until no new sequence passes the threshold. The search has <b>converged</b>.</li>
+  </ol>
+  </div>
+  <div class="eq">f(i,a)  = fraction of the sequences in column i that have residue a
+g(i,a)  = Σ_b f(i,b) · q(b,a) / p(b)          pseudocounts from BLOSUM62's target frequencies
+Q(i,a)  = (α·f(i,a) + β·g(i,a)) / (α + β)     α = sequences in column − 1,  β = 10
+score(i,a) = round( 2 · log₂( Q(i,a) / p(a) ) )     half-bits, like BLOSUM62
+
+With only the query in a column (α = 0), score(i,a) is just the BLOSUM62 row for that residue.</div>
+  <div class="prose">
+  <p>The pseudocounts matter. With four sequences in a column you have seen very few of the residues that could appear there. g(i,a) spreads some probability to residues that BLOSUM62 says are similar to the ones observed. As more sequences join, α grows and the observed frequencies take over.</p>
+  </div>
+  <div class="tool" id="psiTool">
+    <div class="tool-title">PSI-BLAST iterations <small>Same mini database, two-hit seeding, T = 11</small></div>
+    <div class="controls">
+      <label class="field">Query <select id="psQ"></select></label>
+      <label class="field">Inclusion threshold <select id="psInc"><option value="0.005" selected>0.005 (default)</option><option value="0.05">0.05</option><option value="0.0001">0.0001</option></select></label>
+      <label class="field">Search space <select id="psN"><option value="mini" selected>Mini database</option><option value="2e8">As if Swiss-Prot</option></select></label>
+      <label class="field">Pseudocount β <input type="number" id="psBeta" value="10" min="1" max="100" step="1"></label>
+    </div>
+    <div class="btnrow">
+      <button id="psReset">Reset to iteration 1</button>
+      <button id="psNext" class="primary">Run next iteration</button>
+      <button id="psAll">Run to convergence</button>
+    </div>
+    <div class="stats" id="psStats"></div>
+    <div class="tablewrap" style="margin-top:0"><table class="hits psi" id="psTable"></table></div>
+    <div class="legend">
+      <span><span class="pill strong">1e-9</span> included in the next profile</span>
+      <span><span class="pill new">new</span> joined this iteration</span>
+      <span><span class="muted">(3e-4)</span> not reported; E if the pair were aligned anyway</span>
+    </div>
+    <h3>Inside the PSSM</h3>
+    <div class="controls">
+      <label class="field">Query positions <select id="psWin">
+        <option value="56">Distal His E7 region</option>
+        <option value="85" selected>Proximal His F8 region</option>
+        <option value="0">N-terminus</option>
+      </select></label>
+      <div class="field" style="flex:1 1 260px"><span class="muted" id="psWinNote" style="font-size:14px"></span></div>
+    </div>
+    <div class="dpwrap" style="border:0;background:none"><table class="hm pssm" id="psHm" aria-label="Position-specific scoring matrix rows"></table></div>
+  </div>
+  <div class="prose">
+  <h3>What happened</h3>
+  <p>Start from β-globin with the defaults. Iteration 1 is plain BLAST: it finds α-globin and misses both myoglobins, as in the mini-BLAST above. The profile built from α and β is enough to pull in human and whale myoglobin in iteration 2, and the search converges at iteration 3. Look at the F8 region of the PSSM. In iteration 1 the proximal histidine row is just BLOSUM62's H row: +8 for histidine, +2 for tyrosine. Once all four animal globins agree on histidine, it rises to +9 and the scores for the other residues fall.</p>
+  <p>Leghemoglobin never gets in. Its "aligned anyway" E-value barely moves in iteration 2, then jumps to about 0.25 once the myoglobins are in the profile. The profile is getting better at recognizing animal globins and worse at everything else. PSI-BLAST reaches distant relatives by stepping through intermediates. Each round admits sequences a little further from the query, and those widen the profile for the next round. A real database has thousands of globins from vertebrates, invertebrates, plants and bacteria to act as stepping stones. This nine-sequence database has none between the animal globins and leghemoglobin, so there is no path across.</p>
+  <p><b>Try it for real.</b> On the NCBI Protein BLAST page, set the database to UniProtKB/Swiss-Prot and choose <b>PSI-BLAST</b> under Program Selection. Search with β-globin (P68871), then press "Run PSI-Blast iteration 2" and so on. Note at which iteration non-vertebrate globins first appear, and whether leghemoglobin ever does.</p>
+  <p><b>Profile corruption.</b> The same feedback loop can go wrong. If one unrelated sequence slips under the threshold, it enters the profile and pulls in its own relatives, and later iterations drift away from your family. Check what joins at each round. NCBI lets you untick hits so they stay out of the next profile. Profile HMM tools such as jackhmmer (HMMER) iterate in the same way and carry the same risk.</p>
   </div>
 </section>
 
 <p class="part">Part 2 · Using BLAST</p>
 
 <section id="programs" aria-labelledby="programs-h">
-  <span class="snum">8</span>
+  <span class="snum">9</span>
   <div class="prose">
   <h2 id="programs-h">Choosing a program</h2>
   <p>The program depends on what your query is and what you want to search. When the question is about proteins, search at the protein level whenever you can. The genetic code's redundancy makes DNA diverge faster than the protein it encodes, so protein comparisons see further back in time.</p>
@@ -463,7 +532,7 @@ BLOSUM62, gaps 11/1:   λ = 0.267   K = 0.041</div>
 </section>
 
 <section id="running" aria-labelledby="running-h">
-  <span class="snum">9</span>
+  <span class="snum">10</span>
   <div class="prose">
   <h2 id="running-h">Running real BLAST</h2>
   <h3>On the NCBI website</h3>
@@ -511,7 +580,7 @@ blastp -query hbb.fasta -db swissprot -remote -evalue 1e-3 -outfmt 6 -max_target
 </section>
 
 <section id="reading" aria-labelledby="reading-h">
-  <span class="snum">10</span>
+  <span class="snum">11</span>
   <div class="prose">
   <h2 id="reading-h">Reading the results</h2>
   <p>Here is the β-globin vs α-globin hit from the mini-BLAST, laid out the way NCBI prints a pairwise alignment. In the middle line, a letter means identical, <code>+</code> means a positive BLOSUM62 score, and a blank means zero, negative or a gap.</p>
@@ -543,12 +612,12 @@ blastp -query hbb.fasta -db swissprot -remote -evalue 1e-3 -outfmt 6 -max_target
   </div>
   <div class="prose">
   <p><b>Homology is not function.</b> α- and β-globin are clear homologs with similar jobs. But gene duplication lets paralogs change function, so a significant hit tells you about shared ancestry first and shared function only with further evidence. To find a likely ortholog in another species, use a <b>reciprocal best hit</b>. Search species B with your protein, take the top hit, and search it back against species A. If it returns your original protein, the two are good ortholog candidates.</p>
-  <p><b>When BLAST comes up empty.</b> No hit is not proof that there are no homologs. For distant relatives, try PSI-BLAST, which builds a position-specific profile from the first round of hits and searches again, or profile HMM tools such as HMMER, or structure comparison.</p>
+  <p><b>When BLAST comes up empty.</b> No hit is not proof that there are no homologs. For distant relatives, try <a href="#psi">PSI-BLAST</a>, profile HMM tools such as HMMER, or structure comparison.</p>
   </div>
 </section>
 
 <section id="check" aria-labelledby="check-h">
-  <span class="snum">11</span>
+  <span class="snum">12</span>
   <h2 id="check-h">Check yourself</h2>
   <details><summary>1. Why does protein BLAST seed with neighborhood words instead of exact 3-letter matches?</summary>
     <p>Related proteins often differ by conservative substitutions, so exact word matches would miss many real seeds. Scoring words with BLOSUM62 and accepting everything ≥ T lets a word like HGR seed from HGK, while keeping the list short enough to look up quickly.</p></details>
@@ -561,13 +630,17 @@ blastp -query hbb.fasta -db swissprot -remote -evalue 1e-3 -outfmt 6 -max_target
   <details><summary>5. A hit has E = 10⁻⁴⁰ but covers only residues 300–420 of your 900-residue query. How do you interpret it?</summary>
     <p>The two proteins share one domain with near certainty. That says nothing about the other 780 residues. Annotate the domain, not the whole protein.</p></details>
   <details><summary>6. BLAST with β-globin never finds soybean leghemoglobin, yet they are homologous. Why, and what could you try?</summary>
-    <p>At about 20% identity, their best ungapped segment scores below the gap trigger, and the gapped alignment would not be significant anyway. The sequences sit in the twilight zone. Profile methods (PSI-BLAST, HMMER) pool information from many family members and can detect such relationships. Structure comparison can too.</p></details>
+    <p>At about 20% identity, their best ungapped segment scores below the gap trigger, and the gapped alignment would not be significant anyway. The sequences sit in the twilight zone. Profile methods (PSI-BLAST, HMMER) pool information from many family members and can detect such relationships, provided the database has intermediate sequences to bridge the gap. Structure comparison can too.</p></details>
+  <details><summary>8. In the mini database, PSI-BLAST from β-globin finds the myoglobins in iteration 2 but never finds leghemoglobin. Why does iteration help with one and not the other?</summary>
+    <p>Myoglobin is about 25% identical to α- and β-globin. A profile built from α and β captures the positions all animal globins share, so myoglobin scores higher against the profile than against β alone. Leghemoglobin is further from every sequence in the profile, and there is no intermediate sequence that could enter first and widen the profile toward it. Each iteration can only reach sequences within range of what the profile already contains.</p></details>
+  <details><summary>9. What is profile corruption, and how do you guard against it?</summary>
+    <p>An unrelated sequence passes the inclusion threshold, enters the PSSM, and biases later iterations toward its own family. Guard against it by checking new members at each iteration, excluding doubtful ones, keeping a strict inclusion threshold, and confirming key hits with an independent method.</p></details>
   <details><summary>7. Why does blastp usually beat blastn for finding homologs of a protein-coding gene?</summary>
     <p>Synonymous changes let DNA diverge while the protein stays the same. Protein alphabets and substitution matrices also carry more information per position than 4-letter DNA with simple match/mismatch scores. So protein comparisons detect relationships over longer evolutionary distances.</p></details>
 </section>
 
 <section id="refs" aria-labelledby="refs-h">
-  <span class="snum">12</span>
+  <span class="snum">13</span>
   <h2 id="refs-h">References and links</h2>
   <ol class="refs">
     <li>Altschul SF, Gish W, Miller W, Myers EW, Lipman DJ (1990). Basic local alignment search tool. <i>J Mol Biol</i> 215:403–410.</li>
@@ -1094,6 +1167,175 @@ function fastaWire() {
   document.getElementById("annoAln").innerHTML = f ? blastText(G.HBB.seq, "HBB", f.d, f) : "";
 }
 
+/* ---------- 8. PSI-BLAST ---------- */
+/* Robinson & Robinson background frequencies, as used by NCBI BLAST */
+const BG = {A:.07805,R:.05129,N:.04487,D:.05364,C:.01925,Q:.04264,E:.06295,G:.07377,H:.02199,I:.05142,
+            L:.09019,K:.05744,M:.02243,F:.03856,P:.05203,S:.07120,T:.05841,W:.01330,Y:.03216,V:.06441};
+const ci = c => c.charCodeAt(0) - 65;
+/* BLOSUM62 target frequencies implied by the matrix: q(a,b) ∝ p(a) p(b) 2^(s(a,b)/2) */
+const QT = new Float64Array(26 * 26), PB = new Float64Array(26);
+(() => {
+  let z = 0;
+  for (const a of AA) for (const b of AA) { const v = BG[a] * BG[b] * Math.pow(2, sc(B62, a, b) / 2); QT[ci(a) * 26 + ci(b)] = v; z += v; }
+  for (let k = 0; k < QT.length; k++) QT[k] /= z;
+  for (const a of AA) for (const b of AA) PB[ci(a)] += QT[ci(a) * 26 + ci(b)];
+})();
+function profileFromSeq(q) { return [...q].map(c => { const r = new Int16Array(26); for (const b of AA) r[ci(b)] = sc(B62, c, b); return r; }); }
+/* aligns: query-anchored pairwise alignments of included hits ({A, B, aStart}) */
+function buildPSSM(q, aligns, beta) {
+  const cols = [...q].map(c => ({[c]: 1})), n = new Array(q.length).fill(1);
+  for (const g of aligns) {
+    let i = g.aStart;
+    for (let k = 0; k < g.A.length; k++) {
+      if (g.A[k] === "-") continue;
+      if (g.B[k] !== "-") { cols[i][g.B[k]] = (cols[i][g.B[k]] || 0) + 1; n[i]++; }
+      i++;
+    }
+  }
+  return cols.map((cnt, i) => {
+    const alpha = n[i] - 1, r = new Int16Array(26);
+    for (const a of AA) {
+      let g = 0;
+      for (const b in cnt) g += (cnt[b] / n[i]) * QT[ci(b) * 26 + ci(a)] / PB[ci(b)];
+      const Q = (alpha * (cnt[a] || 0) / n[i] + beta * g) / (alpha + beta);
+      r[ci(a)] = Math.round(2 * Math.log2(Q / BG[a]));
+    }
+    return r;
+  });
+}
+/* local affine alignment scored by a profile (BLAST gap costs 11/1) */
+function alignProfile(P, q, s, open = 12, ext = 1) {
+  const n = P.length, m = s.length, W = m + 1, N = (n + 1) * W;
+  const M = new Float64Array(N).fill(NEG), X = new Float64Array(N).fill(NEG), Y = new Float64Array(N).fill(NEG);
+  const pM = new Uint8Array(N), pX = new Uint8Array(N), pY = new Uint8Array(N);
+  M[0] = 0; let best = 0, bk = 0;
+  for (let i = 1; i <= n; i++) {
+    const row = P[i - 1];
+    for (let j = 1; j <= m; j++) {
+      const k = i * W + j, d = k - W - 1, u = k - W, l = k - 1;
+      let v = M[d], p = 0; if (X[d] > v) { v = X[d]; p = 1; } if (Y[d] > v) { v = Y[d]; p = 2; } if (v <= 0) { v = 0; p = 3; }
+      M[k] = v + row[ci(s[j - 1])]; pM[k] = p;
+      let x = M[u] - open, px = 0; if (X[u] - ext > x) { x = X[u] - ext; px = 1; } if (Y[u] - open > x) { x = Y[u] - open; px = 2; } X[k] = x; pX[k] = px;
+      let y = M[l] - open, py = 0; if (Y[l] - ext > y) { y = Y[l] - ext; py = 2; } if (X[l] - open > y) { y = X[l] - open; py = 1; } Y[k] = y; pY[k] = py;
+      if (M[k] > best) { best = M[k]; bk = k; }
+    }
+  }
+  if (best <= 0) return {score: 0, A: "", B: "", aStart: 0, bStart: 0};
+  let i = Math.floor(bk / W), j = bk % W, st = 0; const A = [], B = [];
+  while (i > 0 || j > 0) {
+    const k = i * W + j;
+    if (st === 0) { const p = pM[k]; A.push(q[i - 1]); B.push(s[j - 1]); i--; j--; if (p === 3) break; st = p; }
+    else if (st === 1) { A.push(q[i - 1]); B.push("-"); st = pX[k]; i--; }
+    else { A.push("-"); B.push(s[j - 1]); st = pY[k]; j--; }
+  }
+  return {score: best, A: A.reverse().join(""), B: B.reverse().join(""), aStart: i, bStart: j};
+}
+/* one PSI-BLAST round: seed, two-hit, X-drop and gapped steps, all scored with profile P */
+function psiRound(q, P, N) {
+  const X = bitsToRawU(7), T = 11, table = new Map();
+  const mx = P.map(r => Math.max(...AA.split("").map(c => r[ci(c)])));
+  for (let i = 0; i + 3 <= P.length; i++) for (const a of AA) {
+    const s0 = P[i][ci(a)]; if (s0 + mx[i + 1] + mx[i + 2] < T) continue;
+    for (const b of AA) {
+      const s1 = s0 + P[i + 1][ci(b)]; if (s1 + mx[i + 2] < T) continue;
+      for (const c of AA) if (s1 + P[i + 2][ci(c)] >= T) { const w = a + b + c; let t = table.get(w); if (!t) table.set(w, t = []); t.push(i); }
+    }
+  }
+  const eOf = score => q.length * N * Math.pow(2, -((LG * score - Math.log(KG)) / Math.LN2));
+  return DB.map(d => {
+    const s = d.seq, last = new Map(), extTo = new Map(); let ung = 0;
+    for (let j = 0; j + 3 <= s.length; j++) for (const i of table.get(s.substr(j, 3)) || []) {
+      const dg = j - i; if ((extTo.get(dg) ?? -1) > j) continue;
+      const l = last.get(dg);
+      if (l !== undefined && j - l < 3) continue;
+      if (l === undefined || j - l > 40) { last.set(dg, j); continue; }
+      let ws = P[i][ci(s[j])] + P[i + 1][ci(s[j + 1])] + P[i + 2][ci(s[j + 2])];
+      let r = 0, br = 0, brk = 0;
+      for (let k = 0; i + 3 + k < P.length && j + 3 + k < s.length; k++) { r += P[i + 3 + k][ci(s[j + 3 + k])]; if (r > br) { br = r; brk = k + 1; } if (br - r > X) break; }
+      let lf = 0, bl = 0;
+      for (let k = 1; i - k >= 0 && j - k >= 0; k++) { lf += P[i - k][ci(s[j - k])]; if (lf > bl) bl = lf; if (bl - lf > X) break; }
+      extTo.set(dg, j + 3 + brk); last.set(dg, j); ung = Math.max(ung, ws + br + bl);
+    }
+    const g = alignProfile(P, q, s), E = eOf(g.score);
+    return {d, g, E, reported: ung >= GAP_TRIGGER && E <= 10};
+  });
+}
+const ps = {};
+function psReset() {
+  const qid = document.getElementById("psQ").value;
+  Object.assign(ps, {qid, q: DBI[qid].seq, iters: [], converged: false});
+  psStep();
+}
+function psStep() {
+  if (ps.converged || ps.iters.length >= 8) return;
+  const inc = +document.getElementById("psInc").value, beta = Math.max(1, +document.getElementById("psBeta").value || 10);
+  const N = document.getElementById("psN").value === "mini" ? DB_LEN : +document.getElementById("psN").value;
+  const prev = ps.iters[ps.iters.length - 1];
+  const P = prev ? buildPSSM(ps.q, prev.res.filter(r => prev.inc.has(r.d.id) && r.d.id !== ps.qid).map(r => r.g), beta) : profileFromSeq(ps.q);
+  const res = psiRound(ps.q, P, N);
+  const incSet = new Set(res.filter(r => r.reported && r.E < inc).map(r => r.d.id));
+  const before = prev ? prev.inc : new Set();
+  const fresh = [...incSet].filter(id => !before.has(id));
+  ps.iters.push({P, res, inc: incSet, fresh: new Set(fresh)});
+  if (prev && fresh.length === 0) ps.converged = true;
+  psRender();
+}
+function psRender() {
+  const it = ps.iters, last = it[it.length - 1];
+  document.getElementById("psStats").innerHTML = [
+    [it.length, "iterations run"], [last.inc.size, "sequences below threshold"],
+    [ps.converged ? "yes" : "not yet", "converged"]
+  ].map(([v, l]) => `<div class="stat"><b>${v}</b><span>${l}</span></div>`).join("");
+  let h = `<thead><tr><th>Sequence</th>${it.map((_, k) => `<th>Iteration ${k + 1}</th>`).join("")}</tr></thead><tbody>`;
+  for (const d of DB) {
+    h += `<tr><td>${dbLabel(d)}${d.id === ps.qid ? ` <span class="muted">(query)</span>` : ""}</td>`;
+    for (const x of it) {
+      const r = x.res.find(y => y.d.id === d.id);
+      if (!r.reported) { h += `<td class="muted">${r.E < 10 ? `(${fmtE(r.E)})` : "—"}</td>`; continue; }
+      const cls = x.inc.has(d.id) ? "strong" : r.E < 1 ? "gray" : "chance";
+      h += `<td><span class="pill ${cls}">${fmtE(r.E)}</span>${x.fresh.has(d.id) && it.indexOf(x) > 0 && d.id !== ps.qid ? ` <span class="pill new">new</span>` : ""}</td>`;
+    }
+    h += "</tr>";
+  }
+  document.getElementById("psTable").innerHTML = h + "</tbody>";
+  document.getElementById("psNext").disabled = ps.converged;
+  psDrawPSSM();
+}
+const PS_ORDER = "CSTPAGNDEQHRKMILVFYW";
+function psDrawPSSM() {
+  const g = G[ps.qid], last = ps.iters[ps.iters.length - 1], P = last.P, q = ps.q;
+  const key = document.getElementById("psWin").value;
+  const center = key === "e7" ? g.e7 - 1 : key === "f8" ? g.f8 - 1 : 6;
+  const start = Math.max(0, Math.min(q.length - 13, center - 6)), end = start + 13;
+  let h = `<thead><tr><th></th>${[...PS_ORDER].map(c => `<th>${c}</th>`).join("")}</tr></thead><tbody>`;
+  for (let i = start; i < end; i++) {
+    const tag = i === g.e7 - 1 ? " E7" : i === g.f8 - 1 ? " F8" : "";
+    h += `<tr><th class="q">${q[i]}${i + 1}${tag}</th>`;
+    for (const c of PS_ORDER) {
+      const v = P[i][ci(c)];
+      const tone = v > 0 ? "var(--heme)" : v < 0 ? "var(--plum)" : "transparent";
+      const pct = v > 0 ? Math.min(100, 14 + v * 8) : v < 0 ? Math.min(100, 8 + -v * 10) : 0;
+      h += `<td style="background:color-mix(in srgb, ${tone} ${pct}%, var(--panel));color:${pct > 55 ? "var(--bg)" : "var(--ink)"}${c === q[i] ? ";outline:2px solid var(--ink);outline-offset:-2px" : ""}">${v}</td>`;
+    }
+    h += "</tr>";
+  }
+  document.getElementById("psHm").innerHTML = h + "</tbody>";
+  const k = ps.iters.length;
+  document.getElementById("psWinNote").textContent = `PSSM used in iteration ${k}${k === 1 ? " (plain BLOSUM62 rows)" : `, built from the query plus ${[...ps.iters[k - 2].inc].filter(id => id !== ps.qid).length} included hit(s)`}. Boxed cell = the query's own residue.`;
+}
+function psWire() {
+  fillDbSelect(document.getElementById("psQ"), "HBB", GLOBINS.map(g => g.id));
+  const sel = document.getElementById("psWin");
+  sel.innerHTML = `<option value="e7">Distal His E7 region</option><option value="f8" selected>Proximal His F8 region</option><option value="nterm">N-terminus</option>`;
+  ["psQ", "psInc", "psN", "psBeta"].forEach(id => document.getElementById(id).addEventListener("change", () => { psReset(); psRunAll(); }));
+  sel.addEventListener("change", psDrawPSSM);
+  document.getElementById("psReset").onclick = psReset;
+  document.getElementById("psNext").onclick = psStep;
+  document.getElementById("psAll").onclick = psRunAll;
+  psReset(); psRunAll();
+}
+function psRunAll() { while (!ps.converged && ps.iters.length < 8) psStep(); }
+
 /* ---------- table of contents ---------- */
 function tocWire() {
   const links = [...document.querySelectorAll(".toc a")];
@@ -1102,7 +1344,7 @@ function tocWire() {
   addEventListener("scroll", on, {passive: true}); on();
 }
 
-drawSpeed(); nbWire(); hmWire(); xdWire(); evWire(); mbWire(); fastaWire(); tocWire();
+drawSpeed(); nbWire(); hmWire(); xdWire(); evWire(); mbWire(); psWire(); fastaWire(); tocWire();
 const redraw = () => drawHitMap();
 matchMedia("(prefers-color-scheme: dark)").addEventListener("change", redraw);
 new MutationObserver(redraw).observe(document.documentElement, {attributes: true, attributeFilter: ["data-theme"]});
