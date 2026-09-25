@@ -328,6 +328,25 @@ table.data td.num{font-variant-numeric:tabular-nums;font-family:var(--f-mono);fo
 .flowcard.ferm{border-style:dashed;border-color:var(--accent)}
 .flowcard.ferm.on{background:var(--accent-soft)}
 .dm td,.dm th{width:auto;min-width:46px;padding:4px 6px;font-size:.78rem;white-space:nowrap}
+/* personal genomes */
+.big-stats .v{font-size:1.4rem;font-family:var(--f-display)}
+.gen-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+@media (max-width:860px){.gen-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:520px){.gen-grid{grid-template-columns:1fr}}
+.vcf{border-collapse:collapse;font-family:var(--f-mono);font-size:.8rem;white-space:nowrap}
+.vcf th,.vcf td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left}
+.vcf .vh{font:inherit;font-weight:600;color:var(--primary);background:none;border:0;padding:0;cursor:pointer;text-decoration:underline dotted}
+.vcf .vr{cursor:pointer}
+.vcf .vr:hover{background:var(--surface-2)}
+.vcf .vr.on{background:var(--accent-soft)}
+.pun-out{display:grid;grid-template-columns:auto minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:700px){.pun-out{grid-template-columns:1fr}}
+.punnett{border-collapse:separate;border-spacing:4px}
+.punnett th{font-family:var(--f-mono);color:var(--ink-2);padding:4px 8px}
+.punnett td{width:110px;height:64px;text-align:center;border-radius:8px;border:1px solid var(--line);line-height:1.3}
+.punnett td.k-aff{background:var(--bad-soft);border-color:var(--bad)}
+.punnett td.k-car{background:var(--warn-soft);border-color:var(--warn)}
+.punnett td.k-ok{background:var(--ok-soft);border-color:var(--ok)}
 footer{border-top:1px solid var(--line);padding-block:20px;color:var(--muted);font-size:.85rem}
 footer .in{max-width:1280px;margin:0 auto;padding-inline:16px}
 </style>
@@ -363,7 +382,7 @@ footer .in{max-width:1280px;margin:0 auto;padding-inline:16px}
 <section class="ch hero" id="intro" data-title="Start here" data-num="00">
   <p class="eyebrow">Bio116 · Bioinformatics · Biology review</p>
   <h1>The biology you need before you write your first alignment</h1>
-  <p class="lede">Bioinformatics treats living systems as data. This primer walks through the biology behind that data, from the cell down to a single base, and every idea comes with something you can try. Chapter 14 runs real analyses on the course sequence file, <code>triplets.txt</code>.</p>
+  <p class="lede">Bioinformatics treats living systems as data. This primer walks through the biology behind that data, from the cell down to a single base, and every idea comes with something you can try. Chapter 15 runs real analyses on the course sequence file, <code>triplets.txt</code>.</p>
   <div class="strand-banner" aria-label="A short DNA duplex" id="banner"></div>
   <div class="aud-grid">
     <div class="aud">
@@ -591,7 +610,7 @@ footer .in{max-width:1280px;margin:0 auto;padding-inline:16px}
   </div>
   <div class="prose">
     <h3>What the rest of the genome is made of</h3>
-    <p>Roughly half of the human genome is repeated sequence. The most abundant single family is the <b>Alu element</b>, a ~300 bp sequence present in over a million copies and making up about 10% of our DNA. Alus copy themselves through an RNA intermediate and end in a poly-A tail. You will find two of them in the course sequence in Chapter 14.</p>
+    <p>Roughly half of the human genome is repeated sequence. The most abundant single family is the <b>Alu element</b>, a ~300 bp sequence present in over a million copies and making up about 10% of our DNA. Alus copy themselves through an RNA intermediate and end in a poly-A tail. You will find two of them in the course sequence in Chapter 15.</p>
     <ul>
       <li><b>Transposable elements</b> (Alu, LINE-1, endogenous retroviruses): sequences that copy and paste themselves around the genome.</li>
       <li><b>Tandem repeats</b>: short units repeated head to tail. Microsatellites have 1–6 bp units, minisatellites 10–60 bp. They vary in length between people, which makes them useful in forensics.</li>
@@ -1224,9 +1243,128 @@ Sp_E  TTGGTACCTAGCCTTCCTTGGAACGAAG</textarea>
   <div class="quiz" data-quiz="data"></div>
 </section>
 
+<!-- ============ PERSONAL GENOMES ============ -->
+<section class="ch" id="personal" data-title="Personal genomes" data-num="14">
+  <div class="ch-head"><span class="num">Chapter 14</span><h2>What one genome can tell you</h2><p>Sequencing a person's genome now costs a few hundred dollars. The data comes easily. The hard part is interpreting it: deciding which of millions of differences matter, and being honest about how much the answer is worth.</p></div>
+  <div class="stats big-stats">
+    <div class="stat"><div class="k">Differences from the reference</div><div class="v">4–5 million</div></div>
+    <div class="stat"><div class="k">Structural variants</div><div class="v">~2,000–2,500</div></div>
+    <div class="stat"><div class="k">New mutations not in either parent</div><div class="v">~60–70</div></div>
+    <div class="stat"><div class="k">Neanderthal DNA (non-African genomes)</div><div class="v">~2%</div></div>
+  </div>
+  <p class="small muted">Typical values from large projects such as the 1000 Genomes Project. People with recent African ancestry carry more variants, because human genetic diversity is highest in Africa.</p>
+  <div class="bench">
+    <div class="bench-head"><h3>From millions of variants to a few that matter</h3><span class="hint">Each step is a filter in a real interpretation pipeline. Counts are approximate orders of magnitude for one genome. Click a step.</span></div>
+    <div class="bench-body">
+      <div class="chart-wrap scroll-x" id="fun-wrap"><div class="tip" id="fun-tip" hidden></div></div>
+      <div class="part-info" id="fun-info" aria-live="polite"></div>
+    </div>
+  </div>
+  <div class="bench">
+    <div class="bench-head"><h3>Reading a personal VCF</h3><span class="hint">Three real variants (GRCh38 coordinates) in one made-up person. Click a column name or a row.</span></div>
+    <div class="bench-body">
+      <div class="scroll-x"><table class="vcf" id="vcf-table"></table></div>
+      <div class="part-info" id="vcf-info" aria-live="polite"></div>
+      <p class="small muted">QUAL and DP values are illustrative. Check any coordinate in dbSNP before relying on it.</p>
+    </div>
+  </div>
+  <div class="prose"><h3>What a genome can and cannot tell you</h3></div>
+  <div class="gen-grid" id="gen-grid"></div>
+  <div class="bench">
+    <div class="bench-head"><h3>Inheritance calculator</h3><span class="hint">Choose a pattern and each parent's genotype. Each pregnancy is independent.</span></div>
+    <div class="bench-body">
+      <div class="seg" role="group" aria-label="Inheritance pattern" id="pun-mode">
+        <button type="button" data-m="ar" aria-pressed="true">Autosomal recessive</button>
+        <button type="button" data-m="ad" aria-pressed="false">Autosomal dominant</button>
+        <button type="button" data-m="xl" aria-pressed="false">X-linked recessive</button>
+      </div>
+      <div class="controls" id="pun-parents"></div>
+      <div class="pun-out">
+        <div class="scroll-x"><table class="punnett" id="pun-table"></table></div>
+        <div id="pun-sum" aria-live="polite" style="display:grid;gap:8px;align-content:start"></div>
+      </div>
+    </div>
+  </div>
+  <div class="bench">
+    <div class="bench-head"><h3>Pharmacogenomics: your genes and your drugs</h3><span class="hint">CYP2D6 converts codeine into morphine. Pick the two copies (star alleles) a person carries.</span></div>
+    <div class="bench-body">
+      <div class="controls">
+        <label class="fld" for="pg-a">Copy 1<select id="pg-a"></select></label>
+        <label class="fld" for="pg-b">Copy 2<select id="pg-b"></select></label>
+      </div>
+      <div class="verdict" id="pg-out" aria-live="polite"></div>
+      <div class="scroll-x">
+        <table class="data">
+          <thead><tr><th>Drug</th><th>Gene</th><th>Why the genotype matters</th></tr></thead>
+          <tbody>
+            <tr><td>Clopidogrel (anti-clotting)</td><td><i>CYP2C19</i></td><td>A prodrug that CYP2C19 must activate. Poor metabolisers get less protection, so guidelines suggest an alternative after a stent.</td></tr>
+            <tr><td>Abacavir (HIV)</td><td>HLA-B*57:01</td><td>Carriers risk a severe hypersensitivity reaction. Testing before prescribing is standard care.</td></tr>
+            <tr><td>Azathioprine, mercaptopurine</td><td><i>TPMT</i>, <i>NUDT15</i></td><td>Low enzyme activity lets the drug build up and damage bone marrow. Doses are cut sharply.</td></tr>
+            <tr><td>Fluorouracil, capecitabine (cancer)</td><td><i>DPYD</i></td><td>Deficiency causes severe, sometimes fatal toxicity. Reduce the dose or avoid.</td></tr>
+            <tr><td>Simvastatin</td><td><i>SLCO1B1</i></td><td>A reduced-function transporter raises blood levels and the risk of muscle damage.</td></tr>
+            <tr><td>Warfarin</td><td><i>CYP2C9</i>, <i>VKORC1</i></td><td>Together they explain a large share of the variation in the dose people need.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="small muted">Recommendations follow the published CPIC guidelines in outline only. This is a teaching tool, not medical advice.</p>
+    </div>
+  </div>
+  <div class="bench">
+    <div class="bench-head"><h3>Polygenic risk: what a "high score" means</h3><span class="hint">A toy model of a common disease influenced by thousands of variants. Move the sliders.</span></div>
+    <div class="bench-body">
+      <div class="controls">
+        <label class="fld" for="prs-p"><span>Your score percentile: <span class="mono" id="prs-p-v">95</span></span><input type="range" id="prs-p" min="1" max="99" step="1" value="95"></label>
+        <label class="fld" for="prs-base"><span>Lifetime risk in the population: <span class="mono" id="prs-base-v">10%</span></span><input type="range" id="prs-base" min="1" max="30" step="1" value="10"></label>
+        <label class="fld" for="prs-or"><span>Odds ratio per standard deviation: <span class="mono" id="prs-or-v">1.5</span></span><input type="range" id="prs-or" min="1.1" max="2.5" step="0.1" value="1.5"></label>
+      </div>
+      <div class="stats" id="prs-stats"></div>
+      <div class="chart-wrap" id="prs-wrap"><div class="tip" id="prs-tip" hidden></div></div>
+      <p class="small muted">An odds ratio of about 1.5 per standard deviation is typical of good current scores for diseases such as coronary artery disease. Scores work best in people whose ancestry matches the studies they were built from. Most of those studies have been of European ancestry, so scores are less accurate for everyone else.</p>
+    </div>
+  </div>
+  <div class="scroll-x">
+    <table class="data">
+      <thead><tr><th>Relationship</th><th>Expected DNA shared</th><th>What testing shows</th></tr></thead>
+      <tbody>
+        <tr><td>Parent and child</td><td class="num">50%</td><td>Always exactly one copy of every chromosome pair from each parent</td></tr>
+        <tr><td>Full siblings</td><td class="num">50% (varies, ~38–61%)</td><td>Recombination makes the real share vary around the average</td></tr>
+        <tr><td>Grandparent, aunt or uncle, half-sibling</td><td class="num">25%</td><td>These three are hard to tell apart from DNA alone</td></tr>
+        <tr><td>First cousins</td><td class="num">12.5%</td><td>Reliably detected</td></tr>
+        <tr><td>Second cousins</td><td class="num">~3%</td><td>Almost always detected</td></tr>
+        <tr><td>Third cousins</td><td class="num">~0.8%</td><td>Usually detected, but some share no measurable DNA</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="two">
+    <div class="panel">
+      <h3>Limits to keep in mind</h3>
+      <ul>
+        <li><b>Variants of uncertain significance (VUS)</b> are often the most common result of a clinical test. They should not change care, and many are later reclassified as benign.</li>
+        <li><b>Penetrance</b>: carrying a disease variant does not guarantee disease. Many "pathogenic" variants are found in healthy people.</li>
+        <li><b>Consumer tests</b> usually use SNP arrays that read ~600,000 chosen sites, not the whole genome. Their calls of very rare variants are often false positives and need confirming in a clinical lab.</li>
+        <li><b>Short reads</b> miss parts of the genome: long repeats, segmental duplications and some genes with near-identical copies.</li>
+        <li>A genome is fixed at birth, but most common diseases also depend heavily on environment, lifestyle and chance.</li>
+      </ul>
+    </div>
+    <div class="panel">
+      <h3>Privacy and ethics</h3>
+      <ul>
+        <li>Your genome is also partly your relatives' genome. Sharing yours reveals information about people who did not consent.</li>
+        <li>Genomes cannot be truly anonymised. Since 2018, police have identified suspects by matching crime-scene DNA to distant relatives in genealogy databases.</li>
+        <li>In the US, GINA (2008) bans genetic discrimination in health insurance and employment, but not in life, disability or long-term-care insurance. Laws differ by country.</li>
+        <li>Clinical sequencing can turn up <b>secondary findings</b> unrelated to the reason for testing. People should decide in advance whether they want to know.</li>
+        <li>Reference genomes and databases under-represent most of the world's populations, which makes interpretation less accurate for many people.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="lens cs"><span class="tag">CS lens</span><p>A standard germline pipeline: FASTQ (~100 GB at 30× coverage) → align with BWA-MEM → sorted, duplicate-marked BAM → call variants with GATK HaplotypeCaller or DeepVariant → VCF → annotate each variant with its gene and consequence (Ensembl VEP), population frequency (gnomAD) and clinical reports (ClinVar) → filter. In the VCF genotype field, <code>0/1</code> means unphased and <code>0|1</code> phased: the bar says which chromosome copy carries the alternative allele. Phasing matters when two variants hit the same gene. If they are on different copies, no working copy is left.</p></div>
+  <div class="lens bio"><span class="tag">Bio depth</span><p>Each child carries about 60–70 new mutations absent from both parents. Roughly 80% arise in the father, and the number rises by about 1–2 for each extra year of the father's age, because sperm precursors keep dividing throughout life. Clinical labs classify variants on a five-tier scale set by the ACMG: pathogenic, likely pathogenic, uncertain significance, likely benign and benign. The evidence includes population frequency, predicted effect, segregation in families and functional tests.</p></div>
+  <div class="quiz" data-quiz="personal"></div>
+</section>
+
 <!-- ============ 10 BENCH ============ -->
-<section class="ch" id="bench" data-title="Workbench: triplets.txt" data-num="14">
-  <div class="ch-head"><span class="num">Chapter 14</span><h2>Workbench: the course sequence</h2><p>This is the sequence from <code>triplets.txt</code> in the course repository. The file lists one human DNA sequence three times, split into triplets starting at base 1, 2 and 3. Those are its three forward reading frames. Here it is joined back into one string of 10,309 bases so you can analyse it.</p></div>
+<section class="ch" id="bench" data-title="Workbench: triplets.txt" data-num="15">
+  <div class="ch-head"><span class="num">Chapter 15</span><h2>Workbench: the course sequence</h2><p>This is the sequence from <code>triplets.txt</code> in the course repository. The file lists one human DNA sequence three times, split into triplets starting at base 1, 2 and 3. Those are its three forward reading frames. Here it is joined back into one string of 10,309 bases so you can analyse it.</p></div>
   <div class="bench">
     <div class="bench-head"><h3>Composition</h3><span class="hint" id="wb-src"></span></div>
     <div class="bench-body">
@@ -1287,8 +1425,8 @@ Sp_E  TTGGTACCTAGCCTTCCTTGGAACGAAG</textarea>
 </section>
 
 <!-- ============ GLOSSARY ============ -->
-<section class="ch" id="glossary" data-title="Glossary" data-num="15">
-  <div class="ch-head"><span class="num">Chapter 15</span><h2>Glossary and translation table</h2><p>Terms from both fields, and how they map onto each other.</p></div>
+<section class="ch" id="glossary" data-title="Glossary" data-num="16">
+  <div class="ch-head"><span class="num">Chapter 16</span><h2>Glossary and translation table</h2><p>Terms from both fields, and how they map onto each other.</p></div>
   <div class="scroll-x">
     <table class="data">
       <thead><tr><th>Biology</th><th>Computing analogy</th><th>Where the analogy breaks</th></tr></thead>
@@ -1879,6 +2017,7 @@ function lineChart(wrap,tipEl,opt){ // opt: pts [{x,y}], xmin,xmax,ymin,ymax,yti
   if(opt.pts.length){const d=opt.pts.map((p,i)=>(i?'L':'M')+X(p.x).toFixed(1)+' '+Y(p.y).toFixed(1)).join('');
     const base=Y(Math.max(opt.ymin,Math.min(opt.ymax,opt.base??opt.ymin)));
     h+=`<path d="${d}L${X(opt.pts[opt.pts.length-1].x).toFixed(1)} ${base}L${X(opt.pts[0].x).toFixed(1)} ${base}Z" style="fill:var(--chart);opacity:.12"/><path d="${d}" style="fill:none;stroke:var(--chart);stroke-width:2;stroke-linejoin:round"/>`}
+  if(opt.mark)h+=`<line x1="${X(opt.mark.x)}" x2="${X(opt.mark.x)}" y1="${mt}" y2="${H-mb}" style="stroke:var(--chart-2);stroke-width:1.2;stroke-dasharray:3 3"/><circle cx="${X(opt.mark.x)}" cy="${Y(opt.mark.y)}" r="6" style="fill:var(--chart-2);stroke:var(--surface);stroke-width:2"/><text x="${X(opt.mark.x)-9}" y="${Y(opt.mark.y)-10}" text-anchor="end" style="fill:var(--ink);font-weight:700">${esc(opt.mark.label||'')}</text>`;
   h+=`<line class="xh" x1="0" x2="0" y1="${mt}" y2="${H-mb}" style="stroke:var(--ink-2);stroke-width:1;visibility:hidden"/><circle class="xd" r="4.5" cx="0" cy="0" style="fill:var(--chart);stroke:var(--surface);stroke-width:2;visibility:hidden"/><rect x="${ml}" y="${mt}" width="${W-ml-mr}" height="${H-mt-mb}" style="fill:transparent" class="hit"/></svg>`;
   wrap.querySelectorAll('svg').forEach(s=>s.remove());wrap.insertAdjacentHTML('beforeend',h);
   const svg=wrap.querySelector('svg'),xh=svg.querySelector('.xh'),xd=svg.querySelector('.xd');
@@ -2417,8 +2556,100 @@ function renderTree(wrap,root,o={}){const L=layoutTree(root),W=o.W||800,rh=o.rh|
   $('#up-in').addEventListener('input',()=>{step=0;run()});$('#up-prev').addEventListener('click',()=>{step--;show()});$('#up-next').addEventListener('click',()=>{step++;show()});
   $('#up-dist').addEventListener('click',e=>{const b=e.target.closest('[data-d]');if(!b)return;mode=b.dataset.d;$$('#up-dist button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));run()});run()})();
 
+/* ---------- 14. personal genomes: funnel ---------- */
+(function(){const F=[
+  ['All differences from the reference',4.5e6,'~4–5 million','Single-base changes (~3.5–4.3 million), small insertions and deletions (~0.5 million) and a few thousand structural variants. Almost all are common, harmless and shared with many other people.'],
+  ['Inside protein-coding exons',2.2e4,'~20,000–25,000','Only about 1–2% of the genome codes for protein, so only a tiny share of variants land in exons. Whole-exome sequencing reads just these regions.'],
+  ['Change the protein sequence',1.1e4,'~10,000–12,000','Missense, nonsense, frameshift and splice-site variants (Chapter 10). The rest are synonymous. Annotation tools such as Ensembl VEP assign each variant its consequence.'],
+  ['Also rare (<1% of people)',400,'a few hundred','Filtering against population databases such as gnomAD removes common variants. Anything common in healthy people is unlikely to cause a rare, severe disease.'],
+  ['Also predicted to be damaging',100,'~100','Loss-of-function variants and missense changes scored as harmful by prediction tools. Predictions are evidence, not proof. Most people also carry about 20 genes where both copies are knocked out, with no obvious effect.'],
+  ['Reported as pathogenic in ClinVar',4,'a handful','Most are single copies of variants for recessive conditions, which makes the person a healthy carrier.'],
+  ['Medically actionable for the person',0.5,'0 for most people','About 2–3% of people carry a variant in a gene where early action is known to help, such as BRCA1/2 or genes for inherited high cholesterol. In a clinical genome, these are reported as secondary findings if the person agrees.']];
+  let sel=0;const W=800,ml=260,mr=120,rh=34,top=10,H=top+F.length*rh+30;const lo=-1,hi=7;const X=v=>ml+(Math.log10(Math.max(v,0.1))-lo)/(hi-lo)*(W-ml-mr);
+  function draw(){let h=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Funnel of variant counts, log scale" style="min-width:600px"><g class="grid">${[0,2,4,6].map(e=>`<line x1="${X(10**e)}" x2="${X(10**e)}" y1="${top}" y2="${H-26}"/>`).join('')}</g>${[[0,'1'],[2,'100'],[4,'10,000'],[6,'1 million']].map(([e,t])=>`<text x="${X(10**e)}" y="${H-8}" text-anchor="middle">${t}</text>`).join('')}`;
+    F.forEach((f,i)=>{const y=top+i*rh,on=i===sel,w=X(f[1])-ml;h+=`<g class="fun" data-i="${i}" style="cursor:pointer" tabindex="0" role="button" aria-label="${esc(f[0])}"><rect x="0" y="${y}" width="${W}" height="${rh}" style="fill:${on?'var(--surface-2)':'transparent'}"/><text x="${ml-10}" y="${y+rh/2+4}" text-anchor="end" style="fill:var(--ink);${on?'font-weight:700':''}">${i+1}. ${esc(f[0])}</text><rect x="${ml}" y="${y+8}" width="${Math.max(3,w).toFixed(1)}" height="${rh-16}" rx="4" style="fill:${on?'var(--chart-2)':'var(--chart)'}"/><text x="${ml+Math.max(3,w)+6}" y="${y+rh/2+4}" style="fill:var(--ink-2)">${f[2]}</text></g>`});
+    h+='</svg>';const wrap=$('#fun-wrap');wrap.querySelectorAll('svg').forEach(s=>s.remove());wrap.insertAdjacentHTML('beforeend',h);const svg=wrap.querySelector('svg');
+    const pick=e=>{const g=e.target.closest('.fun');if(g){sel=+g.dataset.i;draw()}};svg.addEventListener('click',pick);svg.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();pick(e)}});
+    $('#fun-info').innerHTML=`<b>Step ${sel+1}: ${esc(F[sel][0])}</b> (${F[sel][2]}). ${esc(F[sel][3])}`}
+  draw()})();
+
+/* ---------- 14. personal genomes: VCF ---------- */
+(function(){const COLS=[['#CHROM','Chromosome name. Here UCSC style with "chr" (Chapter 03).'],['POS','Position on the chromosome, 1-based, in the stated reference build (GRCh38 here).'],['ID','Identifier, usually a dbSNP "rs" number. "." if none.'],['REF','The base in the reference genome, always given on the + strand.'],['ALT','The alternative base(s) seen in this sample. Several are separated by commas.'],['QUAL','Phred-scaled confidence that a variant is really present (Chapter 13).'],['FILTER','PASS if the call passed every quality filter, otherwise the name of the filter it failed.'],['INFO','Key=value annotations about the site. In real files this is often very long.'],['FORMAT','Describes the sample column: GT = genotype, DP = read depth.'],['PERSON','This person\'s values. GT 0 = reference allele, 1 = first ALT allele; 0/1 is heterozygous, 1/1 homozygous for ALT.']];
+  const ROWS=[['chr11','5227002','rs334','T','A','812','PASS','GENE=HBB;CSQ=missense;HGVSp=p.Glu7Val','GT:DP','0/1:34','<b>Sickle-cell trait.</b> One copy of the sickle-cell variant from Chapter 10. HBB is on the minus strand, so the gene\'s A&gt;T appears as T&gt;A on the + strand. One copy is usually harmless and gives some protection against severe malaria. If a partner is also a carrier, each child has a 1 in 4 chance of sickle-cell disease: try it in the inheritance calculator below.'],
+    ['chr2','135851076','rs4988235','G','A','1290','PASS','GENE=MCM6;CSQ=intron_variant;NOTE=LCT_enhancer','GT:DP','1/1:41','<b>Lactase persistence.</b> This is the −13910C&gt;T variant from Chapter 09, written on the + strand as G&gt;A. Two copies (1/1) mean this person very likely keeps digesting lactose as an adult. The variant sits in an intron of MCM6 but controls the neighbouring gene LCT, a reminder that "nearest gene" is not always "affected gene".'],
+    ['chr19','44908684','rs429358','T','C','655','PASS','GENE=APOE;CSQ=missense;HGVSp=p.Cys130Arg','GT:DP','0/1:29','<b>APOE.</b> This variant, together with a second one (rs7412), defines the APOE ε2, ε3 and ε4 alleles. You cannot name the allele from one site alone. If rs7412 is the common allele, this person is ε3/ε4. One ε4 copy raises Alzheimer disease risk roughly two- to threefold, but many ε4 carriers never develop it. Results like this are why genetic counselling exists.']];
+  const T=$('#vcf-table');T.innerHTML=`<thead><tr>${COLS.map((c,i)=>`<th><button type="button" class="vh" data-c="${i}">${c[0]}</button></th>`).join('')}</tr></thead><tbody>${ROWS.map((r,i)=>`<tr class="vr" data-r="${i}" tabindex="0">${r.slice(0,10).map(v=>`<td>${esc(v)}</td>`).join('')}</tr>`).join('')}</tbody>`;
+  const setRow=i=>{$$('#vcf-table .vr').forEach(x=>x.classList.toggle('on',+x.dataset.r===i));$('#vcf-info').innerHTML=ROWS[i][10]};
+  T.addEventListener('click',e=>{const h=e.target.closest('.vh');if(h){const c=COLS[+h.dataset.c];$$('#vcf-table .vr').forEach(x=>x.classList.remove('on'));$('#vcf-info').innerHTML=`<b><code>${esc(c[0])}</code></b>: ${esc(c[1])}`;return}const r=e.target.closest('.vr');if(r)setRow(+r.dataset.r)});
+  T.addEventListener('keydown',e=>{const r=e.target.closest('.vr');if(r&&(e.key==='Enter'||e.key===' ')){e.preventDefault();setRow(+r.dataset.r)}});setRow(0)})();
+
+/* ---------- 14. personal genomes: what it can tell you ---------- */
+(function(){const G=[
+  ['Diagnosing a rare disease','high','Strong, for the right patient','For a child with an unexplained condition, exome or genome sequencing finds the cause in roughly 25–40% of cases, often ending years of searching.'],
+  ['Carrier status','high','Strong','Whether you carry one copy of a variant for a recessive condition such as cystic fibrosis, sickle-cell disease or Tay–Sachs disease. Matters mostly for family planning.'],
+  ['Drug response','high','Strong, for specific gene–drug pairs','A few dozen gene–drug pairs have clinical guidelines. Covered in the tool below.'],
+  ['Cancer (tumour genomes)','high','Strong, for known targets','Comparing a tumour\'s genome with the patient\'s normal DNA reveals the mutations driving it. Some point to specific drugs, such as EGFR inhibitors (Chapter 08).'],
+  ['Close relatives','high','Strong up to about third cousins','Shared DNA segments identify relatives reliably. See the table below.'],
+  ['Deep ancestry','high','Strong for single lines','Mitochondrial DNA traces your mother\'s mother\'s line, and the Y chromosome your father\'s father\'s line. Non-African genomes carry about 2% Neanderthal DNA; some Oceanian populations also carry several percent Denisovan DNA.'],
+  ['Recent ancestry','mid','Good at continental scale','Regional "ethnicity" estimates depend on each company\'s reference panels and can differ between them.'],
+  ['Physical traits','mid','Varies by trait','Eye colour is fairly predictable from a few variants near HERC2 and OCA2. Height involves thousands of variants, and prediction is only partial.'],
+  ['Common disease risk','low','Modest, probabilistic','Polygenic scores shift the odds for heart disease, type 2 diabetes and others, but lifestyle, environment and chance matter as much or more. Try the tool below.']];
+  const B={high:['silent','Reliable'],mid:['missense','Partial'],low:['inframe','Limited']};
+  $('#gen-grid').innerHTML=G.map(g=>`<div class="fn"><span class="badge ${B[g[1]][0]}" style="justify-self:start">${B[g[1]][1]}</span><h3>${esc(g[0])}</h3><p class="small muted">${esc(g[2])}</p><p class="small">${esc(g[3])}</p></div>`).join('')})();
+
+/* ---------- 14. personal genomes: inheritance ---------- */
+(function(){let mode='ar';const st={ar:[1,1],ad:[1,0],xl:[1,0]};
+  const M={ar:{name:'Autosomal recessive',ex:'e.g. cystic fibrosis, sickle-cell disease',m:[['AA','Unaffected, not a carrier'],['Aa','Carrier (unaffected)'],['aa','Affected']],f:null},
+    ad:{name:'Autosomal dominant',ex:'e.g. Huntington disease, familial hypercholesterolaemia',m:[['dd','Unaffected'],['Dd','Affected']],f:null},
+    xl:{name:'X-linked recessive',ex:'e.g. Duchenne muscular dystrophy, haemophilia A',m:[['XX','Unaffected, not a carrier'],['XXᵃ','Carrier (usually unaffected)'],['XᵃXᵃ','Affected']],f:[['XY','Unaffected'],['XᵃY','Affected']]}};
+  const gam=g=>g==='XᵃXᵃ'?['Xᵃ','Xᵃ']:g==='XXᵃ'?['X','Xᵃ']:g==='XX'?['X','X']:g==='XY'?['X','Y']:g==='XᵃY'?['Xᵃ','Y']:[g[0],g[1]];
+  function status(c){if(mode==='ar'){const n=(c.match(/a/g)||[]).length;return n===2?'aff':n===1?'car':'ok'}
+    if(mode==='ad')return c.includes('D')?'aff':'ok';
+    const hasY=c.includes('Y'),n=(c.match(/Xᵃ/g)||[]).length;return hasY?(n?'aff':'ok'):n===2?'aff':n===1?'car':'ok'}
+  const LBL={aff:'Affected',car:'Carrier',ok:'Unaffected'};
+  function norm(a,b){if(mode==='xl'){if(a==='Y'||b==='Y')return(a==='Y'?b:a)+'Y';return[a,b].sort((x,y)=>x.length-y.length).join('')}return[a,b].sort().join('')}
+  function draw(){const m=M[mode];const [pi,qi]=st[mode];const mom=m.m[pi][0],dad=(m.f||m.m)[qi][0];
+    $('#pun-parents').innerHTML=`<label class="fld" for="pun-a">${mode==='xl'?'Mother':'Parent 1'}<select id="pun-a">${m.m.map((g,i)=>`<option value="${i}" ${i===pi?'selected':''}>${g[0]} · ${g[1]}</option>`).join('')}</select></label><label class="fld" for="pun-b">${mode==='xl'?'Father':'Parent 2'}<select id="pun-b">${(m.f||m.m).map((g,i)=>`<option value="${i}" ${i===qi?'selected':''}>${g[0]} · ${g[1]}</option>`).join('')}</select></label><span class="small muted">${m.ex}</span>`;
+    $('#pun-a').addEventListener('change',e=>{st[mode][0]=+e.target.value;draw()});$('#pun-b').addEventListener('change',e=>{st[mode][1]=+e.target.value;draw()});
+    const ga=gam(mom),gb=gam(dad);const kids=[];
+    let h=`<tr><th></th>${gb.map(g=>`<th>${g}</th>`).join('')}</tr>`;ga.forEach(a=>{h+=`<tr><th>${a}</th>`;gb.forEach(b=>{const c=norm(a,b),s=status(c);kids.push([c,s]);h+=`<td class="k-${s}"><span class="mono">${c}</span><br><span class="small">${LBL[s]}</span></td>`});h+='</tr>'});
+    $('#pun-table').innerHTML=h;
+    const pct=f=>`${Math.round(100*kids.filter(f).length/4)}%`;let sum;
+    if(mode==='xl'){const sons=kids.filter(k=>k[0].includes('Y')),dau=kids.filter(k=>!k[0].includes('Y'));const fr=(arr,s)=>`${Math.round(100*arr.filter(k=>k[1]===s).length/arr.length)}%`;
+      sum=`<div class="stats"><div class="stat"><div class="k">Sons affected</div><div class="v">${fr(sons,'aff')}</div></div><div class="stat"><div class="k">Daughters affected</div><div class="v">${fr(dau,'aff')}</div></div><div class="stat"><div class="k">Daughters carriers</div><div class="v">${fr(dau,'car')}</div></div></div><p class="small">Males have one X, so a single disease copy is enough to affect them. That is why X-linked recessive conditions are far more common in boys, and why an affected father passes the variant to every daughter but no son.</p>`}
+    else sum=`<div class="stats"><div class="stat"><div class="k">Each child affected</div><div class="v">${pct(k=>k[1]==='aff')}</div></div>${mode==='ar'?`<div class="stat"><div class="k">Each child a carrier</div><div class="v">${pct(k=>k[1]==='car')}</div></div>`:''}<div class="stat"><div class="k">Each child unaffected${mode==='ar'?', not a carrier':''}</div><div class="v">${pct(k=>k[1]==='ok')}</div></div></div><p class="small">${mode==='ar'?'Two carrier parents have a 1 in 4 chance with each pregnancy, whatever happened with earlier children. Carriers are healthy, which is why recessive variants can pass silently through generations.':'One copy is enough to cause the condition, so an affected parent has a 1 in 2 chance of passing it on. Some dominant conditions, like Huntington disease, only appear in adulthood, after many people have already had children.'}</p>`;
+    $('#pun-sum').innerHTML=sum}
+  $('#pun-mode').addEventListener('click',e=>{const b=e.target.closest('[data-m]');if(!b)return;mode=b.dataset.m;$$('#pun-mode button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));draw()});draw()})();
+
+/* ---------- 14. personal genomes: CYP2D6 ---------- */
+(function(){const AL=[['*1','Normal function',1],['*2','Normal function',1],['*9','Decreased function',0.5],['*10','Decreased function (common in East Asia)',0.25],['*17','Decreased function (common in Africa)',0.5],['*41','Decreased function',0.5],['*3','No function',0],['*4','No function (most common in Europe)',0],['*5','Whole gene deleted',0],['*1x2','Duplicated normal gene',2]];
+  const opts=AL.map((a,i)=>`<option value="${i}">${a[0]} · ${a[1]}</option>`).join('');$('#pg-a').innerHTML=opts;$('#pg-b').innerHTML=opts;$('#pg-a').value='0';$('#pg-b').value='7';
+  function run(){const a=AL[+$('#pg-a').value],b=AL[+$('#pg-b').value],s=a[2]+b[2];
+    const [cls,ph,txt]=s===0?['nonsense','Poor metaboliser','Almost no codeine becomes morphine, so it gives little or no pain relief. CPIC advises avoiding codeine and using a different painkiller that CYP2D6 does not activate.']:s<=1?['missense','Intermediate metaboliser','Somewhat less morphine is made. Codeine can be used at the usual dose, watching for poor pain relief.']:s<=2.25?['silent','Normal metaboliser','Codeine works as expected at standard doses.']:['nonsense','Ultrarapid metaboliser','Codeine is converted to morphine too fast, which can cause dangerous breathing problems. CPIC advises avoiding codeine. Deaths have occurred in children after surgery, and in breastfed babies of ultrarapid mothers.'];
+    $('#pg-out').innerHTML=`<span class="badge ${cls}">${ph}</span><span>Genotype <b>CYP2D6 ${a[0]}/${b[0]}</b>: activity score ${a[2]} + ${b[2]} = <b>${s}</b>. ${txt}</span><span class="small muted" style="width:100%">Activity score bands: 0 poor · 0.25–1 intermediate · 1.25–2.25 normal · above 2.25 ultrarapid. About 7% of people of European ancestry are poor metabolisers, and in some North and East African populations up to ~30% are ultrarapid.</span>`}
+  $('#pg-a').addEventListener('change',run);$('#pg-b').addEventListener('change',run);run()})();
+
+/* ---------- 14. personal genomes: polygenic risk ---------- */
+(function(){const erf=x=>{const s=Math.sign(x);x=Math.abs(x);const t=1/(1+0.3275911*x);return s*(1-((((1.061405429*t-1.453152027)*t+1.421413741)*t-0.284496736)*t+0.254829592)*t*Math.exp(-x*x))};
+  const Phi=z=>0.5*(1+erf(z/Math.SQRT2));const inv=p=>{let lo=-8,hi=8;for(let k=0;k<60;k++){const m=(lo+hi)/2;if(Phi(m)<p)lo=m;else hi=m}return(lo+hi)/2};
+  const phi=z=>Math.exp(-z*z/2)/Math.sqrt(2*Math.PI);const sig=x=>1/(1+Math.exp(-x));
+  const integ=(f,a,b,n=800)=>{let s=0;const h=(b-a)/n;for(let i=0;i<n;i++){const z=a+(i+.5)*h;s+=f(z)*h}return s};
+  function draw(){const p=+$('#prs-p').value/100,base=+$('#prs-base').value/100,or=+$('#prs-or').value;$('#prs-p-v').textContent=Math.round(p*100);$('#prs-base-v').textContent=Math.round(base*100)+'%';$('#prs-or-v').textContent=or.toFixed(1);
+    const b=Math.log(or);let lo=-15,hi=5;for(let k=0;k<60;k++){const a=(lo+hi)/2;if(integ(z=>phi(z)*sig(a+b*z),-8,8)<base)lo=a;else hi=a}const a=(lo+hi)/2;const r=z=>sig(a+b*z);
+    const z=inv(p),rz=r(z),z95=inv(0.95);const tot=integ(z=>phi(z)*r(z),-8,8),top=integ(z=>phi(z)*r(z),z95,8);const topRisk=top/0.05;
+    const cell=(k,v)=>`<div class="stat"><div class="k">${k}</div><div class="v">${v}</div></div>`;
+    $('#prs-stats').innerHTML=cell('Your lifetime risk',(100*rz).toFixed(1)+'%')+cell('Compared with average',(rz/base).toFixed(2)+'×')+cell('Top 5% who never get it',(100*(1-topRisk)).toFixed(0)+'%')+cell('Cases from the top 5%',(100*top/tot).toFixed(0)+'%')+cell('Cases from the bottom 95%',(100*(1-top/tot)).toFixed(0)+'%');
+    const pts=[];for(let q=1;q<=99;q++)pts.push({x:q,y:100*r(inv(q/100))});const ymax=Math.max(10,Math.ceil(pts[98].y/10)*10);const yt=[];for(let t=0;t<=ymax;t+=ymax/5)yt.push(+t.toFixed(1));
+    lineChart($('#prs-wrap'),$('#prs-tip'),{pts,xmin:1,xmax:99,ymin:0,ymax:ymax,base:0,yticks:yt,yfmt:t=>t+'%',xticks:[10,25,50,75,90],xlab:'polygenic score percentile',ref:[{y:100*base,label:`population average ${Math.round(100*base)}%`}],mark:{x:p*100,y:100*rz,label:'you'},label:'Lifetime risk by polygenic score percentile',fmtTip:q=>`${q.x}th percentile<br><b>${q.y.toFixed(1)}%</b> lifetime risk`});
+  }
+  ['prs-p','prs-base','prs-or'].forEach(id=>$('#'+id).addEventListener('input',draw));draw()})();
+
 /* ---------- quizzes ---------- */
 const QUIZ={
+ personal:[['In a VCF file, the genotype 0/1 means…',['no copies of the alternative allele','one reference and one alternative allele (heterozygous)','two copies of the alternative allele','the call failed quality filters'],1,'0 is the REF allele and 1 the first ALT allele, one per chromosome copy.'],
+  ['Two parents both carry one copy of a variant for a recessive condition. What is the chance each child is affected?',['0%','25%','50%','100%'],1,'Each parent passes on the variant half the time, so ½ × ½ = ¼, independently for every pregnancy.'],
+  ['A person has CYP2D6 activity score 0. What happens if they take codeine?',['It works unusually well','It works normally','They make little morphine, so it gives poor pain relief','It is converted to morphine dangerously fast'],2,'Codeine is a prodrug. Poor metabolisers cannot activate it. Ultrarapid metabolisers are the ones at risk of toxicity.'],
+  ['Someone is in the top 5% for a polygenic risk score. What does that usually mean?',['They will certainly develop the disease','Their risk is raised, yet most people in the top 5% still never develop it','Their risk is lower than average','Nothing; the scores are random'],1,'Scores shift probabilities. Most cases also arise in people with average scores, because there are so many more of them.']],
  metabolism:[['Roughly how many ATP does complete aerobic breakdown of one glucose give?',['2','About 4','About 30–32','About 100'],2,'Most of it comes from oxidative phosphorylation, which needs oxygen.'],
   ['In phenylketonuria (PKU), which enzyme is missing, and what builds up?',['HGD; homogentisate','Phenylalanine hydroxylase; phenylalanine','Lactase; lactose','Hexokinase; glucose'],1,'The step before the missing enzyme backs up. Phenylalanine rises and spills into side routes.'],
   ['Without oxygen, why do cells make lactate or ethanol?',['To make extra ATP','To regenerate NAD⁺ so glycolysis can keep running','To store energy as fat','To produce oxygen'],1,'Fermentation makes no ATP itself; it recycles NADH back to NAD⁺.']],
@@ -2476,7 +2707,8 @@ $$('[data-dot]').forEach(d=>{if(!QUIZ[d.dataset.dot])d.style.visibility='hidden'
 updateProgress();
 
 /* ---------- glossary ---------- */
-const GL=[['ATP','Adenosine triphosphate, the energy currency of the cell.'],['Catabolism / anabolism','Breaking molecules down to release energy versus building them up using energy.'],['Citric acid cycle','The mitochondrial cycle that oxidises acetyl-CoA to CO₂ and loads NADH and FADH₂. Also called the Krebs or TCA cycle.'],['EC number','Enzyme Commission number: a four-part code classifying an enzyme by the reaction it catalyses.'],['Fermentation','Regenerating NAD⁺ without oxygen by turning pyruvate into lactate or ethanol.'],['Flux balance analysis','Predicting reaction rates in a metabolic network with linear programming, assuming nothing accumulates.'],['Glycolysis','The ten-step pathway splitting glucose into two pyruvate in the cytoplasm.'],['Inborn error of metabolism','An inherited disease caused by a missing or faulty enzyme, such as PKU.'],['Metabolite','A small molecule made or used in metabolism.'],['NADH','A carrier of high-energy electrons, made in catabolism and used to power ATP synthesis.'],['Pathway','A chain of enzyme reactions that converts one molecule into another.'],['Bootstrap','Resampling alignment columns to measure how strongly the data support each clade.'],['Clade','An ancestor and all of its descendants. Also called a monophyletic group.'],['Cladogram / phylogram','A tree showing only branching order, versus one with branch lengths drawn to scale.'],['Jukes–Cantor','The simplest model for correcting distances for hidden repeat substitutions.'],['MRCA','Most recent common ancestor of a set of tips.'],['Molecular clock','The assumption that sequences change at a roughly constant rate, so distance tracks time.'],['Neighbour joining','A fast distance method for building trees that does not assume a molecular clock.'],['Newick','The standard text format for trees, using nested parentheses, e.g. ((A,B),C);'],['Outgroup','A sequence known to lie outside the group being studied, used to root the tree.'],['Phylogeny','The evolutionary history of a set of species or sequences, drawn as a tree.'],['UPGMA','A distance-based tree method that repeatedly joins the closest pair and assumes a molecular clock.'],
+const GL=[['Activity score','For drug-metabolising genes, the sum of the function values of a person\'s two alleles, used to predict drug response.'],['Carrier','Someone with one copy of a recessive disease variant. Usually unaffected.'],['De novo mutation','A new mutation present in a child but in neither parent.'],['Genotype','The alleles a person has at a site, e.g. 0/1 in a VCF.'],['GWAS','Genome-wide association study: testing many variants across many people for links to a trait.'],['Heterozygous / homozygous','Having two different alleles at a site versus two copies of the same one.'],['Haplogroup','A group of related mitochondrial or Y-chromosome lineages sharing a set of variants.'],['Penetrance','The share of people carrying a variant who actually develop the related condition.'],['Pharmacogenomics','How genetic variation affects the response to drugs.'],['Polygenic risk score','A weighted sum of many small-effect variants, used to estimate genetic risk for a common trait.'],['Secondary finding','A medically important result found by chance when sequencing for another reason.'],['Somatic mutation','A mutation arising in body cells during life, such as in a tumour. Not inherited.'],['Star allele','A named version of a pharmacogene, such as CYP2D6*4.'],['VUS','Variant of uncertain significance: not enough evidence to call it harmful or harmless.'],
+['ATP','Adenosine triphosphate, the energy currency of the cell.'],['Catabolism / anabolism','Breaking molecules down to release energy versus building them up using energy.'],['Citric acid cycle','The mitochondrial cycle that oxidises acetyl-CoA to CO₂ and loads NADH and FADH₂. Also called the Krebs or TCA cycle.'],['EC number','Enzyme Commission number: a four-part code classifying an enzyme by the reaction it catalyses.'],['Fermentation','Regenerating NAD⁺ without oxygen by turning pyruvate into lactate or ethanol.'],['Flux balance analysis','Predicting reaction rates in a metabolic network with linear programming, assuming nothing accumulates.'],['Glycolysis','The ten-step pathway splitting glucose into two pyruvate in the cytoplasm.'],['Inborn error of metabolism','An inherited disease caused by a missing or faulty enzyme, such as PKU.'],['Metabolite','A small molecule made or used in metabolism.'],['NADH','A carrier of high-energy electrons, made in catabolism and used to power ATP synthesis.'],['Pathway','A chain of enzyme reactions that converts one molecule into another.'],['Bootstrap','Resampling alignment columns to measure how strongly the data support each clade.'],['Clade','An ancestor and all of its descendants. Also called a monophyletic group.'],['Cladogram / phylogram','A tree showing only branching order, versus one with branch lengths drawn to scale.'],['Jukes–Cantor','The simplest model for correcting distances for hidden repeat substitutions.'],['MRCA','Most recent common ancestor of a set of tips.'],['Molecular clock','The assumption that sequences change at a roughly constant rate, so distance tracks time.'],['Neighbour joining','A fast distance method for building trees that does not assume a molecular clock.'],['Newick','The standard text format for trees, using nested parentheses, e.g. ((A,B),C);'],['Outgroup','A sequence known to lie outside the group being studied, used to root the tree.'],['Phylogeny','The evolutionary history of a set of species or sequences, drawn as a tree.'],['UPGMA','A distance-based tree method that repeatedly joins the closest pair and assumes a molecular clock.'],
 ['Active site','The pocket of an enzyme where the substrate binds and the reaction happens.'],['Alternative splicing','Joining different combinations of exons from one gene to make different mRNAs.'],['Aneuploidy','Having an extra or missing chromosome, as in trisomy 21.'],['Centromere','The constricted region that joins sister chromatids and attaches to the spindle during division.'],['Chromatin','DNA packaged with histones and other proteins.'],['CPM / TPM','Counts per million and transcripts per million: RNA-seq units that correct for sequencing depth, and (TPM) gene length.'],['DNA methylation','A methyl group added to cytosine, usually at CpG sites. Promoter methylation tends to silence genes.'],['Domain','A compact part of a protein that folds on its own and often has its own function.'],['Enhancer','A regulatory DNA region, often far from the gene, where activators bind to boost transcription.'],['Enzyme','A protein (or RNA) that speeds up a chemical reaction without being used up.'],['Epigenetics','Heritable changes in gene activity that do not change the DNA sequence, such as methylation and histone marks.'],['Euchromatin / heterochromatin','Loosely packed, active chromatin versus tightly packed, mostly silent chromatin.'],['Fold change','The ratio of expression between two conditions, usually reported as log₂.'],['Histone','A protein that DNA wraps around. Its tails carry chemical marks that affect gene activity.'],['Isoform','One of several versions of a transcript or protein made from the same gene.'],['Karyotype','The full set of chromosomes of a cell, and the notation for it, such as 46,XX.'],['Kₘ','The substrate concentration at which an enzyme works at half its maximum rate.'],['Nucleosome','About 147 bp of DNA wrapped around a core of eight histones.'],['Operon','A group of bacterial genes transcribed together from one promoter.'],['Post-translational modification','A chemical change to a protein after it is made, such as phosphorylation.'],['Signal peptide','A hydrophobic N-terminal stretch that directs a protein into the secretory pathway.'],['Telomere','Repeats of TTAGGG that cap each chromosome end.'],['Transcription factor','A protein that binds a specific DNA motif and turns genes up or down.'],
 ['Allele','One version of a gene or site. You inherit one allele from each parent at most positions.'],['Alignment','An arrangement of two or more sequences that lines up positions thought to share an ancestor, with gaps for insertions and deletions.'],['Alu element','A ~300 bp primate-specific repeat with over a million copies in the human genome, ending in an A-rich tail.'],['Amino acid','One of the 20 building blocks of proteins, each with a one-letter code.'],['Antiparallel','The two DNA strands run in opposite 5′→3′ directions.'],['Assembly','Reconstructing a genome sequence from many overlapping reads.'],['BAM / SAM','Formats for reads aligned to a reference. SAM is text; BAM is its compressed binary form.'],['BLAST','A fast heuristic search that finds local alignments between a query and a database.'],['Codon','Three consecutive bases in a coding sequence that specify one amino acid or a stop.'],['Coding strand','The DNA strand with the same sequence as the mRNA (T instead of U). Also called the sense strand.'],['Contig','A continuous stretch of sequence produced by assembly.'],['Coverage (depth)','How many reads overlap a given base, on average or at one position.'],['CpG island','A stretch of DNA richer in CG dinucleotides than expected. Often marks promoters.'],['E-value','In BLAST, the number of hits this good expected by chance. Smaller is more significant.'],['Exon','A segment of a gene kept in the mature RNA after splicing.'],['FASTA','A text format: a ">" header line followed by sequence lines.'],['FASTQ','A four-line-per-read format with sequence and per-base quality scores.'],['Frameshift','An insertion or deletion whose length is not a multiple of 3, shifting all downstream codons.'],['Gene','A region of DNA transcribed into a functional RNA, which may be translated into protein.'],['Genome','All the DNA of an organism (or organelle).'],['Haploid / diploid','One copy of each chromosome (sperm, egg) versus two copies (most human cells).'],['Homolog','A sequence that shares common ancestry with another. Includes orthologs and paralogs.'],['Indel','An insertion or deletion of bases.'],['Intron','A segment removed from RNA by splicing. Usually starts with GT and ends with AG.'],['k-mer','A substring of length k. Used in assembly, read counting and fast search.'],['Missense','A substitution that changes one amino acid to another.'],['Motif','A short sequence pattern with biological meaning, such as a binding site.'],['Nonsense','A substitution that creates a premature stop codon.'],['Nucleotide','A sugar, a phosphate and a base: the unit of DNA or RNA.'],['Open reading frame (ORF)','A stretch from a start codon to the next in-frame stop codon.'],['Ortholog','Homologs in different species that diverged by speciation.'],['Paralog','Homologs in the same genome that diverged by gene duplication.'],['Phred score','Base quality: Q = −10·log₁₀(error probability). Q30 means 1 error in 1,000.'],['Promoter','DNA upstream of a gene where transcription machinery binds.'],['Read','One sequenced fragment reported by a sequencer.'],['Reference genome','A standard assembled genome (such as GRCh38) that reads are compared against.'],['Reverse complement','The sequence of the opposite strand, read 5′→3′.'],['RNA-seq','Sequencing a sample\'s RNA to measure gene expression.'],['SNP / SNV','A single-nucleotide variant. "SNP" usually means one common in the population.'],['Splicing','Removing introns from pre-mRNA and joining exons together.'],['Template strand','The DNA strand RNA polymerase reads. It is complementary to the RNA.'],['Transcription','Making RNA from a DNA template.'],['Translation','Making protein from an mRNA template at the ribosome.'],['UTR','Untranslated region at the 5′ or 3′ end of an mRNA.'],['VCF','Variant Call Format: one row per variant site with position, alleles, quality and genotypes.']];
 GL.sort((a,b)=>a[0].localeCompare(b[0]));
