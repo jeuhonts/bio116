@@ -1,0 +1,1100 @@
+<title>Globin Family Trees</title>
+<meta name="description" content="Bio 116 tutorial: molecular phylogeny, from alignment to tree.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Literata:opsz,wght@7..72,500;7..72,650&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&display=swap">
+<style>
+
+:root{
+  --bg:#FAF8F9; --panel:#FFFFFF; --panel-2:#F3EEF1; --ink:#1F1A21; --muted:#645B68; --line:#E3DAE0;
+  --heme:#A8173A; --heme-soft:#F7DDE3; --plum:#4C2C63; --plum-soft:#EBE2F1;
+  --r-hyd:#D9E6F7; --r-aro:#E3DAF5; --r-pos:#F8D8DE; --r-neg:#F5E1C4; --r-pol:#D5EEDF; --r-spe:#ECE8D2;
+  --good:#1E6B45; --warn:#8A5A00;
+  --display:"Literata", Georgia, "Times New Roman", serif;
+  --body:"Source Sans 3", "Segoe UI", Arial, sans-serif;
+  --mono:"JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#141015; --panel:#1C171E; --panel-2:#251F28; --ink:#EEE8EF; --muted:#A99EAD; --line:#352D38;
+    --heme:#F2708A; --heme-soft:#4A1E2A; --plum:#C9A9E2; --plum-soft:#33263E;
+    --r-hyd:#1E3350; --r-aro:#33294F; --r-pos:#4C2230; --r-neg:#48341E; --r-pol:#1B3E2D; --r-spe:#383422;
+    --good:#6FD19E; --warn:#E9B45A;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#141015; --panel:#1C171E; --panel-2:#251F28; --ink:#EEE8EF; --muted:#A99EAD; --line:#352D38;
+  --heme:#F2708A; --heme-soft:#4A1E2A; --plum:#C9A9E2; --plum-soft:#33263E;
+  --r-hyd:#1E3350; --r-aro:#33294F; --r-pos:#4C2230; --r-neg:#48341E; --r-pol:#1B3E2D; --r-spe:#383422;
+  --good:#6FD19E; --warn:#E9B45A;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.6;margin:0}
+.wrap{max-width:1180px;margin:0 auto;padding-inline:20px;padding-block:0 64px;display:grid;grid-template-columns:200px minmax(0,1fr);gap:48px}
+@media (max-width:980px){.wrap{grid-template-columns:minmax(0,1fr);gap:0}.toc{display:none}}
+@media (max-width:480px){.wrap{padding-inline:16px}body{font-size:16px}}
+.toc{position:sticky;top:env(safe-area-inset-top,0px);align-self:start;padding-top:40px;font-size:14px}
+.toc b{display:block;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.toc ol{list-style:none;margin:0;padding:0;display:grid;gap:2px;counter-reset:t}
+.toc a{display:block;color:var(--muted);text-decoration:none;padding:4px 8px;border-left:2px solid var(--line);counter-increment:t}
+.toc a::before{content:counter(t) ". ";font-variant-numeric:tabular-nums}
+.toc a:hover,.toc a.on{color:var(--ink);border-left-color:var(--heme)}
+main{min-width:0}
+.prose{max-width:68ch}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;line-height:1.2;font-weight:650}
+h1{font-size:clamp(2.2rem,5vw,3.4rem);margin:0 0 16px;letter-spacing:-.01em}
+h2{font-size:1.75rem;margin:0 0 12px}
+h3{font-size:1.2rem;margin:28px 0 8px;font-weight:500}
+p{margin:0 0 14px}
+a{color:var(--heme)}
+a:focus-visible,button:focus-visible,select:focus-visible,input:focus-visible,summary:focus-visible,td:focus-visible{outline:2px solid var(--heme);outline-offset:2px}
+code,.mono{font-family:var(--mono);font-size:.88em}
+.eyebrow{font-size:13px;letter-spacing:.09em;text-transform:uppercase;color:var(--heme);font-weight:700;margin-bottom:12px}
+header.hero{padding-block:48px 24px;border-bottom:1px solid var(--line);margin-bottom:8px}
+.lede{font-size:1.15rem;max-width:62ch;color:var(--ink)}
+.meta{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0 26px;padding:0;list-style:none}
+.meta li{font-size:14px;padding:4px 10px;border:1px solid var(--line);border-radius:999px;color:var(--muted);background:var(--panel)}
+section{padding-block:40px 8px;border-bottom:1px solid var(--line);scroll-margin-top:12px}
+section:last-of-type{border-bottom:0}
+.snum{font-family:var(--mono);font-size:13px;color:var(--heme);display:block;margin-bottom:6px}
+.goals{margin:0;padding-left:20px}
+.goals li{margin-bottom:4px}
+.note{font-size:15px;color:var(--muted);border-left:3px solid var(--plum);padding:4px 0 4px 14px;margin:18px 0;max-width:68ch}
+.eq{font-family:var(--mono);font-size:15px;background:var(--panel-2);border-radius:6px;padding:14px 16px;overflow-x:auto;white-space:pre;margin:14px 0 18px;max-width:100%;line-height:1.7}
+.tablewrap{overflow-x:auto;margin:16px 0 20px}
+table.data{border-collapse:collapse;font-size:15px;min-width:560px;width:100%}
+table.data th,table.data td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+table.data th{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:700}
+table.data td.num{font-variant-numeric:tabular-nums}
+
+/* tool panels */
+.tool{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px;margin:20px 0 24px}
+.tool-title{font-family:var(--display);font-size:1.05rem;font-weight:650;margin:0 0 12px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:baseline}
+.tool-title small{font-family:var(--body);font-weight:400;font-size:13px;color:var(--muted)}
+.controls{display:flex;flex-wrap:wrap;gap:12px 16px;align-items:flex-end;margin-bottom:14px}
+.field{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted);min-width:0}
+.field.grow{flex:1 1 220px}
+.field input[type=text]{font-family:var(--mono);text-transform:uppercase}
+select,input[type=text],input[type=number]{font:inherit;font-size:15px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:6px 8px;min-width:0;max-width:100%}
+input[type=number]{width:80px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.seg label{padding:6px 12px;font-size:14px;color:var(--ink);cursor:pointer;background:var(--bg)}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg label:has(input:checked){background:var(--plum);color:var(--bg)}
+.seg label:has(input:focus-visible){outline:2px solid var(--heme);outline-offset:-2px}
+button{font:inherit;font-size:14px;font-weight:600;border-radius:6px;padding:7px 14px;cursor:pointer;border:1px solid var(--line);background:var(--bg);color:var(--ink)}
+button.primary{background:var(--heme);border-color:var(--heme);color:var(--bg)}
+button:hover{border-color:var(--heme)}
+.btnrow{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}
+.chips button{font-weight:400;border-radius:999px;padding:4px 12px}
+
+/* stats */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:8px;overflow:hidden;margin:0 0 14px}
+.stat{background:var(--panel);padding:10px 12px}
+.stat b{display:block;font-family:var(--mono);font-size:1.25rem;font-weight:600;font-variant-numeric:tabular-nums}
+.stat span{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+
+/* alignment display */
+.aln{font-family:var(--mono);font-size:14px;line-height:1.45;overflow-x:auto;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:12px 14px;white-space:pre;max-width:100%}
+.aln .blk{margin-bottom:12px}
+.aln .blk:last-child{margin-bottom:0}
+.aln .nm{color:var(--muted)}
+.aln .mid{color:var(--muted)}
+.r{border-radius:2px}
+.c-hyd{background:var(--r-hyd)} .c-aro{background:var(--r-aro)} .c-pos{background:var(--r-pos)}
+.c-neg{background:var(--r-neg)} .c-pol{background:var(--r-pol)} .c-spe{background:var(--r-spe)}
+.plain .r{background:none}
+.key{outline:2px solid var(--heme);outline-offset:-1px;font-weight:600;color:var(--heme)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;color:var(--muted);margin:10px 0 0}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{display:inline-block;width:14px;height:14px;border-radius:3px}
+.check{font-size:14px;margin:0 0 12px;display:flex;flex-wrap:wrap;gap:6px 18px}
+.ok{color:var(--good);font-weight:600}
+.no{color:var(--warn);font-weight:600}
+
+/* DP explorer */
+.dpwrap{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--bg);max-width:100%}
+table.dp{border-collapse:collapse;font-family:var(--mono);font-size:12px;margin:0}
+table.dp th{font-weight:600;color:var(--muted);width:34px;height:30px;text-align:center;background:var(--panel-2)}
+table.dp th.idx{font-size:10px;font-weight:400}
+table.dp td{width:34px;height:30px;text-align:center;border:1px solid var(--line);position:relative;font-variant-numeric:tabular-nums;cursor:pointer;color:var(--ink)}
+table.dp td.empty{color:transparent;cursor:default}
+table.dp td .ar{position:absolute;top:0;left:2px;font-size:8px;color:var(--muted);line-height:1.1}
+table.dp td.src{outline:2px dashed var(--plum);outline-offset:-3px}
+table.dp td.cur{background:var(--plum-soft);font-weight:600}
+table.dp td.path{background:var(--heme-soft);color:var(--heme);font-weight:600}
+table.dp td.sel{outline:2px solid var(--heme);outline-offset:-2px}
+.calc{font-family:var(--mono);font-size:13px;background:var(--panel-2);border-radius:8px;padding:12px 14px;margin:12px 0;white-space:pre;overflow-x:auto;line-height:1.6;min-height:7.5em}
+.calc b{color:var(--heme)}
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px}
+@media (max-width:760px){.two{grid-template-columns:minmax(0,1fr)}}
+
+/* BLOSUM heatmap */
+.hm{border-collapse:collapse;font-family:var(--mono);font-size:11px}
+.hm th{width:26px;height:24px;color:var(--muted);font-weight:600}
+.hm td{width:26px;height:24px;text-align:center;cursor:pointer;font-variant-numeric:tabular-nums;border:1px solid var(--bg)}
+.hm td.sel{outline:2px solid var(--ink);outline-offset:-2px}
+.hm th.hl{color:var(--heme)}
+.readout{font-size:15px;background:var(--panel-2);border-radius:8px;padding:12px 14px;min-height:5.5em}
+.readout .big{font-family:var(--mono);font-size:1.6rem;font-weight:600;color:var(--heme);display:block}
+
+/* plots */
+canvas{display:block;max-width:100%;background:var(--bg);border:1px solid var(--line);border-radius:8px}
+svg text{font-family:var(--body)}
+.hist{width:100%;height:auto;display:block;max-width:100%}
+
+/* identity matrix */
+table.idm{border-collapse:collapse;font-size:14px;min-width:520px}
+table.idm th,table.idm td{padding:8px 10px;text-align:center;border:1px solid var(--line)}
+table.idm th{font-weight:600;color:var(--muted);font-size:13px}
+table.idm td{font-family:var(--mono);font-variant-numeric:tabular-nums}
+
+/* questions */
+details{border:1px solid var(--line);border-radius:8px;background:var(--panel);padding:12px 16px;margin:0 0 10px;max-width:72ch}
+summary{cursor:pointer;font-weight:600}
+details p{margin:10px 0 0}
+.refs{font-size:15px;padding-left:20px}
+.refs li{margin-bottom:6px}
+footer{font-size:13px;color:var(--muted);padding-top:24px}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+
+/* ---- phylogeny tutorial additions ---- */
+[hidden]{display:none!important}
+:root{--s1:#2a78d6;--s2:#eb6834;--s3:#1baf7a;--s4:#eda100}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--s1:#3987e5;--s2:#d95926;--s3:#199e70;--s4:#c98500}}
+:root[data-theme="dark"]{--s1:#3987e5;--s2:#d95926;--s3:#199e70;--s4:#c98500}
+.part{font-family:var(--display);font-size:1rem;color:var(--plum);letter-spacing:.02em;margin:0;padding-block:36px 0}
+.diagram{width:100%;height:auto;display:block;max-width:100%}
+table.data td.hl,table.data tr.hl td{background:var(--heme-soft)}
+table.data td.min{outline:2px solid var(--heme);outline-offset:-2px;font-weight:700}
+.nwk{font-family:var(--mono);font-size:13px;background:var(--panel-2);border-radius:6px;padding:10px 12px;overflow-x:auto;white-space:pre;max-width:100%}
+.copyrow{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:10px 0 6px;flex-wrap:wrap}
+.colview{font-family:var(--mono);font-size:15px;line-height:1.7;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 14px;white-space:pre;overflow-x:auto}
+.colview b{color:var(--heme)}
+.bars{display:grid;gap:6px;margin:10px 0 0}
+.bars .row{display:grid;grid-template-columns:minmax(110px,190px) minmax(0,1fr) 52px;gap:10px;align-items:center;font-size:14px}
+.bars .track{height:14px;background:var(--panel-2);border-radius:3px;overflow:hidden}
+.bars .fill{height:100%;background:var(--s1);border-radius:0 3px 3px 0}
+.bars .fill.alt{background:var(--s2)}
+.bars .v{font-family:var(--mono);text-align:right;font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+.cmp{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:8px;overflow:hidden;margin:16px 0}
+@media (max-width:640px){.cmp{grid-template-columns:minmax(0,1fr)}}
+.cmp > div{background:var(--panel);padding:14px 16px}
+.cmp h3{margin:0 0 8px}
+.cmp ul{margin:0;padding-left:18px;font-size:15px}
+</style>
+
+<div class="wrap">
+<nav class="toc" aria-label="Contents">
+  <b>Contents</b>
+  <ol>
+    <li><a href="#trees">Reading a tree</a></li>
+    <li><a href="#genes">Gene trees</a></li>
+    <li><a href="#count">How many trees?</a></li>
+    <li><a href="#dist">Distances</a></li>
+    <li><a href="#nj">Neighbor-joining</a></li>
+    <li><a href="#pars">Parsimony</a></li>
+    <li><a href="#boot">Bootstrap</a></li>
+    <li><a href="#ml">Likelihood and Bayes</a></li>
+    <li><a href="#run">Building real trees</a></li>
+    <li><a href="#pitfalls">Pitfalls</a></li>
+    <li><a href="#check">Check yourself</a></li>
+    <li><a href="#refs">References</a></li>
+  </ol>
+</nav>
+
+<main>
+<header class="hero">
+  <div class="eyebrow">Bio 116 · Tutorial · Molecular phylogeny</div>
+  <h1>Globin Family Trees</h1>
+  <p class="lede">A multiple alignment says which residues are homologous. A phylogenetic tree says how the sequences are related: which ones share a more recent common ancestor, and how much change separates them. This tutorial builds trees from the globin alignment of the last tutorial using distances, neighbor-joining, parsimony and the bootstrap. It then introduces the likelihood and Bayesian methods used in practice.</p>
+  <ul class="meta">
+    <li>About 55 minutes</li>
+    <li>Follows: Aligning Many Globins</li>
+    <li>All tools run in your browser</li>
+  </ul>
+  <svg class="diagram" id="heroTree" viewBox="0 0 760 250" role="img" aria-label="Neighbor-joining tree of the five globins"></svg>
+  <p class="note" style="margin-top:4px">The five globins, tree built in your browser by neighbor-joining on Kimura distances, rooted with leghemoglobin as the outgroup. Branch lengths are in estimated substitutions per site. <b>D</b> marks a gene duplication and <b>S</b> a speciation.</p>
+</header>
+
+<section id="goals-sec" aria-labelledby="goals-h">
+  <div class="prose">
+  <h2 id="goals-h">By the end you should be able to</h2>
+  <ul class="goals">
+    <li>Read a phylogenetic tree: topology, branch lengths, root, clades and Newick format.</li>
+    <li>Tell orthologs from paralogs, and a gene tree from a species tree.</li>
+    <li>Explain why observed differences must be corrected for multiple substitutions.</li>
+    <li>Build a tree by neighbor-joining and score trees by parsimony.</li>
+    <li>Interpret bootstrap support, and know when to use maximum likelihood or Bayesian methods.</li>
+  </ul>
+  </div>
+</section>
+
+<p class="part">Part 1 · Trees and what they claim</p>
+
+<section id="trees" aria-labelledby="trees-h">
+  <span class="snum">1</span>
+  <div class="prose">
+  <h2 id="trees-h">Reading a tree</h2>
+  <ul class="goals">
+    <li><b>Leaves</b> (tips) are the sequences you have. <b>Internal nodes</b> are inferred ancestors that you never observe.</li>
+    <li><b>Topology</b> is the branching pattern. Rotating two branches around a node does not change it.</li>
+    <li><b>Branch length</b> is the estimated amount of change, usually substitutions per site. Only horizontal distance counts; vertical spacing is just for layout.</li>
+    <li>A <b>clade</b> is an ancestor and all of its descendants. On the tree above, human and whale myoglobin form a clade.</li>
+    <li>Most methods produce an <b>unrooted</b> tree: relationships without a direction of time. To <b>root</b> it, add an <b>outgroup</b> known to have branched off first (here leghemoglobin), or use the midpoint of the longest path.</li>
+  </ul>
+  <p>Trees are exchanged as text in <b>Newick format</b>: nested parentheses for clades, names for leaves, and <code>:number</code> for branch lengths. This is the tree above:</p>
+  </div>
+  <div class="nwk" id="heroNwk"></div>
+</section>
+
+<section id="genes" aria-labelledby="genes-h">
+  <span class="snum">2</span>
+  <div class="prose">
+  <h2 id="genes-h">Gene trees are not species trees</h2>
+  <p>A tree of sequences is a <b>gene tree</b>. Its nodes can be two kinds of event (Fitch 1970):</p>
+  <ul class="goals">
+    <li><b>Speciation (S)</b>: a population splits into two species, each carrying a copy of the gene. The copies are <b>orthologs</b>. Human and sperm whale myoglobin are orthologs, separated by the split between the primate and whale lineages roughly 90–100 million years ago.</li>
+    <li><b>Duplication (D)</b>: a gene is copied within one genome, and the copies evolve separately. They are <b>paralogs</b>. Hemoglobin α and β are paralogs: both are in your genome. They arose by duplication about 450 million years ago in the ancestor of jawed vertebrates. Myoglobin and hemoglobin are paralogs from an even older split, probably during the genome duplications of early vertebrates.</li>
+  </ul>
+  <p>This is why the globin tree does not match the tree of life. Human α-globin is more closely related to whale α-globin than to human β-globin. Mixing orthologs and paralogs without knowing it is one of the most common mistakes in phylogenetics.</p>
+  </div>
+</section>
+
+<section id="count" aria-labelledby="count-h">
+  <span class="snum">3</span>
+  <div class="prose">
+  <h2 id="count-h">How many trees are there?</h2>
+  <p>Each new sequence can be attached to any branch of the existing tree, so the number of possible trees grows faster than exponentially. With <i>n</i> sequences there are (2n − 5)!! unrooted binary trees, the product 3 × 5 × 7 × … × (2n − 5).</p>
+  </div>
+  <div class="tablewrap"><table class="data" id="countTable" style="max-width:560px"></table></div>
+  <p class="note">Five globins have 15 unrooted trees, few enough to check every one, as the parsimony section does. For real data sets, programs search tree space heuristically.</p>
+</section>
+
+<p class="part">Part 2 · Building trees</p>
+
+<section id="dist" aria-labelledby="dist-h">
+  <span class="snum">4</span>
+  <div class="prose">
+  <h2 id="dist-h">From alignment to distances</h2>
+  <p>The simplest measure is the <b>p-distance</b>: the fraction of aligned sites where two sequences differ. It underestimates real change. A site can change twice, or change and change back, and still show one difference or none. As sequences diverge, p levels off (saturates) while the true number of substitutions keeps growing. Correction formulas estimate the hidden changes:</p>
+  </div>
+  <div class="eq">p-distance      d = p
+Poisson         d = −ln(1 − p)                 each site changes at the same rate
+Kimura protein  d = −ln(1 − p − 0.2 p²)        an empirical fit for amino acids (Kimura 1983);
+                                               undefined when p is above about 0.854</div>
+  <div class="tool">
+    <div class="tool-title">Distances from the globin alignment <small>Sites where both sequences have a residue</small></div>
+    <div class="controls">
+      <label class="field">Correction
+        <select id="distSel"><option value="p">p-distance</option><option value="poisson">Poisson</option><option value="kimura" selected>Kimura protein</option></select>
+      </label>
+    </div>
+    <div class="two">
+      <div class="tablewrap" style="margin:0"><table class="data" id="distTable" style="min-width:0"></table></div>
+      <svg class="diagram" id="satChart" viewBox="0 0 420 300" role="img" aria-label="Corrected distance against p-distance"></svg>
+    </div>
+  </div>
+  <div class="prose">
+  <p>For human and whale myoglobin (p ≈ 0.16) the corrections barely matter. For leghemoglobin against the animal globins (p ≈ 0.82), the Kimura distance is several times p. Without correction, the long branches in the tree would be far too short.</p>
+  </div>
+</section>
+
+<section id="nj" aria-labelledby="nj-h">
+  <span class="snum">5</span>
+  <div class="prose">
+  <h2 id="nj-h">Neighbor-joining, step by step</h2>
+  <p>Neighbor-joining (Saitou &amp; Nei 1987) builds a tree by repeatedly joining two nodes. It does not simply join the closest pair. It joins the pair that minimizes Q, which also accounts for how far each node is from all the others. A fast-evolving sequence then does not look close to everything just because its branch is long.</p>
+  </div>
+  <div class="eq">Q(i,j) = (n − 2)·d(i,j) − Σₖ d(i,k) − Σₖ d(j,k)
+
+join the pair with the smallest Q into a new node u:
+  branch i–u = d(i,j)/2 + (Σₖ d(i,k) − Σₖ d(j,k)) / (2(n − 2))        branch j–u = d(i,j) − branch i–u
+  d(u,k)     = (d(i,k) + d(j,k) − d(i,j)) / 2
+repeat until three nodes remain, then join them to one centre</div>
+  <div class="tool">
+    <div class="tool-title">Neighbor-joining on the globins <small>Uses the correction chosen above</small></div>
+    <div class="btnrow" id="njSteps"></div>
+    <div class="two">
+      <div>
+        <div class="tablewrap" style="margin:0"><table class="data" id="njQ" style="min-width:0"></table></div>
+        <p class="note" id="njNote" style="margin-top:10px"></p>
+      </div>
+      <div>
+        <div class="controls"><label class="field">Tree method <select id="treeMethod"><option value="nj" selected>Neighbor-joining</option><option value="upgma">UPGMA</option></select></label></div>
+        <svg class="diagram" id="njTree" viewBox="0 0 420 230" role="img" aria-label="Tree from the chosen method"></svg>
+      </div>
+    </div>
+  </div>
+  <div class="prose">
+  <p>Switch the tree method to <b>UPGMA</b>, the clustering method that built the guide tree in the last tutorial. It gives the same groups here but forces every leaf to the same distance from the root. That is a <b>molecular clock</b>: equal rates in all lineages. Real proteins rarely keep a clock, so UPGMA is a poor phylogeny method, however useful it is for guide trees. Neighbor-joining lets branch lengths differ.</p>
+  </div>
+</section>
+
+<section id="pars" aria-labelledby="pars-h">
+  <span class="snum">6</span>
+  <div class="prose">
+  <h2 id="pars-h">Maximum parsimony</h2>
+  <p>Parsimony skips distances and works column by column. The best tree is the one that explains the alignment with the fewest substitutions. For one column on one tree, the Fitch (1971) algorithm counts the minimum number of changes. Starting at the tips, each ancestor gets the intersection of its children's residue sets if that is not empty, and otherwise their union plus one change. Add up all columns and you have the tree's <b>length</b>.</p>
+  <p>Only <b>parsimony-informative</b> columns can prefer one tree over another: at least two residue types that each appear in at least two sequences. With five sequences we can score all 15 trees.</p>
+  </div>
+  <div class="tool">
+    <div class="tool-title">All 15 trees, scored by parsimony <small>Gaps treated as missing data</small></div>
+    <div class="stats" id="parsStats"></div>
+    <div class="tablewrap" style="margin:0"><table class="data" id="parsTable"></table></div>
+    <h3>One column at a time</h3>
+    <div class="controls">
+      <label class="field" style="flex:1 1 300px">Informative column: <b id="colLabel"></b>
+        <input type="range" id="colSlider" min="0" max="10" value="0" step="1">
+      </label>
+    </div>
+    <div class="colview" id="colView"></div>
+  </div>
+  <div class="prose">
+  <p>The best tree, the same one neighbor-joining found, wins by a single step over tree #2. In tree #2, α-globin groups with the myoglobins and β-globin branches off next to leghemoglobin. Seen unrooted, it pairs β-globin with leghemoglobin. Step through the informative columns and you will find some that support each. Parsimony is intuitive and needs no model. But it has no correction for multiple changes, so it can be misled when some branches are much longer than others (see Pitfalls).</p>
+  </div>
+</section>
+
+<section id="boot" aria-labelledby="boot-h">
+  <span class="snum">7</span>
+  <div class="prose">
+  <h2 id="boot-h">How sure are we? The bootstrap</h2>
+  <p>A tree is an estimate from a finite alignment. Felsenstein's (1985) bootstrap asks how much each clade depends on the particular columns you happened to have. Build a new alignment of the same length by sampling columns at random <i>with replacement</i>, rebuild the tree, and repeat hundreds of times. A clade's <b>bootstrap support</b> is the percentage of replicate trees that contain it.</p>
+  </div>
+  <div class="tool">
+    <div class="tool-title">Bootstrap neighbor-joining <small>Uses the correction chosen above</small></div>
+    <div class="controls">
+      <label class="field">Replicates <select id="bootN"><option>100</option><option selected>500</option><option>1000</option></select></label>
+      <button id="bootRun" class="primary">Run bootstrap</button>
+    </div>
+    <div class="two">
+      <svg class="diagram" id="bootTree" viewBox="0 0 420 230" role="img" aria-label="Neighbor-joining tree with bootstrap support"></svg>
+      <div>
+        <b style="font-size:14px">Every group seen in the replicates</b>
+        <div class="bars" id="bootBars"></div>
+      </div>
+    </div>
+  </div>
+  <div class="prose">
+  <p>The myoglobin pair is recovered in nearly every replicate. The hemoglobin pair is weaker. In a sizeable fraction of replicates, β-globin pairs with leghemoglobin instead, which appears here as the group (HBA, MBh, MBw) because the tree is rooted on leghemoglobin. A common rule of thumb treats standard bootstrap values of 70% or more as reasonable support. Values like these are a warning: the data barely resolve that part of the tree.</p>
+  </div>
+</section>
+
+<section id="ml" aria-labelledby="ml-h">
+  <span class="snum">8</span>
+  <div class="prose">
+  <h2 id="ml-h">Maximum likelihood and Bayesian trees</h2>
+  <p>The methods used in current research are model-based. A <b>substitution model</b> gives the probability of each amino acid changing into each other one along a branch of given length. Protein models such as JTT, WAG and LG are estimated from large alignment databases, like the PAM and BLOSUM matrices. A <b>+G</b> (gamma) term lets rates vary across sites, because some sites barely change while others change often.</p>
+  </div>
+  <div class="cmp">
+    <div>
+      <h3>Maximum likelihood (ML)</h3>
+      <ul>
+        <li>Finds the tree and branch lengths that make the observed alignment most probable under the model (Felsenstein 1981).</li>
+        <li>Uses every column and corrects for multiple changes through the model.</li>
+        <li>Support: bootstrap, or fast approximations (UFBoot, SH-aLRT).</li>
+        <li>Programs: IQ-TREE, RAxML-NG, PhyML.</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Bayesian inference</h3>
+      <ul>
+        <li>Samples trees in proportion to their posterior probability, combining the likelihood with prior beliefs.</li>
+        <li>Uses Markov chain Monte Carlo; you must check that runs have converged.</li>
+        <li>Support: posterior probability of each clade.</li>
+        <li>Programs: MrBayes, BEAST (for dated trees).</li>
+      </ul>
+    </div>
+  </div>
+  <div class="tablewrap">
+  <table class="data">
+    <thead><tr><th>Method</th><th>Uses</th><th>Model of change</th><th>Speed</th><th>Typical use</th></tr></thead>
+    <tbody>
+      <tr><td><b>UPGMA</b></td><td>Distances</td><td>Clock assumed</td><td>Fastest</td><td>Guide trees, not phylogeny</td></tr>
+      <tr><td><b>Neighbor-joining</b></td><td>Distances</td><td>Only in the distance correction</td><td>Very fast</td><td>Quick trees, large data, starting trees</td></tr>
+      <tr><td><b>Maximum parsimony</b></td><td>Characters</td><td>None (fewest changes)</td><td>Moderate</td><td>Morphology, closely related sequences</td></tr>
+      <tr><td><b>Maximum likelihood</b></td><td>Characters</td><td>Explicit (e.g. LG+G)</td><td>Slower</td><td>Standard for published trees</td></tr>
+      <tr><td><b>Bayesian</b></td><td>Characters</td><td>Explicit, plus priors</td><td>Slowest</td><td>Uncertainty, dating, complex models</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<p class="part">Part 3 · Doing it for real</p>
+
+<section id="run" aria-labelledby="run-h">
+  <span class="snum">9</span>
+  <div class="prose">
+  <h2 id="run-h">Building real trees</h2>
+  <p>A typical workflow:</p>
+  <ol class="goals">
+    <li>Collect homologs (BLAST or HMMER) and decide whether you want orthologs, paralogs, or both.</li>
+    <li>Align them (Clustal Omega, MAFFT, MUSCLE), then check the alignment.</li>
+    <li>Trim unreliable columns (trimAl).</li>
+    <li>Choose a substitution model. IQ-TREE's ModelFinder does this automatically.</li>
+    <li>Build an ML tree with branch support.</li>
+    <li>Root it with an outgroup, then view and annotate it in iTOL, FigTree or MEGA.</li>
+  </ol>
+  </div>
+  <div class="eq"># IQ-TREE 2: choose the best model, build an ML tree, 1000 ultrafast bootstraps + SH-aLRT
+iqtree2 -s globins_aligned.fasta -m MFP -B 1000 -alrt 1000
+
+# Output: globins_aligned.fasta.treefile (Newick) and .iqtree (report, chosen model)</div>
+  <div class="prose">
+  <p><b>MEGA</b> does the same steps (alignment, models, NJ, ML, bootstrap) in a point-and-click program, which is convenient for a first analysis. Ultrafast bootstrap values are not on the same scale as standard bootstrap. The IQ-TREE documentation recommends trusting clades with UFBoot of 95% or more.</p>
+  <p>The alignment used on this page is the result of the multiple alignment tutorial. Copy it together with the NJ tree to try IQ-TREE or MEGA:</p>
+  </div>
+  <div class="tool">
+    <div class="copyrow"><b>globins_aligned.fasta</b><button id="copyAln">Copy alignment</button></div>
+    <textarea id="alnBox" readonly rows="8" style="font-family:var(--mono);font-size:12px;width:100%;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:8px" aria-label="Aligned globin sequences"></textarea>
+  </div>
+</section>
+
+<section id="pitfalls" aria-labelledby="pitfalls-h">
+  <span class="snum">10</span>
+  <div class="prose">
+  <h2 id="pitfalls-h">Pitfalls</h2>
+  <ul class="goals">
+    <li><b>Long-branch attraction.</b> Two fast-evolving or distant sequences share many changes by chance, and methods without a good model (especially parsimony) group them together (Felsenstein 1978). Leghemoglobin's long branch tugging β-globin toward it in the parsimony and bootstrap results above is a small example. Remedies: better models, more taxa that break up long branches, removing saturated sites.</li>
+    <li><b>Paralogs mistaken for orthologs.</b> A tree of genes from different species can show gene duplications, not species relationships.</li>
+    <li><b>Wrong or missing root.</b> Unrooted trees say nothing about which group is older. An outgroup that is too distant can root the tree in the wrong place.</li>
+    <li><b>Alignment errors.</b> Trees inherit every alignment mistake. Trim unreliable regions and check that the tree holds up.</li>
+    <li><b>Too few sites or taxa.</b> Five sequences and about 150 columns resolve some clades well and others poorly, as the bootstrap shows.</li>
+  </ul>
+  </div>
+</section>
+
+<section id="check" aria-labelledby="check-h">
+  <span class="snum">11</span>
+  <h2 id="check-h">Check yourself</h2>
+  <details><summary>1. Human α-globin and human β-globin: orthologs or paralogs? Human and whale myoglobin?</summary>
+    <p>α and β are paralogs: they arose by gene duplication and both exist in one genome. Human and whale myoglobin are orthologs: they diverged when the species did.</p></details>
+  <details><summary>2. Why is the Kimura distance for leghemoglobin vs myoglobin much larger than its p-distance?</summary>
+    <p>At p ≈ 0.8, many sites have changed more than once, and some differences hide several changes. The correction estimates those hidden substitutions. At low p (myoglobin pair) the correction is tiny.</p></details>
+  <details><summary>3. Neighbor-joining joins the pair minimizing Q rather than the closest pair. What problem does this solve?</summary>
+    <p>A sequence with a long branch is far from everything, and one with a short branch is close to everything. Q subtracts each node's total distance to all others, so it joins true neighbors even when rates differ between lineages.</p></details>
+  <details><summary>4. What does UPGMA assume that neighbor-joining does not?</summary>
+    <p>A molecular clock: every lineage evolves at the same rate, so all tips are the same distance from the root. When rates differ, UPGMA can give the wrong topology.</p></details>
+  <details><summary>5. A clade has 64% bootstrap support. What does that mean, and what doesn't it mean?</summary>
+    <p>64% of trees built from resampled alignments contained the clade, so the data support it only weakly. It is not a 64% probability that the clade is true. Bootstrap values measure how consistently the data support a group, not its truth.</p></details>
+  <details><summary>6. Why is parsimony vulnerable to long-branch attraction?</summary>
+    <p>It counts the minimum number of changes and has no model of multiple substitutions. Two long branches accumulate many parallel changes by chance, and parsimony reads those as shared history. Model-based methods expect such coincidences on long branches and are less easily fooled.</p></details>
+  <details><summary>7. How many unrooted trees are possible for 10 sequences?</summary>
+    <p>(2·10 − 5)!! = 15!! = 3 × 5 × 7 × 9 × 11 × 13 × 15 = 2,027,025.</p></details>
+</section>
+
+<section id="refs" aria-labelledby="refs-h">
+  <span class="snum">12</span>
+  <h2 id="refs-h">References</h2>
+  <ol class="refs" id="refList">
+    <li>Fitch WM (1970). Distinguishing homologous from analogous proteins. <i>Syst Zool</i> 19:99–113. <a href="https://doi.org/10.2307/2412448" target="_blank" rel="noopener">doi:10.2307/2412448</a></li>
+    <li>Fitch WM (1971). Toward defining the course of evolution: minimum change for a specific tree topology. <i>Syst Zool</i> 20:406–416. <a href="https://doi.org/10.1093/sysbio/20.4.406" target="_blank" rel="noopener">doi:10.1093/sysbio/20.4.406</a></li>
+    <li>Felsenstein J (1978). Cases in which parsimony or compatibility methods will be positively misleading. <i>Syst Zool</i> 27:401–410. <a href="https://doi.org/10.2307/2412923" target="_blank" rel="noopener">doi:10.2307/2412923</a></li>
+    <li>Felsenstein J (1981). Evolutionary trees from DNA sequences: a maximum likelihood approach. <i>J Mol Evol</i> 17:368–376. <a href="https://doi.org/10.1007/BF01734359" target="_blank" rel="noopener">doi:10.1007/BF01734359</a></li>
+    <li>Kimura M (1983). <i>The Neutral Theory of Molecular Evolution.</i> Cambridge University Press.</li>
+    <li>Felsenstein J (1985). Confidence limits on phylogenies: an approach using the bootstrap. <i>Evolution</i> 39:783–791. <a href="https://doi.org/10.1111/j.1558-5646.1985.tb00420.x" target="_blank" rel="noopener">doi:10.1111/j.1558-5646.1985.tb00420.x</a></li>
+    <li>Saitou N, Nei M (1987). The neighbor-joining method: a new method for reconstructing phylogenetic trees. <i>Mol Biol Evol</i> 4:406–425. <a href="https://doi.org/10.1093/oxfordjournals.molbev.a040454" target="_blank" rel="noopener">doi:10.1093/oxfordjournals.molbev.a040454</a></li>
+    <li>Yang Z (1994). Maximum likelihood phylogenetic estimation from DNA sequences with variable rates over sites: approximate methods. <i>J Mol Evol</i> 39:306–314. <a href="https://doi.org/10.1007/BF00160154" target="_blank" rel="noopener">doi:10.1007/BF00160154</a></li>
+    <li>Le SQ, Gascuel O (2008). An improved general amino acid replacement matrix. <i>Mol Biol Evol</i> 25:1307–1320. <a href="https://doi.org/10.1093/molbev/msn067" target="_blank" rel="noopener">doi:10.1093/molbev/msn067</a></li>
+    <li>Ronquist F, et al. (2012). MrBayes 3.2: efficient Bayesian phylogenetic inference and model choice across a large model space. <i>Syst Biol</i> 61:539–542. <a href="https://doi.org/10.1093/sysbio/sys029" target="_blank" rel="noopener">doi:10.1093/sysbio/sys029</a></li>
+    <li>Hoang DT, Chernomor O, von Haeseler A, Minh BQ, Vinh LS (2018). UFBoot2: improving the ultrafast bootstrap approximation. <i>Mol Biol Evol</i> 35:518–522. <a href="https://doi.org/10.1093/molbev/msx281" target="_blank" rel="noopener">doi:10.1093/molbev/msx281</a></li>
+    <li>Kozlov AM, Darriba D, Flouri T, Morel B, Stamatakis A (2019). RAxML-NG: a fast, scalable and user-friendly tool for maximum likelihood phylogenetic inference. <i>Bioinformatics</i> 35:4453–4455. <a href="https://doi.org/10.1093/bioinformatics/btz305" target="_blank" rel="noopener">doi:10.1093/bioinformatics/btz305</a></li>
+    <li>Minh BQ, et al. (2020). IQ-TREE 2: new models and efficient methods for phylogenetic inference in the genomic era. <i>Mol Biol Evol</i> 37:1530–1534. <a href="https://doi.org/10.1093/molbev/msaa015" target="_blank" rel="noopener">doi:10.1093/molbev/msaa015</a></li>
+    <li>Tamura K, Stecher G, Kumar S (2021). MEGA11: Molecular Evolutionary Genetics Analysis version 11. <i>Mol Biol Evol</i> 38:3022–3027. <a href="https://doi.org/10.1093/molbev/msab120" target="_blank" rel="noopener">doi:10.1093/molbev/msab120</a></li>
+  </ol>
+  <footer>Bio 116 · Molecular phylogeny tutorial. The tree tools on this page are teaching implementations of the published algorithms.</footer>
+</section>
+</main>
+</div>
+
+<script>
+"use strict";
+
+"use strict";
+/* ---------- data ---------- */
+const GLOBINS = [
+  {id:"HBA", short:"α", name:"Hemoglobin α", org:"Homo sapiens", acc:"P69905", e7:58, f8:87,
+   job:"Blood O₂ transport (α₂β₂ tetramer)",
+   seq:"VLSPADKTNVKAAWGKVGAHAGEYGAEALERMFLSFPTTKTYFPHFDLSHGSAQVKGHGKKVADALTNAVAHVDDMPNALSALSDLHAHKLRVDPVNFKLLSHCLLVTLAAHLPAEFTPAVHASLDKFLASVSTVLTSKYR"},
+  {id:"HBB", short:"β", name:"Hemoglobin β", org:"Homo sapiens", acc:"P68871", e7:63, f8:92,
+   job:"Blood O₂ transport (α₂β₂ tetramer)",
+   seq:"VHLTPEEKSAVTALWGKVNVDEVGGEALGRLLVVYPWTQRFFESFGDLSTPDAVMGNPKVKAHGKKVLGAFSDGLAHLDNLKGTFATLSELHCDKLHVDPENFRLLGNVLVCVLAHHFGKEFTPPVQAAYQKVVAGVANALAHKYH"},
+  {id:"MBh", short:"Mb (human)", name:"Myoglobin", org:"Homo sapiens", acc:"P02144", e7:64, f8:93,
+   job:"O₂ storage in muscle (monomer)",
+   seq:"GLSDGEWQLVLNVWGKVEADIPGHGQEVLIRLFKGHPETLEKFDKFKHLKSEDEMKASEDLKKHGATVLTALGGILKKKGHHEAEIKPLAQSHATKHKIPVKYLEFISECIIQVLQSKHPGDFGADAQGAMNKALELFRKDMASNYKELGFQG"},
+  {id:"MBw", short:"Mb (whale)", name:"Myoglobin", org:"Physeter macrocephalus (sperm whale)", acc:"P02185", e7:64, f8:93,
+   job:"O₂ storage for long dives; first protein structure solved",
+   seq:"VLSEGEWQLVLHVWAKVEADVAGHGQDILIRLFKSHPETLEKFDRFKHLKTEAEMKASEDLKKHGVTVLTALGAILKKKGHHEAELKPLAQSHATKHKIPIKYLEFISEAIIHVLHSRHPGDFGADAQGAMNKALELFRKDIAAKYKELGYQG"},
+  {id:"LBA", short:"Lb (soybean)", name:"Leghemoglobin A", org:"Glycine max (soybean)", acc:"P02238", e7:61, f8:92,
+   job:"Buffers O₂ for nitrogen-fixing bacteria in root nodules",
+   seq:"VAFTEKQDALVSSSFEAFKANIPQYSVVFYTSILEKAPAAKDLFSFLANGVDPTNPKLTGHAEKLFALVRDSAGQLKASGTVVADAALGSVHAQKAVTDPQFVVVKEALLKTIKAAVGDKWSDELSRAWEVAYDELAAAIKKA"}
+];
+const G = Object.fromEntries(GLOBINS.map(g => [g.id, g]));
+const label = g => g.id === "HBA" || g.id === "HBB" ? `${g.name} (human)` : `${g.name} (${g.short.replace(/^.*\(|\)$/g,"")})`;
+
+const B62_TXT = `A R N D C Q E G H I L K M F P S T W Y V
+A 4 -1 -2 -2 0 -1 -1 0 -2 -1 -1 -1 -1 -2 -1 1 0 -3 -2 0
+R -1 5 0 -2 -3 1 0 -2 0 -3 -2 2 -1 -3 -2 -1 -1 -3 -2 -3
+N -2 0 6 1 -3 0 0 0 1 -3 -3 0 -2 -3 -2 1 0 -4 -2 -3
+D -2 -2 1 6 -3 0 2 -1 -1 -3 -4 -1 -3 -3 -1 0 -1 -4 -3 -3
+C 0 -3 -3 -3 9 -3 -4 -3 -3 -1 -1 -3 -1 -2 -3 -1 -1 -2 -2 -1
+Q -1 1 0 0 -3 5 2 -2 0 -3 -2 1 0 -3 -1 0 -1 -2 -1 -2
+E -1 0 0 2 -4 2 5 -2 0 -3 -3 1 -2 -3 -1 0 -1 -3 -2 -2
+G 0 -2 0 -1 -3 -2 -2 6 -2 -4 -4 -2 -3 -3 -2 0 -2 -2 -3 -3
+H -2 0 1 -1 -3 0 0 -2 8 -3 -3 -1 -2 -1 -2 -1 -2 -2 2 -3
+I -1 -3 -3 -3 -1 -3 -3 -4 -3 4 2 -3 1 0 -3 -2 -1 -3 -1 3
+L -1 -2 -3 -4 -1 -2 -3 -4 -3 2 4 -2 2 0 -3 -2 -1 -2 -1 1
+K -1 2 0 -1 -3 1 1 -2 -1 -3 -2 5 -1 -3 -1 0 -1 -3 -2 -2
+M -1 -1 -2 -3 -1 0 -2 -3 -2 1 2 -1 5 0 -2 -1 -1 -1 -1 1
+F -2 -3 -3 -3 -2 -3 -3 -3 -1 0 0 -3 0 6 -4 -2 -2 1 3 -1
+P -1 -2 -2 -1 -3 -1 -1 -2 -2 -3 -3 -1 -2 -4 7 -1 -1 -4 -3 -2
+S 1 -1 1 0 -1 0 0 0 -1 -2 -2 0 -1 -2 -1 4 1 -3 -2 -2
+T 0 -1 0 -1 -1 -1 -1 -2 -2 -1 -1 -1 -1 -2 -1 1 5 -2 -2 0
+W -3 -3 -4 -4 -2 -2 -3 -2 -2 -3 -2 -3 -1 1 -4 -3 -2 11 2 -3
+Y -2 -2 -2 -3 -2 -1 -2 -3 2 -1 -1 -2 -1 3 -3 -2 -2 2 7 -1
+V 0 -3 -3 -3 -1 -2 -2 -3 -3 3 1 -2 1 -1 -2 -2 0 -3 -1 4`;
+const AA = "ARNDCQEGHILKMFPSTWYV";
+const B62 = new Int8Array(26 * 26);
+(() => {
+  const lines = B62_TXT.split("\n"), cols = lines[0].split(" ");
+  for (const ln of lines.slice(1)) {
+    const [r, ...v] = ln.split(" ");
+    v.forEach((x, k) => { B62[(r.charCodeAt(0) - 65) * 26 + cols[k].charCodeAt(0) - 65] = +x; });
+  }
+})();
+const IDM = new Int8Array(26 * 26);
+for (const a of AA) for (const b of AA) IDM[(a.charCodeAt(0) - 65) * 26 + b.charCodeAt(0) - 65] = a === b ? 5 : -4;
+const MAT = { b62: B62, id: IDM };
+const sc = (m, a, b) => m[(a.charCodeAt(0) - 65) * 26 + b.charCodeAt(0) - 65];
+
+const CLASS = {};
+for (const [cls, s] of Object.entries({hyd:"AVLIM", aro:"FWY", pos:"KRH", neg:"DE", pol:"STNQ", spe:"GPC"})) for (const c of s) CLASS[c] = cls;
+const CLASS_LABEL = [["hyd","hydrophobic AVLIM"],["aro","aromatic FWY"],["pos","positive KRH"],["neg","negative DE"],["pol","polar STNQ"],["spe","special GPC"]];
+function legendHTML(withKey) {
+  return CLASS_LABEL.map(([c, t]) => `<span><i class="c-${c}"></i>${t}</span>`).join("") +
+    (withKey ? `<span><i class="key" style="outline-offset:-2px"></i>heme-pocket His (E7, F8)</span>` : "");
+}
+const esc = s => s.replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+
+/* ---------- affine-gap alignment (Gotoh) ---------- */
+const NEG = -1e9;
+function align(a, b, {local = false, open = 10, ext = 0.5, mat = B62} = {}) {
+  const n = a.length, m = b.length, W = m + 1, N = (n + 1) * W;
+  const M = new Float64Array(N).fill(NEG), X = new Float64Array(N).fill(NEG), Y = new Float64Array(N).fill(NEG);
+  const pM = new Uint8Array(N), pX = new Uint8Array(N), pY = new Uint8Array(N);
+  M[0] = 0;
+  if (!local) {
+    for (let i = 1; i <= n; i++) { X[i * W] = -(open + (i - 1) * ext); pX[i * W] = i === 1 ? 0 : 1; }
+    for (let j = 1; j <= m; j++) { Y[j] = -(open + (j - 1) * ext); pY[j] = j === 1 ? 0 : 2; }
+  }
+  let best = local ? 0 : NEG, bk = 0;
+  for (let i = 1; i <= n; i++) {
+    const ai = (a.charCodeAt(i - 1) - 65) * 26;
+    for (let j = 1; j <= m; j++) {
+      const k = i * W + j, d = k - W - 1, u = k - W, l = k - 1;
+      let v = M[d], p = 0;
+      if (X[d] > v) { v = X[d]; p = 1; }
+      if (Y[d] > v) { v = Y[d]; p = 2; }
+      if (local && v <= 0) { v = 0; p = 3; }
+      M[k] = v + mat[ai + b.charCodeAt(j - 1) - 65]; pM[k] = p;
+      let x = M[u] - open, px = 0;
+      if (X[u] - ext > x) { x = X[u] - ext; px = 1; }
+      if (Y[u] - open > x) { x = Y[u] - open; px = 2; }
+      X[k] = x; pX[k] = px;
+      let y = M[l] - open, py = 0;
+      if (Y[l] - ext > y) { y = Y[l] - ext; py = 2; }
+      if (X[l] - open > y) { y = X[l] - open; py = 1; }
+      Y[k] = y; pY[k] = py;
+      if (local && M[k] > best) { best = M[k]; bk = k; }
+    }
+  }
+  let i, j, state;
+  if (local) {
+    if (best <= 0) return {score: 0, A: "", B: "", aStart: 0, bStart: 0, path: []};
+    i = Math.floor(bk / W); j = bk % W; state = 0;
+  } else {
+    const k = N - 1; i = n; j = m; best = M[k]; state = 0;
+    if (X[k] > best) { best = X[k]; state = 1; }
+    if (Y[k] > best) { best = Y[k]; state = 2; }
+  }
+  const A = [], B = [], path = [];
+  while (i > 0 || j > 0) {
+    const k = i * W + j;
+    path.push([i, j]);
+    if (state === 0) {
+      const p = pM[k]; A.push(a[i - 1]); B.push(b[j - 1]); i--; j--;
+      if (p === 3) break;
+      state = p;
+    } else if (state === 1) {
+      const p = pX[k]; A.push(a[i - 1]); B.push("-"); i--; state = p;
+    } else {
+      const p = pY[k]; A.push("-"); B.push(b[j - 1]); j--; state = p;
+    }
+    if (local && i === 0 && j === 0) break;
+  }
+  return {score: best, A: A.reverse().join(""), B: B.reverse().join(""), aStart: i, bStart: j, path: path.reverse()};
+}
+
+/* score-only local alignment, rolling rows, for the shuffle test */
+function localScore(a, b, open, ext, mat) {
+  const m = b.length;
+  let Mp = new Float64Array(m + 1), Xp = new Float64Array(m + 1).fill(NEG), Yp = new Float64Array(m + 1).fill(NEG);
+  let Mc = new Float64Array(m + 1), Xc = new Float64Array(m + 1), Yc = new Float64Array(m + 1);
+  const bc = Array.from(b, c => c.charCodeAt(0) - 65);
+  let best = 0;
+  for (let i = 0; i < a.length; i++) {
+    const ai = (a.charCodeAt(i) - 65) * 26;
+    Mc[0] = NEG; Xc[0] = NEG; Yc[0] = NEG;
+    for (let j = 1; j <= m; j++) {
+      let v = Mp[j - 1]; if (Xp[j - 1] > v) v = Xp[j - 1]; if (Yp[j - 1] > v) v = Yp[j - 1]; if (v < 0) v = 0;
+      const mm = v + mat[ai + bc[j - 1]]; Mc[j] = mm; if (mm > best) best = mm;
+      let x = Mp[j] - open; if (Xp[j] - ext > x) x = Xp[j] - ext; if (Yp[j] - open > x) x = Yp[j] - open; Xc[j] = x;
+      let y = Mc[j - 1] - open; if (Yc[j - 1] - ext > y) y = Yc[j - 1] - ext; if (Xc[j - 1] - open > y) y = Xc[j - 1] - open; Yc[j] = y;
+    }
+    [Mp, Mc] = [Mc, Mp]; [Xp, Xc] = [Xc, Xp]; [Yp, Yc] = [Yc, Yp];
+  }
+  return best;
+}
+
+function alnStats(res, mat) {
+  let id = 0, pos = 0, gaps = 0, opens = 0;
+  for (let k = 0; k < res.A.length; k++) {
+    const x = res.A[k], y = res.B[k];
+    if (x === "-" || y === "-") { gaps++; if (k === 0 || (res.A[k-1] !== "-" && res.B[k-1] !== "-") || (x === "-") !== (res.A[k-1] === "-")) opens++; continue; }
+    if (x === y) id++;
+    if (sc(B62, x, y) > 0) pos++;
+  }
+  const L = res.A.length || 1;
+  return {len: res.A.length, id, pos, gaps, opens, pid: 100 * id / L, ppos: 100 * pos / L};
+}
+
+
+/* ---------- progressive multiple alignment engine ---------- */
+const AIX = Object.fromEntries([...AA].map((a, i) => [a, i]));
+const S20 = [...AA].map(a => [...AA].map(b => sc(B62, a, b)));
+/* a profile is {names:[], rows:[[{c, step}]]}; columns are rows[r][col] */
+function seqProfile(name, seq) { return {names: [name], rows: [[...seq].map(c => ({c, step: 0}))]}; }
+function colFreq(p, j) {
+  const f = new Float64Array(20); const n = p.rows.length;
+  for (const r of p.rows) { const c = r[j].c; if (c !== "-") f[AIX[c]] += 1 / n; }
+  return f;
+}
+function colGapFrac(p, j) { let g = 0; for (const r of p.rows) if (r[j].c === "-") g++; return g / p.rows.length; }
+/* profile–profile alignment: column score = average BLOSUM62 over all residue pairs (gaps count 0);
+   affine gaps, cost scaled by the fraction of the other profile that is not already gapped */
+function alignProfiles(A, B, open = 10, ext = 1) {
+  const n = A.rows[0].length, m = B.rows[0].length;
+  const FA = Array.from({length: n}, (_, i) => colFreq(A, i)), FB = Array.from({length: m}, (_, j) => colFreq(B, j));
+  const S = (i, j) => { const fa = FA[i], fb = FB[j]; let s = 0; for (let a = 0; a < 20; a++) { if (!fa[a]) continue; const ra = S20[a]; for (let b = 0; b < 20; b++) if (fb[b]) s += fa[a] * fb[b] * ra[b]; } return s; };
+  const W = m + 1, N = (n + 1) * W, NEG = -1e9;
+  const M = new Float64Array(N).fill(NEG), X = new Float64Array(N).fill(NEG), Y = new Float64Array(N).fill(NEG);
+  const pM = new Uint8Array(N), pX = new Uint8Array(N), pY = new Uint8Array(N);
+  M[0] = 0;
+  for (let i = 1; i <= n; i++) { X[i * W] = -(open + (i - 1) * ext); pX[i * W] = i === 1 ? 0 : 1; }
+  for (let j = 1; j <= m; j++) { Y[j] = -(open + (j - 1) * ext); pY[j] = j === 1 ? 0 : 2; }
+  for (let i = 1; i <= n; i++) for (let j = 1; j <= m; j++) {
+    const k = i * W + j, d = k - W - 1, u = k - W, l = k - 1;
+    let v = M[d], p = 0; if (X[d] > v) { v = X[d]; p = 1; } if (Y[d] > v) { v = Y[d]; p = 2; }
+    M[k] = v + S(i - 1, j - 1); pM[k] = p;
+    let x = M[u] - open, px = 0; if (X[u] - ext > x) { x = X[u] - ext; px = 1; } if (Y[u] - open > x) { x = Y[u] - open; px = 2; } X[k] = x; pX[k] = px;
+    let y = M[l] - open, py = 0; if (Y[l] - ext > y) { y = Y[l] - ext; py = 2; } if (X[l] - open > y) { y = X[l] - open; py = 1; } Y[k] = y; pY[k] = py;
+  }
+  let i = n, j = m, st = 0, k = N - 1, best = M[k];
+  if (X[k] > best) { best = X[k]; st = 1; } if (Y[k] > best) { best = Y[k]; st = 2; }
+  const ops = [];
+  while (i > 0 || j > 0) {
+    const kk = i * W + j;
+    if (st === 0) { ops.push("M"); st = pM[kk]; i--; j--; }
+    else if (st === 1) { ops.push("A"); st = pX[kk]; i--; }        // column from A only, gap column in B
+    else { ops.push("B"); st = pY[kk]; j--; }
+  }
+  ops.reverse();
+  return {ops, score: best};
+}
+function mergeProfiles(A, B, ops, step) {
+  const rows = [...A.rows.map(() => []), ...B.rows.map(() => [])], na = A.rows.length;
+  let i = 0, j = 0;
+  for (const o of ops) {
+    A.rows.forEach((r, x) => rows[x].push(o === "B" ? {c: "-", step} : r[i]));
+    B.rows.forEach((r, x) => rows[na + x].push(o === "A" ? {c: "-", step} : r[j]));
+    if (o !== "B") i++; if (o !== "A") j++;
+  }
+  return {names: [...A.names, ...B.names], rows};
+}
+/* pairwise distances: 1 − fractional identity of a global alignment */
+function distMatrix(seqs) {
+  const n = seqs.length, D = Array.from({length: n}, () => new Array(n).fill(0));
+  for (let a = 0; a < n; a++) for (let b = a + 1; b < n; b++) { const st = alnStats(align(seqs[a].seq, seqs[b].seq), B62); D[a][b] = D[b][a] = 1 - st.id / st.len; }
+  return D;
+}
+/* UPGMA guide tree; returns merge list [{a, b, h}] over cluster ids (leaves 0..n-1) */
+function upgma(D) {
+  const n = D.length; let clusters = D.map((_, i) => ({id: i, size: 1, h: 0}));
+  const d = new Map(); const key = (x, y) => x < y ? x + "," + y : y + "," + x;
+  for (let a = 0; a < n; a++) for (let b = a + 1; b < n; b++) d.set(key(a, b), D[a][b]);
+  const merges = []; let next = n;
+  while (clusters.length > 1) {
+    let best = null;
+    for (let x = 0; x < clusters.length; x++) for (let y = x + 1; y < clusters.length; y++) {
+      const v = d.get(key(clusters[x].id, clusters[y].id)); if (!best || v < best.v) best = {x, y, v};
+    }
+    const A = clusters[best.x], B = clusters[best.y], C = {id: next++, size: A.size + B.size, h: best.v / 2};
+    for (const O of clusters) if (O !== A && O !== B) d.set(key(C.id, O.id), (d.get(key(A.id, O.id)) * A.size + d.get(key(B.id, O.id)) * B.size) / C.size);
+    merges.push({a: A.id, b: B.id, id: C.id, h: C.h});
+    clusters = clusters.filter(c => c !== A && c !== B).concat(C);
+  }
+  return merges;
+}
+/* run a progressive alignment given a merge order over leaf/cluster ids */
+function progressive(seqs, merges, open = 10, ext = 1) {
+  const prof = new Map(seqs.map((s, i) => [i, seqProfile(s.id, s.seq)]));
+  const steps = [];
+  merges.forEach((mg, k) => {
+    const A = prof.get(mg.a), B = prof.get(mg.b), r = alignProfiles(A, B, open, ext);
+    const P = mergeProfiles(A, B, r.ops, k + 1);
+    prof.set(mg.id, P); steps.push({names: P.names.slice(), left: A.names.slice(), right: B.names.slice(), profile: P});
+  });
+  return {final: prof.get(merges[merges.length - 1].id), steps};
+}
+/* sequential order: add sequences one at a time in the given order */
+function chainMerges(order, n) { const merges = []; let cur = order[0], next = n; for (let k = 1; k < order.length; k++) { merges.push({a: cur, b: order[k], id: next, h: 0}); cur = next++; } return merges; }
+/* sum-of-pairs score: each induced pairwise alignment scored with BLOSUM62 and affine gaps 10/0.5 */
+function spScore(P, open = 10, ext = 0.5) {
+  let tot = 0; const R = P.rows;
+  for (let a = 0; a < R.length; a++) for (let b = a + 1; b < R.length; b++) {
+    let s = 0, gapA = false, gapB = false;
+    for (let j = 0; j < R[a].length; j++) {
+      const x = R[a][j].c, y = R[b][j].c;
+      if (x === "-" && y === "-") continue;
+      if (x === "-") { s -= gapA ? ext : open; gapA = true; gapB = false; }
+      else if (y === "-") { s -= gapB ? ext : open; gapB = true; gapA = false; }
+      else { s += sc(B62, x, y); gapA = gapB = false; }
+    }
+    tot += s;
+  }
+  return tot;
+}
+/* column holding residue number pos (1-based) of row r */
+function colOfResidue(P, r, pos) { let k = 0; for (let j = 0; j < P.rows[r].length; j++) if (P.rows[r][j].c !== "-" && ++k === pos) return j; return -1; }
+
+/* ---------- phylogeny engine ---------- */
+/* aligned rows as plain strings; distances use sites where both sequences have a residue */
+function pDist(a, b, cols) {
+  let n = 0, d = 0;
+  for (const j of cols) { const x = a[j], y = b[j]; if (x === "-" || y === "-") continue; n++; if (x !== y) d++; }
+  return n ? d / n : 0;
+}
+const DIST_MODELS = {
+  p: {name: "p-distance", f: p => p},
+  poisson: {name: "Poisson", f: p => p >= 0.999 ? Infinity : -Math.log(1 - p)},
+  kimura: {name: "Kimura protein", f: p => { const x = 1 - p - 0.2 * p * p; return x <= 0 ? Infinity : -Math.log(x); }},
+};
+function distMatrixAln(rows, model, cols) {
+  cols = cols || [...Array(rows[0].length).keys()];
+  const n = rows.length, D = Array.from({length: n}, () => new Array(n).fill(0)), P = Array.from({length: n}, () => new Array(n).fill(0));
+  for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) { const p = pDist(rows[i], rows[j], cols); P[i][j] = P[j][i] = p; D[i][j] = D[j][i] = DIST_MODELS[model].f(p); }
+  return {D, P};
+}
+/* neighbor-joining; returns {edges:[[u,v,len]], steps:[{active, Q, pick:[i,j], lens}]} ; leaves 0..n-1 */
+function neighborJoining(D0) {
+  const n0 = D0.length; let next = n0;
+  const D = new Map(); const key = (a, b) => a < b ? a + "," + b : b + "," + a;
+  for (let i = 0; i < n0; i++) for (let j = i + 1; j < n0; j++) D.set(key(i, j), D0[i][j]);
+  const d = (a, b) => a === b ? 0 : D.get(key(a, b));
+  let active = [...Array(n0).keys()]; const edges = [], steps = [];
+  while (active.length > 3) {
+    const n = active.length, R = new Map(active.map(i => [i, active.reduce((s, k) => s + d(i, k), 0)]));
+    let best = null; const Q = {};
+    for (let x = 0; x < n; x++) for (let y = x + 1; y < n; y++) {
+      const i = active[x], j = active[y], q = (n - 2) * d(i, j) - R.get(i) - R.get(j);
+      Q[key(i, j)] = q; if (!best || q < best.q - 1e-12) best = {i, j, q};
+    }
+    const {i, j} = best, u = next++;
+    const li = Math.max(0, d(i, j) / 2 + (R.get(i) - R.get(j)) / (2 * (n - 2))), lj = Math.max(0, d(i, j) - li);
+    steps.push({active: active.slice(), Q, pick: [i, j], node: u, lens: [li, lj], dist: active.map(a => active.map(b => d(a, b)))});
+    edges.push([u, i, li], [u, j, lj]);
+    for (const k of active) if (k !== i && k !== j) D.set(key(u, k), (d(i, k) + d(j, k) - d(i, j)) / 2);
+    active = active.filter(k => k !== i && k !== j).concat(u);
+  }
+  const [a, b, c] = active, u = next++;
+  const la = Math.max(0, (d(a, b) + d(a, c) - d(b, c)) / 2), lb = Math.max(0, (d(a, b) + d(b, c) - d(a, c)) / 2), lc = Math.max(0, (d(a, c) + d(b, c) - d(a, b)) / 2);
+  steps.push({active: active.slice(), final: true, node: u, lens: [la, lb, lc], dist: active.map(x => active.map(y => d(x, y)))});
+  edges.push([u, a, la], [u, b, lb], [u, c, lc]);
+  return {edges, steps, nLeaves: n0};
+}
+/* splits of an unrooted tree (bitmasks over leaves, normalized to exclude leaf 0) */
+function treeSplits(edges, nLeaves) {
+  const adj = new Map(); for (const [u, v] of edges) { (adj.get(u) || adj.set(u, []).get(u)).push(v); (adj.get(v) || adj.set(v, []).get(v)).push(u); }
+  const full = (1 << nLeaves) - 1, out = new Set();
+  for (const [u, v] of edges) {
+    if (u < nLeaves || v < nLeaves) continue;               // internal edges only
+    let m = 0; const stack = [v], seen = new Set([u, v]);
+    while (stack.length) { const x = stack.pop(); if (x < nLeaves) m |= 1 << x; for (const y of adj.get(x)) if (!seen.has(y)) { seen.add(y); stack.push(y); } }
+    out.add(m & 1 ? full ^ m : m);
+  }
+  return out;
+}
+/* all unrooted binary topologies for 5 leaves by stepwise addition */
+function allTopologies5() {
+  const trees = [];
+  const base = [[5, 0], [5, 1], [5, 2]];
+  for (let e1 = 0; e1 < 3; e1++) {
+    const t1 = base.map(x => x.slice()); const [a, b] = t1[e1]; t1.splice(e1, 1); t1.push([6, a], [6, b], [6, 3]);
+    for (let e2 = 0; e2 < t1.length; e2++) {
+      const t2 = t1.map(x => x.slice()); const [c, d] = t2[e2]; t2.splice(e2, 1); t2.push([7, c], [7, d], [7, 4]);
+      trees.push(t2.map(([u, v]) => [u, v, 1]));
+    }
+  }
+  return trees;
+}
+/* Fitch parsimony for one site on an unrooted tree (gaps = missing data) */
+function fitchSite(edges, leafStates) {
+  const adj = new Map(); for (const [u, v] of edges) { (adj.get(u) || adj.set(u, []).get(u)).push(v); (adj.get(v) || adj.set(v, []).get(v)).push(u); }
+  let cost = 0;
+  const post = (x, parent) => {
+    if (x < leafStates.length) return leafStates[x];
+    let set = -1;
+    for (const y of adj.get(x)) if (y !== parent) { const s = post(y, x); if (set === -1) set = s; else { const i = set & s; if (i) set = i; else { set = set | s; cost++; } } }
+    return set;
+  };
+  // root at leaf 0: its neighbour's subtree, then combine with leaf 0
+  const r = adj.get(0)[0], s = post(r, 0), s0 = leafStates[0];
+  if (!(s & s0)) cost++;
+  return cost;
+}
+const AA_BIT = Object.fromEntries([..."ARNDCQEGHILKMFPSTWYV"].map((a, i) => [a, 1 << i]));
+function leafMasks(rows, j) { return rows.map(r => r[j] === "-" ? (1 << 20) - 1 : AA_BIT[r[j]]); }
+function parsimonyScore(edges, rows) { let s = 0; for (let j = 0; j < rows[0].length; j++) s += fitchSite(edges, leafMasks(rows, j)); return s; }
+function isInformative(rows, j) {
+  const c = {}; for (const r of rows) if (r[j] !== "-") c[r[j]] = (c[r[j]] || 0) + 1;
+  return Object.values(c).filter(v => v >= 2).length >= 2;
+}
+/* bootstrap: resample columns, NJ on each replicate, count splits */
+function bootstrap(rows, model, N, seed = 1) {
+  let s = seed; const r = () => { s = (s * 16807) % 2147483647; return s / 2147483647; };
+  const L = rows[0].length, counts = new Map();
+  for (let b = 0; b < N; b++) {
+    const cols = Array.from({length: L}, () => Math.floor(r() * L));
+    const {D} = distMatrixAln(rows, model, cols);
+    for (let i = 0; i < D.length; i++) for (let j = 0; j < D.length; j++) if (!isFinite(D[i][j])) D[i][j] = 5;
+    const t = neighborJoining(D);
+    for (const sp of treeSplits(t.edges, rows.length)) counts.set(sp, (counts.get(sp) || 0) + 1);
+  }
+  return counts;
+}
+
+
+/* ---------- data: the alignment from the MSA tutorial ---------- */
+const SEQS = GLOBINS.map(g => ({id: g.id, seq: g.seq}));
+const IDS = SEQS.map(s => s.id), NT = IDS.length, OUT = IDS.indexOf("LBA");
+const ALN = (() => { const P = progressive(SEQS, upgma(distMatrix(SEQS)), 10, 1).final; return SEQS.map(s => P.rows[P.names.indexOf(s.id)].map(t => t.c).join("")); })();
+const model = () => document.getElementById("distSel").value;
+const fixInf = D => D.map(r => r.map(v => isFinite(v) ? v : 5));
+
+/* ---------- rooted tree from unrooted edges, rooted at the outgroup's attachment node ---------- */
+function rootAtOutgroup(edges, out) {
+  const adj = new Map(); for (const [u, v, l] of edges) { (adj.get(u) || adj.set(u, []).get(u)).push([v, l]); (adj.get(v) || adj.set(v, []).get(v)).push([u, l]); }
+  const root = adj.get(out)[0][0];
+  const build = (x, parent, len) => ({id: x, len, kids: (x < NT ? [] : adj.get(x).filter(([y]) => y !== parent).map(([y, l]) => build(y, x, l)))});
+  const r = build(root, -1, 0);
+  r.kids.sort((a, b) => (a.id === out ? -1 : b.id === out ? 1 : 0));   // outgroup drawn first
+  return r;
+}
+function leavesOf(n) { return n.kids.length ? n.kids.flatMap(leavesOf) : [n.id]; }
+function newick(n, withLen = true) {
+  const lab = n.kids.length ? `(${n.kids.map(k => newick(k, withLen)).join(",")})` : IDS[n.id];
+  return lab + (withLen && n.len ? ":" + n.len.toFixed(3) : "");
+}
+/* UPGMA rooted tree with heights */
+function upgmaTree(D) {
+  const mg = upgma(D), nodes = new Map(IDS.map((_, i) => [i, {id: i, h: 0, kids: []}]));
+  for (const m of mg) { const a = nodes.get(m.a), b = nodes.get(m.b); const n = {id: m.id, h: m.h, kids: [a, b]}; a.len = m.h - a.h; b.len = m.h - b.h; nodes.set(m.id, n); }
+  const r = nodes.get(mg[mg.length - 1].id); r.len = 0; return r;
+}
+/* ---------- draw a rooted phylogram ---------- */
+function drawTree(svg, root, {W = 420, H = 230, support = null, events = false, scaleLabel = "substitutions per site"} = {}) {
+  const L = 16, R = 70, T = 14, B = 34;
+  const depth = n => n.len + (n.kids.length ? Math.max(...n.kids.map(depth)) : 0);
+  const maxD = Math.max(...root.kids.map(depth));
+  const X = v => L + v / maxD * (W - L - R);
+  const lv = leavesOf(root), ys = new Map(lv.map((id, k) => [id, T + k * (H - T - B) / (lv.length - 1)]));
+  let g = "";
+  const place = (n, x0) => {
+    const x = x0 + (n.len || 0);
+    if (!n.kids.length) { n.y = ys.get(n.id); }
+    else { n.kids.forEach(k => place(k, x)); n.y = (Math.min(...n.kids.map(k => k.y)) + Math.max(...n.kids.map(k => k.y))) / 2; }
+    n.x = x; n.x0 = x0;
+  };
+  place(root, 0);
+  const draw = n => {
+    g += `<line x1="${X(n.x0)}" x2="${X(n.x)}" y1="${n.y}" y2="${n.y}" stroke="var(--ink)" stroke-width="1.6"/>`;
+    if (n.kids.length) {
+      g += `<line x1="${X(n.x)}" x2="${X(n.x)}" y1="${Math.min(...n.kids.map(k => k.y))}" y2="${Math.max(...n.kids.map(k => k.y))}" stroke="var(--ink)" stroke-width="1.6"/>`;
+      n.kids.forEach(draw);
+      if (support && n !== root) {
+        const lv2 = leavesOf(n), m = lv2.reduce((s, i) => s | 1 << i, 0), v = support(m);
+        if (v !== null) g += `<text x="${X(n.x) - 4}" y="${n.y - 5}" text-anchor="end" font-size="11" font-weight="700" fill="var(--heme)">${v}</text>`;
+      }
+      if (events && n.event) g += `<rect x="${X(n.x) - 8}" y="${n.y - 8}" width="16" height="16" rx="3" fill="${n.event === "D" ? "var(--s2)" : "var(--s1)"}"/><text x="${X(n.x)}" y="${n.y + 4}" text-anchor="middle" font-size="11" font-weight="700" fill="var(--bg)">${n.event}</text>`;
+    } else {
+      g += `<text x="${X(n.x) + 6}" y="${n.y + 4}" font-size="13" font-family="var(--mono)" fill="var(--ink)">${IDS[n.id]}</text>`;
+    }
+  };
+  draw(root);
+  // scale bar
+  const sb = maxD > 2 ? 1 : maxD > 0.8 ? 0.5 : 0.1;
+  g += `<line x1="${L}" x2="${X(sb)}" y1="${H - 12}" y2="${H - 12}" stroke="var(--muted)" stroke-width="2"/><text x="${X(sb) + 6}" y="${H - 8}" font-size="11" fill="var(--muted)">${sb} ${scaleLabel}</text>`;
+  svg.innerHTML = g;
+}
+function annotateEvents(root) {
+  const walk = n => {
+    if (!n.kids.length) return;
+    const lv = leavesOf(n).map(i => IDS[i]).sort().join(",");
+    if (lv === "MBh,MBw") n.event = "S";
+    else if (lv === "HBA,HBB") n.event = "D";
+    else if (lv === "HBA,HBB,MBh,MBw") n.event = "D";
+    n.kids.forEach(walk);
+  };
+  walk(root);
+  // root joining leghemoglobin to the animal globins: rooted here, so the animal clade node is the root's other side
+  return root;
+}
+
+/* ---------- hero ---------- */
+function drawHero() {
+  const {D} = distMatrixAln(ALN, "kimura"), nj = neighborJoining(fixInf(D));
+  let r = rootAtOutgroup(nj.edges, OUT);
+  // show the animal globins as one clade: make a node for the non-outgroup kids
+  if (r.kids.length === 3) { const og = r.kids[0], rest = r.kids.slice(1); r = {id: -1, len: 0, kids: [og, {id: -2, len: 0.0001, kids: rest}]}; }
+  annotateEvents(r);
+  drawTree(document.getElementById("heroTree"), r, {W: 760, H: 250, events: true});
+  document.getElementById("heroNwk").textContent = newick(rootAtOutgroup(nj.edges, OUT)) + ";";
+}
+
+/* ---------- section 3: counts ---------- */
+function drawCount() {
+  const dfact = k => { let r = 1n; for (let x = BigInt(k); x > 1n; x -= 2n) r *= x; return r; };
+  const fmt = b => { const s = b.toString(); return s.length > 12 ? `${s[0]}.${s.slice(1, 3)} × 10<sup>${s.length - 1}</sup>` : Number(b).toLocaleString("en-US"); };
+  const rows = [3, 4, 5, 6, 8, 10, 20, 50].map(n => [n, dfact(2 * n - 5), dfact(2 * n - 3)]);
+  document.getElementById("countTable").innerHTML = `<thead><tr><th>Sequences n</th><th>Unrooted trees</th><th>Rooted trees</th></tr></thead><tbody>` +
+    rows.map(([n, u, r]) => `<tr class="${n === 5 ? "hl" : ""}"><td class="num">${n}${n === 5 ? " (our globins)" : ""}</td><td class="num">${fmt(u)}</td><td class="num">${fmt(r)}</td></tr>`).join("") + "</tbody>";
+}
+
+/* ---------- section 4: distances ---------- */
+function drawDist() {
+  const {D, P} = distMatrixAln(ALN, model());
+  document.getElementById("distTable").innerHTML = `<thead><tr><th></th>${IDS.map(i => `<th>${i}</th>`).join("")}</tr></thead><tbody>` +
+    IDS.map((r, a) => `<tr><th>${r}</th>${IDS.map((c, b) => a === b ? `<td class="num muted">—</td>` : `<td class="num" title="p = ${P[a][b].toFixed(3)}">${isFinite(D[a][b]) ? D[a][b].toFixed(3) : "∞"}</td>`).join("")}</tr>`).join("") + "</tbody>";
+  // saturation chart
+  const W = 420, H = 300, L = 44, R = 16, T = 30, B = 42, pmax = 0.85, dmax = 4;
+  const X = p => L + p / pmax * (W - L - R), Y = d => H - B - Math.min(d, dmax) / dmax * (H - T - B);
+  let g = "";
+  for (let d = 0; d <= dmax; d++) g += `<line x1="${L}" x2="${W - R}" y1="${Y(d)}" y2="${Y(d)}" stroke="var(--line)"/><text x="${L - 6}" y="${Y(d) + 4}" text-anchor="end" font-size="11" fill="var(--muted)">${d}</text>`;
+  for (let p = 0; p <= 0.8 + 1e-9; p += 0.2) g += `<text x="${X(p)}" y="${H - B + 16}" text-anchor="middle" font-size="11" fill="var(--muted)">${p.toFixed(1)}</text>`;
+  g += `<text x="${(L + W - R) / 2}" y="${H - 6}" text-anchor="middle" font-size="12" fill="var(--muted)">p-distance (observed fraction different)</text>`;
+  g += `<text x="12" y="${(T + H - B) / 2}" text-anchor="middle" font-size="12" fill="var(--muted)" transform="rotate(-90 12 ${(T + H - B) / 2})">estimated distance</text>`;
+  const curve = (f, col, dash) => { let d = ""; for (let p = 0; p <= pmax; p += 0.005) { const v = f(p); if (!isFinite(v) || v > dmax) break; d += (d ? "L" : "M") + X(p).toFixed(1) + " " + Y(v).toFixed(1); } return `<path d="${d}" fill="none" stroke="${col}" stroke-width="2"${dash ? ' stroke-dasharray="5 4"' : ""}/>`; };
+  g += curve(DIST_MODELS.p.f, "var(--muted)", true) + curve(DIST_MODELS.poisson.f, "var(--s1)") + curve(DIST_MODELS.kimura.f, "var(--s2)");
+  const f = DIST_MODELS[model()].f;
+  for (let a = 0; a < NT; a++) for (let b = a + 1; b < NT; b++) {
+    const p = P[a][b], v = f(p);
+    g += `<circle cx="${X(p)}" cy="${Y(v)}" r="5" fill="var(--ink)" stroke="var(--bg)" stroke-width="2"><title>${IDS[a]}–${IDS[b]}: p = ${p.toFixed(3)}, ${DIST_MODELS[model()].name} = ${v.toFixed(3)}</title></circle>`;
+  }
+  g += `<g transform="translate(${L + 6} 10)"><line x1="0" x2="18" y1="6" y2="6" stroke="var(--muted)" stroke-width="2" stroke-dasharray="5 4"/><text x="24" y="10" font-size="11" fill="var(--ink)">p</text><line x1="48" x2="66" y1="6" y2="6" stroke="var(--s1)" stroke-width="2"/><text x="72" y="10" font-size="11" fill="var(--ink)">Poisson</text><line x1="130" x2="148" y1="6" y2="6" stroke="var(--s2)" stroke-width="2"/><text x="154" y="10" font-size="11" fill="var(--ink)">Kimura</text><circle cx="216" cy="6" r="4" fill="var(--ink)"/><text x="224" y="10" font-size="11" fill="var(--ink)">globin pairs</text></g>`;
+  document.getElementById("satChart").innerHTML = g;
+}
+
+/* ---------- section 5: NJ step through ---------- */
+let njStep = 0, NJ = null;
+function drawNJ() {
+  const {D} = distMatrixAln(ALN, model()); NJ = neighborJoining(fixInf(D));
+  const box = document.getElementById("njSteps");
+  box.innerHTML = NJ.steps.map((s, k) => `<button data-k="${k}" aria-pressed="${k === njStep}">${s.final ? "Final join" : "Step " + (k + 1)}</button>`).join("");
+  box.querySelectorAll("button").forEach(b => { if (b.getAttribute("aria-pressed") === "true") { b.style.background = "var(--plum)"; b.style.color = "var(--bg)"; b.style.borderColor = "var(--plum)"; } });
+  const s = NJ.steps[Math.min(njStep, NJ.steps.length - 1)];
+  const name = i => i < NT ? IDS[i] : `node ${String.fromCharCode(65 + i - NT)}`;
+  const act = s.active;
+  if (!s.final) {
+    const key = (a, b) => a < b ? a + "," + b : b + "," + a;
+    document.getElementById("njQ").innerHTML = `<caption class="muted" style="text-align:left;font-size:13px;padding-bottom:4px">Q values, ${act.length} nodes</caption><thead><tr><th></th>${act.map(i => `<th>${name(i)}</th>`).join("")}</tr></thead><tbody>` +
+      act.map(a => `<tr><th>${name(a)}</th>${act.map(b => a === b ? `<td class="num muted">—</td>` : `<td class="num${(s.pick.includes(a) && s.pick.includes(b)) ? " min" : ""}">${s.Q[key(a, b)].toFixed(2)}</td>`).join("")}</tr>`).join("") + "</tbody>";
+    document.getElementById("njNote").innerHTML = `Smallest Q: join <b>${name(s.pick[0])}</b> and <b>${name(s.pick[1])}</b> into ${name(s.node)}, with branch lengths ${s.lens[0].toFixed(3)} and ${s.lens[1].toFixed(3)}.`;
+  } else {
+    document.getElementById("njQ").innerHTML = `<caption class="muted" style="text-align:left;font-size:13px;padding-bottom:4px">Remaining distances</caption><thead><tr><th></th>${act.map(i => `<th>${name(i)}</th>`).join("")}</tr></thead><tbody>` +
+      act.map((a, x) => `<tr><th>${name(a)}</th>${act.map((b, y) => x === y ? `<td class="num muted">—</td>` : `<td class="num">${s.dist[x][y].toFixed(3)}</td>`).join("")}</tr>`).join("") + "</tbody>";
+    document.getElementById("njNote").innerHTML = `Three nodes remain: ${act.map(name).join(", ")}. They join one centre node with branches ${s.lens.map(v => v.toFixed(3)).join(", ")}.`;
+  }
+  const m = document.getElementById("treeMethod").value;
+  if (m === "nj") drawTree(document.getElementById("njTree"), rootAtOutgroup(NJ.edges, OUT));
+  else drawTree(document.getElementById("njTree"), upgmaTree(fixInf(distMatrixAln(ALN, model()).D)), {scaleLabel: "distance (height = d/2)"});
+}
+function njWire() {
+  document.getElementById("njSteps").addEventListener("click", e => { const b = e.target.closest("button"); if (b) { njStep = +b.dataset.k; drawNJ(); } });
+  document.getElementById("treeMethod").addEventListener("change", drawNJ);
+}
+
+/* ---------- section 6: parsimony ---------- */
+const TOPOS = allTopologies5();
+const splitName = m => { const inside = IDS.filter((_, i) => m >> i & 1); return "(" + inside.join(", ") + ")"; };
+const normOut = m => (m >> OUT & 1) ? ((1 << NT) - 1) ^ m : m;   // express each split as the side without the outgroup
+let PARS = null, INF = [];
+function drawPars() {
+  const njSplits = new Set([...treeSplits(neighborJoining(fixInf(distMatrixAln(ALN, "kimura").D)).edges, NT)].map(normOut));
+  PARS = TOPOS.map(t => ({t, len: parsimonyScore(t, ALN), splits: [...treeSplits(t, NT)].map(normOut).sort((a, b) => a - b)})).sort((a, b) => a.len - b.len);
+  INF = []; for (let j = 0; j < ALN[0].length; j++) if (isInformative(ALN, j)) INF.push(j);
+  const best = PARS[0].len;
+  document.getElementById("parsStats").innerHTML = [[ALN[0].length, "alignment columns"], [INF.length, "parsimony-informative"], [best, "shortest tree (steps)"], [PARS[1].len - best, "steps to runner-up"]]
+    .map(([v, l]) => `<div class="stat"><b>${v}</b><span>${l}</span></div>`).join("");
+  document.getElementById("parsTable").innerHTML = `<thead><tr><th>Rank</th><th>Groups (rooted on LBA)</th><th>Length</th><th>Extra steps</th></tr></thead><tbody>` +
+    PARS.map((x, k) => { const isNJ = x.splits.every(s => njSplits.has(s)); return `<tr class="${k === 0 ? "hl" : ""}"><td class="num">${k + 1}</td><td><span class="mono">${x.splits.map(splitName).join(" ")}</span>${isNJ ? ` <span class="muted">(NJ tree)</span>` : ""}</td><td class="num">${x.len}</td><td class="num">${x.len - best}</td></tr>`; }).join("") + "</tbody>";
+  const sl = document.getElementById("colSlider"); sl.max = INF.length - 1; drawCol();
+}
+function drawCol() {
+  const k = +document.getElementById("colSlider").value, j = INF[k];
+  document.getElementById("colLabel").textContent = `${k + 1} of ${INF.length} (alignment column ${j + 1})`;
+  const masks = leafMasks(ALN, j);
+  const top = PARS.slice(0, 3).map((x, r) => `tree #${r + 1} ${x.splits.map(splitName).join(" ")}: <b>${fitchSite(x.t, masks)}</b> change${fitchSite(x.t, masks) === 1 ? "" : "s"}`);
+  document.getElementById("colView").innerHTML = IDS.map((id, i) => `${id.padEnd(5)}${ALN[i][j]}`).join("\n") + "\n\n" + top.join("\n");
+}
+
+/* ---------- section 7: bootstrap ---------- */
+function runBoot() {
+  const N = +document.getElementById("bootN").value, counts = bootstrap(ALN, model(), N, 7);
+  const byOut = new Map(); for (const [m, c] of counts) { const k = normOut(m); byOut.set(k, (byOut.get(k) || 0) + c); }
+  const {D} = distMatrixAln(ALN, model()); const r = rootAtOutgroup(neighborJoining(fixInf(D)).edges, OUT);
+  drawTree(document.getElementById("bootTree"), r, {support: m => { const k = normOut(m); return byOut.has(k) ? Math.round(100 * byOut.get(k) / N) : 0; }});
+  const treeSplitsSet = new Set([...treeSplits(neighborJoining(fixInf(D)).edges, NT)].map(normOut));
+  document.getElementById("bootBars").innerHTML = [...byOut].sort((a, b) => b[1] - a[1]).map(([m, c]) => {
+    const pct = 100 * c / N, inTree = treeSplitsSet.has(m);
+    return `<div class="row"><span class="mono">${splitName(m)}</span><span class="track"><span class="fill${inTree ? "" : " alt"}" style="display:block;width:${pct}%"></span></span><span class="v">${pct.toFixed(0)}%</span></div>`;
+  }).join("") + `<div class="legend"><span><i style="background:var(--s1)"></i>group in the NJ tree</span><span><i style="background:var(--s2)"></i>competing group</span></div>`;
+}
+
+/* ---------- section 9: alignment export ---------- */
+function alnWire() {
+  const fasta = IDS.map((id, i) => `>${id}\n${ALN[i].match(/.{1,60}/g).join("\n")}`).join("\n") + "\n";
+  const box = document.getElementById("alnBox"); box.value = fasta;
+  document.getElementById("copyAln").addEventListener("click", e => {
+    const btn = e.currentTarget, done = t => { btn.textContent = t; setTimeout(() => btn.textContent = "Copy alignment", 1600); };
+    try { navigator.clipboard.writeText(fasta).then(() => done("Copied"), () => { box.focus(); box.select(); done("Press Ctrl/Cmd+C"); }); }
+    catch { box.focus(); box.select(); done("Press Ctrl/Cmd+C"); }
+  });
+}
+
+function tocWire() {
+  const links = [...document.querySelectorAll(".toc a")];
+  const secs = links.map(a => document.querySelector(a.getAttribute("href")));
+  const on = () => { let k = 0; secs.forEach((s, i) => { if (s.getBoundingClientRect().top < 140) k = i; }); links.forEach((a, i) => a.classList.toggle("on", i === k)); };
+  addEventListener("scroll", on, {passive: true}); on();
+}
+
+function all() { drawDist(); drawNJ(); runBoot(); }
+drawHero(); drawCount(); all(); drawPars(); njWire(); alnWire(); tocWire();
+document.getElementById("distSel").addEventListener("change", all);
+document.getElementById("colSlider").addEventListener("input", drawCol);
+document.getElementById("bootRun").addEventListener("click", runBoot);
+</script>

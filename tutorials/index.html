@@ -187,9 +187,9 @@ footer{font-size:13px;color:var(--muted);padding-top:24px}
 <header class="hero">
   <div class="eyebrow">Bio 116 · Bioinformatics</div>
   <h1>Sequence Analysis Tutorials</h1>
-  <p class="lede">Five interactive tutorials that take you from aligning two proteins to aligning a whole family. Every tutorial uses the same five globins, so each new method can be tested on sequences you already know. Everything runs in your browser; there is nothing to install.</p>
+  <p class="lede">Six interactive tutorials that take you from aligning two proteins to building a family tree. Every tutorial uses the same five globins, so each new method can be tested on sequences you already know. Everything runs in your browser; there is nothing to install.</p>
   <ul class="meta">
-    <li>5 tutorials, about 4 hours in total</li>
+    <li>6 tutorials, about 5 hours in total</li>
     <li>Take them in order</li>
     <li>Assumes: amino-acid chemistry, basic probability</li>
   </ul>
@@ -233,6 +233,13 @@ footer{font-size:13px;color:var(--muted);padding-top:24px}
       <p>Align all five globins at once with the progressive method behind Clustal. Build the guide tree, watch gaps freeze at each merge, test all 120 merge orders, and learn to run and judge modern aligners.</p>
       <div class="tools">Tools: distance matrix and guide tree · progressive aligner · all-orders experiment · Clustal and FASTA export</div>
     </li>
+    <li class="card">
+      <span class="num">6</span>
+      <h2><a href="https://claude.ai/artifact/WDNhPduPNPWhUrKVPjsFF7" target="_blank" rel="noopener">Globin Family Trees</a></h2>
+      <div class="sub"><span>Molecular phylogeny</span><span>About 55 minutes</span></div>
+      <p>Turn the globin alignment into a tree. Correct distances for multiple substitutions, build a neighbor-joining tree step by step, score all 15 trees by parsimony, test support with the bootstrap, and meet likelihood and Bayesian methods.</p>
+      <div class="tools">Tools: distance corrections and saturation chart · neighbor-joining stepper · parsimony over all trees · bootstrap · alignment export for IQ-TREE</div>
+    </li>
   </ol>
 </section>
 
@@ -266,6 +273,7 @@ footer{font-size:13px;color:var(--muted);padding-top:24px}
     <li><b>3 · Scoring matrices</b>Matrices built for close relatives shrink its alignment with β-globin to a fragment: 4 residues with PAM30, 48 with PAM70. Matrices for distant relatives keep an alignment of about 90 residues.</li>
     <li><b>4 · Profile HMMs</b>A model trained on hemoglobins finds it in the course database, but not at Swiss-Prot scale. Adding near-identical myoglobins to the training set tilts the model away from it.</li>
     <li><b>5 · Multiple alignment</b>The guide tree adds it last. With cheap gap extension, its distal histidine slides 18 columns out of place.</li>
+    <li><b>6 · Phylogeny</b>As the outgroup it roots the tree, but its long branch tugs on β-globin: in about a third of bootstrap replicates the two pair up, a small case of long-branch attraction.</li>
   </ol>
 </section>
 
