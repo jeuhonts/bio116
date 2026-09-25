@@ -200,6 +200,7 @@ textarea{font-family:var(--mono);font-size:12px;width:100%;min-height:8em;color:
     <li><a href="#prog">Progressive alignment</a></li>
     <li><a href="#order">Does the order matter?</a></li>
     <li><a href="#beyond">Beyond progressive</a></li>
+    <li><a href="#choose">Choosing a tool</a></li>
     <li><a href="#run">Running the tools</a></li>
     <li><a href="#judge">Judging an alignment</a></li>
     <li><a href="#check">Check yourself</a></li>
@@ -371,8 +372,61 @@ Here: BLOSUM62, gap open 10, extend 0.5 (the pairwise defaults from the first tu
 
 <p class="part">Part 2 · Using MSA tools</p>
 
-<section id="run" aria-labelledby="run-h">
+<section id="choose" aria-labelledby="choose-h">
   <span class="snum">7</span>
+  <div class="prose">
+  <h2 id="choose-h">Choosing a tool</h2>
+  <p>No program is best for every job. The right choice depends on what you are aligning, how many sequences there are, and what you will do with the alignment. Answer three questions for a recommendation, or use the table below.</p>
+  </div>
+  <div class="tool" id="pickTool">
+    <div class="tool-title">Which aligner? <small>A starting point, not a rule</small></div>
+    <div class="controls">
+      <label class="field">What are you aligning? <select id="pkType">
+        <option value="prot" selected>Proteins</option>
+        <option value="cds">Protein-coding DNA (genes, CDS)</option>
+        <option value="rna">Non-coding RNA (rRNA, tRNA…)</option>
+        <option value="add">New sequences into an existing alignment</option>
+      </select></label>
+      <label class="field">How many sequences? <select id="pkN">
+        <option value="small" selected>Up to ~200</option>
+        <option value="mid">~200 to ~10,000</option>
+        <option value="big">More than ~10,000</option>
+      </select></label>
+      <label class="field">Main goal <select id="pkGoal">
+        <option value="acc" selected>Most accurate alignment</option>
+        <option value="phylo">Build a phylogenetic tree</option>
+        <option value="fast">Quick overview</option>
+        <option value="remote">Distant homologs (structures known)</option>
+      </select></label>
+    </div>
+    <div class="readout" id="pkOut" aria-live="polite"></div>
+    <div class="eq" id="pkCmd" style="margin-bottom:0"></div>
+  </div>
+  <div class="tablewrap">
+  <table class="data">
+    <thead><tr><th>Task</th><th>Good choices</th><th>Why</th></tr></thead>
+    <tbody>
+      <tr><td><b>A few to ~200 proteins, accuracy matters</b></td><td>MAFFT L-INS-i; T-Coffee</td><td>Consistency and iterative refinement are affordable at this size and give the most accurate results in benchmarks. MAFFT's documentation recommends L-INS-i for fewer than about 200 sequences with one alignable domain.</td></tr>
+      <tr><td>Same, but sequences share only short conserved motifs separated by long unalignable regions</td><td>MAFFT E-INS-i</td><td>Designed for conserved segments embedded in long, variable regions; L-INS-i and G-INS-i would force those regions into alignment.</td></tr>
+      <tr><td><b>Hundreds to several thousand proteins</b></td><td>MAFFT <code>--auto</code>; MUSCLE5; Clustal Omega</td><td><code>--auto</code> picks an accurate mode for small sets and a fast one (FFT-NS-2) for large ones. All three are reliable defaults.</td></tr>
+      <tr><td><b>Tens of thousands or more</b></td><td>MAFFT <code>--parttree</code>; FAMSA; Clustal Omega; MUSCLE5 <code>-super5</code>; Kalign 3</td><td>Built to scale. FAMSA aligned hundreds of thousands of proteins on a desktop computer. Accuracy per sequence is lower than the small-set modes, so check key regions.</td></tr>
+      <tr><td><b>Add new sequences to an existing alignment</b></td><td>MAFFT <code>--add</code> (or <code>--addfragments</code> for short reads), with <code>--keeplength</code>; Clustal Omega <code>--p1</code></td><td>Keeps a trusted (for example hand-curated) alignment fixed instead of rebuilding it. Without <code>--keeplength</code>, MAFFT keeps existing gaps but may add columns.</td></tr>
+      <tr><td><b>Align family members to a known profile</b></td><td>HMMER <code>hmmalign</code> with a Pfam model</td><td>Every sequence is aligned to the same model, so large sets stay consistent (as in the HMMER tutorial).</td></tr>
+      <tr><td><b>Protein-coding DNA</b></td><td>Align the translated proteins, then back-translate (PAL2NAL); MACSE</td><td>Codons stay intact and gaps fall between codons. MACSE also tolerates frameshifts and stop codons from sequencing errors or pseudogenes.</td></tr>
+      <tr><td><b>Phylogenetics of closely related sequences with many indels</b></td><td>PRANK; or MAFFT L-INS-i plus trimming</td><td>PRANK treats insertions and deletions in a phylogenetic way, avoiding the over-alignment of gappy regions that other methods produce.</td></tr>
+      <tr><td><b>Distant homologs with known structures</b></td><td>T-Coffee Expresso; PROMALS3D</td><td>Structural superposition guides the alignment where sequence similarity is in the twilight zone.</td></tr>
+      <tr><td><b>Non-coding RNA</b></td><td>Infernal <code>cmalign</code> with an Rfam model</td><td>RNA families conserve base-paired structure more than sequence. Covariance models align the structure.</td></tr>
+      <tr><td><b>How reliable is my alignment?</b></td><td>Run two programs and compare; MUSCLE5 ensembles; GUIDANCE2</td><td>Columns that change between methods or parameter settings are uncertain. Trim or down-weight them before phylogenetics.</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="prose">
+  <p class="note"><b>When in doubt:</b> use MAFFT <code>--auto</code>. If you have fewer than about 200 sequences and the result matters, run L-INS-i. Check the key residues, compare with a second program, and trim poorly aligned columns before building a tree. None of these tools are for whole genomes or for mapping sequencing reads to a reference, which use specialized genome aligners and read mappers.</p>
+  </div>
+</section>
+
+<section id="run" aria-labelledby="run-h">
+  <span class="snum">8</span>
   <div class="prose">
   <h2 id="run-h">Running the tools</h2>
   <p>For a few dozen sequences, the <a href="https://www.ebi.ac.uk/jdispatcher/msa" target="_blank" rel="noopener">EBI multiple sequence alignment services</a> run Clustal Omega, MAFFT, MUSCLE and T-Coffee in the browser. Paste FASTA, pick a tool, and download the result. On the command line:</p>
@@ -401,7 +455,7 @@ muscle -align globins.fasta -output globins_muscle.fasta</div>
 </section>
 
 <section id="judge" aria-labelledby="judge-h">
-  <span class="snum">8</span>
+  <span class="snum">9</span>
   <div class="prose">
   <h2 id="judge-h">Judging an alignment</h2>
   <p>A program always returns an alignment, even for sequences that are not homologous. The score alone cannot tell you whether it is right. Useful checks:</p>
@@ -416,7 +470,7 @@ muscle -align globins.fasta -output globins_muscle.fasta</div>
 </section>
 
 <section id="check" aria-labelledby="check-h">
-  <span class="snum">9</span>
+  <span class="snum">10</span>
   <h2 id="check-h">Check yourself</h2>
   <details><summary>1. What does a single column of an MSA claim?</summary>
     <p>That every residue in it descends from the same position in the common ancestor. A gap in the column claims that the sequence lost that position, or that the others gained it.</p></details>
@@ -433,7 +487,7 @@ muscle -align globins.fasta -output globins_muscle.fasta</div>
 </section>
 
 <section id="refs" aria-labelledby="refs-h">
-  <span class="snum">10</span>
+  <span class="snum">11</span>
   <h2 id="refs-h">References</h2>
   <ol class="refs">
     <li>Feng DF, Doolittle RF (1987). Progressive sequence alignment as a prerequisite to correct phylogenetic trees. <i>J Mol Evol</i> 25:351–360. <a href="https://doi.org/10.1007/BF02603120" target="_blank" rel="noopener">doi:10.1007/BF02603120</a></li>
@@ -445,6 +499,18 @@ muscle -align globins.fasta -output globins_muscle.fasta</div>
     <li>Löytynoja A, Goldman N (2005). An algorithm for progressive multiple alignment of sequences with insertions. <i>PNAS</i> 102:10557–10562. <a href="https://doi.org/10.1073/pnas.0409137102" target="_blank" rel="noopener">doi:10.1073/pnas.0409137102</a></li>
     <li>Sievers F, et al. (2011). Fast, scalable generation of high-quality protein multiple sequence alignments using Clustal Omega. <i>Mol Syst Biol</i> 7:539. <a href="https://doi.org/10.1038/msb.2011.75" target="_blank" rel="noopener">doi:10.1038/msb.2011.75</a></li>
     <li>Thompson JD, Plewniak F, Poch O (1999). BAliBASE: a benchmark alignment database for the evaluation of multiple alignment programs. <i>Bioinformatics</i> 15:87–88. <a href="https://doi.org/10.1093/bioinformatics/15.1.87" target="_blank" rel="noopener">doi:10.1093/bioinformatics/15.1.87</a></li>
+    <li>Katoh K, Standley DM (2013). MAFFT multiple sequence alignment software version 7: improvements in performance and usability. <i>Mol Biol Evol</i> 30:772–780. <a href="https://doi.org/10.1093/molbev/mst010" target="_blank" rel="noopener">doi:10.1093/molbev/mst010</a></li>
+    <li>Katoh K, Frith MC (2012). Adding unaligned sequences into an existing alignment using MAFFT and LAST. <i>Bioinformatics</i> 28:3144–3146. <a href="https://doi.org/10.1093/bioinformatics/bts578" target="_blank" rel="noopener">doi:10.1093/bioinformatics/bts578</a></li>
+    <li>Edgar RC (2022). Muscle5: high-accuracy alignment ensembles enable unbiased assessments of sequence homology and phylogeny. <i>Nat Commun</i> 13:6968. <a href="https://doi.org/10.1038/s41467-022-34630-w" target="_blank" rel="noopener">doi:10.1038/s41467-022-34630-w</a></li>
+    <li>Deorowicz S, Debudaj-Grabysz A, Gudyś A (2016). FAMSA: fast and accurate multiple sequence alignment of huge protein families. <i>Sci Rep</i> 6:33964. <a href="https://doi.org/10.1038/srep33964" target="_blank" rel="noopener">doi:10.1038/srep33964</a></li>
+    <li>Lassmann T (2020). Kalign 3: multiple sequence alignment of large datasets. <i>Bioinformatics</i> 36:1928–1929. <a href="https://doi.org/10.1093/bioinformatics/btz795" target="_blank" rel="noopener">doi:10.1093/bioinformatics/btz795</a></li>
+    <li>Suyama M, Torrents D, Bork P (2006). PAL2NAL: robust conversion of protein sequence alignments into the corresponding codon alignments. <i>Nucleic Acids Res</i> 34:W609–W612. <a href="https://doi.org/10.1093/nar/gkl315" target="_blank" rel="noopener">doi:10.1093/nar/gkl315</a></li>
+    <li>Ranwez V, Harispe S, Delsuc F, Douzery EJP (2011). MACSE: Multiple Alignment of Coding SEquences accounting for frameshifts and stop codons. <i>PLoS ONE</i> 6:e22594. <a href="https://doi.org/10.1371/journal.pone.0022594" target="_blank" rel="noopener">doi:10.1371/journal.pone.0022594</a></li>
+    <li>Armougom F, et al. (2006). Expresso: automatic incorporation of structural information in multiple sequence alignments using 3D-Coffee. <i>Nucleic Acids Res</i> 34:W604–W608. <a href="https://doi.org/10.1093/nar/gkl092" target="_blank" rel="noopener">doi:10.1093/nar/gkl092</a></li>
+    <li>Pei J, Kim BH, Grishin NV (2008). PROMALS3D: a tool for multiple protein sequence and structure alignments. <i>Nucleic Acids Res</i> 36:2295–2300. <a href="https://doi.org/10.1093/nar/gkn072" target="_blank" rel="noopener">doi:10.1093/nar/gkn072</a></li>
+    <li>Sela I, Ashkenazy H, Katoh K, Pupko T (2015). GUIDANCE2: accurate detection of unreliable alignment regions accounting for the uncertainty of multiple parameters. <i>Nucleic Acids Res</i> 43:W7–W14. <a href="https://doi.org/10.1093/nar/gkv318" target="_blank" rel="noopener">doi:10.1093/nar/gkv318</a></li>
+    <li>Nawrocki EP, Eddy SR (2013). Infernal 1.1: 100-fold faster RNA homology searches. <i>Bioinformatics</i> 29:2933–2935. <a href="https://doi.org/10.1093/bioinformatics/btt509" target="_blank" rel="noopener">doi:10.1093/bioinformatics/btt509</a></li>
+    <li>Löytynoja A (2014). Phylogeny-aware alignment with PRANK. <i>Methods Mol Biol</i> 1079:155–170. <a href="https://doi.org/10.1007/978-1-62703-646-7_10" target="_blank" rel="noopener">doi:10.1007/978-1-62703-646-7_10</a></li>
     <li>Waterhouse AM, et al. (2009). Jalview Version 2: a multiple sequence alignment editor and analysis workbench. <i>Bioinformatics</i> 25:1189–1191. <a href="https://doi.org/10.1093/bioinformatics/btp033" target="_blank" rel="noopener">doi:10.1093/bioinformatics/btp033</a></li>
     <li>Capella-Gutiérrez S, Silla-Martínez JM, Gabaldón T (2009). trimAl: a tool for automated alignment trimming in large-scale phylogenetic analyses. <i>Bioinformatics</i> 25:1972–1973. <a href="https://doi.org/10.1093/bioinformatics/btp348" target="_blank" rel="noopener">doi:10.1093/bioinformatics/btp348</a></li>
   </ol>
@@ -954,4 +1020,33 @@ function tocWire() {
 drawHero(); drawHard(); drawDist(); drawTree(); progWire(); filesWire(); tocWire();
 document.getElementById("allBtn").addEventListener("click", runAll);
 setTimeout(runAll, 50);
+/* tool picker */
+(() => {
+  const T = document.getElementById("pkType"), N = document.getElementById("pkN"), G = document.getElementById("pkGoal");
+  const R = {
+    linsi: ["MAFFT L-INS-i", "Iterative refinement with consistency: the most accurate MAFFT mode, practical up to about 200 sequences.", "mafft --localpair --maxiterate 1000 input.fasta > aligned.fasta", "Second opinion: T-Coffee, or MUSCLE5 (muscle -align)."],
+    auto: ["MAFFT --auto", "Chooses an accurate mode for small sets and the fast FFT-NS-2 mode for large ones.", "mafft --auto input.fasta > aligned.fasta", "Second opinion: MUSCLE5 or Clustal Omega."],
+    big: ["MAFFT --parttree or FAMSA", "Built for tens of thousands of sequences or more. Expect lower accuracy per sequence; check the regions you care about.", "mafft --parttree input.fasta > aligned.fasta\nfamsa input.fasta aligned.fasta", "Also: Clustal Omega, MUSCLE5 -super5, Kalign 3."],
+    fastsmall: ["MAFFT (default FFT-NS-2) or Clustal Omega", "Seconds for a few hundred sequences; good enough to look at.", "mafft input.fasta > aligned.fasta\nclustalo -i input.fasta -o aligned.fasta", "If the result matters later, rerun with L-INS-i."],
+    phylo: ["MAFFT L-INS-i, then trim", "An accurate alignment, with unreliable columns removed before tree building. For closely related sequences with many indels, try PRANK.", "mafft --localpair --maxiterate 1000 input.fasta > aligned.fasta\ntrimal -in aligned.fasta -out trimmed.fasta -automated1", "Compare with a second aligner; unstable columns are uncertain."],
+    phylobig: ["MAFFT --auto, then trim", "Accurate enough at this size; trimming removes the poorly aligned columns that add noise to trees.", "mafft --auto input.fasta > aligned.fasta\ntrimal -in aligned.fasta -out trimmed.fasta -automated1", "MUSCLE5 ensembles or GUIDANCE2 can flag unreliable columns."],
+    remote: ["T-Coffee Expresso or PROMALS3D", "Uses known 3D structures to guide the alignment where sequence identity is in the twilight zone.", "t_coffee input.fasta -mode expresso", "PROMALS3D runs as a web server. For very divergent sets, align members to a Pfam HMM with hmmalign."],
+    cds: ["Align proteins, then back-translate", "Translate, align the proteins (MAFFT), and rebuild the codon alignment with PAL2NAL so gaps fall between codons. Use MACSE if some sequences have frameshifts or stop codons.", "mafft --auto proteins.fasta > proteins.aln\npal2nal.pl proteins.aln cds.fasta -output fasta > codons.aln", "Aligning coding DNA directly as nucleotides can put gaps inside codons, which breaks codon-model and selection analyses."],
+    rna: ["Infernal cmalign with an Rfam model", "RNA families conserve base-paired structure; a covariance model aligns the structure, not just the sequence.", "cmalign family.cm input.fasta > aligned.sto", "Without a model: MAFFT's structure-aware Q-INS-i mode (mafft-qinsi input.fasta) for small sets."],
+    add: ["MAFFT --add with --keeplength", "Keeps your trusted alignment fixed and fits the new sequences to it. Use --addfragments for short or partial sequences.", "mafft --add new.fasta --keeplength existing.fasta > updated.fasta", "Also: Clustal Omega (clustalo -i new.fasta --p1 existing.aln), or hmmalign with a profile HMM built from the alignment."],
+  };
+  function pick() {
+    const t = T.value, n = N.value, g = G.value; let k;
+    if (t === "add") k = "add"; else if (t === "rna") k = "rna"; else if (t === "cds") k = "cds";
+    else if (g === "remote") k = n === "big" ? "big" : "remote";
+    else if (n === "big") k = "big";
+    else if (g === "phylo") k = n === "small" ? "phylo" : "phylobig";
+    else if (g === "fast") k = "fastsmall";
+    else k = n === "small" ? "linsi" : "auto";
+    const [name, why, cmd, also] = R[k];
+    document.getElementById("pkOut").innerHTML = `<span class="big">${name}</span>${why}<br><span class="muted">${also}</span>`;
+    document.getElementById("pkCmd").textContent = cmd.split("\\n").join("\n");
+  }
+  [T, N, G].forEach(el => el.addEventListener("change", pick)); pick();
+})();
 </script>
