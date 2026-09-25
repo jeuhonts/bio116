@@ -1,3 +1,5 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Bio 116 Sequence Analysis</title>
 <meta name="description" content="Course index for the Bio 116 interactive tutorials on sequence alignment and database searching.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -200,49 +202,49 @@ footer{font-size:13px;color:var(--muted);padding-top:24px}
   <ol class="course">
     <li class="card">
       <span class="num">1</span>
-      <h2><a href="https://claude.ai/artifact/8PRFukqvrmYHCX73rTa7KG" target="_blank" rel="noopener">Aligning the Globins</a></h2>
+      <h2><a href="globin-pairwise-alignment.html">Aligning the Globins</a></h2>
       <div class="sub"><span>Pairwise alignment</span><span>About 45 minutes</span></div>
       <p>How to score and build an alignment of two proteins. Fill a Needleman–Wunsch or Smith–Waterman matrix one cell at a time, align whole globins with affine gaps, and test whether a score could be chance.</p>
       <div class="tools">Tools: BLOSUM62 explorer · step-through DP matrix · globin aligner with dot plot · shuffle test</div>
     </li>
     <li class="card">
       <span class="num">2</span>
-      <h2><a href="https://claude.ai/artifact/RjApWHNLK5rZS7Qz4JkyFN" target="_blank" rel="noopener">Inside BLAST</a></h2>
+      <h2><a href="blast-algorithm.html">Inside BLAST</a></h2>
       <div class="sub"><span>Database searching</span><span>About 50 minutes</span></div>
       <p>How BLAST skips almost the whole alignment matrix: neighborhood words, two-hit seeding, X-drop extension and E-values. Then run a mini-BLAST and PSI-BLAST, and learn to run real BLAST and read its output.</p>
       <div class="tools">Tools: neighborhood explorer · hit map · X-drop chart · E-value calculator · mini-BLAST · PSI-BLAST iterations</div>
     </li>
     <li class="card">
       <span class="num">3</span>
-      <h2><a href="https://claude.ai/artifact/NkY4R5d5JiDaxT6nC8A7j3" target="_blank" rel="noopener">PAM and BLOSUM</a></h2>
+      <h2><a href="scoring-matrices.html">PAM and BLOSUM</a></h2>
       <div class="sub"><span>Scoring matrices</span><span>About 45 minutes</span></div>
       <p>Where substitution scores come from. Build a BLOSUM-style matrix from a real globin block, extrapolate a PAM series, and see why each matrix suits one evolutionary distance.</p>
       <div class="tools">Tools: block-to-matrix builder · DNA PAM extrapolator · eight-matrix explorer · one pair, eight matrices</div>
     </li>
     <li class="card">
       <span class="num">4</span>
-      <h2><a href="https://claude.ai/artifact/VUvD6s5ZoXuMAqPMrycVGu" target="_blank" rel="noopener">Profile HMMs and HMMER</a></h2>
+      <h2><a href="hmmer-profile-hmms.html">Profile HMMs and HMMER</a></h2>
       <div class="sub"><span>Family models</span><span>About 55 minutes</span></div>
       <p>Turn a family alignment into a profile hidden Markov model. Score sequences with Viterbi and Forward, calibrate E-values, and learn the HMMER programs and their output.</p>
       <div class="tools">Tools: live model diagram · sequence logo · mini-hmmsearch with training choices · Stockholm export</div>
     </li>
     <li class="card">
       <span class="num">5</span>
-      <h2><a href="https://claude.ai/artifact/4D5YgQXgv5XyVQGn3zEZif" target="_blank" rel="noopener">Aligning Many Globins</a></h2>
+      <h2><a href="multiple-sequence-alignment.html">Aligning Many Globins</a></h2>
       <div class="sub"><span>Multiple sequence alignment</span><span>About 50 minutes</span></div>
       <p>Align all five globins at once with the progressive method behind Clustal. Build the guide tree, watch gaps freeze at each merge, test all 120 merge orders, and learn to run and judge modern aligners.</p>
       <div class="tools">Tools: distance matrix and guide tree · progressive aligner · all-orders experiment · Clustal and FASTA export</div>
     </li>
     <li class="card">
       <span class="num">6</span>
-      <h2><a href="https://claude.ai/artifact/WDNhPduPNPWhUrKVPjsFF7" target="_blank" rel="noopener">Globin Family Trees</a></h2>
+      <h2><a href="molecular-phylogeny.html">Globin Family Trees</a></h2>
       <div class="sub"><span>Molecular phylogeny</span><span>About 55 minutes</span></div>
       <p>Turn the globin alignment into a tree. Correct distances for multiple substitutions, build a neighbor-joining tree step by step, score all 15 trees by parsimony, test support with the bootstrap, and meet likelihood and Bayesian methods.</p>
       <div class="tools">Tools: distance corrections and saturation chart · neighbor-joining stepper · parsimony over all trees · bootstrap · alignment export for IQ-TREE</div>
     </li>
     <li class="card">
       <span class="num">7</span>
-      <h2><a href="https://claude.ai/artifact/LiXQBzA7UJBwesJki6Vroe" target="_blank" rel="noopener">Superposing the Globins</a></h2>
+      <h2><a href="structural-alignment.html">Superposing the Globins</a></h2>
       <div class="sub"><span>Structural alignment</span><span>About 45 minutes</span></div>
       <p>Compare real crystal structures instead of sequences. Superpose globins in 3D, measure RMSD and TM-score, build a structure-based alignment, see where it disagrees with the sequence alignment, and check an AlphaFold model against experiment.</p>
       <div class="tools">Tools: rotatable 3D superposition · TM-align-style aligner · sequence vs structure comparison table · AlphaFold vs crystal</div>
@@ -255,14 +257,14 @@ footer{font-size:13px;color:var(--muted);padding-top:24px}
   <ol class="course" style="list-style:none">
     <li class="card">
       <span class="num" style="font-size:1.6rem">S1</span>
-      <h2><a href="https://claude.ai/artifact/2c8zism1s69jKWpSQnphA6" target="_blank" rel="noopener">BLAST at NCBI</a></h2>
+      <h2><a href="ncbi-blast-web.html">BLAST at NCBI</a></h2>
       <div class="sub"><span>Hands-on web BLAST</span><span>About 40 minutes</span><span>Use after tutorial 2</span></div>
       <p>A practical walkthrough of the NCBI BLAST website: every section of the search form, four exercises with real results (β-globin and leghemoglobin against Swiss-Prot), how to read and download the results page, and why no single search covers all of GenBank.</p>
       <div class="tools">Includes: live form defaults · real hit tables · E-value chart of 739 hits · word size and organism experiments</div>
     </li>
     <li class="card">
       <span class="num" style="font-size:1.6rem">S2</span>
-      <h2><a href="https://claude.ai/artifact/C5DKeJQjGg5ikubvGADGDW" target="_blank" rel="noopener">BLAST on the command line</a></h2>
+      <h2><a href="blast-command-line.html">BLAST on the command line</a></h2>
       <div class="sub"><span>Hands-on BLAST+</span><span>About 60 minutes</span><span>Use after S1</span></div>
       <p>Install BLAST+, turn the E. coli proteome into a database, and search it with six globins. Only neuroglobin finds E. coli's flavohemoglobin. Then map β-globin mRNA onto its gene cluster, and parse tabular output with a short script.</p>
       <div class="tools">Includes: copyable commands with real output · -outfmt column builder · E-value vs database size · blastn task comparison · all-against-all table</div>
