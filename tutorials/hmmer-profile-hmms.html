@@ -1,0 +1,969 @@
+<title>Profile HMMs and HMMER</title>
+<meta name="description" content="Bio 116 tutorial: profile hidden Markov models and the HMMER software.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Literata:opsz,wght@7..72,500;7..72,650&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&display=swap">
+<style>
+
+:root{
+  --bg:#FAF8F9; --panel:#FFFFFF; --panel-2:#F3EEF1; --ink:#1F1A21; --muted:#645B68; --line:#E3DAE0;
+  --heme:#A8173A; --heme-soft:#F7DDE3; --plum:#4C2C63; --plum-soft:#EBE2F1;
+  --r-hyd:#D9E6F7; --r-aro:#E3DAF5; --r-pos:#F8D8DE; --r-neg:#F5E1C4; --r-pol:#D5EEDF; --r-spe:#ECE8D2;
+  --good:#1E6B45; --warn:#8A5A00;
+  --display:"Literata", Georgia, "Times New Roman", serif;
+  --body:"Source Sans 3", "Segoe UI", Arial, sans-serif;
+  --mono:"JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#141015; --panel:#1C171E; --panel-2:#251F28; --ink:#EEE8EF; --muted:#A99EAD; --line:#352D38;
+    --heme:#F2708A; --heme-soft:#4A1E2A; --plum:#C9A9E2; --plum-soft:#33263E;
+    --r-hyd:#1E3350; --r-aro:#33294F; --r-pos:#4C2230; --r-neg:#48341E; --r-pol:#1B3E2D; --r-spe:#383422;
+    --good:#6FD19E; --warn:#E9B45A;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#141015; --panel:#1C171E; --panel-2:#251F28; --ink:#EEE8EF; --muted:#A99EAD; --line:#352D38;
+  --heme:#F2708A; --heme-soft:#4A1E2A; --plum:#C9A9E2; --plum-soft:#33263E;
+  --r-hyd:#1E3350; --r-aro:#33294F; --r-pos:#4C2230; --r-neg:#48341E; --r-pol:#1B3E2D; --r-spe:#383422;
+  --good:#6FD19E; --warn:#E9B45A;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.6;margin:0}
+.wrap{max-width:1180px;margin:0 auto;padding-inline:20px;padding-block:0 64px;display:grid;grid-template-columns:200px minmax(0,1fr);gap:48px}
+@media (max-width:980px){.wrap{grid-template-columns:minmax(0,1fr);gap:0}.toc{display:none}}
+@media (max-width:480px){.wrap{padding-inline:16px}body{font-size:16px}}
+.toc{position:sticky;top:env(safe-area-inset-top,0px);align-self:start;padding-top:40px;font-size:14px}
+.toc b{display:block;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.toc ol{list-style:none;margin:0;padding:0;display:grid;gap:2px;counter-reset:t}
+.toc a{display:block;color:var(--muted);text-decoration:none;padding:4px 8px;border-left:2px solid var(--line);counter-increment:t}
+.toc a::before{content:counter(t) ". ";font-variant-numeric:tabular-nums}
+.toc a:hover,.toc a.on{color:var(--ink);border-left-color:var(--heme)}
+main{min-width:0}
+.prose{max-width:68ch}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;line-height:1.2;font-weight:650}
+h1{font-size:clamp(2.2rem,5vw,3.4rem);margin:0 0 16px;letter-spacing:-.01em}
+h2{font-size:1.75rem;margin:0 0 12px}
+h3{font-size:1.2rem;margin:28px 0 8px;font-weight:500}
+p{margin:0 0 14px}
+a{color:var(--heme)}
+a:focus-visible,button:focus-visible,select:focus-visible,input:focus-visible,summary:focus-visible,td:focus-visible{outline:2px solid var(--heme);outline-offset:2px}
+code,.mono{font-family:var(--mono);font-size:.88em}
+.eyebrow{font-size:13px;letter-spacing:.09em;text-transform:uppercase;color:var(--heme);font-weight:700;margin-bottom:12px}
+header.hero{padding-block:48px 24px;border-bottom:1px solid var(--line);margin-bottom:8px}
+.lede{font-size:1.15rem;max-width:62ch;color:var(--ink)}
+.meta{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0 26px;padding:0;list-style:none}
+.meta li{font-size:14px;padding:4px 10px;border:1px solid var(--line);border-radius:999px;color:var(--muted);background:var(--panel)}
+section{padding-block:40px 8px;border-bottom:1px solid var(--line);scroll-margin-top:12px}
+section:last-of-type{border-bottom:0}
+.snum{font-family:var(--mono);font-size:13px;color:var(--heme);display:block;margin-bottom:6px}
+.goals{margin:0;padding-left:20px}
+.goals li{margin-bottom:4px}
+.note{font-size:15px;color:var(--muted);border-left:3px solid var(--plum);padding:4px 0 4px 14px;margin:18px 0;max-width:68ch}
+.eq{font-family:var(--mono);font-size:15px;background:var(--panel-2);border-radius:6px;padding:14px 16px;overflow-x:auto;white-space:pre;margin:14px 0 18px;max-width:100%;line-height:1.7}
+.tablewrap{overflow-x:auto;margin:16px 0 20px}
+table.data{border-collapse:collapse;font-size:15px;min-width:560px;width:100%}
+table.data th,table.data td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+table.data th{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:700}
+table.data td.num{font-variant-numeric:tabular-nums}
+
+/* tool panels */
+.tool{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px;margin:20px 0 24px}
+.tool-title{font-family:var(--display);font-size:1.05rem;font-weight:650;margin:0 0 12px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:baseline}
+.tool-title small{font-family:var(--body);font-weight:400;font-size:13px;color:var(--muted)}
+.controls{display:flex;flex-wrap:wrap;gap:12px 16px;align-items:flex-end;margin-bottom:14px}
+.field{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted);min-width:0}
+.field.grow{flex:1 1 220px}
+.field input[type=text]{font-family:var(--mono);text-transform:uppercase}
+select,input[type=text],input[type=number]{font:inherit;font-size:15px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:6px 8px;min-width:0;max-width:100%}
+input[type=number]{width:80px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.seg label{padding:6px 12px;font-size:14px;color:var(--ink);cursor:pointer;background:var(--bg)}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg label:has(input:checked){background:var(--plum);color:var(--bg)}
+.seg label:has(input:focus-visible){outline:2px solid var(--heme);outline-offset:-2px}
+button{font:inherit;font-size:14px;font-weight:600;border-radius:6px;padding:7px 14px;cursor:pointer;border:1px solid var(--line);background:var(--bg);color:var(--ink)}
+button.primary{background:var(--heme);border-color:var(--heme);color:var(--bg)}
+button:hover{border-color:var(--heme)}
+.btnrow{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px}
+.chips button{font-weight:400;border-radius:999px;padding:4px 12px}
+
+/* stats */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:8px;overflow:hidden;margin:0 0 14px}
+.stat{background:var(--panel);padding:10px 12px}
+.stat b{display:block;font-family:var(--mono);font-size:1.25rem;font-weight:600;font-variant-numeric:tabular-nums}
+.stat span{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+
+/* alignment display */
+.aln{font-family:var(--mono);font-size:14px;line-height:1.45;overflow-x:auto;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:12px 14px;white-space:pre;max-width:100%}
+.aln .blk{margin-bottom:12px}
+.aln .blk:last-child{margin-bottom:0}
+.aln .nm{color:var(--muted)}
+.aln .mid{color:var(--muted)}
+.r{border-radius:2px}
+.c-hyd{background:var(--r-hyd)} .c-aro{background:var(--r-aro)} .c-pos{background:var(--r-pos)}
+.c-neg{background:var(--r-neg)} .c-pol{background:var(--r-pol)} .c-spe{background:var(--r-spe)}
+.plain .r{background:none}
+.key{outline:2px solid var(--heme);outline-offset:-1px;font-weight:600;color:var(--heme)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;color:var(--muted);margin:10px 0 0}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{display:inline-block;width:14px;height:14px;border-radius:3px}
+.check{font-size:14px;margin:0 0 12px;display:flex;flex-wrap:wrap;gap:6px 18px}
+.ok{color:var(--good);font-weight:600}
+.no{color:var(--warn);font-weight:600}
+
+/* DP explorer */
+.dpwrap{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--bg);max-width:100%}
+table.dp{border-collapse:collapse;font-family:var(--mono);font-size:12px;margin:0}
+table.dp th{font-weight:600;color:var(--muted);width:34px;height:30px;text-align:center;background:var(--panel-2)}
+table.dp th.idx{font-size:10px;font-weight:400}
+table.dp td{width:34px;height:30px;text-align:center;border:1px solid var(--line);position:relative;font-variant-numeric:tabular-nums;cursor:pointer;color:var(--ink)}
+table.dp td.empty{color:transparent;cursor:default}
+table.dp td .ar{position:absolute;top:0;left:2px;font-size:8px;color:var(--muted);line-height:1.1}
+table.dp td.src{outline:2px dashed var(--plum);outline-offset:-3px}
+table.dp td.cur{background:var(--plum-soft);font-weight:600}
+table.dp td.path{background:var(--heme-soft);color:var(--heme);font-weight:600}
+table.dp td.sel{outline:2px solid var(--heme);outline-offset:-2px}
+.calc{font-family:var(--mono);font-size:13px;background:var(--panel-2);border-radius:8px;padding:12px 14px;margin:12px 0;white-space:pre;overflow-x:auto;line-height:1.6;min-height:7.5em}
+.calc b{color:var(--heme)}
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:18px}
+@media (max-width:760px){.two{grid-template-columns:minmax(0,1fr)}}
+
+/* BLOSUM heatmap */
+.hm{border-collapse:collapse;font-family:var(--mono);font-size:11px}
+.hm th{width:26px;height:24px;color:var(--muted);font-weight:600}
+.hm td{width:26px;height:24px;text-align:center;cursor:pointer;font-variant-numeric:tabular-nums;border:1px solid var(--bg)}
+.hm td.sel{outline:2px solid var(--ink);outline-offset:-2px}
+.hm th.hl{color:var(--heme)}
+.readout{font-size:15px;background:var(--panel-2);border-radius:8px;padding:12px 14px;min-height:5.5em}
+.readout .big{font-family:var(--mono);font-size:1.6rem;font-weight:600;color:var(--heme);display:block}
+
+/* plots */
+canvas{display:block;max-width:100%;background:var(--bg);border:1px solid var(--line);border-radius:8px}
+svg text{font-family:var(--body)}
+.hist{width:100%;height:auto;display:block;max-width:100%}
+
+/* identity matrix */
+table.idm{border-collapse:collapse;font-size:14px;min-width:520px}
+table.idm th,table.idm td{padding:8px 10px;text-align:center;border:1px solid var(--line)}
+table.idm th{font-weight:600;color:var(--muted);font-size:13px}
+table.idm td{font-family:var(--mono);font-variant-numeric:tabular-nums}
+
+/* questions */
+details{border:1px solid var(--line);border-radius:8px;background:var(--panel);padding:12px 16px;margin:0 0 10px;max-width:72ch}
+summary{cursor:pointer;font-weight:600}
+details p{margin:10px 0 0}
+.refs{font-size:15px;padding-left:20px}
+.refs li{margin-bottom:6px}
+footer{font-size:13px;color:var(--muted);padding-top:24px}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+
+/* ---- HMMER tutorial additions ---- */
+[hidden]{display:none!important}
+:root{--l-hyd:#2F5F9E;--l-aro:#6B4FA3;--l-pos:#A8173A;--l-neg:#9A5B08;--l-pol:#1E7A4D;--l-spe:#5E5A36}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--l-hyd:#8DB5EE;--l-aro:#BCA6EE;--l-pos:#F2708A;--l-neg:#E9B45A;--l-pol:#6FD19E;--l-spe:#CFC98E}}
+:root[data-theme="dark"]{--l-hyd:#8DB5EE;--l-aro:#BCA6EE;--l-pos:#F2708A;--l-neg:#E9B45A;--l-pol:#6FD19E;--l-spe:#CFC98E}
+.part{font-family:var(--display);font-size:1rem;color:var(--plum);letter-spacing:.02em;margin:0;padding-block:36px 0}
+.diagram{width:100%;height:auto;display:block;max-width:100%}
+.msa{font-family:var(--mono);font-size:13px;line-height:1.55;overflow-x:auto;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 14px;white-space:pre;max-width:100%}
+.msa .ins{color:var(--muted)}
+.msa .win{background:var(--heme-soft)}
+.msa .rf{color:var(--plum)}
+.bo{font-family:var(--mono);font-size:13px;line-height:1.5;white-space:pre;overflow-x:auto;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:12px 14px;max-width:100%}
+.bo .hd{color:var(--heme);font-weight:600}
+.bo .mu{color:var(--muted)}
+table.hits{border-collapse:collapse;font-size:14px;min-width:680px;width:100%}
+table.hits th,table.hits td{padding:7px 9px;border-bottom:1px solid var(--line);text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+table.hits th{font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);font-weight:700}
+table.hits td:last-child,table.hits th:last-child,table.hits td:nth-last-child(2),table.hits th:nth-last-child(2){text-align:left}
+table.hits tbody tr{cursor:pointer}
+table.hits tbody tr:hover td{background:var(--panel-2)}
+table.hits tr.sel td{background:var(--heme-soft)}
+table.hits tr.thr td{border-bottom:2px dashed var(--muted)}
+.pill{display:inline-block;font-size:12px;font-weight:700;padding:1px 8px;border-radius:999px}
+.pill.strong{background:color-mix(in srgb,var(--good) 18%,var(--panel));color:var(--good)}
+.pill.gray{background:color-mix(in srgb,var(--warn) 18%,var(--panel));color:var(--warn)}
+.pill.chance{background:var(--panel-2);color:var(--muted)}
+.checks{display:flex;flex-wrap:wrap;gap:8px 16px;font-size:15px}
+.checks label{display:inline-flex;gap:6px;align-items:center;cursor:pointer}
+.pipe{list-style:none;margin:16px 0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+@media (max-width:700px){.pipe{grid-template-columns:minmax(0,1fr)}}
+.pipe li{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:4px}
+.pipe .n{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--heme);color:var(--bg);font-family:var(--mono);font-size:13px;font-weight:600}
+.pipe span.d{font-size:14px;color:var(--muted);line-height:1.45}
+.copyrow{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:0 0 8px;flex-wrap:wrap}
+textarea{font-family:var(--mono);font-size:12px;width:100%;min-height:8em;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:8px}
+.muted{color:var(--muted)}
+</style>
+
+<div class="wrap">
+<nav class="toc" aria-label="Contents">
+  <b>Contents</b>
+  <ol>
+    <li><a href="#why">Why profile HMMs?</a></li>
+    <li><a href="#arch">The model</a></li>
+    <li><a href="#build">Building: hmmbuild</a></li>
+    <li><a href="#score">Scoring: Viterbi and Forward</a></li>
+    <li><a href="#stats">E-values</a></li>
+    <li><a href="#search">Run a mini-hmmsearch</a></li>
+    <li><a href="#speed">How HMMER3 is fast</a></li>
+    <li><a href="#suite">The HMMER programs</a></li>
+    <li><a href="#reading">Reading the output</a></li>
+    <li><a href="#check">Check yourself</a></li>
+    <li><a href="#refs">References</a></li>
+  </ol>
+</nav>
+
+<main>
+<header class="hero">
+  <div class="eyebrow">Bio 116 · Tutorial · Profile hidden Markov models</div>
+  <h1>Profile HMMs and HMMER</h1>
+  <p class="lede">BLAST compares one sequence with another. HMMER compares a sequence with a whole family. It turns a multiple alignment into a probabilistic model that knows, position by position, which residues are allowed and where gaps are likely. In this tutorial you build a profile HMM from four animal globins, score sequences with it using the Viterbi and Forward algorithms, and learn to run HMMER and read its output.</p>
+  <ul class="meta">
+    <li>About 55 minutes</li>
+    <li>Follows: Inside BLAST (PSI-BLAST), PAM and BLOSUM</li>
+    <li>All tools run in your browser</li>
+  </ul>
+  <svg class="diagram" id="heroDiag" viewBox="0 0 760 300" role="img" aria-label="Six nodes of the globin profile HMM around the proximal histidine"></svg>
+  <p class="note" style="margin-top:4px">Six real nodes of the globin model you will build, around the proximal histidine F8 (β His92). Squares are match states, showing their most likely residues. Diamonds are insert states and circles are delete states. Arrow thickness shows transition probability.</p>
+</header>
+
+<section id="goals-sec" aria-labelledby="goals-h">
+  <div class="prose">
+  <h2 id="goals-h">By the end you should be able to</h2>
+  <ul class="goals">
+    <li>Describe the match, insert and delete states of a profile HMM and what their parameters mean.</li>
+    <li>Explain how hmmbuild turns a multiple alignment into emission and transition probabilities.</li>
+    <li>Contrast the Viterbi and Forward algorithms and explain why HMMER3 scores with Forward.</li>
+    <li>Interpret HMMER bit scores and E-values, including why E depends on database size.</li>
+    <li>Choose among hmmsearch, hmmscan, phmmer and jackhmmer, and read their output.</li>
+  </ul>
+  </div>
+</section>
+
+<p class="part">Part 1 · How profile HMMs work</p>
+
+<section id="why" aria-labelledby="why-h">
+  <span class="snum">1</span>
+  <div class="prose">
+  <h2 id="why-h">Why profile HMMs?</h2>
+  <p>In the BLAST tutorial, PSI-BLAST built a position-specific scoring matrix (PSSM) from its hits. That was already a profile: a different set of scores for every position of the family. But a PSSM still uses one gap penalty everywhere, and a family does not. Globins tolerate insertions and deletions between helices but almost never inside the heme pocket. Hemoglobin α lacks the whole D helix.</p>
+  <p>A <b>profile hidden Markov model</b> (Krogh et al. 1994; Eddy 1998) makes both residues and gaps position-specific, and it is a full probability model. Every score is a log-odds ratio of two probabilities, "this sequence came from the family model" versus "it came from random background", so scores can be interpreted and added in a principled way. HMMER (Sean Eddy's lab) is the standard implementation and powers Pfam and InterPro.</p>
+  </div>
+  <div class="tablewrap">
+  <table class="data">
+    <thead><tr><th>Feature</th><th>BLAST with BLOSUM62</th><th>PSI-BLAST PSSM</th><th>Profile HMM</th></tr></thead>
+    <tbody>
+      <tr><td>Residue scores</td><td>Same at every position</td><td>Position-specific</td><td>Position-specific</td></tr>
+      <tr><td>Gap costs</td><td>Same everywhere</td><td>Same everywhere</td><td>Position-specific</td></tr>
+      <tr><td>Built from</td><td>One query</td><td>Query + its hits</td><td>A curated multiple alignment</td></tr>
+      <tr><td>Scores sum over</td><td>The single best alignment</td><td>The single best alignment</td><td>All alignments (Forward)</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section id="arch" aria-labelledby="arch-h">
+  <span class="snum">2</span>
+  <div class="prose">
+  <h2 id="arch-h">The model: states, emissions, transitions</h2>
+  <p>A hidden Markov model generates sequences by walking through states. At each state it may <b>emit</b> a residue, then it <b>transitions</b> to a next state. We see the residues but not the path, which is why the states are "hidden". A profile HMM has one <b>node</b> per consensus column of the family alignment, and each node has three states:</p>
+  <ul class="goals">
+    <li><b>Match M<sub>k</sub></b> emits a residue from column k's own distribution: in the F8 node, almost always histidine.</li>
+    <li><b>Insert I<sub>k</sub></b> emits extra residues between columns k and k+1, using background frequencies. The self-loop I<sub>k</sub> → I<sub>k</sub> lets insertions have any length.</li>
+    <li><b>Delete D<sub>k</sub></b> emits nothing. It skips column k, as hemoglobin α does across the D helix.</li>
+  </ul>
+  <p>HMMER's version, called <b>Plan7</b>, adds flanking states (N, C and J) that absorb unrelated sequence before, after and between matches. That lets a model match one part of a long protein, or match several times for repeated domains. In <b>local</b> mode, which HMMER uses for searches, an alignment may begin and end at any node.</p>
+  </div>
+</section>
+
+<section id="build" aria-labelledby="build-h">
+  <span class="snum">3</span>
+  <div class="prose">
+  <h2 id="build-h">Building a model: hmmbuild</h2>
+  <p><code>hmmbuild</code> reads a multiple alignment and estimates every probability. Below are human β- and α-globin and human and sperm whale myoglobin, aligned. Uppercase columns and dashes are the 146 <b>consensus columns</b> that become match states; here they are the β-globin positions. Lowercase letters and dots are <b>insert columns</b>.</p>
+  </div>
+  <div class="tool" id="buildTool">
+    <div class="tool-title">Alignment → model <small>Pick a window to see its states</small></div>
+    <div class="msa" id="msaView"></div>
+    <div class="controls" style="margin-top:14px">
+      <label class="field">Window
+        <select id="winSel">
+          <option value="1">N-terminus (β 1–24)</option>
+          <option value="40">CD corner and D helix (β 40–63)</option>
+          <option value="52">Distal His E7 (β 52–75)</option>
+          <option value="80" selected>Proximal His F8 (β 80–103)</option>
+          <option value="123">C-terminus (β 123–146)</option>
+        </select>
+      </label>
+      <label class="field">Pseudocount weight β <input type="number" id="betaIn" value="10" min="1" max="100" step="1"></label>
+    </div>
+    <svg class="diagram" id="logo" viewBox="0 0 760 250" role="img" aria-label="Sequence logo of the model's match states in the chosen window"></svg>
+    <div class="legend" id="logoLegend"></div>
+  </div>
+  <div class="prose">
+  <p>The logo above is how HMM tools picture a model. At each match state, letter height is the residue's probability times the state's information content, in bits. Tall single letters are conserved positions, like the F8 histidine. Short stacks of many letters are variable positions. The bar under each column is that node's delete-open probability, M<sub>k</sub> → D<sub>k+1</sub>. It rises at the nodes where a deletion starts, such as where α-globin's D-helix deletion begins (window β 40–63).</p>
+  </div>
+  <div class="eq">Emissions   e(k,a) = (α·f(k,a) + β·g(k,a)) / (α + β)     f = observed frequency in column k,
+                                                        g = BLOSUM62-based pseudocounts, α = sequences − 1
+Transitions t(k, X→Y) = (count(X→Y) + prior) / (count(X→·) + priors)
+Scores      bits = log₂( e(k,a) / p(a) ) for emissions,  log₂ t for transitions</div>
+  <p class="note">Like hmmbuild, this page weights sequences with Henikoff position-based weights, so near-duplicates such as the two myoglobins count less. The real hmmbuild does two more things that this page simplifies. It uses Dirichlet mixture priors (Sjölander et al. 1996) instead of the BLOSUM62 pseudocounts here. And it lowers the effective number of sequences by entropy weighting, so the priors keep more influence. The idea is the same: observed counts, softened by prior knowledge of how amino acids substitute.</p>
+</section>
+
+<section id="score" aria-labelledby="score-h">
+  <span class="snum">4</span>
+  <div class="prose">
+  <h2 id="score-h">Scoring: Viterbi and Forward</h2>
+  <p>Given a model and a sequence, there are two natural questions. What is the single most probable path of states that explains the sequence? And what is the total probability of the sequence, summed over <i>every</i> path? Both are dynamic programming, just like Smith–Waterman, but with three matrices (M, I, D) and position-specific transitions.</p>
+  </div>
+  <div class="eq">Viterbi   V_M(i,k) = e(k,xᵢ) · max{ entry,  V_M(i−1,k−1)·t(MM),  V_I(i−1,k−1)·t(IM),  V_D(i−1,k−1)·t(DM) }
+Forward   F_M(i,k) = e(k,xᵢ) · sum{ entry,  F_M(i−1,k−1)·t(MM),  F_I(i−1,k−1)·t(IM),  F_D(i−1,k−1)·t(DM) }
+
+(similar recurrences for I and D; e is emission odds against background; score = log₂ of the result)</div>
+  <div class="prose">
+  <p>Viterbi gives an alignment, the one HMMER displays. Forward gives a better score. A true but distant homolog often has many roughly equal ways to align: a shifted gap here, an alternative helix boundary there. Viterbi counts only the best one. Forward adds up the evidence from all of them. HMMER3 was the first version to score every hit with Forward (Eddy 2011), and it gained sensitivity by doing so.</p>
+  </div>
+</section>
+
+<section id="stats" aria-labelledby="stats-h">
+  <span class="snum">5</span>
+  <div class="prose">
+  <h2 id="stats-h">From bit scores to E-values</h2>
+  <p>HMMER reports scores in bits. A score of S bits means the sequence is 2<sup>S</sup> times more likely under the family model than under the background model. For HMMER3's Forward scores, Eddy (2008) showed that the tail of random scores falls off as an exponential with slope λ = ln 2. In words, each extra bit halves the chance of reaching that score at random. HMMER measures one offset τ per model by scoring simulated random sequences, then:</p>
+  </div>
+  <div class="eq">P(S ≥ x) ≈ 2^−(x − τ)          E-value = Z × P          Z = number of sequences searched</div>
+  <div class="prose">
+  <p>Note the difference from BLAST. HMMER's E-value multiplies by the number of <i>sequences</i> in the database, not residues. The mini search below calibrates τ separately for each target by scoring shuffled copies of it. Shuffles keep the target's length and amino-acid composition, so a sequence cannot score well just by being rich in the residues the model likes. HMMER handles composition with its own <b>bias</b> correction, reported in its output.</p>
+  </div>
+</section>
+
+<section id="search" aria-labelledby="search-h">
+  <span class="snum">6</span>
+  <div class="prose">
+  <h2 id="search-h">Run a mini-hmmsearch</h2>
+  <p>Now search the same nine-protein database used in the BLAST tutorial with the model. Choose which globins go into the training alignment, and click a row to see its Viterbi alignment in HMMER's format.</p>
+  </div>
+  <div class="tool" id="searchTool">
+    <div class="controls">
+      <div class="field">Train on
+        <div class="checks" id="trainChecks"></div>
+      </div>
+      <label class="field">Sequence weights <select id="wtSel"><option value="pb" selected>Position-based (Henikoff)</option><option value="none">None (all equal)</option></select></label>
+      <label class="field">Database size Z <select id="zSel"><option value="9" selected>9 (this database)</option><option value="570000">570,000 (Swiss-Prot size)</option></select></label>
+      <label class="field">Shuffles per target <select id="nSh"><option>20</option><option selected>40</option><option>100</option></select></label>
+    </div>
+    <div class="stats" id="srStats"></div>
+    <div class="tablewrap" style="margin-top:0"><table class="hits" id="srTable"></table></div>
+    <p class="note" style="margin-top:8px">The dashed line is HMMER's default inclusion threshold, E = 0.01. Shuffled mean is the average Forward score of the shuffled copies: what this target's composition alone earns.</p>
+    <h3>Alignment</h3>
+    <div class="bo" id="srAln"></div>
+  </div>
+  <div class="prose">
+  <h3>What to notice</h3>
+  <ul class="goals">
+    <li><b>Viterbi vs Forward.</b> For the four training globins the two scores are nearly equal, because one path dominates. For leghemoglobin, Forward is several bits higher than Viterbi. Its evidence is spread over many weak alignments.</li>
+    <li><b>Composition matters.</b> Leghemoglobin's Forward score sits well above the decoys'. But its shuffled copies also score high, because it is rich in the alanines, lysines and leucines that helical globins favour. Against its own shuffles it is not significant.</li>
+    <li><b>What you train on decides what you find.</b> Untick both myoglobins and train on α and β only. Myoglobin scores fall from about 300 bits to 40–47 bits, still significant. Leghemoglobin rises to 18.6 bits with E ≈ 5 × 10⁻⁴, so this hemoglobin model finds it. In this data leghemoglobin resembles the hemoglobins slightly more than the myoglobins. Two near-identical myoglobins in the training set pull the model toward myoglobin.</li>
+    <li><b>Weighting helps, a little.</b> With all four sequences, switch sequence weights to None. Leghemoglobin's E-value goes from 0.057 to 0.12. Weighting stops the myoglobin pair from counting twice, but it cannot add information the alignment does not have.</li>
+    <li><b>Scale matters.</b> Set Z to Swiss-Prot size. Even the hemoglobin model's leghemoglobin hit becomes E ≈ 30. A four-sequence model is too narrow to find plant globins in a real database.</li>
+  </ul>
+  <p>This is why real family models are built from large, diverse seed alignments. Pfam's globin family, PF00042, is trained on globins from across the tree of life. To see the difference, submit soybean leghemoglobin (UniProt P02238) to hmmscan against Pfam on the <a href="https://www.ebi.ac.uk/Tools/hmmer/" target="_blank" rel="noopener">EBI HMMER website</a>, and compare its E-value with what this four-sequence model manages.</p>
+  </div>
+</section>
+
+<section id="speed" aria-labelledby="speed-h">
+  <span class="snum">7</span>
+  <div class="prose">
+  <h2 id="speed-h">How HMMER3 is fast</h2>
+  <p>Forward is expensive. For each target it fills three matrices and sums over every path. Older HMMER versions were about 100 times slower than BLAST. HMMER3 closed the gap with a pipeline of filters (Eddy 2011). Most sequences are thrown out by a cheap test, and only survivors reach the expensive one. The filters are vectorized with SIMD instructions that update many cells at once.</p>
+  </div>
+  <ol class="pipe">
+    <li><span class="n">1</span><b>MSV filter</b><span class="d">Multiple ungapped segments, much like BLAST seeds, scored for the whole model at once. Passes about 2% of random sequences (P ≤ 0.02).</span></li>
+    <li><span class="n">2</span><b>Viterbi filter</b><span class="d">Full gapped Viterbi in reduced precision. Passes about 0.1% (P ≤ 10⁻³).</span></li>
+    <li><span class="n">3</span><b>Forward</b><span class="d">The real score. Passes P ≤ 10⁻⁵, then domains are defined and aligned with posterior probabilities.</span></li>
+  </ol>
+  <p class="note">Filters are tuned so real homologs almost always survive. The thresholds are options (<code>--F1</code>, <code>--F2</code>, <code>--F3</code>), and <code>--max</code> turns all filters off for maximum sensitivity at a large cost in time.</p>
+</section>
+
+<p class="part">Part 2 · Using HMMER</p>
+
+<section id="suite" aria-labelledby="suite-h">
+  <span class="snum">8</span>
+  <div class="prose">
+  <h2 id="suite-h">The HMMER programs</h2>
+  </div>
+  <div class="tablewrap">
+  <table class="data">
+    <thead><tr><th>Program</th><th>Input</th><th>Searches</th><th>Use it to</th></tr></thead>
+    <tbody>
+      <tr><td><b>hmmbuild</b></td><td>Multiple alignment</td><td>n/a</td><td>Build a profile HMM from a family alignment.</td></tr>
+      <tr><td><b>hmmsearch</b></td><td>One or more HMMs</td><td>Sequence database</td><td>Find all members of a family in a proteome or database.</td></tr>
+      <tr><td><b>hmmscan</b></td><td>Sequence(s)</td><td>HMM database (e.g. Pfam)</td><td>Annotate a protein's domains. Run <b>hmmpress</b> on the HMM database first.</td></tr>
+      <tr><td><b>phmmer</b></td><td>One sequence</td><td>Sequence database</td><td>BLASTP-like search, scored with HMMER's machinery.</td></tr>
+      <tr><td><b>jackhmmer</b></td><td>One sequence</td><td>Sequence database</td><td>Iterative search, like PSI-BLAST: rebuild the model from hits each round.</td></tr>
+      <tr><td><b>hmmalign</b></td><td>HMM + sequences</td><td>n/a</td><td>Align many sequences to a model to make a large family alignment.</td></tr>
+      <tr><td><b>nhmmer</b></td><td>DNA HMM or alignment</td><td>DNA database</td><td>Find DNA families, such as transposable elements, in genomes.</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="prose">
+  <p>Install HMMER from <a href="http://hmmer.org" target="_blank" rel="noopener">hmmer.org</a> or with <code>conda install -c bioconda hmmer</code>. The model built on this page, as a Stockholm alignment file:</p>
+  </div>
+  <div class="tool">
+    <div class="copyrow"><b>globins.sto</b><button id="stoCopy">Copy Stockholm</button></div>
+    <textarea id="stoBox" readonly rows="9" aria-label="Globin alignment in Stockholm format"></textarea>
+    <p class="note" style="margin:10px 0 0">The <code>#=GC RF</code> line marks consensus columns with x. Build with <code>--hand</code> so hmmbuild uses those columns, as this page does. Without it, hmmbuild picks columns where at least half the sequences have a residue.</p>
+  </div>
+  <div class="eq"># Build a model from the alignment
+hmmbuild --hand globins.hmm globins.sto
+
+# Search a protein database with it; keep hits with E ≤ 0.001 in a table
+hmmsearch -E 1e-3 --tblout hits.tbl globins.hmm uniprot_sprot.fasta
+
+# Annotate one protein's domains with Pfam
+hmmpress Pfam-A.hmm
+hmmscan --domtblout domains.tbl Pfam-A.hmm leghemoglobin.fasta
+
+# Iterative search from a single sequence (like PSI-BLAST), 5 rounds
+jackhmmer -N 5 hbb.fasta uniprot_sprot.fasta</div>
+</section>
+
+<section id="reading" aria-labelledby="reading-h">
+  <span class="snum">9</span>
+  <div class="prose">
+  <h2 id="reading-h">Reading HMMER output</h2>
+  <p>hmmsearch and hmmscan print two levels of results. First is one line per <b>sequence</b>, using the whole-sequence score. Then comes one block per <b>domain</b>, each a separate match of the model within that sequence. A protein with three copies of a repeat has one sequence line and three domain lines.</p>
+  </div>
+  <div class="tablewrap">
+  <table class="data">
+    <thead><tr><th>Field</th><th>Level</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td><code>E-value</code></td><td>sequence</td><td>Expected number of random sequences in a database of size Z scoring this well. Your main filter.</td></tr>
+      <tr><td><code>score</code></td><td>both</td><td>Bit score, after bias correction. Independent of database size.</td></tr>
+      <tr><td><code>bias</code></td><td>both</td><td>Bits removed for biased composition. If bias is close to the raw score, the hit may be only a composition match.</td></tr>
+      <tr><td><code>exp</code> / <code>N</code></td><td>sequence</td><td>Expected and reported number of domains in this sequence.</td></tr>
+      <tr><td><code>c-Evalue</code></td><td>domain</td><td>Conditional E-value: significance of this domain given that the sequence already matched. Use it to judge extra domains of a real hit.</td></tr>
+      <tr><td><code>i-Evalue</code></td><td>domain</td><td>Independent E-value: significance if this domain were the only match in the whole search. The stricter number.</td></tr>
+      <tr><td><code>hmm from/to</code></td><td>domain</td><td>Which model nodes aligned. <code>[]</code> means both ends of the model were reached, <code>..</code> means neither.</td></tr>
+      <tr><td><code>ali</code> / <code>env</code> from/to</td><td>domain</td><td>Aligned region of the target, and the wider envelope where the domain probably lies. Use the envelope as the domain's boundaries.</td></tr>
+      <tr><td><code>acc</code></td><td>domain</td><td>Mean posterior probability of the aligned residues (0–1). Near 1 means the alignment is well determined.</td></tr>
+      <tr><td><code>PP</code> line</td><td>alignment</td><td>Posterior probability of each aligned residue: 0–9 means 0–95%, * means over 95%. Low PP flags regions to distrust.</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="prose">
+  <h3>Rules of thumb</h3>
+  <ul class="goals">
+    <li>HMMER <b>reports</b> hits with E ≤ 10 but marks as <b>included</b> (!) only those with E ≤ 0.01. Treat unincluded hits (?) as leads, not results.</li>
+    <li>For Pfam, use the curated <b>gathering thresholds</b> with <code>--cut_ga</code>. Each family's curators chose a bit-score cutoff with no known false positives.</li>
+    <li>A significant sequence E-value with every individual domain weak means the evidence is spread over several weak domains, often repeats. Check the domain table.</li>
+    <li>High bias relative to score, or low <code>acc</code>, is a warning even when the E-value looks good.</li>
+  </ul>
+  </div>
+</section>
+
+<section id="check" aria-labelledby="check-h">
+  <span class="snum">10</span>
+  <h2 id="check-h">Check yourself</h2>
+  <details><summary>1. What does a profile HMM capture that a PSSM does not?</summary>
+    <p>Position-specific gap probabilities. Insert and delete transitions are estimated for every node, so the model expects gaps between helices and penalizes them inside conserved cores. A PSSM uses one gap penalty everywhere.</p></details>
+  <details><summary>2. Why is an insert state's emission distribution usually set to background?</summary>
+    <p>Inserted residues vary between family members and are not aligned to each other, so there is no column-specific signal to learn. Using background makes inserted residues score zero bits; the insert's cost comes only from its transitions.</p></details>
+  <details><summary>3. Viterbi gives leghemoglobin a low score, but Forward gives it several bits more. Why?</summary>
+    <p>Viterbi keeps only the single best path. For a distant homolog, many different paths each explain part of the sequence about equally well. Forward sums their probabilities, so it collects evidence the single best path leaves out.</p></details>
+  <details><summary>4. The same hit has E = 0.06 with Z = 9 and E ≈ 3,600 with Z = 570,000. What changed?</summary>
+    <p>Only the number of sequences searched. The P-value per sequence is the same. Searching more sequences gives chance more tries, so the expected number of equally good random hits rises in proportion.</p></details>
+  <details><summary>5. You want to know which Pfam domains a new protein contains. Which program, and which threshold option?</summary>
+    <p>hmmscan against Pfam-A (after hmmpress), with <code>--cut_ga</code> to apply Pfam's curated gathering thresholds.</p></details>
+  <details><summary>6. Training on α and β only, myoglobin scores drop but leghemoglobin's rises. What does this tell you about building models?</summary>
+    <p>A model recognizes the variation it was trained on. Remove the myoglobins and it loses some of its grip on myoglobins. Add two near-identical myoglobins and the model tilts toward them, even with sequence weighting. Good family models start from diverse, carefully curated seed alignments that sample the whole family evenly, which is what Pfam's curators build.</p></details>
+</section>
+
+<section id="refs" aria-labelledby="refs-h">
+  <span class="snum">11</span>
+  <h2 id="refs-h">References and links</h2>
+  <ol class="refs">
+    <li>Krogh A, Brown M, Mian IS, Sjölander K, Haussler D (1994). Hidden Markov models in computational biology: applications to protein modeling. <i>J Mol Biol</i> 235:1501–1531.</li>
+    <li>Eddy SR (1998). Profile hidden Markov models. <i>Bioinformatics</i> 14:755–763.</li>
+    <li>Durbin R, Eddy S, Krogh A, Mitchison G (1998). <i>Biological Sequence Analysis: Probabilistic Models of Proteins and Nucleic Acids.</i> Cambridge University Press.</li>
+    <li>Sjölander K, et al. (1996). Dirichlet mixtures: a method for improved detection of weak but significant protein sequence homology. <i>CABIOS</i> 12:327–345.</li>
+    <li>Eddy SR (2008). A probabilistic model of local sequence alignment that simplifies statistical significance estimation. <i>PLoS Comput Biol</i> 4:e1000069.</li>
+    <li>Eddy SR (2011). Accelerated profile HMM searches. <i>PLoS Comput Biol</i> 7:e1002195.</li>
+  </ol>
+  <p class="prose">Links: <a href="http://hmmer.org" target="_blank" rel="noopener">hmmer.org</a> (software and user guide), <a href="https://www.ebi.ac.uk/Tools/hmmer/" target="_blank" rel="noopener">EBI HMMER web server</a>, <a href="https://www.ebi.ac.uk/interpro/" target="_blank" rel="noopener">InterPro and Pfam</a>.</p>
+  <footer>Bio 116 · Profile HMM tutorial. The mini-HMMER on this page is a teaching model. It follows Plan7 local alignment but simplifies sequence weighting, priors, flanking states and calibration.</footer>
+</section>
+</main>
+</div>
+
+<script>
+"use strict";
+
+"use strict";
+/* ---------- data ---------- */
+const GLOBINS = [
+  {id:"HBA", short:"α", name:"Hemoglobin α", org:"Homo sapiens", acc:"P69905", e7:58, f8:87,
+   job:"Blood O₂ transport (α₂β₂ tetramer)",
+   seq:"VLSPADKTNVKAAWGKVGAHAGEYGAEALERMFLSFPTTKTYFPHFDLSHGSAQVKGHGKKVADALTNAVAHVDDMPNALSALSDLHAHKLRVDPVNFKLLSHCLLVTLAAHLPAEFTPAVHASLDKFLASVSTVLTSKYR"},
+  {id:"HBB", short:"β", name:"Hemoglobin β", org:"Homo sapiens", acc:"P68871", e7:63, f8:92,
+   job:"Blood O₂ transport (α₂β₂ tetramer)",
+   seq:"VHLTPEEKSAVTALWGKVNVDEVGGEALGRLLVVYPWTQRFFESFGDLSTPDAVMGNPKVKAHGKKVLGAFSDGLAHLDNLKGTFATLSELHCDKLHVDPENFRLLGNVLVCVLAHHFGKEFTPPVQAAYQKVVAGVANALAHKYH"},
+  {id:"MBh", short:"Mb (human)", name:"Myoglobin", org:"Homo sapiens", acc:"P02144", e7:64, f8:93,
+   job:"O₂ storage in muscle (monomer)",
+   seq:"GLSDGEWQLVLNVWGKVEADIPGHGQEVLIRLFKGHPETLEKFDKFKHLKSEDEMKASEDLKKHGATVLTALGGILKKKGHHEAEIKPLAQSHATKHKIPVKYLEFISECIIQVLQSKHPGDFGADAQGAMNKALELFRKDMASNYKELGFQG"},
+  {id:"MBw", short:"Mb (whale)", name:"Myoglobin", org:"Physeter macrocephalus (sperm whale)", acc:"P02185", e7:64, f8:93,
+   job:"O₂ storage for long dives; first protein structure solved",
+   seq:"VLSEGEWQLVLHVWAKVEADVAGHGQDILIRLFKSHPETLEKFDRFKHLKTEAEMKASEDLKKHGVTVLTALGAILKKKGHHEAELKPLAQSHATKHKIPIKYLEFISEAIIHVLHSRHPGDFGADAQGAMNKALELFRKDIAAKYKELGYQG"},
+  {id:"LBA", short:"Lb (soybean)", name:"Leghemoglobin A", org:"Glycine max (soybean)", acc:"P02238", e7:61, f8:92,
+   job:"Buffers O₂ for nitrogen-fixing bacteria in root nodules",
+   seq:"VAFTEKQDALVSSSFEAFKANIPQYSVVFYTSILEKAPAAKDLFSFLANGVDPTNPKLTGHAEKLFALVRDSAGQLKASGTVVADAALGSVHAQKAVTDPQFVVVKEALLKTIKAAVGDKWSDELSRAWEVAYDELAAAIKKA"}
+];
+const G = Object.fromEntries(GLOBINS.map(g => [g.id, g]));
+const label = g => g.id === "HBA" || g.id === "HBB" ? `${g.name} (human)` : `${g.name} (${g.short.replace(/^.*\(|\)$/g,"")})`;
+
+const B62_TXT = `A R N D C Q E G H I L K M F P S T W Y V
+A 4 -1 -2 -2 0 -1 -1 0 -2 -1 -1 -1 -1 -2 -1 1 0 -3 -2 0
+R -1 5 0 -2 -3 1 0 -2 0 -3 -2 2 -1 -3 -2 -1 -1 -3 -2 -3
+N -2 0 6 1 -3 0 0 0 1 -3 -3 0 -2 -3 -2 1 0 -4 -2 -3
+D -2 -2 1 6 -3 0 2 -1 -1 -3 -4 -1 -3 -3 -1 0 -1 -4 -3 -3
+C 0 -3 -3 -3 9 -3 -4 -3 -3 -1 -1 -3 -1 -2 -3 -1 -1 -2 -2 -1
+Q -1 1 0 0 -3 5 2 -2 0 -3 -2 1 0 -3 -1 0 -1 -2 -1 -2
+E -1 0 0 2 -4 2 5 -2 0 -3 -3 1 -2 -3 -1 0 -1 -3 -2 -2
+G 0 -2 0 -1 -3 -2 -2 6 -2 -4 -4 -2 -3 -3 -2 0 -2 -2 -3 -3
+H -2 0 1 -1 -3 0 0 -2 8 -3 -3 -1 -2 -1 -2 -1 -2 -2 2 -3
+I -1 -3 -3 -3 -1 -3 -3 -4 -3 4 2 -3 1 0 -3 -2 -1 -3 -1 3
+L -1 -2 -3 -4 -1 -2 -3 -4 -3 2 4 -2 2 0 -3 -2 -1 -2 -1 1
+K -1 2 0 -1 -3 1 1 -2 -1 -3 -2 5 -1 -3 -1 0 -1 -3 -2 -2
+M -1 -1 -2 -3 -1 0 -2 -3 -2 1 2 -1 5 0 -2 -1 -1 -1 -1 1
+F -2 -3 -3 -3 -2 -3 -3 -3 -1 0 0 -3 0 6 -4 -2 -2 1 3 -1
+P -1 -2 -2 -1 -3 -1 -1 -2 -2 -3 -3 -1 -2 -4 7 -1 -1 -4 -3 -2
+S 1 -1 1 0 -1 0 0 0 -1 -2 -2 0 -1 -2 -1 4 1 -3 -2 -2
+T 0 -1 0 -1 -1 -1 -1 -2 -2 -1 -1 -1 -1 -2 -1 1 5 -2 -2 0
+W -3 -3 -4 -4 -2 -2 -3 -2 -2 -3 -2 -3 -1 1 -4 -3 -2 11 2 -3
+Y -2 -2 -2 -3 -2 -1 -2 -3 2 -1 -1 -2 -1 3 -3 -2 -2 2 7 -1
+V 0 -3 -3 -3 -1 -2 -2 -3 -3 3 1 -2 1 -1 -2 -2 0 -3 -1 4`;
+const AA = "ARNDCQEGHILKMFPSTWYV";
+const B62 = new Int8Array(26 * 26);
+(() => {
+  const lines = B62_TXT.split("\n"), cols = lines[0].split(" ");
+  for (const ln of lines.slice(1)) {
+    const [r, ...v] = ln.split(" ");
+    v.forEach((x, k) => { B62[(r.charCodeAt(0) - 65) * 26 + cols[k].charCodeAt(0) - 65] = +x; });
+  }
+})();
+const IDM = new Int8Array(26 * 26);
+for (const a of AA) for (const b of AA) IDM[(a.charCodeAt(0) - 65) * 26 + b.charCodeAt(0) - 65] = a === b ? 5 : -4;
+const MAT = { b62: B62, id: IDM };
+const sc = (m, a, b) => m[(a.charCodeAt(0) - 65) * 26 + b.charCodeAt(0) - 65];
+
+const CLASS = {};
+for (const [cls, s] of Object.entries({hyd:"AVLIM", aro:"FWY", pos:"KRH", neg:"DE", pol:"STNQ", spe:"GPC"})) for (const c of s) CLASS[c] = cls;
+const CLASS_LABEL = [["hyd","hydrophobic AVLIM"],["aro","aromatic FWY"],["pos","positive KRH"],["neg","negative DE"],["pol","polar STNQ"],["spe","special GPC"]];
+function legendHTML(withKey) {
+  return CLASS_LABEL.map(([c, t]) => `<span><i class="c-${c}"></i>${t}</span>`).join("") +
+    (withKey ? `<span><i class="key" style="outline-offset:-2px"></i>heme-pocket His (E7, F8)</span>` : "");
+}
+const esc = s => s.replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+
+/* ---------- affine-gap alignment (Gotoh) ---------- */
+const NEG = -1e9;
+function align(a, b, {local = false, open = 10, ext = 0.5, mat = B62} = {}) {
+  const n = a.length, m = b.length, W = m + 1, N = (n + 1) * W;
+  const M = new Float64Array(N).fill(NEG), X = new Float64Array(N).fill(NEG), Y = new Float64Array(N).fill(NEG);
+  const pM = new Uint8Array(N), pX = new Uint8Array(N), pY = new Uint8Array(N);
+  M[0] = 0;
+  if (!local) {
+    for (let i = 1; i <= n; i++) { X[i * W] = -(open + (i - 1) * ext); pX[i * W] = i === 1 ? 0 : 1; }
+    for (let j = 1; j <= m; j++) { Y[j] = -(open + (j - 1) * ext); pY[j] = j === 1 ? 0 : 2; }
+  }
+  let best = local ? 0 : NEG, bk = 0;
+  for (let i = 1; i <= n; i++) {
+    const ai = (a.charCodeAt(i - 1) - 65) * 26;
+    for (let j = 1; j <= m; j++) {
+      const k = i * W + j, d = k - W - 1, u = k - W, l = k - 1;
+      let v = M[d], p = 0;
+      if (X[d] > v) { v = X[d]; p = 1; }
+      if (Y[d] > v) { v = Y[d]; p = 2; }
+      if (local && v <= 0) { v = 0; p = 3; }
+      M[k] = v + mat[ai + b.charCodeAt(j - 1) - 65]; pM[k] = p;
+      let x = M[u] - open, px = 0;
+      if (X[u] - ext > x) { x = X[u] - ext; px = 1; }
+      if (Y[u] - open > x) { x = Y[u] - open; px = 2; }
+      X[k] = x; pX[k] = px;
+      let y = M[l] - open, py = 0;
+      if (Y[l] - ext > y) { y = Y[l] - ext; py = 2; }
+      if (X[l] - open > y) { y = X[l] - open; py = 1; }
+      Y[k] = y; pY[k] = py;
+      if (local && M[k] > best) { best = M[k]; bk = k; }
+    }
+  }
+  let i, j, state;
+  if (local) {
+    if (best <= 0) return {score: 0, A: "", B: "", aStart: 0, bStart: 0, path: []};
+    i = Math.floor(bk / W); j = bk % W; state = 0;
+  } else {
+    const k = N - 1; i = n; j = m; best = M[k]; state = 0;
+    if (X[k] > best) { best = X[k]; state = 1; }
+    if (Y[k] > best) { best = Y[k]; state = 2; }
+  }
+  const A = [], B = [], path = [];
+  while (i > 0 || j > 0) {
+    const k = i * W + j;
+    path.push([i, j]);
+    if (state === 0) {
+      const p = pM[k]; A.push(a[i - 1]); B.push(b[j - 1]); i--; j--;
+      if (p === 3) break;
+      state = p;
+    } else if (state === 1) {
+      const p = pX[k]; A.push(a[i - 1]); B.push("-"); i--; state = p;
+    } else {
+      const p = pY[k]; A.push("-"); B.push(b[j - 1]); j--; state = p;
+    }
+    if (local && i === 0 && j === 0) break;
+  }
+  return {score: best, A: A.reverse().join(""), B: B.reverse().join(""), aStart: i, bStart: j, path: path.reverse()};
+}
+
+/* score-only local alignment, rolling rows, for the shuffle test */
+function localScore(a, b, open, ext, mat) {
+  const m = b.length;
+  let Mp = new Float64Array(m + 1), Xp = new Float64Array(m + 1).fill(NEG), Yp = new Float64Array(m + 1).fill(NEG);
+  let Mc = new Float64Array(m + 1), Xc = new Float64Array(m + 1), Yc = new Float64Array(m + 1);
+  const bc = Array.from(b, c => c.charCodeAt(0) - 65);
+  let best = 0;
+  for (let i = 0; i < a.length; i++) {
+    const ai = (a.charCodeAt(i) - 65) * 26;
+    Mc[0] = NEG; Xc[0] = NEG; Yc[0] = NEG;
+    for (let j = 1; j <= m; j++) {
+      let v = Mp[j - 1]; if (Xp[j - 1] > v) v = Xp[j - 1]; if (Yp[j - 1] > v) v = Yp[j - 1]; if (v < 0) v = 0;
+      const mm = v + mat[ai + bc[j - 1]]; Mc[j] = mm; if (mm > best) best = mm;
+      let x = Mp[j] - open; if (Xp[j] - ext > x) x = Xp[j] - ext; if (Yp[j] - open > x) x = Yp[j] - open; Xc[j] = x;
+      let y = Mc[j - 1] - open; if (Yc[j - 1] - ext > y) y = Yc[j - 1] - ext; if (Xc[j - 1] - open > y) y = Xc[j - 1] - open; Yc[j] = y;
+    }
+    [Mp, Mc] = [Mc, Mp]; [Xp, Xc] = [Xc, Xp]; [Yp, Yc] = [Yc, Yp];
+  }
+  return best;
+}
+
+function alnStats(res, mat) {
+  let id = 0, pos = 0, gaps = 0, opens = 0;
+  for (let k = 0; k < res.A.length; k++) {
+    const x = res.A[k], y = res.B[k];
+    if (x === "-" || y === "-") { gaps++; if (k === 0 || (res.A[k-1] !== "-" && res.B[k-1] !== "-") || (x === "-") !== (res.A[k-1] === "-")) opens++; continue; }
+    if (x === y) id++;
+    if (sc(B62, x, y) > 0) pos++;
+  }
+  const L = res.A.length || 1;
+  return {len: res.A.length, id, pos, gaps, opens, pid: 100 * id / L, ppos: 100 * pos / L};
+}
+
+
+
+/* ---------- data ---------- */
+const DECOYS = [
+  {id:"UBQ", name:"Ubiquitin", seq:"MQIFVKTLTGKTITLEVEPSDTIENVKAKIQDKEGIPPDQQRLIFAGKQLEDGRTLSDYNIQKESTLHLVLRLRGG"},
+  {id:"CYC", name:"Cytochrome c (horse)", seq:"GDVEKGKKIFVQKCAQCHTVEKGGKHKTGPNLHGLFGRKTGQAPGFTYTDANKNKGITWKEETLMEYLENPKKYIPGTKMIFAGIKKKTEREDLIAYLKKATNE"},
+  {id:"LYZ", name:"Lysozyme C (chicken)", seq:"KVFGRCELAAAMKRHGLDNYRGYSLGNWVCAAKFESNFNTQATNRNTDGSTDYGILQINSRWWCNDGRTPGSRNLCNIPCSALLSSDITASVNCAKKIVSDGNGMNAWVAWRNRCKGTDVQAWIRGCRL"},
+  {id:"INS", name:"Insulin B chain", seq:"FVNQHLCGSHLVEALYLVCGERGFFYTPKT"},
+];
+const DB = GLOBINS.map(g => ({id: g.id, name: label(g), seq: g.seq})).concat(DECOYS);
+const MSA = {
+  HBB: "VHLTPEEKSAVTALWGKV..NVD..EV..GGEALGRLLVVYPWTQRFFESFGDLSTPDAVMGNPKVKAHGKKVLGAFSDGLAHLDNLKGTFATLSELHCDKLHVDPENFRLLGNVLVCVLAHHFGKEFTPPVQAAYQKVVAGVANALAHKYH......",
+  HBA: "V-LSPADKTNVKAAWGKVgaHAG..EY..GAEALERMFLSFPTTKTYFPHF-DLS-----HGSAQVKGHGKKVADALTNAVAHVDDMPNALSALSDLHAHKLRVDPVNFKLLSHCLLVTLAAHLPAEFTPAVHASLDKFLASVSTVLTSKYR......",
+  MBh: "-GLSDGEWQLVLNVWGKV..EADipGH..GQEVLIRLFKGHPETLEKFDKFKHLKSEDEMKASEDLKKHGATVLTALGGILKKKGHHEAEIKPLAQSHATKHKIPVKYLEFISECIIQVLQSKHPGDFGADAQGAMNKALELFRKDMASNYKelgfqg",
+  MBw: "V-LSEGEWQLVLHVWAKV..EAD..VAghGQDILIRLFKSHPETLEKFDRFKHLKTEAEMKASEDLKKHGVTVLTALGAILKKKGHHEAELKPLAQSHATKHKIPIKYLEFISEAIIHVLHSRHPGDFGADAQGAMNKALELFRKDIAAKYKelgyqg",
+};
+const NAMES = Object.keys(MSA), W = MSA.HBB.length;
+const RF = [...MSA.HBB].map(c => c !== ".");           // consensus columns = β-globin positions
+const MCOLS = RF.map((x, c) => x ? c : -1).filter(c => c >= 0);
+const NM = MCOLS.length;
+const BG = {A:.07805,R:.05129,N:.04487,D:.05364,C:.01925,Q:.04264,E:.06295,G:.07377,H:.02199,I:.05142,
+            L:.09019,K:.05744,M:.02243,F:.03856,P:.05203,S:.07120,T:.05841,W:.01330,Y:.03216,V:.06441};
+(() => { const z = Object.values(BG).reduce((a, b) => a + b, 0); for (const k in BG) BG[k] /= z; })();
+const AI = Object.fromEntries([...AA].map((a, i) => [a, i]));
+const BGV = [...AA].map(a => BG[a]);
+/* BLOSUM62 conditional probabilities P(b | a), used as pseudocounts */
+const COND = [...AA].map(a => {
+  const r = [...AA].map((b, j) => BGV[j] * Math.pow(2, sc(B62, a, b) / 2));
+  const z = r.reduce((s, v) => s + v, 0);
+  return r.map(v => v / z);
+});
+
+/* ---------- hmmbuild ---------- */
+/* Henikoff position-based sequence weights over consensus columns, normalized to sum to the number of sequences */
+function pbWeights(rows) {
+  const w = new Array(rows.length).fill(0);
+  for (const c of MCOLS) {
+    const cnt = {}; rows.forEach(r => { const ch = r[c].toUpperCase(); cnt[ch] = (cnt[ch] || 0) + 1; });
+    const types = Object.keys(cnt).length;
+    rows.forEach((r, i) => { w[i] += 1 / (types * cnt[r[c].toUpperCase()]); });
+  }
+  const s = w.reduce((a, b) => a + b, 0);
+  return w.map(v => v * rows.length / s);
+}
+function buildHMM(names, beta, weighted = true) {
+  const rows = names.map(n => MSA[n]);
+  const wt = weighted ? pbWeights(rows) : rows.map(() => 1);
+  const e = [];                                   // match emission probabilities, node 1..NM stored at 0..NM-1
+  for (const c of MCOLS) {
+    const cnt = new Array(20).fill(0); let n = 0;
+    rows.forEach((r, i) => { if (/[A-Z]/.test(r[c])) { cnt[AI[r[c]]] += wt[i]; n += wt[i]; } });
+    const f = n ? cnt.map(v => v / n) : BGV.slice();
+    const g = new Array(20).fill(0);
+    for (let a = 0; a < 20; a++) if (f[a]) for (let b = 0; b < 20; b++) g[b] += f[a] * COND[a][b];
+    const al = Math.max(n - 1, 0);
+    e.push(f.map((v, a) => (al * v + beta * g[a]) / (al + beta)));
+  }
+  // transitions from node k (0 = begin) : MM MI MD IM II DM DD
+  const T = Array.from({length: NM + 1}, () => [0, 0, 0, 0, 0, 0, 0]);
+  for (const [ri, r] of rows.entries()) {
+    let prev = "M", k = 0;
+    for (let c = 0; c < W; c++) {
+      if (RF[c]) {
+        const cur = r[c] === "-" ? "D" : "M";
+        const key = prev === "M" ? (cur === "M" ? 0 : 2) : prev === "I" ? (cur === "M" ? 3 : -1) : (cur === "M" ? 5 : 6);
+        if (key >= 0) T[k][key] += wt[ri];
+        prev = cur; k++;
+      } else if (/[a-z]/.test(r[c])) {
+        const key = prev === "M" ? 1 : prev === "I" ? 4 : -1;
+        if (key >= 0) T[k][key] += wt[ri];
+        prev = "I";
+      }
+    }
+  }
+  const prior = [3, 0.1, 0.1, 0.6, 0.4, 0.6, 0.4];
+  const t = T.map(v => {
+    const x = v.map((c, i) => c + prior[i]);
+    const s1 = x[0] + x[1] + x[2], s2 = x[3] + x[4], s3 = x[5] + x[6];
+    return [x[0] / s1, x[1] / s1, x[2] / s1, x[3] / s2, x[4] / s2, x[5] / s3, x[6] / s3];
+  });
+  const odds = e.map(r => r.map((p, a) => p / BGV[a]));
+  const cons = e.map(r => { let b = 0; r.forEach((p, a) => { if (p > r[b]) b = a; }); return r[b] > 0.5 ? AA[b] : AA[b].toLowerCase(); });
+  return {e, t, odds, cons, names, wt};
+}
+
+/* ---------- Forward and Viterbi, local (Plan7-style uniform entry, free exit), odds space ---------- */
+function forward(hmm, x) {
+  const {odds, t} = hmm, M = NM, L = x.length, entry = 2 / (M * (M + 1));
+  let pM = new Float64Array(M + 1), pI = new Float64Array(M + 1), pD = new Float64Array(M + 1);
+  let cM = new Float64Array(M + 1), cI = new Float64Array(M + 1), cD = new Float64Array(M + 1);
+  let tot = 0;
+  for (let i = 1; i <= L; i++) {
+    const a = AI[x[i - 1]];
+    cM[0] = cI[0] = cD[0] = 0;
+    for (let k = 1; k <= M; k++) {
+      const tp = t[k - 1];
+      const m = odds[k - 1][a] * (entry + (k > 1 ? pM[k - 1] * tp[0] + pI[k - 1] * tp[3] + pD[k - 1] * tp[5] : 0));
+      cM[k] = m; tot += m;
+      cI[k] = k < M ? pM[k] * t[k][1] + pI[k] * t[k][4] : 0;
+      cD[k] = k > 1 ? cM[k - 1] * tp[2] + cD[k - 1] * tp[6] : 0;
+    }
+    [pM, cM] = [cM, pM]; [pI, cI] = [cI, pI]; [pD, cD] = [cD, pD];
+  }
+  return Math.log2(tot);
+}
+function viterbi(hmm, x) {
+  const {odds, t} = hmm, M = NM, L = x.length, entry = 2 / (M * (M + 1)), S = M + 1;
+  const VM = new Float64Array((L + 1) * S), VI = new Float64Array((L + 1) * S), VD = new Float64Array((L + 1) * S);
+  const bM = new Uint8Array((L + 1) * S), bI = new Uint8Array((L + 1) * S), bD = new Uint8Array((L + 1) * S);
+  let best = 0, bi = 0, bk = 0;
+  for (let i = 1; i <= L; i++) {
+    const a = AI[x[i - 1]];
+    for (let k = 1; k <= M; k++) {
+      const c = i * S + k, d = (i - 1) * S + k - 1, tp = t[k - 1];
+      let v = entry, p = 0;
+      if (k > 1) {
+        const m = VM[d] * tp[0], ii = VI[d] * tp[3], dd = VD[d] * tp[5];
+        if (m > v) { v = m; p = 1; } if (ii > v) { v = ii; p = 2; } if (dd > v) { v = dd; p = 3; }
+      }
+      VM[c] = odds[k - 1][a] * v; bM[c] = p;
+      if (VM[c] > best) { best = VM[c]; bi = i; bk = k; }
+      if (k < M) { const u = (i - 1) * S + k, m = VM[u] * t[k][1], ii = VI[u] * t[k][4]; VI[c] = m >= ii ? m : ii; bI[c] = m >= ii ? 1 : 2; }
+      if (k > 1) { const l = c - 1, m = VM[l] * tp[2], dd = VD[l] * tp[6]; VD[c] = m >= dd ? m : dd; bD[c] = m >= dd ? 1 : 3; }
+    }
+  }
+  // traceback
+  const path = []; let i = bi, k = bk, st = 1;
+  while (i > 0 && k > 0) {
+    const c = i * S + k;
+    if (st === 1) { path.push(["M", k, i]); const p = bM[c]; i--; k--; if (p === 0) break; st = p; }
+    else if (st === 2) { path.push(["I", k, i]); st = bI[c]; i--; }
+    else { path.push(["D", k, i]); st = bD[c]; k--; }
+  }
+  return {score: Math.log2(best), path: path.reverse()};
+}
+
+/* ---------- hero diagram ---------- */
+const CLS = {}; for (const [c, s] of Object.entries({hyd: "AVLIM", aro: "FWY", pos: "KRH", neg: "DE", pol: "STNQ", spe: "GPC"})) for (const ch of s) CLS[ch] = c;
+function drawHero(hmm) {
+  const svg = document.getElementById("heroDiag"), k0 = 89, n = 6;   // nodes 90–95 (β positions)
+  const X = j => 70 + j * 120, yD = 50, yI = 140, yM = 225;
+  let g = `<defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="var(--muted)"/></marker></defs>`;
+  const sw = p => (0.6 + 5 * p).toFixed(2);
+  for (let j = 0; j < n; j++) {
+    const k = k0 + j, tk = hmm.t[k + 1], x = X(j);
+    if (j < n - 1) {
+      const x2 = X(j + 1);
+      g += `<line x1="${x + 26}" y1="${yM}" x2="${x2 - 28}" y2="${yM}" stroke="var(--muted)" stroke-width="${sw(tk[0])}" marker-end="url(#ar)"><title>M${k}→M${k + 1}: ${tk[0].toFixed(3)}</title></line>`;
+      g += `<text x="${(x + x2) / 2 + 14}" y="${yM + 18}" text-anchor="middle" font-size="11" fill="var(--muted)">${tk[0].toFixed(2)}</text>`;
+      g += `<line x1="${x + 20}" y1="${yM - 22}" x2="${x2 - 18}" y2="${yD + 16}" stroke="var(--muted)" stroke-width="${sw(tk[2])}" marker-end="url(#ar)"><title>M${k}→D${k + 1}: ${tk[2].toFixed(3)}</title></line>`;
+      g += `<line x1="${x + 18}" y1="${yD}" x2="${x2 - 20}" y2="${yD}" stroke="var(--muted)" stroke-width="${sw(tk[6])}" marker-end="url(#ar)"><title>D${k}→D${k + 1}: ${tk[6].toFixed(3)}</title></line>`;
+      g += `<line x1="${x + 16}" y1="${yD + 12}" x2="${x2 - 24}" y2="${yM - 22}" stroke="var(--muted)" stroke-width="${sw(tk[5])}" marker-end="url(#ar)" stroke-dasharray="3 3"><title>D${k}→M${k + 1}: ${tk[5].toFixed(3)}</title></line>`;
+      const xi = (x + x2) / 2;
+      g += `<line x1="${x + 18}" y1="${yM - 26}" x2="${xi - 12}" y2="${yI + 8}" stroke="var(--muted)" stroke-width="${sw(tk[1])}" marker-end="url(#ar)"><title>M${k}→I${k}: ${tk[1].toFixed(3)}</title></line>`;
+      g += `<line x1="${xi + 12}" y1="${yI + 8}" x2="${x2 - 20}" y2="${yM - 26}" stroke="var(--muted)" stroke-width="${sw(tk[3])}" marker-end="url(#ar)"><title>I${k}→M${k + 1}: ${tk[3].toFixed(3)}</title></line>`;
+      g += `<path d="M${xi - 8} ${yI - 12} C ${xi - 18} ${yI - 40}, ${xi + 18} ${yI - 40}, ${xi + 8} ${yI - 12}" fill="none" stroke="var(--muted)" stroke-width="${sw(tk[4])}" marker-end="url(#ar)"><title>I${k}→I${k}: ${tk[4].toFixed(3)}</title></path>`;
+      g += `<rect x="${xi - 12}" y="${yI - 12}" width="24" height="24" transform="rotate(45 ${xi} ${yI})" fill="var(--panel)" stroke="var(--plum)" stroke-width="1.5"/><text x="${xi}" y="${yI + 4}" text-anchor="middle" font-size="11" fill="var(--plum)">I</text>`;
+    }
+    g += `<circle cx="${x}" cy="${yD}" r="16" fill="var(--panel)" stroke="var(--muted)" stroke-width="1.5"/><text x="${x}" y="${yD + 4}" text-anchor="middle" font-size="11" fill="var(--muted)">D${k + 1}</text>`;
+    const e = hmm.e[k].map((p, a) => [AA[a], p]).sort((u, v) => v[1] - u[1]).slice(0, 3);
+    const isF8 = k + 1 === 92;
+    g += `<rect x="${x - 26}" y="${yM - 22}" width="52" height="44" rx="4" fill="${isF8 ? "var(--heme-soft)" : "var(--panel)"}" stroke="${isF8 ? "var(--heme)" : "var(--ink)"}" stroke-width="${isF8 ? 2.5 : 1.5}"/>`;
+    g += `<text x="${x}" y="${yM + 7}" text-anchor="middle" font-size="22" font-weight="700" font-family="var(--mono)" fill="var(--l-${CLS[e[0][0]]})">${e[0][0]}</text>`;
+    g += `<text x="${x}" y="${yM + 38}" text-anchor="middle" font-size="11" fill="var(--muted)">M${k + 1}${isF8 ? " · F8" : ""}</text>`;
+    g += `<text x="${x}" y="${yM + 54}" text-anchor="middle" font-size="11" font-family="var(--mono)" fill="var(--ink)">${e.map(([c, p]) => `${c} ${p.toFixed(2)}`).join("  ")}</text>`;
+  }
+  svg.innerHTML = g;
+}
+
+/* ---------- MSA view + logo ---------- */
+function drawMSA(win) {
+  const lo = MCOLS[win - 1], hi = MCOLS[Math.min(NM, win + 23) - 1];
+  const esc = s => s;
+  let rfl = "#=GC RF ".padEnd(9) + RF.map(x => x ? "x" : ".").join("");
+  let h = `<span class="rf">${rfl.slice(0, 9)}${[...rfl.slice(9)].map((ch, c) => c >= lo && c <= hi ? `<span class="win">${ch}</span>` : ch).join("")}</span>\n`;
+  for (const n of NAMES) {
+    h += n.padEnd(9) + [...MSA[n]].map((ch, c) => {
+      const cls = RF[c] ? "" : "ins", inWin = c >= lo && c <= hi;
+      return `<span class="${cls}${inWin ? " win" : ""}">${ch}</span>`;
+    }).join("") + "\n";
+  }
+  const el = document.getElementById("msaView"); el.innerHTML = h.trimEnd();
+  const first = el.querySelector(".win"); if (first) el.scrollLeft = Math.max(0, first.offsetLeft - 120);
+}
+function drawLogo(hmm, win) {
+  const svg = document.getElementById("logo"), Wd = 760, L = 44, R = 10, top = 14, base = 170, nCol = 24;
+  const cw = (Wd - L - R) / nCol, Hmax = Math.log2(20);
+  const Y = b => base - b / Hmax * (base - top);
+  let g = "";
+  for (let b = 0; b <= 4; b++) g += `<line x1="${L}" x2="${Wd - R}" y1="${Y(b)}" y2="${Y(b)}" stroke="var(--line)"/><text x="${L - 6}" y="${Y(b) + 4}" text-anchor="end" font-size="11" fill="var(--muted)">${b}</text>`;
+  g += `<text x="12" y="${(top + base) / 2}" text-anchor="middle" font-size="12" fill="var(--muted)" transform="rotate(-90 12 ${(top + base) / 2})">bits</text>`;
+  for (let j = 0; j < nCol && win + j <= NM; j++) {
+    const k = win + j - 1, p = hmm.e[k];
+    const H = p.reduce((s, v, a) => s + (v > 0 ? v * Math.log2(v / BGV[a]) : 0), 0);
+    const x0 = L + j * cw;
+    let y = base;
+    const letters = p.map((v, a) => [AA[a], v * H]).filter(q => q[1] > 0.02).sort((u, v) => u[1] - v[1]);
+    for (const [ch, hgt] of letters) {
+      const hpx = hgt / Hmax * (base - top);
+      if (hpx < 1) continue;
+      const sy = hpx / 16;
+      g += `<text x="0" y="0" font-family="var(--mono)" font-weight="700" font-size="22" text-anchor="middle" fill="var(--l-${CLS[ch]})" transform="translate(${x0 + cw / 2} ${y}) scale(${(cw / 15).toFixed(2)} ${sy.toFixed(3)})"><title>M${k + 1} ${ch}: p = ${p[AI[ch]].toFixed(2)}</title>${ch}</text>`;
+      y -= hpx;
+    }
+    const md = hmm.t[k + 1 <= NM ? k + 1 : k][2];
+    const bh = Math.min(40, md * 400);
+    g += `<rect x="${x0 + 3}" y="${base + 30}" width="${cw - 6}" height="${Math.max(1, bh)}" fill="var(--plum)" opacity=".7"><title>M${k + 1}→D${k + 2}: ${md.toFixed(3)}</title></rect>`;
+    g += `<text x="${x0 + cw / 2}" y="${base + 18}" text-anchor="middle" font-size="10" fill="var(--muted)">${k + 1}</text>`;
+  }
+  g += `<text x="${L - 6}" y="${base + 42}" text-anchor="end" font-size="10" fill="var(--muted)">M→D</text>`;
+  svg.innerHTML = g;
+  document.getElementById("logoLegend").innerHTML = [["hyd", "hydrophobic AVLIM"], ["aro", "aromatic FWY"], ["pos", "positive KRH"], ["neg", "negative DE"], ["pol", "polar STNQ"], ["spe", "special GPC"]]
+    .map(([c, t]) => `<span><i style="background:var(--l-${c})"></i>${t}</span>`).join("") + `<span><i style="background:var(--plum);opacity:.7"></i>delete-open probability (bar height ∝ probability, capped at 0.1)</span>`;
+}
+
+/* ---------- mini-hmmsearch ---------- */
+function rng(seed) { return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function shuffle(s, r) { const a = s.split(""); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a.join(""); }
+const fmtE = E => E >= 0.01 ? (E >= 100 ? Math.round(E).toLocaleString("en-US") : E.toPrecision(2)) : E.toExponential(1);
+let HMM = null, SR = null, srSel = 0;
+function runSearch() {
+  const names = [...document.querySelectorAll("#trainChecks input:checked")].map(i => i.value);
+  const beta = Math.max(1, +document.getElementById("betaIn").value || 10);
+  if (!names.length) { document.getElementById("srStats").innerHTML = ""; document.getElementById("srTable").innerHTML = "<tr><td>Tick at least one training sequence.</td></tr>"; document.getElementById("srAln").textContent = ""; return; }
+  const weighted = document.getElementById("wtSel").value === "pb";
+  HMM = buildHMM(names, beta, weighted);
+  const Z = +document.getElementById("zSel").value, N = +document.getElementById("nSh").value;
+  const res = DB.map((d, di) => {
+    const fwd = forward(HMM, d.seq), vit = viterbi(HMM, d.seq);
+    const r = rng(1000 + di), sh = [];
+    for (let s = 0; s < N; s++) sh.push(forward(HMM, shuffle(d.seq, r)));
+    sh.sort((a, b) => a - b);
+    const xq = sh[Math.floor(0.9 * (N - 1))], tau = xq + Math.log2(0.1);
+    const P = Math.min(1, Math.pow(2, -(fwd - tau)));
+    return {d, fwd, vit, P, E: Z * P, shMean: sh.reduce((a, b) => a + b, 0) / N, train: names.includes(d.id)};
+  }).sort((a, b) => a.E - b.E || b.fwd - a.fwd);
+  SR = res; srSel = 0;
+  const inc = res.filter(r => r.E <= 0.01).length;
+  document.getElementById("srStats").innerHTML = [
+    [NM, "match states"], [names.length, "training sequences"], [inc, "included (E ≤ 0.01)"], [res.length - inc, "not included"]
+  ].map(([v, l]) => `<div class="stat"><b>${v}</b><span>${l}</span></div>`).join("");
+  let lastInc = -1; res.forEach((r, i) => { if (r.E <= 0.01) lastInc = i; });
+  document.getElementById("srTable").innerHTML = `<thead><tr><th>E-value</th><th>Forward (bits)</th><th>Viterbi (bits)</th><th>Shuffled mean</th><th>Sequence</th><th>Description</th></tr></thead><tbody>` +
+    res.map((r, i) => {
+      const pill = r.E <= 0.01 ? "strong" : r.E < 1 ? "gray" : "chance";
+      return `<tr data-i="${i}" tabindex="0" class="${i === 0 ? "sel" : ""}${i === lastInc ? " thr" : ""}"><td><span class="pill ${pill}">${fmtE(r.E)}</span></td><td>${r.fwd.toFixed(1)}</td><td>${r.vit.score.toFixed(1)}</td><td>${r.shMean.toFixed(1)}</td><td><b>${r.d.id}</b>${r.train ? ` <span class="muted">(training)</span>` : ""}</td><td>${r.d.name}</td></tr>`;
+    }).join("") + "</tbody>";
+  showAln();
+  drawHero(buildHMM(NAMES, beta, weighted));
+  const win = +document.getElementById("winSel").value; drawLogo(HMM, win);
+}
+function showAln() {
+  const r = SR[srSel], x = r.d.seq, path = r.vit.path;
+  document.querySelectorAll("#srTable tbody tr").forEach(tr => tr.classList.toggle("sel", +tr.dataset.i === srSel));
+  if (!path.length) { document.getElementById("srAln").textContent = "No positive-scoring path."; return; }
+  let mline = "", mid = "", tline = "";
+  for (const [st, k, i] of path) {
+    if (st === "M") { const c = HMM.cons[k - 1], a = x[i - 1]; mline += c; tline += a; mid += a === c.toUpperCase() ? a : HMM.odds[k - 1][AI[a]] > 1 ? "+" : " "; }
+    else if (st === "I") { mline += "."; tline += x[i - 1].toLowerCase(); mid += " "; }
+    else { mline += HMM.cons[k - 1]; tline += "-"; mid += " "; }
+  }
+  const k1 = path.find(p => p[0] !== "I")[1], k2 = [...path].reverse().find(p => p[0] !== "I")[1];
+  const i1 = path.find(p => p[0] !== "D")[2], i2 = [...path].reverse().find(p => p[0] !== "D")[2];
+  const Wd = 60; let out = `<span class="hd">&gt;&gt; ${r.d.id}  ${r.d.name}</span>\n <span class="mu">Viterbi ${r.vit.score.toFixed(1)} bits · Forward ${r.fwd.toFixed(1)} bits · E-value ${fmtE(r.E)} · hmm ${k1}–${k2} of ${NM} · ali ${i1}–${i2} of ${x.length}</span>\n\n`;
+  let kk = k1, ii = i1;
+  for (let s = 0; s < mline.length; s += Wd) {
+    const a = mline.slice(s, s + Wd), b = mid.slice(s, s + Wd), c = tline.slice(s, s + Wd);
+    const kEnd = kk + [...a].filter(ch => ch !== ".").length - 1, iEnd = ii + [...c].filter(ch => ch !== "-").length - 1;
+    out += `  globins ${String(kk).padStart(4)} ${a} ${kEnd}\n               ${b}\n  ${r.d.id.padEnd(7)} ${String(ii).padStart(4)} ${c} ${iEnd}\n\n`;
+    kk = kEnd + 1; ii = iEnd + 1;
+  }
+  document.getElementById("srAln").innerHTML = out.trimEnd() + `\n<span class="mu">Model line: consensus residue, uppercase where its probability exceeds 0.5. Middle line: identical residue, + for a positive score. Lowercase target letters are insertions.</span>`;
+}
+
+/* ---------- Stockholm export ---------- */
+function stoWire() {
+  const sto = "# STOCKHOLM 1.0\n#=GF ID bio116_globins\n\n" + NAMES.map(n => n.padEnd(12) + MSA[n]).join("\n") + "\n" + "#=GC RF".padEnd(12) + RF.map(x => x ? "x" : ".").join("") + "\n//\n";
+  const box = document.getElementById("stoBox"); box.value = sto;
+  document.getElementById("stoCopy").addEventListener("click", e => {
+    const btn = e.currentTarget, done = t => { btn.textContent = t; setTimeout(() => btn.textContent = "Copy Stockholm", 1600); };
+    try { navigator.clipboard.writeText(sto).then(() => done("Copied"), () => { box.focus(); box.select(); done("Press Ctrl/Cmd+C"); }); }
+    catch { box.focus(); box.select(); done("Press Ctrl/Cmd+C"); }
+  });
+}
+
+/* ---------- wiring ---------- */
+function wire() {
+  document.getElementById("trainChecks").innerHTML = NAMES.map(n => `<label><input type="checkbox" id="tr_${n}" value="${n}" checked>${n}</label>`).join("");
+  document.getElementById("trainChecks").addEventListener("change", runSearch);
+  ["zSel", "nSh", "wtSel"].forEach(id => document.getElementById(id).addEventListener("change", runSearch));
+  document.getElementById("betaIn").addEventListener("change", runSearch);
+  document.getElementById("winSel").addEventListener("change", () => { const w = +document.getElementById("winSel").value; drawMSA(w); drawLogo(HMM, w); });
+  const tb = document.getElementById("srTable");
+  const pick = e => { const tr = e.target.closest("tr[data-i]"); if (tr) { srSel = +tr.dataset.i; showAln(); } };
+  tb.addEventListener("click", pick);
+  tb.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pick(e); } });
+  runSearch(); drawMSA(+document.getElementById("winSel").value); stoWire();
+}
+function tocWire() {
+  const links = [...document.querySelectorAll(".toc a")];
+  const secs = links.map(a => document.querySelector(a.getAttribute("href")));
+  const on = () => { let k = 0; secs.forEach((s, i) => { if (s.getBoundingClientRect().top < 140) k = i; }); links.forEach((a, i) => a.classList.toggle("on", i === k)); };
+  addEventListener("scroll", on, {passive: true}); on();
+}
+wire(); tocWire();
+</script>
