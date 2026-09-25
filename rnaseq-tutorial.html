@@ -1,0 +1,816 @@
+<title>Reading the Transcriptome</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#f6f5f8; --surface:#ffffff; --surface-2:#f0edf3; --ink:#1d1a22; --muted:#625c6b; --line:#e0dce6;
+  --brand:#5b2a6e; --brand-ink:#ffffff; --brand-soft:#efe6f2; --brand-line:#d7c3de;
+  --good:#1f7a4a; --good-soft:#e3f3ea; --warn:#9a5b00; --warn-soft:#fbf0dc; --bad:#b42f2f; --bad-soft:#fae4e4;
+  --A:#1f9d55; --C:#2563c9; --G:#c98200; --T:#d43d3d;
+  --scope:#0d0a12; --scope-line:#2a2433; --scope-ink:#cfc6da;
+  --display:"Bricolage Grotesque", "Arial Black", system-ui, sans-serif;
+  --body:"IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+  --mono:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --r:10px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --paper:#141218; --surface:#1d1a23; --surface-2:#25212c; --ink:#ece8f1; --muted:#a49cae; --line:#342f3c;
+    --brand:#c79ad6; --brand-ink:#1d1a22; --brand-soft:#2d2236; --brand-line:#4d3a58;
+    --good:#5fd394; --good-soft:#173325; --warn:#f0b54a; --warn-soft:#3a2c12; --bad:#ff8080; --bad-soft:#3d1c1f;
+    --A:#3fcf7f; --C:#6f9dff; --G:#f2b233; --T:#ff6b6b;
+    --scope:#08060b; --scope-line:#2a2433;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --paper:#141218; --surface:#1d1a23; --surface-2:#25212c; --ink:#ece8f1; --muted:#a49cae; --line:#342f3c;
+  --brand:#c79ad6; --brand-ink:#1d1a22; --brand-soft:#2d2236; --brand-line:#4d3a58;
+  --good:#5fd394; --good-soft:#173325; --warn:#f0b54a; --warn-soft:#3a2c12; --bad:#ff8080; --bad-soft:#3d1c1f;
+  --A:#3fcf7f; --C:#6f9dff; --G:#f2b233; --T:#ff6b6b;
+  --scope:#08060b; --scope-line:#2a2433;
+}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.6;padding:0 16px}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;line-height:1.15;margin:0}
+h1{font-size:clamp(2.1rem,5vw,3.3rem);font-weight:800;letter-spacing:-.02em}
+h2{font-size:clamp(1.55rem,3.2vw,2.1rem);font-weight:700;letter-spacing:-.01em}
+h3{font-size:1.15rem;font-weight:700}
+p{margin:0}
+code,.mono{font-family:var(--mono)}
+a{color:var(--brand)}
+button,input,select{font:inherit}
+:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+
+.layout{max-width:1160px;margin:0 auto;display:grid;grid-template-columns:210px minmax(0,1fr);gap:48px;padding-block:40px 80px}
+@media (max-width:920px){.layout{grid-template-columns:minmax(0,1fr)}.rail{display:none}}
+
+/* rail */
+.rail{position:sticky;top:calc(env(safe-area-inset-top,0px) + 24px);align-self:start;display:flex;flex-direction:column;gap:18px;font-size:.9rem}
+.rail .eyebrow{margin-bottom:-6px}
+.rail ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.rail a{display:grid;grid-template-columns:26px 1fr;gap:10px;align-items:center;padding:7px 8px;border-radius:8px;color:var(--muted);text-decoration:none}
+.rail a:hover{background:var(--surface-2);color:var(--ink)}
+.rail a.active{color:var(--ink);background:var(--brand-soft)}
+.rail .n{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;border:1.5px solid var(--line);font-family:var(--mono);font-size:.75rem;background:var(--surface)}
+.rail a.active .n{border-color:var(--brand);color:var(--brand)}
+.rail a.done .n{background:var(--brand);border-color:var(--brand);color:var(--brand-ink)}
+.score{border-top:1px solid var(--line);padding-top:14px;display:flex;flex-direction:column;gap:6px;color:var(--muted)}
+.score b{font-family:var(--display);font-size:1.6rem;color:var(--ink);font-variant-numeric:tabular-nums}
+.meter{height:6px;border-radius:3px;background:var(--line);overflow:hidden}
+.meter i{display:block;height:100%;background:var(--brand);width:0;transition:width .3s}
+
+main{display:flex;flex-direction:column;gap:72px;min-width:0}
+.eyebrow{font-size:.74rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.lede{font-size:1.14rem;color:var(--muted);max-width:62ch}
+.prose{display:flex;flex-direction:column;gap:14px;max-width:66ch}
+.prose p{color:var(--ink)}
+.term{font-weight:600;color:var(--brand)}
+.dot{display:inline-block;width:.55em;height:.55em;border-radius:50%;background:var(--brand);margin-right:.45em;vertical-align:.12em}
+
+/* hero */
+.hero{display:flex;flex-direction:column;gap:22px}
+.meta{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font-size:.8rem;padding:4px 10px;border-radius:999px;background:var(--surface);border:1px solid var(--line);color:var(--muted)}
+.flow{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:0;margin-top:8px;position:relative}
+.flow .phase{grid-column:span 3;font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);border-bottom:1.5px dashed var(--brand-line);padding-bottom:6px;margin-bottom:14px;font-weight:600}
+.flow .phase.dry{grid-column:span 2;margin-left:12px}
+.flow a{display:flex;flex-direction:column;gap:8px;align-items:flex-start;text-decoration:none;color:var(--ink);padding-right:12px;position:relative}
+.flow a .c{width:40px;height:40px;border-radius:50%;background:var(--brand);color:var(--brand-ink);display:grid;place-items:center;font-family:var(--display);font-weight:800;font-size:1.1rem;position:relative;z-index:1}
+.flow a:not(:last-child)::after{content:"";position:absolute;top:20px;left:40px;right:0;height:2px;background:var(--brand-line)}
+.flow a b{font-family:var(--display);font-size:1rem;line-height:1.2}
+.flow a span{font-size:.84rem;color:var(--muted);line-height:1.4}
+.flow a:hover b{color:var(--brand)}
+@media (max-width:640px){
+  .flow{grid-template-columns:minmax(0,1fr);gap:14px}
+  .flow .phase,.flow .phase.dry{grid-column:auto;margin-left:0;margin-bottom:0}
+  .flow a{display:grid;grid-template-columns:40px 1fr;column-gap:12px;row-gap:2px}
+  .flow a .c{grid-row:span 2}
+  .flow a:not(:last-child)::after{display:none}
+}
+
+/* sections */
+section.stage{display:flex;flex-direction:column;gap:22px;scroll-margin-top:24px}
+.stage-head{display:flex;flex-direction:column;gap:6px}
+.stage-head .sub{font-style:italic;color:var(--muted)}
+.lab{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:22px;display:flex;flex-direction:column;gap:16px}
+.lab-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+.lab-head .tag{font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;font-weight:600;color:var(--brand);background:var(--brand-soft);padding:3px 9px;border-radius:999px}
+.lab .hint{font-size:.9rem;color:var(--muted)}
+@media (max-width:520px){.lab{padding:16px}}
+
+.controls{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center}
+.ctl{display:flex;flex-direction:column;gap:4px;font-size:.86rem;color:var(--muted);min-width:0}
+.ctl output{font-family:var(--mono);color:var(--ink);font-weight:500}
+input[type=range]{accent-color:var(--brand);width:min(260px,70vw)}
+.btn{border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:8px 14px;border-radius:8px;cursor:pointer;font-weight:500;font-size:.9rem}
+.btn:hover{border-color:var(--brand);color:var(--brand)}
+.btn.primary{background:var(--brand);border-color:var(--brand);color:var(--brand-ink)}
+.btn.primary:hover{filter:brightness(1.08);color:var(--brand-ink)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.toggle{display:flex;align-items:center;gap:8px;font-size:.9rem;cursor:pointer}
+.toggle input{accent-color:var(--brand);width:16px;height:16px}
+
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.stat{background:var(--surface-2);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:2px}
+.stat span{font-size:.76rem;color:var(--muted)}
+.stat b{font-family:var(--mono);font-size:1.12rem;font-weight:600;font-variant-numeric:tabular-nums}
+.callout{border-radius:8px;padding:10px 14px;font-size:.92rem;background:var(--surface-2)}
+.callout.good{background:var(--good-soft);color:var(--good)}
+.callout.warn{background:var(--warn-soft);color:var(--warn)}
+.callout.bad{background:var(--bad-soft);color:var(--bad)}
+
+svg text{fill:var(--muted);font-family:var(--mono);font-size:11px}
+.chart{width:100%;height:auto;display:block}
+
+/* process steps */
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;counter-reset:s}
+.step{display:flex;gap:10px;align-items:flex-start;font-size:.9rem}
+.step .c{flex:none;width:28px;height:28px;border-radius:50%;border:1.5px solid var(--brand);color:var(--brand);display:grid;place-items:center;font-family:var(--mono);font-size:.8rem;font-weight:600}
+.step b{display:block;font-size:.95rem}
+.step span{color:var(--muted);line-height:1.45}
+
+/* library assembly */
+.parts,.slots{display:flex;flex-wrap:wrap;gap:8px}
+.part{font-family:var(--mono);font-size:.84rem;padding:8px 12px;border-radius:6px;border:1.5px solid var(--brand-line);background:var(--brand-soft);color:var(--ink);cursor:pointer}
+.part:hover{border-color:var(--brand)}
+.part.used{visibility:hidden}
+.slots{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px;gap:0}
+.slot{flex:1 0 92px;min-height:54px;border:1.5px dashed var(--line);display:grid;place-items:center;font-family:var(--mono);font-size:.8rem;text-align:center;padding:6px;cursor:pointer;background:var(--surface);color:var(--muted);position:relative}
+.slot+.slot{border-left:none}
+.slot:first-child{border-radius:8px 0 0 8px}.slot:last-child{border-radius:0 8px 8px 0}
+.slot.filled{border-style:solid;color:var(--ink);background:var(--brand-soft)}
+.slot.insert.filled{background:var(--surface-2)}
+.slot.right{background:var(--good-soft);border-color:var(--good);color:var(--good)}
+.slot.wrong{background:var(--bad-soft);border-color:var(--bad);color:var(--bad)}
+.strand-labels{display:flex;justify-content:space-between;font-family:var(--mono);font-size:.76rem;color:var(--muted)}
+
+/* canvas */
+.scopebox{background:var(--scope);border-radius:10px;overflow:hidden;position:relative}
+.scopebox canvas{display:block;width:100%}
+.scope-legend{display:flex;flex-wrap:wrap;gap:14px;font-size:.82rem;color:var(--muted)}
+.scope-legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:-1px}
+
+/* SBS */
+.sbs{display:grid;grid-template-columns:minmax(0,260px) minmax(0,1fr);gap:22px}
+@media (max-width:700px){.sbs{grid-template-columns:minmax(0,1fr)}}
+.tile{background:var(--scope);border-radius:10px;padding:14px;display:grid;grid-template-columns:repeat(4,1fr);gap:10px;aspect-ratio:1;max-width:100%}
+.clu{border-radius:50%;background:#1a1522;transition:background .25s, box-shadow .25s;position:relative}
+.clu.tracked::after{content:"";position:absolute;inset:-5px;border:1.5px dashed #e8dcf0;border-radius:50%}
+.tile-cap{font-size:.8rem;color:var(--muted);margin-top:8px}
+.seqwrap{overflow-x:auto;padding-bottom:4px}
+.seqrow{display:grid;grid-template-columns:120px repeat(36,22px);gap:2px;align-items:center;font-family:var(--mono);font-size:.82rem;min-width:max-content}
+.seqrow+.seqrow{margin-top:4px}
+.seqrow>span:first-child{font-size:.74rem;color:var(--muted);font-family:var(--body);position:sticky;left:0;background:var(--surface);padding-right:6px}
+.cell{height:24px;display:grid;place-items:center;border-radius:4px;background:var(--surface-2);color:var(--muted)}
+.cell.lit{color:#fff;font-weight:600}
+.cell.now{outline:2px solid var(--ink);outline-offset:1px}
+.cell.err{box-shadow:inset 0 -3px 0 var(--ink)}
+.cell.tmpl.done{background:transparent;color:var(--ink)}
+.bA{background:var(--A)!important}.bC{background:var(--C)!important}.bG{background:var(--G)!important}.bT{background:var(--T)!important}
+.tA{color:var(--A)}.tC{color:var(--C)}.tG{color:var(--G)}.tT{color:var(--T)}
+.channels{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;align-items:end;height:92px}
+.ch{display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end;font-family:var(--mono);font-size:.8rem}
+.ch i{display:block;width:100%;border-radius:4px 4px 0 0;transition:height .25s;min-height:2px}
+.guess{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.guess .btn{font-family:var(--mono);font-weight:600;min-width:44px}
+.guess .btn[data-b="A"]{color:var(--A)}.guess .btn[data-b="C"]{color:var(--C)}.guess .btn[data-b="G"]{color:var(--G)}.guess .btn[data-b="T"]{color:var(--T)}
+.shake{animation:shake .3s}
+@keyframes shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+/* FASTQ */
+.fastq{font-family:var(--mono);font-size:.9rem;background:var(--surface-2);border-radius:8px;padding:14px 16px;overflow-x:auto;line-height:1.9;white-space:pre}
+.fastq .ln{color:var(--muted);user-select:none;display:inline-block;width:2.2em}
+.fastq .q{cursor:pointer;border-radius:3px;padding:1px 0}
+.fastq .q:hover,.fastq .q.sel{background:var(--brand);color:var(--brand-ink)}
+.fastq .trim{opacity:.35;text-decoration:line-through}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+@media (max-width:700px){.two{grid-template-columns:minmax(0,1fr)}}
+.panel{border:1px solid var(--line);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.panel h3{font-size:1rem}
+.bigq{font-family:var(--display);font-size:2.4rem;font-weight:800;line-height:1;color:var(--brand);font-variant-numeric:tabular-nums}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:.9rem}
+.kv dt{color:var(--muted)}.kv dd{margin:0;font-family:var(--mono)}
+
+/* pileup */
+.pile-wrap{overflow-x:auto;padding-bottom:6px}
+.pile{display:grid;gap:2px;font-family:var(--mono);font-size:.78rem;min-width:max-content}
+.prow{display:grid;grid-auto-flow:column;grid-auto-columns:16px;gap:1px}
+.pc{height:17px;display:grid;place-items:center;border-radius:2px;color:var(--muted)}
+.pc.m{color:var(--muted);background:var(--surface-2)}
+.pc.x{color:#fff;font-weight:600}
+.pc.col-sel{outline:1.5px solid var(--brand)}
+.pc.ref{font-weight:600;cursor:pointer;background:transparent}
+.pc.ref:hover{background:var(--brand-soft)}
+.covrow{display:grid;grid-auto-flow:column;grid-auto-columns:16px;gap:1px;align-items:end;height:44px}
+.covrow i{display:block;background:var(--brand-line);border-radius:2px 2px 0 0;cursor:pointer}
+.covrow i.sel{background:var(--brand)}
+.gt{display:flex;flex-direction:column;gap:6px}
+.gtbar{display:grid;grid-template-columns:44px 1fr 56px;gap:10px;align-items:center;font-family:var(--mono);font-size:.84rem}
+.gtbar .track{height:12px;border-radius:6px;background:var(--surface-2);overflow:hidden}
+.gtbar .track i{display:block;height:100%;background:var(--brand);transition:width .25s}
+.gtbar.win{font-weight:600}
+
+/* quiz */
+.quiz{display:flex;flex-direction:column;gap:14px}
+.q{border-left:3px solid var(--brand-line);padding-left:16px;display:flex;flex-direction:column;gap:10px}
+.q p{font-weight:500}
+.opts{display:flex;flex-direction:column;gap:6px}
+.opt{text-align:left;border:1px solid var(--line);background:var(--surface);padding:9px 12px;border-radius:8px;cursor:pointer;color:var(--ink);font-size:.93rem}
+.opt:hover:not(:disabled){border-color:var(--brand)}
+.opt.right{background:var(--good-soft);border-color:var(--good);color:var(--good)}
+.opt.wrong{background:var(--bad-soft);border-color:var(--bad);color:var(--bad)}
+.opt:disabled{cursor:default}
+.why{font-size:.9rem;color:var(--muted)}
+
+/* compare */
+.compare{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+@media (max-width:700px){.compare{grid-template-columns:minmax(0,1fr)}}
+.compare .panel ul{margin:0;padding-left:1.1em;display:flex;flex-direction:column;gap:6px;font-size:.93rem}
+.foot{border-top:1px solid var(--line);padding-top:18px;font-size:.84rem;color:var(--muted)}
+
+/* assembly additions */
+a.chip{text-decoration:none;color:var(--brand);border-color:var(--brand-line)}
+a.chip:hover{background:var(--brand-soft)}
+.sel{font:inherit;font-size:.9rem;padding:7px 10px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink);max-width:100%}
+.olc{display:flex;flex-direction:column;gap:3px;font-family:var(--mono);font-size:.9rem;min-width:max-content}
+.olcrow{display:flex;align-items:center;white-space:pre;background:none;border:0;padding:2px 0;color:var(--ink);font:inherit;cursor:pointer;text-align:left;border-radius:4px}
+.olcrow:hover{background:var(--surface-2)}
+.olcrow span{display:inline-block;width:1.2ch;text-align:center}
+.olcrow .lbl{width:92px;text-align:left;font-family:var(--body);font-size:.78rem;color:var(--muted)}
+.olcrow .pad{width:auto}
+.olcrow .ov{background:var(--warn-soft);font-weight:600}
+.olcrow.cons{cursor:default;border-top:1px solid var(--line);padding-top:6px;margin-top:4px;font-weight:600}
+.olcrow.cons:hover{background:none}
+.graphbox{background:var(--surface-2);border-radius:10px;overflow:hidden}
+.graphbox svg{display:block;width:100%;height:auto}
+.contigs{display:flex;flex-direction:column;gap:6px}
+.tig{display:flex;flex-direction:column;gap:2px;font-size:.82rem;color:var(--muted)}
+.tig code{font-size:.9rem;overflow-wrap:anywhere;letter-spacing:.04em}
+.tig code b{font-weight:600}
+ul.plain{margin:0;padding-left:1.1em;display:flex;flex-direction:column;gap:8px;font-size:.93rem}
+
+/* rna-seq additions */
+.batches{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.batch{border:1.5px dashed var(--line);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:10px;min-height:120px}
+.batch h3{font-size:.95rem}
+.batch-list{display:flex;flex-wrap:wrap;gap:8px}
+.sample{border-radius:999px;padding:6px 14px;font-size:.88rem;cursor:pointer;border:1.5px solid;font-weight:500}
+.sample.ctrl{background:var(--brand-soft);border-color:var(--brand);color:var(--brand)}
+.sample.trt{background:var(--warn-soft);border-color:var(--warn);color:var(--warn)}
+.stack{display:flex;height:34px;border-radius:8px;overflow:hidden}
+.stack div{display:grid;place-items:center;color:#fff;font-family:var(--mono);font-size:.78rem;font-weight:600;transition:width .3s}
+.tablewrap{overflow-x:auto}
+.mtx{border-collapse:collapse;width:100%;font-size:.88rem;font-variant-numeric:tabular-nums;min-width:520px}
+.mtx th,.mtx td{padding:7px 10px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+.mtx th:first-child,.mtx td:first-child{text-align:left}
+.mtx th{font-weight:600;font-size:.8rem;color:var(--muted);vertical-align:bottom}
+.mtx th span{font-weight:400;font-family:var(--mono);font-size:.74rem}
+.mtx td{font-family:var(--mono)}
+.mtx td:first-child{font-family:var(--body);font-weight:500}
+.mtx tbody tr[data-i]{cursor:pointer}
+.mtx tbody tr[data-i]:hover{background:var(--surface-2)}
+.mtx tr.sel{background:var(--brand-soft)!important}
+.mtx tr.sf td{color:var(--muted);font-style:italic}
+.volc{display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:16px;align-items:start}
+@media (max-width:760px){.volc{grid-template-columns:minmax(0,1fr)}}
+#volcano{cursor:crosshair}
+</style>
+
+<div class="layout">
+  <nav class="rail" aria-label="Tutorial stages">
+    <div class="eyebrow">RNA-seq</div>
+    <ol id="railList">
+      <li><a href="#design" data-sec="design"><span class="n">1</span>Experimental design</a></li>
+      <li><a href="#library" data-sec="library"><span class="n">2</span>RNA library prep</a></li>
+      <li><a href="#splice" data-sec="splice"><span class="n">3</span>Spliced alignment</a></li>
+      <li><a href="#norm" data-sec="norm"><span class="n">4</span>Counting &amp; normalization</a></li>
+      <li><a href="#de" data-sec="de"><span class="n">5</span>Differential expression</a></li>
+    </ol>
+    <div class="score">
+      <span>Checkpoint questions</span>
+      <b id="scoreNum">0 / 10</b>
+      <div class="meter"><i id="scoreBar"></i></div>
+      <button class="btn" id="resetQuiz" type="button">Reset answers</button>
+    </div>
+  </nav>
+
+  <main>
+    <header class="hero">
+      <div class="eyebrow">BIO 116 · Bioinformatics · Interactive tutorial</div>
+      <h1><span class="dot"></span>Reading the transcriptome</h1>
+      <p class="lede">RNA-seq measures which genes a sample is expressing, and how much. Follow a treated-versus-control experiment from study design to a list of differentially expressed genes. Each stage has a model to play with and two checkpoint questions.</p>
+      <div class="meta">
+        <span class="chip">Audience: undergraduate bioinformatics</span>
+        <span class="chip">About 50 minutes</span>
+        <span class="chip">5 stages · 6 simulations · 10 questions</span>
+        <a class="chip" href="https://claude.ai/artifact/TC9CSb15fd16UWGKytCgwU">Part 1: From tube to variant call</a>
+        <a class="chip" href="https://claude.ai/artifact/9kstF4xeY7CLFHXWeZqZMC">Part 2: Rebuilding the genome</a>
+      </div>
+      <div class="flow" aria-label="RNA-seq workflow overview">
+        <div class="phase">Wet lab</div>
+        <div class="phase dry">Dry lab</div>
+        <a href="#design"><span class="c">1</span><b>Experimental design</b><span>Replicates, power, batches</span></a>
+        <a href="#library"><span class="c">2</span><b>RNA library prep</b><span>Enrich mRNA, make cDNA</span></a>
+        <a href="#splice"><span class="c">3</span><b>Spliced alignment</b><span>Map reads across introns</span></a>
+        <a href="#norm"><span class="c">4</span><b>Counting &amp; normalization</b><span>Make counts comparable</span></a>
+        <a href="#de"><span class="c">5</span><b>Differential expression</b><span>Test thousands of genes at once</span></a>
+      </div>
+    </header>
+
+    <!-- 1 DESIGN -->
+    <section class="stage" id="design">
+      <div class="stage-head">
+        <div class="eyebrow">Stage 1 of 5</div>
+        <h2><span class="dot"></span>Experimental design</h2>
+        <p class="sub">The decisions you can't fix later</p>
+      </div>
+      <div class="prose">
+        <p>Gene expression varies between individuals even under identical conditions. To tell a treatment effect from that background, you need <span class="term">biological replicates</span>: independent animals, patients or cultures. Sequencing the same library twice (a <span class="term">technical replicate</span>) only measures the sequencer's noise, which is small compared with biological variation.</p>
+        <p>For most experiments, more replicates buy more power than more reads per sample. ENCODE guidelines suggest at least 2–3 replicates and about 20–30 million reads each for standard gene-level analysis.</p>
+      </div>
+      <div class="lab">
+        <div class="lab-head"><h3>How many replicates?</h3><span class="tag">Calculator</span></div>
+        <p class="hint">Estimated power to detect one gene's change with a two-group test. Biological variation is given as a coefficient of variation (CV) between replicates.</p>
+        <div class="controls">
+          <label class="ctl" for="pwN">Replicates per group <output id="pwNOut">3</output>
+            <input type="range" id="pwN" min="2" max="12" step="1" value="3"></label>
+          <label class="ctl" for="pwLfc">True fold change <output id="pwLfcOut">2×</output>
+            <input type="range" id="pwLfc" min="0.25" max="3" step="0.25" value="1"></label>
+          <label class="ctl" for="pwCv">Biological CV <output id="pwCvOut">40%</output>
+            <input type="range" id="pwCv" min="10" max="80" step="5" value="40"></label>
+          <label class="toggle"><input type="checkbox" id="pwStrict" checked> Genome-wide threshold (α = 0.001)</label>
+        </div>
+        <svg class="chart" id="pwChart" viewBox="0 0 640 200" role="img" aria-label="Power by number of replicates"></svg>
+        <div class="callout" id="pwMsg"></div>
+      </div>
+      <div class="lab">
+        <div class="lab-head"><h3>Avoid a confounded batch</h3><span class="tag">Puzzle</span></div>
+        <p class="hint">Six libraries must be split across two sequencing days. Click a sample to move it to the other day. As it stands, every control runs on day 1 and every treated sample on day 2.</p>
+        <div class="batches" id="batches"></div>
+        <div class="callout" id="batchMsg"></div>
+      </div>
+      <div class="quiz" data-quiz="design"></div>
+    </section>
+
+    <!-- 2 LIBRARY -->
+    <section class="stage" id="library">
+      <div class="stage-head">
+        <div class="eyebrow">Stage 2 of 5</div>
+        <h2><span class="dot"></span>RNA library preparation</h2>
+        <p class="sub">Getting rid of the RNA you don't want</p>
+      </div>
+      <div class="prose">
+        <p>About 80–90% of the RNA in a cell is ribosomal RNA. Sequencing total RNA directly would waste most reads on rRNA, so libraries first enrich the RNA of interest. <span class="term">Poly(A) selection</span> uses oligo-dT beads to pull out RNAs with a poly(A) tail, which is most mature mRNA. <span class="term">rRNA depletion</span> removes rRNA with probes and keeps everything else, including pre-mRNA, many lncRNAs and non-polyadenylated histone mRNAs.</p>
+        <p>RNA is then fragmented and reverse-transcribed into cDNA, and the cDNA gets adapters as in Part 1. <span class="term">Stranded</span> protocols (dUTP marking of the second strand) record which strand each transcript came from, which matters where genes overlap on opposite strands.</p>
+      </div>
+      <div class="steps">
+        <div class="step"><span class="c">1</span><div><b>Extract &amp; QC</b><span>Check integrity: RIN from 1 (degraded) to 10 (intact)</span></div></div>
+        <div class="step"><span class="c">2</span><div><b>Enrich</b><span>Poly(A) selection or rRNA depletion</span></div></div>
+        <div class="step"><span class="c">3</span><div><b>Fragment &amp; RT</b><span>Random-primed first-strand cDNA</span></div></div>
+        <div class="step"><span class="c">4</span><div><b>Second strand</b><span>dUTP marks it for strand specificity</span></div></div>
+        <div class="step"><span class="c">5</span><div><b>Adapters &amp; PCR</b><span>Same as a DNA library</span></div></div>
+      </div>
+      <div class="lab">
+        <div class="lab-head"><h3>Where do the reads go?</h3><span class="tag">Simulation</span></div>
+        <div class="controls" id="libMethods">
+          <button class="btn primary" type="button" data-m="polya">Poly(A) selection</button>
+          <button class="btn" type="button" data-m="ribo">rRNA depletion</button>
+          <button class="btn" type="button" data-m="total">No enrichment</button>
+          <label class="ctl" for="rin">RNA integrity (RIN) <output id="rinOut">9</output>
+            <input type="range" id="rin" min="2" max="10" step="0.5" value="9"></label>
+        </div>
+        <div class="stack" id="stack" aria-label="Read composition"></div>
+        <div class="scope-legend" id="stackLegend"></div>
+        <h3 style="font-size:1rem">Gene body coverage</h3>
+        <svg class="chart" id="gbChart" viewBox="0 0 640 190" role="img" aria-label="Coverage along transcripts from 5 prime to 3 prime"></svg>
+        <div class="callout" id="libMsg"></div>
+      </div>
+      <div class="quiz" data-quiz="library"></div>
+    </section>
+
+    <!-- 3 SPLICE -->
+    <section class="stage" id="splice">
+      <div class="stage-head">
+        <div class="eyebrow">Stage 3 of 5</div>
+        <h2><span class="dot"></span>Spliced alignment</h2>
+        <p class="sub">Reads that jump over introns</p>
+      </div>
+      <div class="prose">
+        <p>Mature mRNA has had its introns spliced out, so a read from an exon–exon junction lands on two pieces of the genome that may be thousands of bases apart. A DNA aligner such as BWA can't split a read like that. <span class="term">Splice-aware aligners</span> (STAR, HISAT2) can, recording the jump as an N in the CIGAR string, for example <code>60M1850N40M</code>.</p>
+        <p>Junction reads also reveal <span class="term">alternative splicing</span>. If an exon is sometimes skipped, some reads join the flanking exons directly. The share of transcripts that include the exon is its <span class="term">percent spliced in</span> (PSI, Ψ). Pseudoaligners such as Salmon and kallisto skip base-level alignment and assign reads straight to transcripts, which is much faster for counting.</p>
+      </div>
+      <div class="lab">
+        <div class="lab-head"><h3>A cassette exon in two conditions</h3><span class="tag">Simulation</span></div>
+        <p class="hint">This sashimi plot shows coverage (filled) and junction reads (arcs, with counts) for a three-exon gene. Exon 2 is included in 85% of transcripts in controls. Set how often treated cells include it.</p>
+        <div class="controls">
+          <label class="ctl" for="psiB">Treated Ψ (exon 2 inclusion) <output id="psiBOut">30%</output>
+            <input type="range" id="psiB" min="0" max="100" step="5" value="30"></label>
+          <label class="toggle"><input type="checkbox" id="unspliced"> Use a DNA aligner (not splice-aware)</label>
+        </div>
+        <div class="seqwrap"><svg class="chart" id="sashimi" viewBox="0 0 640 330" role="img" aria-label="Sashimi plot" style="min-width:520px"></svg></div>
+        <div class="stats">
+          <div class="stat"><span>Control Ψ (estimated)</span><b id="psiAEst">–</b></div>
+          <div class="stat"><span>Treated Ψ (estimated)</span><b id="psiBEst">–</b></div>
+          <div class="stat"><span>ΔΨ</span><b id="dpsi">–</b></div>
+          <div class="stat"><span>Junction reads mapped</span><b id="junMapped">–</b></div>
+        </div>
+        <div class="callout" id="spliceMsg"></div>
+      </div>
+      <div class="quiz" data-quiz="splice"></div>
+    </section>
+
+    <!-- 4 NORM -->
+    <section class="stage" id="norm">
+      <div class="stage-head">
+        <div class="eyebrow">Stage 4 of 5</div>
+        <h2><span class="dot"></span>Counting and normalization</h2>
+        <p class="sub">Why raw counts can't be compared directly</p>
+      </div>
+      <div class="prose">
+        <p>Tools like featureCounts or HTSeq count the reads overlapping each gene, giving a <span class="term">count matrix</span> of genes by samples. Raw counts depend on more than expression. A sample sequenced twice as deeply has twice the counts. A long gene collects more reads than a short one at the same molar level. And if one gene takes a huge share of reads in one sample, every other gene in that sample gets fewer.</p>
+      </div>
+      <div class="two">
+        <div class="panel"><h3>CPM and TPM</h3><p class="hint">CPM divides by total reads (depth). TPM also divides by gene length first, so it is used to compare different genes within a sample. Neither corrects for composition.</p></div>
+        <div class="panel"><h3>Median of ratios (DESeq2) and TMM (edgeR)</h3><p class="hint">Assume most genes don't change. Each sample gets a size factor from the typical ratio of its counts to the other samples, so a few very highly expressed genes can't skew it.</p></div>
+      </div>
+      <div class="lab">
+        <div class="lab-head"><h3>Normalize a count matrix</h3><span class="tag">Explorer</span></div>
+        <p class="hint">Truth: only MYC (3× up) and SAA1 (a strong acute-phase response) change in treated samples. Libraries were sequenced to different depths. Click a gene row to plot it.</p>
+        <div class="controls" id="normMethods">
+          <button class="btn primary" type="button" data-n="raw">Raw counts</button>
+          <button class="btn" type="button" data-n="cpm">CPM</button>
+          <button class="btn" type="button" data-n="tpm">TPM</button>
+          <button class="btn" type="button" data-n="mor">Median of ratios</button>
+        </div>
+        <div class="tablewrap"><table class="mtx" id="mtx"></table></div>
+        <svg class="chart" id="normChart" viewBox="0 0 640 170" role="img" aria-label="Selected gene across samples"></svg>
+        <div class="callout" id="normMsg"></div>
+      </div>
+      <div class="quiz" data-quiz="norm"></div>
+    </section>
+
+    <!-- 5 DE -->
+    <section class="stage" id="de">
+      <div class="stage-head">
+        <div class="eyebrow">Stage 5 of 5</div>
+        <h2><span class="dot"></span>Differential expression</h2>
+        <p class="sub">Twenty thousand tests, and the false positives that come with them</p>
+      </div>
+      <div class="prose">
+        <p>For each gene, a differential expression tool (DESeq2, edgeR, limma-voom) estimates the <span class="term">log<sub>2</sub> fold change</span> between groups and a p-value. Counts are modelled with the <span class="term">negative binomial</span> distribution, whose variance grows faster than the mean, matching the extra variability between biological replicates.</p>
+        <p>Testing thousands of genes at p &lt; 0.05 guarantees false positives: 5% of the genes that don't change will pass by chance. The <span class="term">Benjamini–Hochberg</span> procedure controls the <span class="term">false discovery rate</span> (FDR) instead, the expected share of false hits among the genes you call significant. The adjusted p-value is often called padj or q.</p>
+      </div>
+      <div class="lab">
+        <div class="lab-head"><h3>Volcano plot of 2,000 simulated genes</h3><span class="tag">Simulation</span></div>
+        <p class="hint">200 genes truly change; the rest don't. Each dot is a gene. Click a dot to see its counts in each sample.</p>
+        <div class="controls">
+          <label class="ctl" for="deN">Replicates per group <output id="deNOut">3</output>
+            <input type="range" id="deN" min="2" max="10" step="1" value="3"></label>
+          <label class="ctl" for="deCorr">Significance rule
+            <select id="deCorr" class="sel">
+              <option value="bh">Benjamini–Hochberg FDR &lt; 0.05</option>
+              <option value="raw">Unadjusted p &lt; 0.05</option>
+            </select></label>
+          <label class="ctl" for="deLfc">|log₂ fold change| at least <output id="deLfcOut">0</output>
+            <input type="range" id="deLfc" min="0" max="2" step="0.25" value="0"></label>
+          <label class="toggle"><input type="checkbox" id="deTruth"> Reveal which genes truly change</label>
+        </div>
+        <div class="volc">
+          <svg class="chart" id="volcano" viewBox="0 0 640 360" role="img" aria-label="Volcano plot"></svg>
+          <div class="panel" id="genePanel">
+            <h3 id="geneTitle">No gene selected</h3>
+            <svg class="chart" id="geneDots" viewBox="0 0 240 170" role="img" aria-label="Counts for the selected gene"></svg>
+            <dl class="kv" id="geneKv"></dl>
+          </div>
+        </div>
+        <div class="stats">
+          <div class="stat"><span>Called significant</span><b id="deCalled">–</b></div>
+          <div class="stat"><span>True positives</span><b id="deTP">–</b></div>
+          <div class="stat"><span>False positives</span><b id="deFP">–</b></div>
+          <div class="stat"><span>Observed FDR</span><b id="deFDR">–</b></div>
+          <div class="stat"><span>True changes missed</span><b id="deFN">–</b></div>
+        </div>
+        <div class="callout" id="deMsg"></div>
+      </div>
+      <div class="quiz" data-quiz="de"></div>
+    </section>
+
+    <section class="stage" id="beyond">
+      <div class="stage-head">
+        <div class="eyebrow">Wrap-up</div>
+        <h2><span class="dot"></span>Bulk and single-cell RNA-seq</h2>
+        <p class="sub">An average over millions of cells, or a profile of each one</p>
+      </div>
+      <div class="compare">
+        <div class="panel">
+          <h3>Bulk RNA-seq</h3>
+          <ul>
+            <li>One expression profile per sample, averaged over all its cells</li>
+            <li>20–40 million reads per sample; detects low-abundance genes well</li>
+            <li>Well-established statistics (DESeq2, edgeR, limma)</li>
+            <li>A change in cell-type mix can look like a change in expression</li>
+            <li>Best for condition comparisons with many replicates</li>
+          </ul>
+        </div>
+        <div class="panel">
+          <h3>Single-cell RNA-seq</h3>
+          <ul>
+            <li>Thousands to millions of cells, each with its own barcode</li>
+            <li>Unique molecular identifiers (UMIs) count molecules, not PCR copies</li>
+            <li>Sparse: only 10–20% of each cell's mRNA is captured</li>
+            <li>Clustering and UMAP reveal cell types and states</li>
+            <li>Treat donors, not cells, as replicates (pseudobulk) for DE tests</li>
+          </ul>
+        </div>
+      </div>
+      <div class="panel">
+        <h3>Modern frontiers</h3>
+        <ul class="plain">
+          <li><b>Cell atlases.</b> The Human Cell Atlas and Tabula Sapiens map every cell type across human tissues with single-cell RNA-seq.</li>
+          <li><b>Spatial transcriptomics.</b> Visium, Xenium and MERFISH measure expression while keeping each cell's position in the tissue.</li>
+          <li><b>Full-length isoforms.</b> PacBio Kinnex/Iso-Seq and nanopore direct RNA sequencing read whole transcripts, so isoforms no longer have to be inferred from short fragments. Direct RNA reads can also detect modifications such as m6A.</li>
+          <li><b>Fast quantification.</b> Pseudoalignment (Salmon, kallisto) quantifies a sample in minutes on a laptop, making re-analysis of public data practical at scale.</li>
+        </ul>
+      </div>
+      <p class="foot">Simulations use simplified models for teaching: power uses a normal approximation on the log scale, read composition values are typical rather than measured, and the volcano plot uses negative binomial counts tested with a t-test on log counts instead of a full DESeq2 fit.</p>
+    </section>
+  </main>
+</div>
+
+<script>
+(function(){
+const $=s=>document.querySelector(s);
+function rng(seed){return function(){seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function gauss(r){let u=0;while(!u)u=r();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*r());}
+const fmt=n=>Math.round(n).toLocaleString("en-US");
+const store={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d;}catch(e){return d;}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}};
+const svgNS="http://www.w3.org/2000/svg";
+function el(tag,attrs,parent){const e=document.createElementNS(svgNS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);if(parent)parent.appendChild(e);return e;}
+function Phi(z){const t=1/(1+.2316419*Math.abs(z)),d=.3989423*Math.exp(-z*z/2),p=d*t*(.3193815+t*(-.3565638+t*(1.781478+t*(-1.821256+t*1.330274))));return z>0?1-p:p;}
+function lgamma(x){const c=[76.18009172947146,-86.50532032941677,24.01409824083091,-1.231739572450155,.1208650973866179e-2,-.5395239384953e-5];let y=x,t=x+5.5;t-=(x+.5)*Math.log(t);let s=1.000000000190015;for(const ci of c)s+=ci/++y;return -t+Math.log(2.5066282746310005*s/x);}
+function betacf(a,b,x){let qab=a+b,qap=a+1,qam=a-1,c=1,d=1-qab*x/qap;if(Math.abs(d)<1e-30)d=1e-30;d=1/d;let h=d;for(let m=1;m<=200;m++){const m2=2*m;let aa=m*(b-m)*x/((qam+m2)*(a+m2));d=1+aa*d;if(Math.abs(d)<1e-30)d=1e-30;c=1+aa/c;if(Math.abs(c)<1e-30)c=1e-30;d=1/d;h*=d*c;aa=-(a+m)*(qab+m)*x/((a+m2)*(qap+m2));d=1+aa*d;if(Math.abs(d)<1e-30)d=1e-30;c=1+aa/c;if(Math.abs(c)<1e-30)c=1e-30;d=1/d;const del=d*c;h*=del;if(Math.abs(del-1)<3e-7)break;}return h;}
+function betai(a,b,x){if(x<=0)return 0;if(x>=1)return 1;const bt=Math.exp(lgamma(a+b)-lgamma(a)-lgamma(b)+a*Math.log(x)+b*Math.log(1-x));return x<(a+1)/(a+b+2)?bt*betacf(a,b,x)/a:1-bt*betacf(b,a,1-x)/b;}
+const tP=(t,df)=>betai(df/2,.5,df/(df+t*t)); // two-sided
+
+/* ---------- 1a Power ---------- */
+function renderPower(){
+  const n=+$("#pwN").value,lfc=+$("#pwLfc").value,cv=+$("#pwCv").value/100,strict=$("#pwStrict").checked;
+  $("#pwNOut").textContent=n;$("#pwLfcOut").textContent=Math.pow(2,lfc).toFixed(2).replace(/\.?0+$/,"")+"× (log₂ "+lfc+")";$("#pwCvOut").textContent=Math.round(cv*100)+"%";
+  const sd=Math.sqrt(Math.log(1+cv*cv))/Math.LN2, za=strict?3.2905:1.96;
+  const pw=k=>Math.min(1,Phi(lfc/(sd*Math.sqrt(2/k))-za));
+  const s=$("#pwChart");s.innerHTML="";const x0=44,x1=620,y0=12,y1=160,xs=k=>x0+(k-2)/10*(x1-x0),ys=p=>y1-p*(y1-y0);
+  [0,.25,.5,.75,1].forEach(p=>{el("line",{x1:x0,x2:x1,y1:ys(p),y2:ys(p),stroke:"var(--line)","stroke-width":p?.6:1},s);el("text",{x:x0-6,y:ys(p)+4,"text-anchor":"end"},s).textContent=Math.round(p*100)+"%";});
+  el("line",{x1:x0,x2:x1,y1:ys(.8),y2:ys(.8),stroke:"var(--good)","stroke-dasharray":"4 4"},s);
+  el("text",{x:x1,y:ys(.8)-5,"text-anchor":"end",style:"fill:var(--good)"},s).textContent="80% power (common target)";
+  let d="",a="M"+xs(2)+" "+y1;for(let k=2;k<=12;k++){d+=(k===2?"M":" L")+xs(k)+" "+ys(pw(k)).toFixed(1);a+=" L"+xs(k)+" "+ys(pw(k)).toFixed(1);el("text",{x:xs(k),y:y1+16,"text-anchor":"middle"},s).textContent=k;}
+  a+=" L"+xs(12)+" "+y1+"Z";el("path",{d:a,fill:"var(--brand-soft)"},s);el("path",{d,fill:"none",stroke:"var(--brand)","stroke-width":2},s);
+  el("circle",{cx:xs(n),cy:ys(pw(n)),r:6,fill:"var(--brand)",stroke:"var(--surface)","stroke-width":2},s);
+  el("text",{x:x0,y:y1+34},s).textContent="replicates per group";
+  const p=pw(n),m=$("#pwMsg");let need=null;for(let k=2;k<=30;k++)if(pw(k)>=.8){need=k;break;}
+  m.className="callout "+(p>=.8?"good":p>=.5?"warn":"bad");
+  m.textContent="With "+n+" replicates per group, power is about "+Math.round(p*100)+"%."+(need?(need>n?" You would need about "+need+" per group to reach 80%.":" That meets the usual 80% target."):" Even 30 replicates would not reach 80% for such a small change.");
+}
+["pwN","pwLfc","pwCv"].forEach(id=>$("#"+id).addEventListener("input",renderPower));$("#pwStrict").addEventListener("change",renderPower);
+
+/* ---------- 1b Batch ---------- */
+const SAMPLES=["Ctrl 1","Ctrl 2","Ctrl 3","Treat 1","Treat 2","Treat 3"];let batch=[1,1,1,2,2,2];
+function renderBatch(){
+  const box=$("#batches");box.innerHTML="";
+  [1,2].forEach(b=>{const col=document.createElement("div");col.className="batch";col.innerHTML="<h3>Sequencing day "+b+"</h3>";const list=document.createElement("div");list.className="batch-list";
+    SAMPLES.forEach((nm,i)=>{if(batch[i]!==b)return;const t=document.createElement("button");t.type="button";t.className="sample "+(i<3?"ctrl":"trt");t.textContent=nm;t.addEventListener("click",()=>{batch[i]=3-batch[i];renderBatch();});list.appendChild(t);});
+    col.appendChild(list);box.appendChild(col);});
+  const c1=batch.slice(0,3).filter(b=>b===1).length,t1=batch.slice(3).filter(b=>b===1).length,m=$("#batchMsg");
+  const n1=c1+t1;
+  if((c1===3&&t1===0)||(c1===0&&t1===3)){m.className="callout bad";m.textContent="Fully confounded. Any difference between days (reagent lot, flow cell, operator) is indistinguishable from the treatment effect. No statistics can separate them.";}
+  else if(n1===0||n1===6){m.className="callout warn";m.textContent="All six samples are on one day. That works, but the aim was to split them across two days.";}
+  else if(c1===t1){m.className="callout good";m.textContent="Balanced. Each day has "+c1+" control and "+t1+" treated sample"+(t1>1?"s":"")+", so the day effect can be estimated and removed by adding batch to the model (for example, design = ~ batch + condition in DESeq2).";}
+  else{m.className="callout warn";m.textContent="Partly confounded. Day "+(c1>t1?1:2)+" has more controls, so batch and treatment are correlated. It can be modelled, but a balanced split (one or two of each group per day, equal on both days) is better.";}
+}
+
+/* ---------- 2 Library composition ---------- */
+const CATS=[{k:"exon",n:"mRNA exons",c:"var(--brand)"},{k:"intron",n:"Introns (pre-mRNA)",c:"var(--brand-line)"},{k:"nc",n:"lncRNA & other ncRNA",c:"var(--C)"},{k:"mt",n:"Mitochondrial",c:"var(--G)"},{k:"rrna",n:"rRNA",c:"var(--T)"}];
+const COMPO={polya:{exon:80,intron:5,nc:4,mt:9,rrna:2},ribo:{exon:42,intron:33,nc:12,mt:9,rrna:4},total:{exon:6,intron:3,nc:2,mt:2,rrna:87}};
+let libM="polya";
+function renderLib(){
+  const rin=+$("#rin").value;$("#rinOut").textContent=rin;
+  const comp=COMPO[libM],st=$("#stack");st.innerHTML="";
+  CATS.forEach(c=>{const v=comp[c.k];const d=document.createElement("div");d.style.width=v+"%";d.style.background=c.c;d.title=c.n+": "+v+"%";if(v>=7)d.textContent=v+"%";st.appendChild(d);});
+  $("#stackLegend").innerHTML=CATS.map(c=>'<span><i style="background:'+c.c+'"></i>'+c.n+" "+comp[c.k]+"%</span>").join("");
+  document.querySelectorAll("#libMethods [data-m]").forEach(b=>b.classList.toggle("primary",b.dataset.m===libM));
+  // gene body coverage
+  const s=$("#gbChart");s.innerHTML="";const x0=44,x1=620,y0=12,y1=150,xs=f=>x0+f*(x1-x0),ys=v=>y1-v*(y1-y0);
+  [0,.5,1].forEach(v=>{el("line",{x1:x0,x2:x1,y1:ys(v),y2:ys(v),stroke:"var(--line)","stroke-width":v?.6:1},s);el("text",{x:x0-6,y:ys(v)+4,"text-anchor":"end"},s).textContent=v.toFixed(1);});
+  const k=(10-rin)*.5;
+  const prof=m=>{const pts=[];for(let i=0;i<=50;i++){const f=i/50;let v;const edge=Math.min(1,f*12,(1-f)*12)*.25+.75;
+    if(m==="polya")v=Math.exp(-k*(1-f))*edge;else v=(.92-.04*k*Math.abs(f-.5))*edge;pts.push([f,v]);}const mx=Math.max(...pts.map(p=>p[1]));return pts.map(p=>[p[0],p[1]/mx]);};
+  const other=libM==="polya"?"ribo":"polya";
+  const draw=(m,col,w,dash)=>{const p=prof(m);el("path",{d:p.map((q,i)=>(i?"L":"M")+xs(q[0]).toFixed(1)+" "+ys(q[1]).toFixed(1)).join(" "),fill:"none",stroke:col,"stroke-width":w,"stroke-dasharray":dash||""},s);};
+  draw(other,"var(--muted)",1.2,"4 4");draw(libM==="total"?"ribo":libM,"var(--brand)",2.4);
+  el("text",{x:x0,y:y1+16},s).textContent="5′ end";el("text",{x:x1,y:y1+16,"text-anchor":"end"},s).textContent="3′ end";
+  el("text",{x:(x0+x1)/2,y:y1+16,"text-anchor":"middle"},s).textContent="position along transcript (percentile)";
+  el("text",{x:x0,y:y1+34},s).textContent="solid: selected method · dashed: "+(other==="polya"?"poly(A) selection":"rRNA depletion")+" for comparison";
+  const m=$("#libMsg");
+  if(libM==="total"){m.className="callout bad";m.textContent="Without enrichment, "+comp.rrna+"% of reads are rRNA. Only about "+comp.exon+"% of a 30 million read budget would inform gene expression.";}
+  else if(libM==="polya"&&rin<7){m.className="callout warn";m.textContent="Degraded RNA (RIN "+rin+") with poly(A) selection keeps only the 3′ fragments still attached to the tail, so coverage piles up at the 3′ end. rRNA depletion is more robust for low-RIN samples such as FFPE tissue.";}
+  else if(libM==="polya"){m.className="callout good";m.textContent="Intact RNA with poly(A) selection: most reads land on mature mRNA exons and coverage is even along transcripts. This is the default for protein-coding gene expression.";}
+  else{m.className="callout";m.textContent="rRNA depletion keeps non-polyadenylated RNA, so a third of reads fall in introns from pre-mRNA. That costs depth for mRNA but captures lncRNAs, histone mRNAs and nascent transcription, and it tolerates degraded RNA.";}
+}
+document.querySelectorAll("#libMethods [data-m]").forEach(b=>b.addEventListener("click",()=>{libM=b.dataset.m;renderLib();}));
+$("#rin").addEventListener("input",renderLib);
+
+/* ---------- 3 Sashimi ---------- */
+const EX=[[0,120],[250,320],[450,580]], SPAN=580, PSIA=.85, NTX=120;
+function binom(r,n,p){let k=0;for(let i=0;i<n;i++)if(r()<p)k++;return k;}
+function renderSplice(){
+  const psiB=+$("#psiB").value/100,uns=$("#unspliced").checked;$("#psiBOut").textContent=Math.round(psiB*100)+"%";
+  const s=$("#sashimi");s.innerHTML="";const x0=30,x1=620,xs=v=>x0+v/SPAN*(x1-x0);
+  const conds=[{n:"Control",psi:PSIA,seed:3,y:120},{n:"Treated",psi:psiB,seed:4,y:270}];
+  const est=[];let totJ=0,mapJ=0;
+  conds.forEach(cd=>{
+    const r=rng(cd.seed*100+Math.round(cd.psi*100)),inc=binom(r,NTX,cd.psi),skp=NTX-inc;
+    const j12=binom(r,inc,.9),j23=binom(r,inc,.9),j13=binom(r,skp,.9);
+    totJ+=j12+j23+j13;if(!uns)mapJ+=j12+j23+j13;
+    const H=62,base=cd.y,cov1=1,cov2=inc/NTX,cov3=1;
+    el("text",{x:x0,y:base-H-44,style:"fill:var(--ink);font-weight:600"},s).textContent=cd.n+" (true Ψ "+Math.round(cd.psi*100)+"%)";
+    const lost=uns?.18:0;
+    [[EX[0],cov1],[EX[1],cov2],[EX[2],cov3]].forEach(([e,c],i)=>{const h=Math.max(1,H*c*(1-lost*(i===1?1.6:1)));el("rect",{x:xs(e[0]),y:base-h,width:xs(e[1])-xs(e[0]),height:h,fill:"var(--brand)",opacity:.85},s);});
+    el("line",{x1:xs(0),x2:xs(SPAN),y1:base,y2:base,stroke:"var(--line)"},s);
+    if(!uns){
+      const arc=(a,b,up,cnt)=>{const xa=xs(a),xb=xs(b),mx=(xa+xb)/2,hh=up?-(H*.35+Math.min(34,cnt*.5)):28+Math.min(18,cnt*.25),yb=up?base-H*.6:base+4;
+        if(cnt===0)return;el("path",{d:"M"+xa+" "+yb+" Q"+mx+" "+(yb+hh*2)+" "+xb+" "+yb,fill:"none",stroke:"var(--"+(up?"ink":"warn")+")","stroke-width":Math.min(5,.8+cnt*.06)},s);
+        const lab=el("text",{x:mx,y:yb+hh+(up?-4:12),"text-anchor":"middle",style:"fill:var(--ink);font-weight:600"},s);lab.textContent=cnt;};
+      arc(EX[0][1],EX[1][0],true,j12);arc(EX[1][1],EX[2][0],true,j23);arc(EX[0][1],EX[2][0],false,j13);
+    }
+    const incR=(j12+j23)/2;est.push(incR+j13?incR/(incR+j13):NaN);
+  });
+  // gene model
+  const gy=312;el("line",{x1:xs(0),x2:xs(SPAN),y1:gy,y2:gy,stroke:"var(--muted)"},s);
+  EX.forEach((e,i)=>{el("rect",{x:xs(e[0]),y:gy-7,width:xs(e[1])-xs(e[0]),height:14,rx:2,fill:i===1?"var(--warn)":"var(--muted)"},s);el("text",{x:(xs(e[0])+xs(e[1]))/2,y:gy+4,"text-anchor":"middle",style:"fill:var(--surface);font-weight:600"},s).textContent="Exon "+(i+1);});
+  $("#psiAEst").textContent=uns?"–":Math.round(est[0]*100)+"%";$("#psiBEst").textContent=uns||isNaN(est[1])?"–":Math.round(est[1]*100)+"%";
+  $("#dpsi").textContent=uns?"–":((est[1]-est[0])*100>0?"+":"")+Math.round((est[1]-est[0])*100)+" pts";
+  $("#junMapped").textContent=fmt(mapJ)+" of "+fmt(totJ);
+  const m=$("#spliceMsg");
+  if(uns){m.className="callout bad";m.textContent="A DNA aligner can't place reads split across introns, so all "+totJ+" junction reads are lost or soft-clipped. Exon coverage drops, short exons suffer most, and splicing can't be measured at all.";}
+  else if(Math.abs(est[1]-est[0])>=.1){m.className="callout good";m.textContent="Exon 2 inclusion "+(est[1]<est[0]?"drops":"rises")+" from "+Math.round(est[0]*100)+"% to "+Math.round(est[1]*100)+"% (ΔΨ "+Math.round((est[1]-est[0])*100)+"). Tools such as rMATS and SUPPA2 test whether a ΔΨ like this is larger than replicate noise. Note that total gene counts barely change: gene-level analysis would miss this switch.";}
+  else{m.className="callout";m.textContent="Inclusion is similar in both conditions. Lower the treated Ψ to create an exon-skipping event and watch the lower arc (exon 1 → exon 3) grow.";}
+}
+$("#psiB").addEventListener("input",renderSplice);$("#unspliced").addEventListener("change",renderSplice);
+
+/* ---------- 4 Normalization ---------- */
+const GENES=[{g:"GAPDH",len:1.9,ab:[1,1]},{g:"ACTB",len:1.8,ab:[1.2,1.2]},{g:"TTN",len:101,ab:[.03,.03]},{g:"MYC",len:2.4,ab:[.05,.15]},{g:"SAA1",len:.6,ab:[.01,110]},{g:"Other genes (19,995)",len:2.2,ab:[96,96]}];
+const SMP=[{n:"Ctrl 1",grp:0,depth:10e6},{n:"Ctrl 2",grp:0,depth:20e6},{n:"Treat 1",grp:1,depth:10e6},{n:"Treat 2",grp:1,depth:16e6}];
+const RAW=(()=>{const r=rng(8);return GENES.map(G=>SMP.map(S=>{const tot=GENES.reduce((a,g)=>a+g.ab[S.grp]*g.len,0);return Math.round(S.depth*G.ab[S.grp]*G.len/tot*(1+.03*gauss(r)));}));})();
+let normM="raw",selG=0;
+function normalized(m){
+  if(m==="raw")return RAW;
+  if(m==="cpm")return RAW.map(row=>row.map((c,j)=>c/SMP[j].depth*1e6));
+  if(m==="tpm"){const rpk=RAW.map((row,i)=>row.map(c=>c/GENES[i].len));const sums=SMP.map((_,j)=>rpk.reduce((a,row)=>a+row[j],0));return rpk.map(row=>row.map((v,j)=>v/sums[j]*1e6));}
+  // median of ratios, using listed genes (the 'other' row stands in for thousands of stable genes: weight it)
+  const lg=RAW.map(row=>row.reduce((a,c)=>a+Math.log(c),0)/row.length);
+  const sf=SMP.map((_,j)=>{const ratios=[];RAW.forEach((row,i)=>{const w=i===GENES.length-1?9:1;for(let k=0;k<w;k++)ratios.push(Math.log(row[j])-lg[i]);});ratios.sort((a,b)=>a-b);return Math.exp(ratios[ratios.length>>1]);});
+  normalized.sf=sf;return RAW.map(row=>row.map((c,j)=>c/sf[j]));
+}
+function renderNorm(){
+  const M=normalized(normM),t=$("#mtx");
+  const f=v=>normM==="raw"?fmt(v):v>=100?fmt(v):v>=1?v.toFixed(1):v.toFixed(2);
+  let h="<thead><tr><th>Gene</th><th>Length</th>"+SMP.map(s=>"<th>"+s.n+"<br><span>"+(s.depth/1e6)+"M reads</span></th>").join("")+"</tr></thead><tbody>";
+  M.forEach((row,i)=>{h+='<tr data-i="'+i+'" class="'+(i===selG?"sel":"")+'"><td>'+GENES[i].g+"</td><td>"+GENES[i].len+" kb</td>"+row.map(v=>"<td>"+f(v)+"</td>").join("")+"</tr>";});
+  if(normM==="mor")h+='<tr class="sf"><td>Size factor</td><td></td>'+normalized.sf.map(v=>"<td>"+v.toFixed(2)+"</td>").join("")+"</tr>";
+  t.innerHTML=h+"</tbody>";
+  t.querySelectorAll("tbody tr[data-i]").forEach(tr=>tr.addEventListener("click",()=>{selG=+tr.dataset.i;renderNorm();}));
+  document.querySelectorAll("#normMethods [data-n]").forEach(b=>b.classList.toggle("primary",b.dataset.n===normM));
+  // chart
+  const s=$("#normChart");s.innerHTML="";const vals=M[selG],mx=Math.max(...vals)*1.15,x0=60,x1=620,y0=12,y1=130,ys=v=>y1-v/mx*(y1-y0),bw=(x1-x0)/4;
+  el("line",{x1:x0,x2:x1,y1:y1,y2:y1,stroke:"var(--line)"},s);
+  vals.forEach((v,j)=>{const x=x0+j*bw+bw*.2;el("rect",{x,y:ys(v),width:bw*.6,height:y1-ys(v),rx:3,fill:SMP[j].grp?"var(--warn)":"var(--brand)"},s);
+    el("text",{x:x+bw*.3,y:ys(v)-5,"text-anchor":"middle",style:"fill:var(--ink)"},s).textContent=f(v);
+    el("text",{x:x+bw*.3,y:y1+16,"text-anchor":"middle"},s).textContent=SMP[j].n;});
+  el("text",{x:x0,y:y1+34},s).textContent=GENES[selG].g+" · "+({raw:"raw counts",cpm:"counts per million",tpm:"transcripts per million",mor:"DESeq2 normalized counts"})[normM];
+  const g=GENES[selG].g,ratio=(vals[2]+vals[3])/(vals[0]+vals[1]),m=$("#normMsg");
+  const trueFC=GENES[selG].ab[1]/GENES[selG].ab[0];
+  let txt="Treated / control average: "+ratio.toFixed(2)+"× (truth: "+(trueFC>=10?"large increase":trueFC.toFixed(2)+"×")+"). ";
+  if(normM==="raw")txt+="Raw counts track sequencing depth: Ctrl 2 has twice the reads of Ctrl 1, so every gene looks twice as high there.";
+  else if(normM==="cpm")txt+=selG===4?"SAA1 takes a large share of reads in treated samples.":"CPM fixes depth, but SAA1 soaks up a large share of reads in treated samples, so unchanged genes look lower there. That is composition bias.";
+  else if(normM==="tpm")txt+="TPM also divides by length, so the 101 kb TTN, which has many raw reads, turns out to be a low-abundance transcript. Compare genes within a column with TPM; it still carries the composition bias across samples.";
+  else txt+="Size factors come from the median ratio across genes, which SAA1 and MYC can't move. Unchanged genes line up across samples, and MYC shows its true 3× increase.";
+  const good=Math.abs(Math.log2(ratio)-Math.log2(trueFC))<.2;
+  m.className="callout "+(trueFC>=10?"":good?"good":"warn");m.textContent=txt;
+}
+document.querySelectorAll("#normMethods [data-n]").forEach(b=>b.addEventListener("click",()=>{normM=b.dataset.n;renderNorm();}));
+
+/* ---------- 5 Volcano ---------- */
+function gammaS(r,k){if(k<1){return gammaS(r,k+1)*Math.pow(r(),1/k);}const d=k-1/3,c=1/Math.sqrt(9*d);for(;;){let x,v;do{x=gauss(r);v=1+c*x;}while(v<=0);v=v*v*v;const u=r();if(u<1-.0331*x*x*x*x)return d*v;if(Math.log(u)<.5*x*x+d*(1-v+Math.log(v)))return d*v;}}
+function poisS(r,l){if(l>40)return Math.max(0,Math.round(l+Math.sqrt(l)*gauss(r)));const L=Math.exp(-l);let k=0,p=1;do{k++;p*=r();}while(p>L);return k-1;}
+const nb=(r,mu,a)=>poisS(r,gammaS(r,1/a)*mu*a);
+const G=2000;let DE=null,selGene=null;
+function simDE(n){
+  const r=rng(2025),out=[];
+  for(let g=0;g<G;g++){
+    const base=Math.min(40000,Math.max(8,Math.exp(5+1.6*gauss(r)))),isDE=g%10===0,lfc=isDE?(r()<.5?-1:1)*(.5+Math.abs(gauss(r))*.9):0,a=.06+.5/Math.sqrt(base)*.3;
+    const C=[],T=[];const rr=rng(g*7919+n*104729);
+    for(let i=0;i<n;i++){C.push(nb(rr,base,a));T.push(nb(rr,base*Math.pow(2,lfc),a));}
+    const lc=C.map(v=>Math.log2(v+.5)),lt=T.map(v=>Math.log2(v+.5)),mc=lc.reduce((x,y)=>x+y)/n,mt=lt.reduce((x,y)=>x+y)/n;
+    const vc=lc.reduce((x,y)=>x+(y-mc)**2,0)/(n-1),vt=lt.reduce((x,y)=>x+(y-mt)**2,0)/(n-1),sp=(vc+vt)/2+.01;
+    const t=(mt-mc)/Math.sqrt(sp*2/n),p=Math.max(1e-16,tP(t,2*n-2));
+    out.push({g,isDE,lfc,est:mt-mc,p,C,T,base});
+  }
+  const ord=out.map((o,i)=>i).sort((a,b)=>out[a].p-out[b].p);let prev=1;
+  for(let k=G-1;k>=0;k--){const o=out[ord[k]];prev=Math.min(prev,o.p*G/(k+1));o.q=prev;}
+  return out;
+}
+let deN=null;
+function renderDE(){
+  const n=+$("#deN").value,corr=$("#deCorr").value,lt=+$("#deLfc").value,truth=$("#deTruth").checked;
+  $("#deNOut").textContent=n;$("#deLfcOut").textContent=lt;
+  if(deN!==n){DE=simDE(n);deN=n;}
+  const sig=o=>(corr==="bh"?o.q<.05:o.p<.05)&&Math.abs(o.est)>=lt;
+  const s=$("#volcano");s.innerHTML="";const x0=44,x1=630,y0=12,y1=320,xs=v=>x0+(Math.max(-5,Math.min(5,v))+5)/10*(x1-x0);
+  const ymax=Math.max(6,Math.ceil(Math.min(16,Math.max(...DE.map(o=>-Math.log10(o.p)))))),ys=v=>y1-Math.min(v,ymax)/ymax*(y1-y0);
+  for(let v=0;v<=ymax;v+=ymax>10?4:2){el("line",{x1:x0,x2:x1,y1:ys(v),y2:ys(v),stroke:"var(--line)","stroke-width":v?.6:1},s);el("text",{x:x0-6,y:ys(v)+4,"text-anchor":"end"},s).textContent=v;}
+  [-4,-2,0,2,4].forEach(v=>el("text",{x:xs(v),y:y1+16,"text-anchor":"middle"},s).textContent=v);
+  el("text",{x:(x0+x1)/2,y:y1+34,"text-anchor":"middle"},s).textContent="log₂ fold change (treated / control)";
+  el("text",{x:14,y:(y0+y1)/2,"text-anchor":"middle",transform:"rotate(-90 14 "+(y0+y1)/2+")"},s).textContent="−log₁₀ p";
+  if(lt>0){[-lt,lt].forEach(v=>el("line",{x1:xs(v),x2:xs(v),y1:y0,y2:y1,stroke:"var(--muted)","stroke-dasharray":"3 3"},s));}
+  // p threshold line
+  let pth=.05;if(corr==="bh"){const passing=DE.filter(o=>o.q<.05);pth=passing.length?Math.max(...passing.map(o=>o.p)):1e-16;}
+  if(pth>1e-15){el("line",{x1:x0,x2:x1,y1:ys(-Math.log10(pth)),y2:ys(-Math.log10(pth)),stroke:"var(--muted)","stroke-dasharray":"3 3"},s);el("text",{x:x1,y:ys(-Math.log10(pth))-4,"text-anchor":"end"},s).textContent=corr==="bh"?"FDR 0.05 cutoff":"p = 0.05";}
+  const g=el("g",{},s);let TP=0,FP=0,FN=0;
+  DE.forEach(o=>{const S=sig(o);if(S&&o.isDE)TP++;if(S&&!o.isDE)FP++;if(!S&&o.isDE)FN++;
+    const col=S?(o.est>0?"var(--T)":"var(--C)"):"var(--muted)";
+    const c=el("circle",{cx:xs(o.est).toFixed(1),cy:ys(-Math.log10(o.p)).toFixed(1),r:S?2.6:1.8,fill:col,"fill-opacity":S?.85:.35},g);
+    if(truth&&o.isDE)c.setAttribute("stroke","var(--ink)");
+    if(truth&&S&&!o.isDE){c.setAttribute("r",3.6);c.setAttribute("stroke","var(--ink)");c.setAttribute("stroke-width","1.2");c.setAttribute("fill","none");}
+  });
+  if(selGene!=null){const o=DE[selGene];el("circle",{cx:xs(o.est),cy:ys(-Math.log10(o.p)),r:7,fill:"none",stroke:"var(--brand)","stroke-width":2},s);}
+  s.onclick=e=>{const pt=s.createSVGPoint();pt.x=e.clientX;pt.y=e.clientY;const q=pt.matrixTransform(s.getScreenCTM().inverse());let best=null,bd=1e9;DE.forEach((o,i)=>{const d=(xs(o.est)-q.x)**2+(ys(-Math.log10(o.p))-q.y)**2;if(d<bd){bd=d;best=i;}});if(bd<400){selGene=best;renderDE();}};
+  const called=TP+FP;
+  $("#deCalled").textContent=called;$("#deTP").textContent=TP;$("#deFP").textContent=FP;$("#deFDR").textContent=called?Math.round(100*FP/called)+"%":"–";$("#deFN").textContent=FN+" of 200";
+  const m=$("#deMsg");
+  if(corr==="raw"){m.className="callout bad";m.textContent="Without correction, "+FP+" of the 1,800 unchanged genes pass p < 0.05 by chance, about 5% as expected. "+(called?Math.round(100*FP/called)+"% of your hits are false.":"")+" Switch to Benjamini–Hochberg.";}
+  else if(n<=3){m.className="callout warn";m.textContent="FDR control keeps false hits near 5% of calls ("+FP+" of "+called+"), but with "+n+" replicates per group most real changes ("+FN+" of 200) are missed. Add replicates and watch the volcano's arms rise.";}
+  else{m.className="callout good";m.textContent="With "+n+" replicates, BH finds "+TP+" of 200 true changes while false hits stay at "+(called?Math.round(100*FP/called):0)+"% of calls. The genes still missed mostly have small fold changes or low counts."+(lt>0?" The fold-change cutoff removes small but real effects too.":"");}
+  // gene panel
+  const gd=$("#geneDots");gd.innerHTML="";const kv=$("#geneKv");
+  if(selGene==null){$("#geneTitle").textContent="No gene selected";kv.innerHTML='<dt>Tip</dt><dd style="font-family:var(--body)">Click a dot in the volcano plot</dd>';return;}
+  const o=DE[selGene];$("#geneTitle").textContent="Gene "+String(o.g+1).padStart(4,"0");
+  const all=o.C.concat(o.T),mx=Math.max(...all,1)*1.15,gx0=46,gx1=230,gy0=10,gy1=140,gys=v=>gy1-v/mx*(gy1-gy0);
+  [0,mx/2/1.15,mx/1.15].forEach(v=>{el("line",{x1:gx0,x2:gx1,y1:gys(v),y2:gys(v),stroke:"var(--line)","stroke-width":.6},gd);el("text",{x:gx0-4,y:gys(v)+4,"text-anchor":"end"},gd).textContent=fmt(v);});
+  [["Control",o.C,"var(--brand)",90],["Treated",o.T,"var(--warn)",180]].forEach(([nm,arr,col,cx])=>{arr.forEach((v,i)=>el("circle",{cx:cx-12+24*(i+.5)/arr.length,cy:gys(v),r:4,fill:col},gd));
+    const mean=arr.reduce((a,b)=>a+b)/arr.length;el("line",{x1:cx-20,x2:cx+20,y1:gys(mean),y2:gys(mean),stroke:"var(--ink)","stroke-width":1.5},gd);el("text",{x:cx,y:gy1+16,"text-anchor":"middle"},gd).textContent=nm;});
+  kv.innerHTML="<dt>log₂FC (est.)</dt><dd>"+o.est.toFixed(2)+"</dd><dt>p</dt><dd>"+o.p.toExponential(1)+"</dd><dt>padj (BH)</dt><dd>"+o.q.toExponential(1)+"</dd><dt>Truth</dt><dd style=\"color:var(--"+(o.isDE?"good":"muted")+")\">"+(o.isDE?"Changes (log₂FC "+o.lfc.toFixed(2)+")":"No change")+"</dd>";
+}
+$("#deN").addEventListener("input",renderDE);$("#deLfc").addEventListener("input",renderDE);$("#deCorr").addEventListener("change",renderDE);$("#deTruth").addEventListener("change",renderDE);
+
+/* ---------- Quiz ---------- */
+const QUIZ={
+ design:[
+  {q:"You have budget for 60 million reads. Which design gives more power to detect differential expression?",o:["2 samples per group at 15M reads each","3 samples per group at 10M reads each","1 sample per group at 30M reads each","It makes no difference"],a:1,w:"Beyond roughly 10–20M reads, extra depth adds little. Extra biological replicates improve the variance estimate and power much more."},
+  {q:"All control mice were processed in March and all treated mice in May. What is the problem?",o:["Too few replicates","Treatment is confounded with processing date","The reads will be too short","Nothing, as long as the same kit was used"],a:1,w:"Any effect of the date is inseparable from the treatment effect. Balance conditions across batches."}],
+ library:[
+  {q:"Why is poly(A) selection a poor choice for degraded RNA (low RIN)?",o:["It removes all mRNA","Only fragments still attached to the poly(A) tail are captured, causing 3′ bias","It captures too much rRNA","It makes the library unstranded"],a:1,w:"Oligo-dT pulls down the 3′ end, so broken transcripts lose their 5′ portions."},
+  {q:"Which RNAs are captured by rRNA depletion but largely missed by poly(A) selection?",o:["Mature protein-coding mRNAs","Replication-dependent histone mRNAs and pre-mRNA","Mitochondrial rRNA","None"],a:1,w:"Histone mRNAs end in a stem-loop, not a poly(A) tail, and much pre-mRNA is not yet polyadenylated."}],
+ splice:[
+  {q:"What does the N in the CIGAR string 50M2000N50M mean?",o:["2,000 unknown bases in the read","A 2,000 bp region of the reference skipped by the read, usually an intron","2,000 mismatches","A 2,000 bp insertion in the read"],a:1,w:"N marks a skipped reference region. Splice-aware aligners use it for introns."},
+  {q:"Exon 2 has 40 inclusion junction reads per junction and the skipping junction has 40 reads. What is Ψ?",o:["About 25%","About 50%","About 67%","About 100%"],a:1,w:"Ψ = inclusion / (inclusion + skipping) = 40 / (40 + 40) = 50%."}],
+ norm:[
+  {q:"Why is TPM appropriate for comparing two different genes within one sample, but not raw counts?",o:["TPM removes PCR duplicates","TPM corrects for gene length, so long genes don't look more expressed","TPM corrects for batch effects","Raw counts can't be compared at all"],a:1,w:"At the same molar level, a longer transcript yields more fragments. TPM divides by length first."},
+  {q:"One gene makes up 30% of reads in treated samples only. What happens to other genes under CPM?",o:["They look higher in treated samples","They look lower in treated samples, even if unchanged","No effect","They become zero"],a:1,w:"The dominant gene uses up reads, so everything else gets a smaller share. Median-of-ratios or TMM correct this."}],
+ de:[
+  {q:"You test 20,000 unchanged genes at p < 0.05 with no correction. About how many false positives do you expect?",o:["0","50","1,000","10,000"],a:2,w:"5% of 20,000 = 1,000 genes pass by chance."},
+  {q:"A gene has padj (BH) = 0.03. What does that mean?",o:["There is a 3% chance this gene changes","If you call all genes at this threshold significant, about 3% of them are expected to be false","The fold change is 3%","The gene is 3% more expressed"],a:1,w:"BH-adjusted p-values control the false discovery rate among the set of genes you call."}]
+};
+let answers=store.get("rna-quiz",{});
+function renderQuiz(){
+  document.querySelectorAll("[data-quiz]").forEach(box=>{
+    const sec=box.dataset.quiz;box.innerHTML='<div class="eyebrow">Checkpoint</div>';
+    QUIZ[sec].forEach((item,qi)=>{
+      const key=sec+qi, ans=answers[key], d=document.createElement("div");d.className="q";
+      d.innerHTML="<p>"+(qi+1)+". "+item.q+"</p>";
+      const opts=document.createElement("div");opts.className="opts";
+      item.o.forEach((o,oi)=>{const b=document.createElement("button");b.type="button";b.className="opt";b.textContent=o;
+        if(ans!=null){b.disabled=true;if(oi===item.a)b.classList.add("right");else if(oi===ans)b.classList.add("wrong");}
+        b.addEventListener("click",()=>{answers[key]=oi;store.set("rna-quiz",answers);renderQuiz();});opts.appendChild(b);});
+      d.appendChild(opts);
+      if(ans!=null){const w=document.createElement("p");w.className="why";w.textContent=(ans===item.a?"Correct. ":"Not quite. ")+item.w;d.appendChild(w);}
+      box.appendChild(d);
+    });
+  });
+  let right=0;for(const sec in QUIZ){let sr=0;QUIZ[sec].forEach((it,qi)=>{if(answers[sec+qi]===it.a){right++;sr++;}});
+    const a=document.querySelector('.rail a[data-sec="'+sec+'"]');if(a)a.classList.toggle("done",sr===QUIZ[sec].length);}
+  $("#scoreNum").textContent=right+" / 10";$("#scoreBar").style.width=(right*10)+"%";
+}
+$("#resetQuiz").addEventListener("click",()=>{answers={};store.set("rna-quiz",answers);renderQuiz();});
+
+if("IntersectionObserver" in window){
+  const links=[...document.querySelectorAll(".rail a")];
+  const io=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting)links.forEach(l=>l.classList.toggle("active",l.dataset.sec===e.target.id));});},{rootMargin:"-40% 0px -55% 0px"});
+  document.querySelectorAll("section.stage[id]").forEach(s=>io.observe(s));
+}
+
+renderPower(); renderBatch(); renderLib(); renderSplice(); renderNorm(); renderDE(); renderQuiz();
+})();
+</script>
