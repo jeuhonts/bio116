@@ -1,0 +1,742 @@
+<title>Rebuilding the Genome</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#f6f5f8; --surface:#ffffff; --surface-2:#f0edf3; --ink:#1d1a22; --muted:#625c6b; --line:#e0dce6;
+  --brand:#5b2a6e; --brand-ink:#ffffff; --brand-soft:#efe6f2; --brand-line:#d7c3de;
+  --good:#1f7a4a; --good-soft:#e3f3ea; --warn:#9a5b00; --warn-soft:#fbf0dc; --bad:#b42f2f; --bad-soft:#fae4e4;
+  --A:#1f9d55; --C:#2563c9; --G:#c98200; --T:#d43d3d;
+  --scope:#0d0a12; --scope-line:#2a2433; --scope-ink:#cfc6da;
+  --display:"Bricolage Grotesque", "Arial Black", system-ui, sans-serif;
+  --body:"IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+  --mono:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --r:10px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --paper:#141218; --surface:#1d1a23; --surface-2:#25212c; --ink:#ece8f1; --muted:#a49cae; --line:#342f3c;
+    --brand:#c79ad6; --brand-ink:#1d1a22; --brand-soft:#2d2236; --brand-line:#4d3a58;
+    --good:#5fd394; --good-soft:#173325; --warn:#f0b54a; --warn-soft:#3a2c12; --bad:#ff8080; --bad-soft:#3d1c1f;
+    --A:#3fcf7f; --C:#6f9dff; --G:#f2b233; --T:#ff6b6b;
+    --scope:#08060b; --scope-line:#2a2433;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --paper:#141218; --surface:#1d1a23; --surface-2:#25212c; --ink:#ece8f1; --muted:#a49cae; --line:#342f3c;
+  --brand:#c79ad6; --brand-ink:#1d1a22; --brand-soft:#2d2236; --brand-line:#4d3a58;
+  --good:#5fd394; --good-soft:#173325; --warn:#f0b54a; --warn-soft:#3a2c12; --bad:#ff8080; --bad-soft:#3d1c1f;
+  --A:#3fcf7f; --C:#6f9dff; --G:#f2b233; --T:#ff6b6b;
+  --scope:#08060b; --scope-line:#2a2433;
+}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.6;padding:0 16px}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;line-height:1.15;margin:0}
+h1{font-size:clamp(2.1rem,5vw,3.3rem);font-weight:800;letter-spacing:-.02em}
+h2{font-size:clamp(1.55rem,3.2vw,2.1rem);font-weight:700;letter-spacing:-.01em}
+h3{font-size:1.15rem;font-weight:700}
+p{margin:0}
+code,.mono{font-family:var(--mono)}
+a{color:var(--brand)}
+button,input,select{font:inherit}
+:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+
+.layout{max-width:1160px;margin:0 auto;display:grid;grid-template-columns:210px minmax(0,1fr);gap:48px;padding-block:40px 80px}
+@media (max-width:920px){.layout{grid-template-columns:minmax(0,1fr)}.rail{display:none}}
+
+/* rail */
+.rail{position:sticky;top:calc(env(safe-area-inset-top,0px) + 24px);align-self:start;display:flex;flex-direction:column;gap:18px;font-size:.9rem}
+.rail .eyebrow{margin-bottom:-6px}
+.rail ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.rail a{display:grid;grid-template-columns:26px 1fr;gap:10px;align-items:center;padding:7px 8px;border-radius:8px;color:var(--muted);text-decoration:none}
+.rail a:hover{background:var(--surface-2);color:var(--ink)}
+.rail a.active{color:var(--ink);background:var(--brand-soft)}
+.rail .n{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;border:1.5px solid var(--line);font-family:var(--mono);font-size:.75rem;background:var(--surface)}
+.rail a.active .n{border-color:var(--brand);color:var(--brand)}
+.rail a.done .n{background:var(--brand);border-color:var(--brand);color:var(--brand-ink)}
+.score{border-top:1px solid var(--line);padding-top:14px;display:flex;flex-direction:column;gap:6px;color:var(--muted)}
+.score b{font-family:var(--display);font-size:1.6rem;color:var(--ink);font-variant-numeric:tabular-nums}
+.meter{height:6px;border-radius:3px;background:var(--line);overflow:hidden}
+.meter i{display:block;height:100%;background:var(--brand);width:0;transition:width .3s}
+
+main{display:flex;flex-direction:column;gap:72px;min-width:0}
+.eyebrow{font-size:.74rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.lede{font-size:1.14rem;color:var(--muted);max-width:62ch}
+.prose{display:flex;flex-direction:column;gap:14px;max-width:66ch}
+.prose p{color:var(--ink)}
+.term{font-weight:600;color:var(--brand)}
+.dot{display:inline-block;width:.55em;height:.55em;border-radius:50%;background:var(--brand);margin-right:.45em;vertical-align:.12em}
+
+/* hero */
+.hero{display:flex;flex-direction:column;gap:22px}
+.meta{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font-size:.8rem;padding:4px 10px;border-radius:999px;background:var(--surface);border:1px solid var(--line);color:var(--muted)}
+.flow{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:0;margin-top:8px;position:relative}
+.flow .phase{grid-column:span 3;font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);border-bottom:1.5px dashed var(--brand-line);padding-bottom:6px;margin-bottom:14px;font-weight:600}
+.flow .phase.dry{grid-column:span 2;margin-left:12px}
+.flow a{display:flex;flex-direction:column;gap:8px;align-items:flex-start;text-decoration:none;color:var(--ink);padding-right:12px;position:relative}
+.flow a .c{width:40px;height:40px;border-radius:50%;background:var(--brand);color:var(--brand-ink);display:grid;place-items:center;font-family:var(--display);font-weight:800;font-size:1.1rem;position:relative;z-index:1}
+.flow a:not(:last-child)::after{content:"";position:absolute;top:20px;left:40px;right:0;height:2px;background:var(--brand-line)}
+.flow a b{font-family:var(--display);font-size:1rem;line-height:1.2}
+.flow a span{font-size:.84rem;color:var(--muted);line-height:1.4}
+.flow a:hover b{color:var(--brand)}
+@media (max-width:640px){
+  .flow{grid-template-columns:minmax(0,1fr);gap:14px}
+  .flow .phase,.flow .phase.dry{grid-column:auto;margin-left:0;margin-bottom:0}
+  .flow a{display:grid;grid-template-columns:40px 1fr;column-gap:12px;row-gap:2px}
+  .flow a .c{grid-row:span 2}
+  .flow a:not(:last-child)::after{display:none}
+}
+
+/* sections */
+section.stage{display:flex;flex-direction:column;gap:22px;scroll-margin-top:24px}
+.stage-head{display:flex;flex-direction:column;gap:6px}
+.stage-head .sub{font-style:italic;color:var(--muted)}
+.lab{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:22px;display:flex;flex-direction:column;gap:16px}
+.lab-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+.lab-head .tag{font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;font-weight:600;color:var(--brand);background:var(--brand-soft);padding:3px 9px;border-radius:999px}
+.lab .hint{font-size:.9rem;color:var(--muted)}
+@media (max-width:520px){.lab{padding:16px}}
+
+.controls{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center}
+.ctl{display:flex;flex-direction:column;gap:4px;font-size:.86rem;color:var(--muted);min-width:0}
+.ctl output{font-family:var(--mono);color:var(--ink);font-weight:500}
+input[type=range]{accent-color:var(--brand);width:min(260px,70vw)}
+.btn{border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:8px 14px;border-radius:8px;cursor:pointer;font-weight:500;font-size:.9rem}
+.btn:hover{border-color:var(--brand);color:var(--brand)}
+.btn.primary{background:var(--brand);border-color:var(--brand);color:var(--brand-ink)}
+.btn.primary:hover{filter:brightness(1.08);color:var(--brand-ink)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.toggle{display:flex;align-items:center;gap:8px;font-size:.9rem;cursor:pointer}
+.toggle input{accent-color:var(--brand);width:16px;height:16px}
+
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.stat{background:var(--surface-2);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:2px}
+.stat span{font-size:.76rem;color:var(--muted)}
+.stat b{font-family:var(--mono);font-size:1.12rem;font-weight:600;font-variant-numeric:tabular-nums}
+.callout{border-radius:8px;padding:10px 14px;font-size:.92rem;background:var(--surface-2)}
+.callout.good{background:var(--good-soft);color:var(--good)}
+.callout.warn{background:var(--warn-soft);color:var(--warn)}
+.callout.bad{background:var(--bad-soft);color:var(--bad)}
+
+svg text{fill:var(--muted);font-family:var(--mono);font-size:11px}
+.chart{width:100%;height:auto;display:block}
+
+/* process steps */
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;counter-reset:s}
+.step{display:flex;gap:10px;align-items:flex-start;font-size:.9rem}
+.step .c{flex:none;width:28px;height:28px;border-radius:50%;border:1.5px solid var(--brand);color:var(--brand);display:grid;place-items:center;font-family:var(--mono);font-size:.8rem;font-weight:600}
+.step b{display:block;font-size:.95rem}
+.step span{color:var(--muted);line-height:1.45}
+
+/* library assembly */
+.parts,.slots{display:flex;flex-wrap:wrap;gap:8px}
+.part{font-family:var(--mono);font-size:.84rem;padding:8px 12px;border-radius:6px;border:1.5px solid var(--brand-line);background:var(--brand-soft);color:var(--ink);cursor:pointer}
+.part:hover{border-color:var(--brand)}
+.part.used{visibility:hidden}
+.slots{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px;gap:0}
+.slot{flex:1 0 92px;min-height:54px;border:1.5px dashed var(--line);display:grid;place-items:center;font-family:var(--mono);font-size:.8rem;text-align:center;padding:6px;cursor:pointer;background:var(--surface);color:var(--muted);position:relative}
+.slot+.slot{border-left:none}
+.slot:first-child{border-radius:8px 0 0 8px}.slot:last-child{border-radius:0 8px 8px 0}
+.slot.filled{border-style:solid;color:var(--ink);background:var(--brand-soft)}
+.slot.insert.filled{background:var(--surface-2)}
+.slot.right{background:var(--good-soft);border-color:var(--good);color:var(--good)}
+.slot.wrong{background:var(--bad-soft);border-color:var(--bad);color:var(--bad)}
+.strand-labels{display:flex;justify-content:space-between;font-family:var(--mono);font-size:.76rem;color:var(--muted)}
+
+/* canvas */
+.scopebox{background:var(--scope);border-radius:10px;overflow:hidden;position:relative}
+.scopebox canvas{display:block;width:100%}
+.scope-legend{display:flex;flex-wrap:wrap;gap:14px;font-size:.82rem;color:var(--muted)}
+.scope-legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:-1px}
+
+/* SBS */
+.sbs{display:grid;grid-template-columns:minmax(0,260px) minmax(0,1fr);gap:22px}
+@media (max-width:700px){.sbs{grid-template-columns:minmax(0,1fr)}}
+.tile{background:var(--scope);border-radius:10px;padding:14px;display:grid;grid-template-columns:repeat(4,1fr);gap:10px;aspect-ratio:1;max-width:100%}
+.clu{border-radius:50%;background:#1a1522;transition:background .25s, box-shadow .25s;position:relative}
+.clu.tracked::after{content:"";position:absolute;inset:-5px;border:1.5px dashed #e8dcf0;border-radius:50%}
+.tile-cap{font-size:.8rem;color:var(--muted);margin-top:8px}
+.seqwrap{overflow-x:auto;padding-bottom:4px}
+.seqrow{display:grid;grid-template-columns:120px repeat(36,22px);gap:2px;align-items:center;font-family:var(--mono);font-size:.82rem;min-width:max-content}
+.seqrow+.seqrow{margin-top:4px}
+.seqrow>span:first-child{font-size:.74rem;color:var(--muted);font-family:var(--body);position:sticky;left:0;background:var(--surface);padding-right:6px}
+.cell{height:24px;display:grid;place-items:center;border-radius:4px;background:var(--surface-2);color:var(--muted)}
+.cell.lit{color:#fff;font-weight:600}
+.cell.now{outline:2px solid var(--ink);outline-offset:1px}
+.cell.err{box-shadow:inset 0 -3px 0 var(--ink)}
+.cell.tmpl.done{background:transparent;color:var(--ink)}
+.bA{background:var(--A)!important}.bC{background:var(--C)!important}.bG{background:var(--G)!important}.bT{background:var(--T)!important}
+.tA{color:var(--A)}.tC{color:var(--C)}.tG{color:var(--G)}.tT{color:var(--T)}
+.channels{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;align-items:end;height:92px}
+.ch{display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end;font-family:var(--mono);font-size:.8rem}
+.ch i{display:block;width:100%;border-radius:4px 4px 0 0;transition:height .25s;min-height:2px}
+.guess{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.guess .btn{font-family:var(--mono);font-weight:600;min-width:44px}
+.guess .btn[data-b="A"]{color:var(--A)}.guess .btn[data-b="C"]{color:var(--C)}.guess .btn[data-b="G"]{color:var(--G)}.guess .btn[data-b="T"]{color:var(--T)}
+.shake{animation:shake .3s}
+@keyframes shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+/* FASTQ */
+.fastq{font-family:var(--mono);font-size:.9rem;background:var(--surface-2);border-radius:8px;padding:14px 16px;overflow-x:auto;line-height:1.9;white-space:pre}
+.fastq .ln{color:var(--muted);user-select:none;display:inline-block;width:2.2em}
+.fastq .q{cursor:pointer;border-radius:3px;padding:1px 0}
+.fastq .q:hover,.fastq .q.sel{background:var(--brand);color:var(--brand-ink)}
+.fastq .trim{opacity:.35;text-decoration:line-through}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+@media (max-width:700px){.two{grid-template-columns:minmax(0,1fr)}}
+.panel{border:1px solid var(--line);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.panel h3{font-size:1rem}
+.bigq{font-family:var(--display);font-size:2.4rem;font-weight:800;line-height:1;color:var(--brand);font-variant-numeric:tabular-nums}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:.9rem}
+.kv dt{color:var(--muted)}.kv dd{margin:0;font-family:var(--mono)}
+
+/* pileup */
+.pile-wrap{overflow-x:auto;padding-bottom:6px}
+.pile{display:grid;gap:2px;font-family:var(--mono);font-size:.78rem;min-width:max-content}
+.prow{display:grid;grid-auto-flow:column;grid-auto-columns:16px;gap:1px}
+.pc{height:17px;display:grid;place-items:center;border-radius:2px;color:var(--muted)}
+.pc.m{color:var(--muted);background:var(--surface-2)}
+.pc.x{color:#fff;font-weight:600}
+.pc.col-sel{outline:1.5px solid var(--brand)}
+.pc.ref{font-weight:600;cursor:pointer;background:transparent}
+.pc.ref:hover{background:var(--brand-soft)}
+.covrow{display:grid;grid-auto-flow:column;grid-auto-columns:16px;gap:1px;align-items:end;height:44px}
+.covrow i{display:block;background:var(--brand-line);border-radius:2px 2px 0 0;cursor:pointer}
+.covrow i.sel{background:var(--brand)}
+.gt{display:flex;flex-direction:column;gap:6px}
+.gtbar{display:grid;grid-template-columns:44px 1fr 56px;gap:10px;align-items:center;font-family:var(--mono);font-size:.84rem}
+.gtbar .track{height:12px;border-radius:6px;background:var(--surface-2);overflow:hidden}
+.gtbar .track i{display:block;height:100%;background:var(--brand);transition:width .25s}
+.gtbar.win{font-weight:600}
+
+/* quiz */
+.quiz{display:flex;flex-direction:column;gap:14px}
+.q{border-left:3px solid var(--brand-line);padding-left:16px;display:flex;flex-direction:column;gap:10px}
+.q p{font-weight:500}
+.opts{display:flex;flex-direction:column;gap:6px}
+.opt{text-align:left;border:1px solid var(--line);background:var(--surface);padding:9px 12px;border-radius:8px;cursor:pointer;color:var(--ink);font-size:.93rem}
+.opt:hover:not(:disabled){border-color:var(--brand)}
+.opt.right{background:var(--good-soft);border-color:var(--good);color:var(--good)}
+.opt.wrong{background:var(--bad-soft);border-color:var(--bad);color:var(--bad)}
+.opt:disabled{cursor:default}
+.why{font-size:.9rem;color:var(--muted)}
+
+/* compare */
+.compare{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+@media (max-width:700px){.compare{grid-template-columns:minmax(0,1fr)}}
+.compare .panel ul{margin:0;padding-left:1.1em;display:flex;flex-direction:column;gap:6px;font-size:.93rem}
+.foot{border-top:1px solid var(--line);padding-top:18px;font-size:.84rem;color:var(--muted)}
+
+/* assembly additions */
+a.chip{text-decoration:none;color:var(--brand);border-color:var(--brand-line)}
+a.chip:hover{background:var(--brand-soft)}
+.sel{font:inherit;font-size:.9rem;padding:7px 10px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink);max-width:100%}
+.olc{display:flex;flex-direction:column;gap:3px;font-family:var(--mono);font-size:.9rem;min-width:max-content}
+.olcrow{display:flex;align-items:center;white-space:pre;background:none;border:0;padding:2px 0;color:var(--ink);font:inherit;cursor:pointer;text-align:left;border-radius:4px}
+.olcrow:hover{background:var(--surface-2)}
+.olcrow span{display:inline-block;width:1.2ch;text-align:center}
+.olcrow .lbl{width:92px;text-align:left;font-family:var(--body);font-size:.78rem;color:var(--muted)}
+.olcrow .pad{width:auto}
+.olcrow .ov{background:var(--warn-soft);font-weight:600}
+.olcrow.cons{cursor:default;border-top:1px solid var(--line);padding-top:6px;margin-top:4px;font-weight:600}
+.olcrow.cons:hover{background:none}
+.graphbox{background:var(--surface-2);border-radius:10px;overflow:hidden}
+.graphbox svg{display:block;width:100%;height:auto}
+.contigs{display:flex;flex-direction:column;gap:6px}
+.tig{display:flex;flex-direction:column;gap:2px;font-size:.82rem;color:var(--muted)}
+.tig code{font-size:.9rem;overflow-wrap:anywhere;letter-spacing:.04em}
+.tig code b{font-weight:600}
+ul.plain{margin:0;padding-left:1.1em;display:flex;flex-direction:column;gap:8px;font-size:.93rem}
+</style>
+
+<div class="layout">
+  <nav class="rail" aria-label="Tutorial stages">
+    <div class="eyebrow">Assembly</div>
+    <ol id="railList">
+      <li><a href="#coverage" data-sec="coverage"><span class="n">1</span>Shotgun coverage</a></li>
+      <li><a href="#olc" data-sec="olc"><span class="n">2</span>Overlap–layout–consensus</a></li>
+      <li><a href="#dbg" data-sec="dbg"><span class="n">3</span>De Bruijn graphs</a></li>
+      <li><a href="#repeats" data-sec="repeats"><span class="n">4</span>Repeats &amp; scaffolds</a></li>
+      <li><a href="#quality" data-sec="quality"><span class="n">5</span>Judging an assembly</a></li>
+    </ol>
+    <div class="score">
+      <span>Checkpoint questions</span>
+      <b id="scoreNum">0 / 10</b>
+      <div class="meter"><i id="scoreBar"></i></div>
+      <button class="btn" id="resetQuiz" type="button">Reset answers</button>
+    </div>
+  </nav>
+
+  <main>
+    <header class="hero">
+      <div class="eyebrow">BIO 116 · Bioinformatics · Interactive tutorial</div>
+      <h1><span class="dot"></span>Rebuilding the genome</h1>
+      <p class="lede">Sequencing gives you millions of short, unordered fragments. Assembly puts them back together with no reference to copy from. Work through five stages, each with a model to play with and two checkpoint questions.</p>
+      <div class="meta">
+        <span class="chip">Audience: undergraduate bioinformatics</span>
+        <span class="chip">About 45 minutes</span>
+        <span class="chip">5 stages · 5 simulations · 10 questions</span>
+        <a class="chip" href="https://claude.ai/artifact/TC9CSb15fd16UWGKytCgwU">Previous: From tube to variant call</a>
+      </div>
+      <div class="flow" aria-label="Assembly pipeline overview">
+        <div class="phase">Build contigs</div>
+        <div class="phase dry">Order &amp; evaluate</div>
+        <a href="#coverage"><span class="c">1</span><b>Shotgun coverage</b><span>How many reads you need</span></a>
+        <a href="#olc"><span class="c">2</span><b>Overlap–layout–consensus</b><span>Chain reads by their overlaps</span></a>
+        <a href="#dbg"><span class="c">3</span><b>De Bruijn graphs</b><span>Split reads into k-mers, walk the graph</span></a>
+        <a href="#repeats"><span class="c">4</span><b>Repeats &amp; scaffolds</b><span>Why assemblies break, how to bridge gaps</span></a>
+        <a href="#quality"><span class="c">5</span><b>Judging an assembly</b><span>N50, completeness, accuracy</span></a>
+      </div>
+    </header>
+
+    <!-- 1 COVERAGE -->
+    <section class="stage" id="coverage">
+      <div class="stage-head">
+        <div class="eyebrow">Stage 1 of 5</div>
+        <h2><span class="dot"></span>Shotgun sequencing and coverage</h2>
+        <p class="sub">Random reads, and how many you need</p>
+      </div>
+      <div class="prose">
+        <p>In <span class="term">shotgun sequencing</span>, reads come from random positions in the genome. Their total length divided by the genome length is the <span class="term">coverage</span>, c = N × L / G. Because placement is random, some bases get covered many times and others not at all.</p>
+        <p>Lander and Waterman (1988) worked out what to expect. The fraction of the genome left uncovered is about e<sup>−c</sup>, and the number of separate covered islands (the best case for contigs) is about N × e<sup>−c</sup>. More coverage closes gaps fast, but never quite to zero.</p>
+      </div>
+      <div class="lab">
+        <div class="lab-head"><h3>Sample reads from a 20 kb genome</h3><span class="tag">Simulation</span></div>
+        <div class="controls">
+          <label class="ctl" for="covL">Read length <output id="covLOut">500 bp</output>
+            <input type="range" id="covL" min="100" max="2000" step="50" value="500"></label>
+          <label class="ctl" for="covN">Number of reads <output id="covNOut">80</output>
+            <input type="range" id="covN" min="10" max="600" step="10" value="80"></label>
+          <button class="btn" id="covSeed" type="button">Resample</button>
+        </div>
+        <svg class="chart" id="covChart" viewBox="0 0 640 210" role="img" aria-label="Read depth along the genome"></svg>
+        <div class="stats">
+          <div class="stat"><span>Coverage c</span><b id="covC">–</b></div>
+          <div class="stat"><span>Genome covered</span><b id="covFrac">–</b></div>
+          <div class="stat"><span>Islands (observed)</span><b id="covIsl">–</b></div>
+          <div class="stat"><span>Islands (Lander–Waterman)</span><b id="covExp">–</b></div>
+        </div>
+        <div class="callout" id="covMsg"></div>
+      </div>
+      <div class="quiz" data-quiz="coverage"></div>
+    </section>
+
+    <!-- 2 OLC -->
+    <section class="stage" id="olc">
+      <div class="stage-head">
+        <div class="eyebrow">Stage 2 of 5</div>
+        <h2><span class="dot"></span>Overlap–layout–consensus</h2>
+        <p class="sub">The shredded-newspaper approach</p>
+      </div>
+      <div class="prose">
+        <p>If the end of one read matches the start of another, they probably came from neighbouring positions. <span class="term">Overlap–layout–consensus</span> (OLC) assemblers compare every read with every other read to find these overlaps, arrange the reads into a chain (the layout), and vote at each position to get the final sequence (the consensus).</p>
+        <p>This worked well for Sanger reads and works again for long reads (Canu, and the string-graph assembler hifiasm). With a billion short reads, though, comparing all pairs becomes far too slow.</p>
+      </div>
+      <div class="steps">
+        <div class="step"><span class="c">1</span><div><b>Overlap</b><span>Find suffix–prefix matches between all read pairs</span></div></div>
+        <div class="step"><span class="c">2</span><div><b>Layout</b><span>Order the reads along a path through the overlap graph</span></div></div>
+        <div class="step"><span class="c">3</span><div><b>Consensus</b><span>Take a majority vote at every column</span></div></div>
+      </div>
+      <div class="lab">
+        <div class="lab-head"><h3>Lay out five reads</h3><span class="tag">Puzzle</span></div>
+        <p class="hint">Click reads to add them to the layout, left to right. Each new read is shifted so its start lines up with the longest matching end of the previous read. Click a placed read to remove it and everything after it.</p>
+        <div class="parts" id="olcPool"></div>
+        <div class="seqwrap"><div class="olc" id="olcLayout"></div></div>
+        <div class="callout" id="olcMsg">Start with any read. Hint: one read has no other read overlapping its start.</div>
+      </div>
+      <div class="quiz" data-quiz="olc"></div>
+    </section>
+
+    <!-- 3 DBG -->
+    <section class="stage" id="dbg">
+      <div class="stage-head">
+        <div class="eyebrow">Stage 3 of 5</div>
+        <h2><span class="dot"></span>De Bruijn graphs</h2>
+        <p class="sub">Break reads into k-mers, then follow the path</p>
+      </div>
+      <div class="prose">
+        <p>Short-read assemblers such as SPAdes, Velvet and MEGAHIT skip the all-against-all comparison. They cut every read into overlapping words of length k (<span class="term">k-mers</span>). Each k-mer becomes an edge joining its first k−1 bases to its last k−1 bases. Identical k-mers from different reads collapse onto the same edge, so the graph size depends on the genome, not the number of reads.</p>
+        <p>A path that uses every edge once spells the genome. Stretches with no branching become <span class="term">contigs</span> (unitigs). Choosing k is a trade-off: small k tangles the graph at repeats, while large k needs longer, error-free reads.</p>
+      </div>
+      <div class="lab">
+        <div class="lab-head"><h3>Build the graph for a small circular genome</h3><span class="tag">Simulation</span></div>
+        <p class="hint">The genome is 32 bp and circular, like a tiny plasmid. It holds one 8 bp repeat, <code>GGCATCGA</code>, which appears twice. Reads are 14 bp long, one starting at every position.</p>
+        <div class="controls">
+          <label class="ctl" for="dbgK">k-mer size <output id="dbgKOut">k = 5</output>
+            <input type="range" id="dbgK" min="3" max="13" step="1" value="5"></label>
+          <label class="ctl" for="dbgMin">Drop k-mers seen fewer than <output id="dbgMinOut">1×</output>
+            <input type="range" id="dbgMin" min="1" max="3" step="1" value="1"></label>
+          <label class="toggle"><input type="checkbox" id="dbgErr"> Add a read with a sequencing error</label>
+        </div>
+        <div class="graphbox"><svg id="dbgSvg" viewBox="0 0 640 440" role="img" aria-label="De Bruijn graph"></svg></div>
+        <div class="scope-legend"><span><i style="background:var(--brand)"></i>Simple node</span><span><i style="background:var(--warn)"></i>Branch point (repeat)</span><span><i style="background:var(--bad)"></i>From an error</span><span>Edge width = k-mer count</span></div>
+        <div class="stats">
+          <div class="stat"><span>Nodes ((k−1)-mers)</span><b id="dbgNodes">–</b></div>
+          <div class="stat"><span>Edges (k-mers)</span><b id="dbgEdges">–</b></div>
+          <div class="stat"><span>Branch points</span><b id="dbgBranch">–</b></div>
+          <div class="stat"><span>Contigs</span><b id="dbgContigs">–</b></div>
+        </div>
+        <div class="contigs" id="dbgList"></div>
+        <div class="callout" id="dbgMsg"></div>
+      </div>
+      <div class="quiz" data-quiz="dbg"></div>
+    </section>
+
+    <!-- 4 REPEATS -->
+    <section class="stage" id="repeats">
+      <div class="stage-head">
+        <div class="eyebrow">Stage 4 of 5</div>
+        <h2><span class="dot"></span>Repeats and scaffolding</h2>
+        <p class="sub">The real reason assemblies fall apart</p>
+      </div>
+      <div class="prose">
+        <p>About half the human genome is repetitive: Alu elements (~300 bp, over a million copies), LINE-1 elements (up to ~6 kb), segmental duplications (often tens of kb), and centromeric satellites spanning megabases. A repeat can only be placed correctly if some read starts in unique sequence on one side and reaches unique sequence on the other. Otherwise the assembler must stop the contig at the repeat, and all copies collapse into one.</p>
+        <p><span class="term">Scaffolding</span> uses long-range links to order and orient contigs even when the sequence between them is unknown. Read pairs with a known insert size, mate-pairs, optical maps and Hi-C contacts all bridge gaps. Unknown sequence is filled with Ns.</p>
+      </div>
+      <div class="lab">
+        <div class="lab-head"><h3>Assemble a 200 kb region</h3><span class="tag">Simulation</span></div>
+        <div class="controls">
+          <label class="ctl" for="repL">Read length <output id="repLOut">150 bp</output>
+            <input type="range" id="repL" min="0" max="7" step="1" value="0"></label>
+          <label class="ctl" for="repLink">Long-range links
+            <select id="repLink" class="sel">
+              <option value="0">None</option>
+              <option value="500">Paired-end, 500 bp insert</option>
+              <option value="10000">Mate-pair, 10 kb insert</option>
+              <option value="1e9">Hi-C (chromosome scale)</option>
+            </select></label>
+        </div>
+        <div class="seqwrap"><svg class="chart" id="repSvg" viewBox="0 0 640 256" role="img" aria-label="Genome, contigs and scaffolds" style="min-width:560px"></svg></div>
+        <div class="scope-legend"><span><i style="background:var(--A)"></i>Alu · 300 bp × 3</span><span><i style="background:var(--C)"></i>LINE-1 · 6 kb × 2</span><span><i style="background:var(--T)"></i>Segmental dup · 25 kb × 2</span></div>
+        <div class="stats">
+          <div class="stat"><span>Contigs</span><b id="repContigs">–</b></div>
+          <div class="stat"><span>Contig N50</span><b id="repN50">–</b></div>
+          <div class="stat"><span>Scaffolds</span><b id="repScaf">–</b></div>
+          <div class="stat"><span>Scaffold N50</span><b id="repSN50">–</b></div>
+        </div>
+        <div class="callout" id="repMsg"></div>
+      </div>
+      <div class="quiz" data-quiz="repeats"></div>
+    </section>
+
+    <!-- 5 QUALITY -->
+    <section class="stage" id="quality">
+      <div class="stage-head">
+        <div class="eyebrow">Stage 5 of 5</div>
+        <h2><span class="dot"></span>Judging an assembly</h2>
+        <p class="sub">Contiguity, completeness, correctness</p>
+      </div>
+      <div class="prose">
+        <p>Sort contigs from longest to shortest and add up their lengths. The contig length at which the running total first passes half the assembly is the <span class="term">N50</span>. The number of contigs needed to get there is the <span class="term">L50</span>. A higher N50 means a more contiguous assembly.</p>
+        <p>N50 measures only contiguity. Joining two contigs that do not belong together raises N50 while making the assembly worse. So assemblies are also checked for <span class="term">completeness</span> (BUSCO: the share of expected single-copy genes found intact) and <span class="term">correctness</span> (QV: Phred-scaled base accuracy, plus misassembly counts from tools such as QUAST or Merqury).</p>
+      </div>
+      <div class="lab">
+        <div class="lab-head"><h3>Compare three assemblies of a 100 Mb genome</h3><span class="tag">Explorer</span></div>
+        <div class="controls" id="n50Presets">
+          <button class="btn primary" data-p="short" type="button">Short reads only</button>
+          <button class="btn" data-p="hifi" type="button">HiFi long reads</button>
+          <button class="btn" data-p="t2t" type="button">Telomere-to-telomere</button>
+          <button class="btn" id="misjoin" type="button">Force-join two largest</button>
+        </div>
+        <svg class="chart" id="n50Svg" viewBox="0 0 640 240" role="img" aria-label="Contig lengths sorted, with cumulative total"></svg>
+        <div class="stats">
+          <div class="stat"><span>Contigs</span><b id="nCount">–</b></div>
+          <div class="stat"><span>Largest</span><b id="nMax">–</b></div>
+          <div class="stat"><span>N50</span><b id="nN50">–</b></div>
+          <div class="stat"><span>L50</span><b id="nL50">–</b></div>
+          <div class="stat"><span>BUSCO complete</span><b id="nBusco">–</b></div>
+          <div class="stat"><span>Consensus QV</span><b id="nQV">–</b></div>
+        </div>
+        <div class="callout" id="n50Msg"></div>
+        <p class="hint">Assemblies and metric values are illustrative examples, not real datasets.</p>
+      </div>
+      <div class="quiz" data-quiz="quality"></div>
+    </section>
+
+    <section class="stage" id="beyond">
+      <div class="stage-head">
+        <div class="eyebrow">Wrap-up</div>
+        <h2><span class="dot"></span>Two families of assemblers</h2>
+        <p class="sub">Pick the algorithm that fits the reads</p>
+      </div>
+      <div class="compare">
+        <div class="panel">
+          <h3>Overlap / string graph</h3>
+          <ul>
+            <li>Nodes are reads; edges are overlaps</li>
+            <li>Keeps full read length, so it resolves longer repeats</li>
+            <li>All-pairs overlap is costly; long-read tools use minimizer sketches to speed it up</li>
+            <li>Examples: Canu, hifiasm, Flye (repeat graph), Verkko</li>
+            <li>Best for PacBio HiFi and Oxford Nanopore reads</li>
+          </ul>
+        </div>
+        <div class="panel">
+          <h3>De Bruijn graph</h3>
+          <ul>
+            <li>Nodes are (k−1)-mers; edges are k-mers</li>
+            <li>Memory grows with genome size, not read count</li>
+            <li>Discards read context beyond k, so repeats longer than k tangle</li>
+            <li>Examples: SPAdes, Velvet, MEGAHIT, ABySS</li>
+            <li>Best for Illumina short reads, bacteria and metagenomes</li>
+          </ul>
+        </div>
+      </div>
+      <div class="panel">
+        <h3>Modern frontiers</h3>
+        <ul class="plain">
+          <li><b>Telomere-to-telomere human genome.</b> The T2T consortium's CHM13 assembly (2022) closed the last ~8% of the human reference, including centromeres, using ultra-long nanopore and HiFi reads.</li>
+          <li><b>Pangenomes.</b> The Human Pangenome Reference Consortium (2023) replaced a single reference with a graph of many phased diploid assemblies, so variation is represented directly.</li>
+          <li><b>Haplotype-resolved assembly.</b> Trio data or Hi-C lets tools like hifiasm and Verkko build the maternal and paternal copies separately instead of one blended consensus.</li>
+          <li><b>Biodiversity genomics.</b> Projects such as the Earth BioGenome Project and Darwin Tree of Life aim to assemble reference genomes for all eukaryotic species.</li>
+        </ul>
+      </div>
+      <p class="foot">Simulations use simplified models for teaching: coverage is uniform-random, the repeat model assumes a read must span a repeat plus 100 bp of unique flank, and scaffolding links need 300 bp of unique anchor on each side.</p>
+    </section>
+  </main>
+</div>
+
+<script>
+(function(){
+const $=s=>document.querySelector(s);
+const BASES="ACGT";
+function rng(seed){return function(){seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function gauss(r){let u=0;while(!u)u=r();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*r());}
+const fmt=n=>n.toLocaleString("en-US");
+const bp=n=>n>=1e6?(n/1e6).toFixed(n>=1e7?1:2)+" Mb":n>=1e3?(n/1e3).toFixed(n>=1e4?0:1)+" kb":Math.round(n)+" bp";
+const store={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d;}catch(e){return d;}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}};
+const svgNS="http://www.w3.org/2000/svg";
+function el(tag,attrs,parent){const e=document.createElementNS(svgNS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);if(parent)parent.appendChild(e);return e;}
+
+/* ---------- 1 Coverage ---------- */
+const GLEN=20000; let covSeed=11;
+function renderCov(){
+  const L=+$("#covL").value, N=+$("#covN").value; $("#covLOut").textContent=L+" bp"; $("#covNOut").textContent=N;
+  const r=rng(covSeed), BIN=50, NB=GLEN/BIN, depth=new Array(NB).fill(0), diff=new Int32Array(GLEN+1);
+  for(let i=0;i<N;i++){const s=Math.floor(r()*(GLEN-L+1));diff[s]++;diff[s+L]--;}
+  let run=0,cov=0,isl=0,prev=false; const gaps=[]; let gs=null;
+  for(let x=0;x<GLEN;x++){run+=diff[x];const c=run>0;if(c)cov++;if(c&&!prev)isl++;if(!c&&gs===null)gs=x;if(c&&gs!==null){gaps.push([gs,x]);gs=null;}prev=c;depth[Math.floor(x/BIN)]+=run/BIN;}
+  if(gs!==null)gaps.push([gs,GLEN]);
+  const c=N*L/GLEN, s=$("#covChart"); s.innerHTML="";
+  const x0=40,x1=630,y0=12,y1=150, xs=v=>x0+v/GLEN*(x1-x0);
+  let mx=Math.max(...depth,1); const st=mx>20?10:mx>8?4:mx>4?2:1; mx=Math.ceil(mx/st)*st; const ys=v=>y1-v/mx*(y1-y0);
+  for(let v=0;v<=mx;v+=st){el("line",{x1:x0,x2:x1,y1:ys(v),y2:ys(v),stroke:"var(--line)","stroke-width":v?.6:1},s);el("text",{x:x0-6,y:ys(v)+4,"text-anchor":"end"},s).textContent=v+"×";}
+  let d="M"+x0+" "+y1; depth.forEach((v,i)=>{d+=" L"+xs(i*BIN).toFixed(1)+" "+ys(v).toFixed(1)+" L"+xs((i+1)*BIN).toFixed(1)+" "+ys(v).toFixed(1);}); d+=" L"+x1+" "+y1+"Z";
+  el("path",{d,fill:"var(--brand-soft)",stroke:"var(--brand)","stroke-width":1.2},s);
+  el("rect",{x:x0,y:y1+10,width:x1-x0,height:10,rx:2,fill:"var(--brand)"},s);
+  gaps.forEach(g=>el("rect",{x:xs(g[0]),y:y1+8,width:Math.max(2,xs(g[1])-xs(g[0])),height:14,fill:"var(--bad)"},s));
+  [0,5000,10000,15000,20000].forEach(v=>el("text",{x:xs(v),y:y1+38,"text-anchor":v===0?"start":v===GLEN?"end":"middle"},s).textContent=v/1000+" kb");
+  el("text",{x:x0,y:y1+54},s).textContent="bar: covered (purple) and gaps (red)";
+  const exp=N*Math.exp(-c);
+  $("#covC").textContent=c.toFixed(1)+"×"; $("#covFrac").textContent=(100*cov/GLEN).toFixed(1)+"% (expect "+(100*(1-Math.exp(-c))).toFixed(1)+"%)";
+  $("#covIsl").textContent=isl; $("#covExp").textContent=exp<1?exp.toFixed(2):Math.round(exp);
+  const m=$("#covMsg");
+  if(c<3){m.className="callout warn";m.textContent="At "+c.toFixed(1)+"× coverage, "+gaps.length+" gap"+(gaps.length===1?"":"s")+" remain. No algorithm can assemble across sequence that was never read.";}
+  else if(isl>1){m.className="callout";m.textContent="Most of the genome is covered, but "+(isl-1)+" gap"+(isl>2?"s":"")+" still split it. Each gap forces a contig break. Short-read projects often aim for 30–50× to close gaps and outvote errors.";}
+  else{m.className="callout good";m.textContent="One island covers the whole genome at "+c.toFixed(1)+"×. In real genomes, repeats (Stage 4) still break contigs long before coverage runs out.";}
+}
+["covL","covN"].forEach(id=>$("#"+id).addEventListener("input",renderCov));
+$("#covSeed").addEventListener("click",()=>{covSeed++;renderCov();});
+
+/* ---------- 2 OLC ---------- */
+const OG="GTACGTTAGCCATGGATCCGTAAGCTTGCAGTCA", OSTARTS=[0,5,11,16,22], OREADS=OSTARTS.map(s=>OG.substr(s,12));
+const OSHOW=[2,4,0,3,1]; let olc=[];
+function ovl(a,b){for(let o=Math.min(a.length,b.length)-1;o>=3;o--)if(a.endsWith(b.slice(0,o)))return o;return 0;}
+function renderOlc(){
+  const pool=$("#olcPool"); pool.innerHTML="";
+  OSHOW.forEach(i=>{const b=document.createElement("button");b.type="button";b.className="part mono"+(olc.includes(i)?" used":"");b.textContent="R"+(i+1)+"  "+OREADS[i];
+    b.addEventListener("click",()=>{if(!olc.includes(i)){olc.push(i);renderOlc();}});pool.appendChild(b);});
+  // compute offsets
+  const offs=[]; let bad=-1;
+  olc.forEach((ri,k)=>{if(k===0){offs.push(0);return;}const prev=OREADS[olc[k-1]],o=ovl(prev,OREADS[ri]);if(!o&&bad<0)bad=k;offs.push(offs[k-1]+prev.length-(o||0)+(o?0:1));});
+  const width=olc.length?offs[offs.length-1]+12:0, lay=$("#olcLayout"); lay.innerHTML="";
+  olc.forEach((ri,k)=>{const row=document.createElement("button");row.type="button";row.className="olcrow";row.title="Remove this read and those after it";
+    row.innerHTML='<span class="lbl">R'+(ri+1)+"</span>"+"<span class=\"pad\">"+" ".repeat(offs[k])+"</span>"+[...OREADS[ri]].map((c,j)=>{let cls="";if(k>0){const o=ovl(OREADS[olc[k-1]],OREADS[ri]);if(j<o)cls="ov";}if(k<olc.length-1){const o2=ovl(OREADS[ri],OREADS[olc[k+1]]);if(j>=12-o2)cls="ov";}return '<span class="'+cls+' t'+c+'">'+c+"</span>";}).join("");
+    row.addEventListener("click",()=>{olc=olc.slice(0,k);renderOlc();});lay.appendChild(row);});
+  if(olc.length){
+    const cons=new Array(width).fill(" ");olc.forEach((ri,k)=>{for(let j=0;j<12;j++)cons[offs[k]+j]=OREADS[ri][j];});
+    const cr=document.createElement("div");cr.className="olcrow cons";cr.innerHTML='<span class="lbl">Consensus</span>'+cons.map(c=>c===" "?"<span> </span>":'<span class="t'+c+'">'+c+"</span>").join("");lay.appendChild(cr);
+  }
+  const m=$("#olcMsg");
+  if(!olc.length){m.className="callout";m.textContent="Start with any read. Hint: one read has no other read overlapping its start.";return;}
+  if(bad>=0){m.className="callout bad";m.textContent="R"+(olc[bad]+1)+" does not overlap the end of R"+(olc[bad-1]+1)+" by at least 3 bases. Remove it (click the row) and try another read.";return;}
+  if(olc.length<5){const o=olc.length>1?ovl(OREADS[olc[olc.length-2]],OREADS[olc[olc.length-1]]):0;m.className="callout";m.textContent=olc.length===1?"Now find a read whose start matches the end of R"+(olc[0]+1)+".":"R"+(olc[olc.length-1]+1)+" overlaps the previous read by "+o+" bases (highlighted). Keep going.";return;}
+  const cons=[...$("#olcLayout .cons").textContent.replace("Consensus","")].join("").trim();
+  if(cons===OG){m.className="callout good";m.textContent="Assembled: one 34 bp contig from five 12 bp reads. Overlaps of 6–7 bases were enough here. Real OLC assemblers require long overlaps (often 1 kb or more for long reads) so chance matches don't join the wrong reads.";}
+  else{m.className="callout warn";m.textContent="All five reads are placed, but the chain skips an overlap somewhere. Check whether each read's start really matches the previous read's end.";}
+}
+
+/* ---------- 3 De Bruijn ---------- */
+const DG="ATGCTAGGCATCGATTACGGCATCGAGTCCTA", DN=DG.length, DRL=14;
+const circ=(s,l)=>(DG+DG).substr(s,l);
+const DREADS=[];for(let s=0;s<DN;s++)DREADS.push(circ(s,DRL));
+const ERRREAD=(()=>{const r=circ(2,DRL).split("");r[7]=r[7]==="A"?"T":"A";return r.join("");})();
+function renderDbg(){
+  const k=+$("#dbgK").value, minC=+$("#dbgMin").value, err=$("#dbgErr").checked;
+  $("#dbgKOut").textContent="k = "+k; $("#dbgMinOut").textContent=minC+"×";
+  const reads=err?DREADS.concat([ERRREAD]):DREADS, cnt=new Map();
+  reads.forEach(rd=>{for(let i=0;i+k<=rd.length;i++){const km=rd.substr(i,k);cnt.set(km,(cnt.get(km)||0)+1);}});
+  const edges=[...cnt].filter(([km,c])=>c>=minC).map(([km,c])=>({km,c,from:km.slice(0,-1),to:km.slice(1)}));
+  const nodes=new Map();const N=id=>{if(!nodes.has(id))nodes.set(id,{id,in:[],out:[]});return nodes.get(id);};
+  edges.forEach(e=>{N(e.from).out.push(e);N(e.to).in.push(e);});
+  // genome k-mers
+  const gk=new Set();for(let s=0;s<DN;s++)gk.add(circ(s,k));
+  const gn=new Map();for(let s=0;s<DN;s++){const id=circ(s,k-1);if(!gn.has(id))gn.set(id,s);}
+  // unitigs
+  const simple=n=>n.in.length===1&&n.out.length===1, used=new Set(), tigs=[];
+  nodes.forEach(n=>{if(simple(n))return;n.out.forEach(e=>{if(used.has(e))return;let s=e.from,cur=e;used.add(cur);s+=cur.to.slice(-1);let nd=nodes.get(cur.to);while(simple(nd)&&!used.has(nd.out[0])){cur=nd.out[0];used.add(cur);s+=cur.to.slice(-1);nd=nodes.get(cur.to);}tigs.push({s,circ:false});});});
+  edges.forEach(e=>{if(used.has(e))return;let cur=e,s=e.from;while(!used.has(cur)){used.add(cur);s+=cur.to.slice(-1);cur=nodes.get(cur.to).out[0];}tigs.push({s:s.slice(0,s.length-(k-1)),circ:true});});
+  const branch=[...nodes.values()].filter(n=>n.in.length>1||n.out.length>1).length;
+  // layout on circle by first genome occurrence
+  const W=640,H=440,cx=W/2,cy=H/2,R=168,pos=new Map();
+  const genomeNodes=[...nodes.values()].filter(n=>gn.has(n.id)).sort((a,b)=>gn.get(a.id)-gn.get(b.id));
+  genomeNodes.forEach(n=>{const a=-Math.PI/2+2*Math.PI*gn.get(n.id)/DN;pos.set(n.id,{x:cx+R*Math.cos(a),y:cy+R*Math.sin(a),a});});
+  let pending=[...nodes.values()].filter(n=>!pos.has(n.id)), guard=0;
+  while(pending.length&&guard++<50){pending=pending.filter(n=>{const nb=[...n.in.map(e=>e.from),...n.out.map(e=>e.to)].find(id=>pos.has(id));if(!nb)return true;const p=pos.get(nb),off=(n.id.charCodeAt(0)%3)*0.06;const a=p.a+off+0.05;const rr=R+44+(pos.size%2)*14;pos.set(n.id,{x:cx+rr*Math.cos(a),y:cy+rr*Math.sin(a),a});return false;});}
+  pending.forEach((n,i)=>pos.set(n.id,{x:40+i*30,y:H-20,a:0}));
+  const s=$("#dbgSvg");s.innerHTML="";
+  const defs=el("defs",{},s);["brand","bad","warn"].forEach(c=>{const mk=el("marker",{id:"ar-"+c,viewBox:"0 0 10 10",refX:9,refY:5,markerWidth:5,markerHeight:5,orient:"auto-start-reverse"},defs);el("path",{d:"M0 0L10 5L0 10z",fill:"var(--"+c+")"},mk);});
+  const errNode=n=>!gn.has(n);
+  edges.forEach(e=>{const a=pos.get(e.from),b=pos.get(e.to);if(!a||!b)return;const isErr=!gk.has(e.km);
+    let d;if(e.from===e.to){d="M"+a.x+" "+(a.y-6)+" c -24 -30 24 -30 6 -2";}
+    else{const mx=(a.x+b.x)/2,my=(a.y+b.y)/2,dx=b.x-a.x,dy=b.y-a.y,len=Math.hypot(dx,dy)||1,bend=Math.min(40,len*.18),qx=mx-dy/len*bend,qy=my+dx/len*bend;
+      const ex=b.x-(b.x-qx)/Math.hypot(b.x-qx,b.y-qy)*8,ey=b.y-(b.y-qy)/Math.hypot(b.x-qx,b.y-qy)*8;d="M"+a.x.toFixed(1)+" "+a.y.toFixed(1)+" Q"+qx.toFixed(1)+" "+qy.toFixed(1)+" "+ex.toFixed(1)+" "+ey.toFixed(1);}
+    const col=isErr?"bad":"brand";const p=el("path",{d,fill:"none",stroke:"var(--"+col+")","stroke-opacity":isErr?.9:.55,"stroke-width":Math.min(4.5,.6+e.c*.35),"marker-end":"url(#ar-"+col+")"},s);
+    el("title",{},p).textContent=e.km+" (seen "+e.c+"×)";});
+  const showLbl=nodes.size<=20;
+  nodes.forEach(n=>{const p=pos.get(n.id),br=n.in.length>1||n.out.length>1,er=errNode(n.id);
+    const g=el("g",{},s);el("circle",{cx:p.x,cy:p.y,r:br?7:5,fill:er?"var(--bad)":br?"var(--warn)":"var(--brand)",stroke:"var(--surface)","stroke-width":1.5},g);
+    el("title",{},g).textContent=n.id+(br?" (branch point)":"")+(er?" (error k-mer)":"");
+    if(showLbl||br){const out=1.18;el("text",{x:cx+(p.x-cx)*out,y:cy+(p.y-cy)*out+4,"text-anchor":"middle",style:"font-size:10px;fill:var(--ink)"},g).textContent=n.id;}});
+  $("#dbgNodes").textContent=nodes.size;$("#dbgEdges").textContent=edges.length;$("#dbgBranch").textContent=branch;$("#dbgContigs").textContent=tigs.length;
+  const list=$("#dbgList");tigs.sort((a,b)=>b.s.length-a.s.length);
+  list.innerHTML=tigs.slice(0,8).map((t,i)=>'<div class="tig"><span>contig '+(i+1)+" · "+t.s.length+" bp"+(t.circ?" · circular":"")+'</span><code>'+[...t.s].map(c=>'<b class="t'+c+'">'+c+"</b>").join("")+"</code></div>").join("")+(tigs.length>8?'<p class="hint">+ '+(tigs.length-8)+" shorter contigs</p>":"");
+  const hasErr=edges.some(e=>!gk.has(e.km)), m=$("#dbgMsg");
+  if(hasErr){m.className="callout bad";m.textContent="The error read adds k-mers that appear only once, forming a side branch (a tip or bubble). Raise the minimum count to 2× to prune them, the way real assemblers clean graphs.";}
+  else if(tigs.length===1&&tigs[0].circ){m.className="callout good";m.textContent="One circular contig of "+tigs[0].s.length+" bp: the full genome. At k = "+k+", each node ("+(k-1)+" bp) is longer than the 8 bp repeat, so the repeat no longer merges two parts of the graph.";}
+  else if(!edges.length){m.className="callout warn";m.textContent="Every k-mer was filtered out. Each k-mer appears "+(DRL-k+1)+" times here, so lower the minimum count or k.";}
+  else if(k<=9){m.className="callout warn";m.textContent="The graph is tangled. With k = "+k+", nodes are "+(k-1)+" bp, no longer than the 8 bp repeat, so both copies share the same nodes and the path can't tell which way to exit. Try k ≥ 10."+(k<=5?" At very small k, chance matches in random sequence tangle it further.":"");}
+  else{m.className="callout";m.textContent=tigs.length+" contigs.";}
+}
+["dbgK","dbgMin"].forEach(id=>$("#"+id).addEventListener("input",renderDbg));$("#dbgErr").addEventListener("change",renderDbg);
+
+/* ---------- 4 Repeats ---------- */
+const RG=200000, RLENS=[150,250,1000,5000,15000,20000,30000,100000], RLAB=["150 bp (Illumina)","250 bp (Illumina)","1 kb","5 kb","15 kb (PacBio HiFi)","20 kb (PacBio HiFi)","30 kb (nanopore)","100 kb (ultra-long nanopore)"];
+const FAM=[{n:"Alu",len:300,col:"A",pos:[18000,88000,152000]},{n:"LINE-1",len:6000,col:"C",pos:[40000,120000]},{n:"Segmental dup",len:25000,col:"T",pos:[60000,170000]}];
+function n50(ls){const a=ls.slice().sort((x,y)=>y-x),tot=a.reduce((p,c)=>p+c,0);let s=0;for(let i=0;i<a.length;i++){s+=a[i];if(s>=tot/2)return{n50:a[i],l50:i+1};}return{n50:0,l50:0};}
+function renderRep(){
+  const L=RLENS[+$("#repL").value], link=+$("#repLink").value; $("#repLOut").textContent=RLAB[+$("#repL").value];
+  const copies=[];FAM.forEach(f=>f.pos.forEach(p=>copies.push({s:p,e:p+f.len,f,res:L>f.len+100})));copies.sort((a,b)=>a.s-b.s);
+  const unres=copies.filter(c=>!c.res);
+  const contigs=[];let st=0;unres.forEach(c=>{contigs.push({s:st,e:c.s,gapAfter:c});st=c.e;});contigs.push({s:st,e:RG,gapAfter:null});
+  const collapsed=[...new Set(unres.map(c=>c.f))];
+  const lens=contigs.map(c=>c.e-c.s).concat(collapsed.map(f=>f.len));
+  // scaffolds
+  const scaf=[];let cur=[contigs[0]];for(let i=0;i<contigs.length-1;i++){const g=contigs[i].gapAfter;if(link>g.f.len+600)cur.push(contigs[i+1]);else{scaf.push(cur);cur=[contigs[i+1]];}}scaf.push(cur);
+  const sl=scaf.map(sc=>sc[sc.length-1].e-sc[0].s).concat(collapsed.map(f=>f.len));
+  const s=$("#repSvg");s.innerHTML="";const x0=20,x1=620,xs=v=>x0+v/RG*(x1-x0);
+  el("text",{x:x0,y:16},s).textContent="Genome (truth)";
+  el("rect",{x:x0,y:24,width:x1-x0,height:14,rx:3,fill:"var(--surface-2)",stroke:"var(--line)"},s);
+  copies.forEach(c=>{el("rect",{x:xs(c.s),y:22,width:Math.max(3,xs(c.e)-xs(c.s)),height:18,rx:2,fill:"var(--"+c.f.col+")",opacity:c.res?.45:1},s);});
+  [0,50000,100000,150000,200000].forEach(v=>el("text",{x:xs(v),y:54,"text-anchor":v===0?"start":v===RG?"end":"middle"},s).textContent=v/1000+" kb");
+  el("text",{x:x0,y:82},s).textContent="Contigs";
+  contigs.forEach((c,i)=>el("rect",{x:xs(c.s)+1,y:90,width:Math.max(2,xs(c.e)-xs(c.s)-2),height:14,rx:3,fill:"var(--brand)"},s));
+  el("text",{x:x0,y:132},s).textContent="Scaffolds"+(link?"":" (no links: same as contigs)");
+  scaf.forEach(sc=>{const a=xs(sc[0].s)+1,b=xs(sc[sc.length-1].e)-1;el("line",{x1:a,x2:b,y1:147,y2:147,stroke:"var(--brand)","stroke-dasharray":"3 3","stroke-width":1.5},s);
+    sc.forEach(c=>el("rect",{x:xs(c.s)+1,y:140,width:Math.max(2,xs(c.e)-xs(c.s)-2),height:14,rx:3,fill:"var(--brand)"},s));
+    el("rect",{x:a-1,y:136,width:b-a+2,height:22,rx:5,fill:"none",stroke:"var(--brand-line)"},s);});
+  el("text",{x:x0,y:184},s).textContent="Collapsed repeat contigs";
+  if(!collapsed.length)el("text",{x:x0,y:204,style:"fill:var(--good)"},s).textContent="none: every repeat copy was spanned";
+  collapsed.forEach((f,i)=>{const w=Math.max(8,f.len/RG*(x1-x0)),y=192+i*20;el("rect",{x:x0,y,width:w,height:14,rx:3,fill:"var(--"+f.col+")"},s);el("text",{x:x0+w+8,y:y+11},s).textContent=f.n+" ("+bp(f.len)+", "+f.pos.length+" copies merged)";});
+  const cn=n50(lens), sn=n50(sl);
+  $("#repContigs").textContent=lens.length;$("#repN50").textContent=bp(cn.n50);$("#repScaf").textContent=sl.length;$("#repSN50").textContent=bp(sn.n50);
+  const m=$("#repMsg");
+  if(!unres.length){m.className="callout good";m.textContent="Reads of "+bp(L)+" span every repeat copy, including the 25 kb segmental duplications. The region assembles as one contig. This is how T2T assemblies finally resolved segmental duplications and centromeres.";}
+  else if(link&&sl.length-collapsed.length===1){m.className="callout";m.textContent="Contigs are still broken at "+unres.length+" repeat cop"+(unres.length===1?"y":"ies")+", but the long-range links order and orient them into one scaffold. The gaps become runs of N, and the collapsed repeats still need placing.";}
+  else{m.className="callout warn";m.textContent=unres.length+" repeat cop"+(unres.length===1?"y is":"ies are")+" longer than the reads can span, so the assembly breaks there. "+(link?"Some links are too short to jump the larger repeats.":"Try longer reads, or add long-range links to scaffold.");}
+}
+$("#repL").addEventListener("input",renderRep);$("#repLink").addEventListener("change",renderRep);
+
+/* ---------- 5 N50 ---------- */
+const PRESETS=(()=>{const make=(n,med,sd,tot,seed)=>{const r=rng(seed),a=[];for(let i=0;i<n;i++)a.push(med*Math.exp(sd*gauss(r)));const s=a.reduce((p,c)=>p+c,0);return a.map(v=>Math.round(v*tot/s)).sort((x,y)=>y-x);};
+  return{short:{ls:make(1400,40000,.9,94.2e6,5),busco:"91.3%",qv:"Q44",name:"short-read"},hifi:{ls:make(46,1.2e6,1.1,99.1e6,9),busco:"98.6%",qv:"Q58",name:"HiFi"},t2t:{ls:[31.8e6,24.6e6,19.9e6,14.2e6,9.5e6],busco:"98.9%",qv:"Q62",name:"telomere-to-telomere"}};})();
+let curP="short", curLs=PRESETS.short.ls.slice(), joined=false;
+function renderN50(){
+  const ls=curLs.slice().sort((a,b)=>b-a), tot=ls.reduce((a,b)=>a+b,0), {n50:N,l50}=n50(ls);
+  const s=$("#n50Svg");s.innerHTML="";const x0=52,x1=596,y0=14,y1=196,n=ls.length,bw=(x1-x0)/n,mx=ls[0]*1.05,ys=v=>y1-v/mx*(y1-y0),yc=f=>y1-f*(y1-y0);
+  const step=mx>2e7?1e7:mx>8e6?2e6:mx>2e6?1e6:mx>4e5?1e5:5e4;
+  for(let v=0;v<=mx;v+=step){el("line",{x1:x0,x2:x1,y1:ys(v),y2:ys(v),stroke:"var(--line)","stroke-width":v?.6:1},s);el("text",{x:x0-6,y:ys(v)+4,"text-anchor":"end"},s).textContent=bp(v).replace(" ","");}
+  [0,.5,1].forEach(f=>el("text",{x:x1+6,y:yc(f)+4},s).textContent=(f*100)+"%");
+  el("line",{x1:x0,x2:x1,y1:yc(.5),y2:yc(.5),stroke:"var(--muted)","stroke-dasharray":"4 4"},s);
+  ls.forEach((v,i)=>el("rect",{x:x0+i*bw+(bw>3?.5:0),y:ys(v),width:Math.max(.6,bw-(bw>3?1:0)),height:y1-ys(v),fill:i===l50-1?"var(--warn)":"var(--brand)",opacity:i<l50?1:.45},s));
+  let cum=0,d="M"+x0+" "+y1;ls.forEach((v,i)=>{cum+=v;d+=" L"+(x0+(i+1)*bw).toFixed(1)+" "+yc(cum/tot).toFixed(1);});
+  el("path",{d,fill:"none",stroke:"var(--ink)","stroke-width":1.5},s);
+  el("text",{x:x0,y:y1+18},s).textContent="contigs, longest → shortest ("+fmt(n)+")";
+  el("text",{x:x1,y:y1+18,"text-anchor":"end"},s).textContent="line: cumulative % of assembly";
+  const nx=x0+(l50-.5)*bw;el("text",{x:Math.min(x1-4,Math.max(x0+40,nx+6)),y:Math.max(y0+12,ys(N)-6),style:"fill:var(--warn)"},s).textContent="N50 contig";
+  const P=PRESETS[curP];
+  $("#nCount").textContent=fmt(n);$("#nMax").textContent=bp(ls[0]);$("#nN50").textContent=bp(N);$("#nL50").textContent=fmt(l50);$("#nBusco").textContent=joined?P.busco+"*":P.busco;$("#nQV").textContent=P.qv;
+  const m=$("#n50Msg");
+  if(joined){m.className="callout bad";m.textContent="N50 jumped to "+bp(N)+", but nothing about the assembly improved: two unrelated contigs were glued together, which is a misassembly. This is why N50 must be read alongside correctness checks such as Hi-C contact maps, optical maps or QUAST.";}
+  else if(curP==="short"){m.className="callout";m.textContent=fmt(n)+" contigs with N50 "+bp(N)+". Half the assembly is in the "+fmt(l50)+" longest contigs. Contigs stop at repeats longer than the reads, and some genes are split across contigs.";}
+  else if(curP==="hifi"){m.className="callout";m.textContent="Long reads cut the contig count from 1,400 to "+n+" and raise N50 to "+bp(N)+". BUSCO completeness rises because fewer genes are broken at contig ends.";}
+  else{m.className="callout good";m.textContent="Each contig is a whole chromosome, telomere to telomere. N50 now just reflects chromosome sizes, so completeness and accuracy become the metrics that matter.";}
+  document.querySelectorAll("#n50Presets [data-p]").forEach(b=>b.classList.toggle("primary",b.dataset.p===curP));
+  $("#misjoin").disabled=joined||curLs.length<2;
+}
+document.querySelectorAll("#n50Presets [data-p]").forEach(b=>b.addEventListener("click",()=>{curP=b.dataset.p;curLs=PRESETS[curP].ls.slice();joined=false;renderN50();}));
+$("#misjoin").addEventListener("click",()=>{const a=curLs.slice().sort((x,y)=>y-x);curLs=[a[0]+a[1]].concat(a.slice(2));joined=true;renderN50();});
+
+/* ---------- Quiz ---------- */
+const QUIZ={
+ coverage:[
+  {q:"You sequence 2 million reads of 150 bp from a 5 Mb bacterial genome. What is the coverage?",o:["0.06×","6×","60×","600×"],a:2,w:"c = N × L / G = 2,000,000 × 150 / 5,000,000 = 60×."},
+  {q:"At 3× coverage, roughly what fraction of the genome is not covered by any read?",o:["About 0%","About 5%","About 30%","About 50%"],a:1,w:"e^(−3) ≈ 0.05, so about 5% of bases are missed."}],
+ olc:[
+  {q:"Why is plain overlap–layout–consensus impractical for a billion short reads?",o:["Short reads cannot overlap","Comparing every read with every other read grows with the square of the read count","Consensus needs a reference genome","OLC only works on circular genomes"],a:1,w:"All-pairs overlap scales roughly as N², which is enormous for 10^9 reads."},
+  {q:"Read A ends in ...CCGTAAG and read B starts with GTAAGCT... What does the overlap suggest?",o:["B comes just after A in the genome","A and B come from different chromosomes","B is the reverse complement of A","A contains a sequencing error"],a:0,w:"A 5-base suffix–prefix match (GTAAG) suggests B continues where A leaves off."}],
+ dbg:[
+  {q:"In a de Bruijn graph for assembly, what does each edge represent?",o:["A whole read","A k-mer joining its (k−1)-base prefix to its (k−1)-base suffix","An overlap between two reads","A contig"],a:1,w:"Nodes are (k−1)-mers; each k-mer is an edge from its prefix to its suffix."},
+  {q:"A genome has a 40 bp repeat. Which k lets a de Bruijn graph pass through it unambiguously?",o:["k = 21","k = 31","k = 41","k = 51 or larger"],a:3,w:"Nodes must be longer than the repeat. With k = 41 the nodes are 40 bp, only as long as the repeat, so the copies still merge. So k must be at least 42."}],
+ repeats:[
+  {q:"Why do Illumina-only human assemblies break at LINE-1 elements?",o:["LINE-1s are not sequenced","150 bp reads cannot span a ~6 kb repeat with unique flanks","LINE-1s are always heterozygous","Aligners filter them out"],a:1,w:"A repeat is resolved only if a read reaches unique sequence on both sides."},
+  {q:"What does a scaffold contain that a contig does not?",o:["Only high-quality bases","Gaps of estimated size (runs of N) between ordered contigs","Reads from both parents","Adapter sequences"],a:1,w:"Scaffolds order and orient contigs using long-range links, leaving unknown sequence as Ns."}],
+ quality:[
+  {q:"Contigs of 50, 30, 10, 5 and 5 kb (total 100 kb). What is the N50?",o:["10 kb","20 kb","30 kb","50 kb"],a:3,w:"The first contig alone (50 kb) reaches half of 100 kb, so N50 = 50 kb and L50 = 1."},
+  {q:"An assembler doubles its N50 by joining contigs aggressively. What should you check next?",o:["Nothing, higher N50 is always better","Misassemblies and correctness, e.g. with Hi-C or QUAST","GC content","Read length"],a:1,w:"N50 rewards joins whether or not they are correct. Validate joins with independent evidence."}]
+};
+let answers=store.get("asm-quiz",{});
+function renderQuiz(){
+  document.querySelectorAll("[data-quiz]").forEach(box=>{
+    const sec=box.dataset.quiz;box.innerHTML='<div class="eyebrow">Checkpoint</div>';
+    QUIZ[sec].forEach((item,qi)=>{
+      const key=sec+qi, ans=answers[key], d=document.createElement("div");d.className="q";
+      d.innerHTML="<p>"+(qi+1)+". "+item.q+"</p>";
+      const opts=document.createElement("div");opts.className="opts";
+      item.o.forEach((o,oi)=>{const b=document.createElement("button");b.type="button";b.className="opt";b.textContent=o;
+        if(ans!=null){b.disabled=true;if(oi===item.a)b.classList.add("right");else if(oi===ans)b.classList.add("wrong");}
+        b.addEventListener("click",()=>{answers[key]=oi;store.set("asm-quiz",answers);renderQuiz();});opts.appendChild(b);});
+      d.appendChild(opts);
+      if(ans!=null){const w=document.createElement("p");w.className="why";w.textContent=(ans===item.a?"Correct. ":"Not quite. ")+item.w;d.appendChild(w);}
+      box.appendChild(d);
+    });
+  });
+  let right=0;for(const sec in QUIZ){let sr=0;QUIZ[sec].forEach((it,qi)=>{if(answers[sec+qi]===it.a){right++;sr++;}});
+    const a=document.querySelector('.rail a[data-sec="'+sec+'"]');if(a)a.classList.toggle("done",sr===QUIZ[sec].length);}
+  $("#scoreNum").textContent=right+" / 10";$("#scoreBar").style.width=(right*10)+"%";
+}
+$("#resetQuiz").addEventListener("click",()=>{answers={};store.set("asm-quiz",answers);renderQuiz();});
+
+if("IntersectionObserver" in window){
+  const links=[...document.querySelectorAll(".rail a")];
+  const io=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting)links.forEach(l=>l.classList.toggle("active",l.dataset.sec===e.target.id));});},{rootMargin:"-40% 0px -55% 0px"});
+  document.querySelectorAll("section.stage[id]").forEach(s=>io.observe(s));
+}
+
+renderCov(); renderOlc(); renderDbg(); renderRep(); renderN50(); renderQuiz();
+})();
+</script>
