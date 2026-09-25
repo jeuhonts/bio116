@@ -1,0 +1,991 @@
+<title>Bio116 Data Atlas</title>
+<meta name="description" content="A tutorial on biological databases and data formats, from sequences to 3D structures, following human beta-globin.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root {
+  --ground: #F1F0F4;
+  --surface: #FCFBFD;
+  --surface-2: #E7E4EC;
+  --ink: #1B1722;
+  --muted: #5E5868;
+  --line: #D6D1DD;
+  --plum: #4E2A5E;
+  --on-plum: #FAF7FC;
+  --plum-soft: #E9E0EF;
+  --heme: #B5213A;
+  --heme-soft: #F7DDE2;
+  --bar: #6B3A80;
+  --ok: #2B7148;
+  --ok-soft: #D8ECDF;
+  --bad: #A3302A;
+  --bad-soft: #F6DEDB;
+  --warn: #8A5F0F;
+  --warn-soft: #F5EAD0;
+  --code-bg: #17131D;
+  --code-ink: #E3DCEA;
+  --code-dim: #8C8398;
+  --code-hl: rgba(240, 105, 122, .28);
+  --nA: #7CC67F; --nC: #6DA7DA; --nG: #E4B452; --nT: #E57C70;
+  --display: "Bricolage Grotesque", "Arial Black", system-ui, sans-serif;
+  --body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --ground: #14121A; --surface: #1D1A25; --surface-2: #28242F; --ink: #ECE7F0; --muted: #A59DB0; --line: #342E3E;
+    --plum: #CDA8E0; --on-plum: #14121A; --plum-soft: #2C2236; --heme: #F0697A; --heme-soft: #3D1F26; --bar: #A870C8;
+    --ok: #7BD39B; --ok-soft: #16301F; --bad: #F08A7E; --bad-soft: #3A1E1B; --warn: #E3B35A; --warn-soft: #30270F;
+    --code-bg: #0E0B12;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --ground: #14121A; --surface: #1D1A25; --surface-2: #28242F; --ink: #ECE7F0; --muted: #A59DB0; --line: #342E3E;
+  --plum: #CDA8E0; --on-plum: #14121A; --plum-soft: #2C2236; --heme: #F0697A; --heme-soft: #3D1F26; --bar: #A870C8;
+  --ok: #7BD39B; --ok-soft: #16301F; --bad: #F08A7E; --bad-soft: #3A1E1B; --warn: #E3B35A; --warn-soft: #30270F;
+  --code-bg: #0E0B12;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body { background: var(--ground); color: var(--ink); font: 16px/1.65 var(--body); -webkit-font-smoothing: antialiased; }
+a { color: var(--plum); text-underline-offset: 2px; }
+code, kbd, pre { font-family: var(--mono); }
+button { font: inherit; color: inherit; }
+button:focus-visible, input:focus-visible, a:focus-visible, select:focus-visible { outline: 2px solid var(--heme); outline-offset: 2px; }
+
+.wrap { max-width: 1240px; margin: 0 auto; padding-inline: clamp(16px, 3vw, 40px); padding-block: 32px 80px; }
+.page { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 48px; align-items: start; }
+.toc { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 24px); display: flex; flex-direction: column; gap: 4px; font-size: 14.5px; }
+.toc .lbl { font: 600 11px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+.toc a { color: var(--muted); text-decoration: none; padding: 5px 10px; border-radius: 6px; display: grid; grid-template-columns: 22px 1fr; }
+.toc a span { font: 600 12px/1.9 var(--mono); color: var(--heme); }
+.toc a:hover { background: var(--surface-2); color: var(--ink); }
+.toc a.on { background: var(--plum-soft); color: var(--ink); }
+main { min-width: 0; display: flex; flex-direction: column; gap: 64px; }
+
+/* header */
+.hero { display: flex; flex-direction: column; gap: 14px; max-width: 760px; }
+.eyebrow { font: 600 12px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--heme); margin: 0; }
+.hero h1 { font-family: var(--display); font-weight: 800; font-size: clamp(2.6rem, 6vw, 4.2rem); line-height: .95; letter-spacing: -.03em; margin: 0; color: var(--plum); }
+.hero p { margin: 0; font-size: 1.07rem; color: var(--muted); max-width: 64ch; }
+.hero p b { color: var(--ink); font-weight: 600; }
+.seqline { font: 12px/1.5 var(--mono); color: var(--muted); letter-spacing: .06em; overflow-wrap: anywhere; border-top: 1px solid var(--line); padding-top: 12px; }
+.seqline b { color: var(--heme); font-weight: 600; }
+
+/* sections */
+section { display: flex; flex-direction: column; gap: 18px; scroll-margin-top: 24px; }
+.sec-head { display: flex; flex-direction: column; gap: 6px; }
+.sec-num { font: 600 12px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--heme); }
+h2 { font-family: var(--display); font-weight: 800; font-size: clamp(1.8rem, 3.4vw, 2.4rem); line-height: 1.05; letter-spacing: -.02em; margin: 0; color: var(--plum); text-wrap: balance; }
+h3 { font-family: var(--display); font-weight: 600; font-size: 1.3rem; margin: 14px 0 0; color: var(--ink); text-wrap: balance; }
+section > p, .prose p { margin: 0; max-width: 68ch; }
+p code, li code, td code, dd code, .note code { font-size: .86em; background: var(--surface-2); padding: 1px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 20px; }
+.note { border-radius: 8px; padding: 12px 14px; font-size: 15px; background: var(--warn-soft); max-width: 72ch; }
+.note .lbl, .kick { display: block; font: 600 11px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--warn); margin-bottom: 6px; }
+.kick { color: var(--muted); }
+pre.code { margin: 0; background: var(--code-bg); color: var(--code-ink); border-radius: 8px; padding: 14px 16px; font-size: 13px; line-height: 1.6; overflow-x: auto; }
+pre.code .d { color: var(--code-dim); }
+pre.code .h { color: #F0A070; }
+pre.code .k { color: #C9A6E4; }
+.nA { color: var(--nA); } .nC { color: var(--nC); } .nG { color: var(--nG); } .nT { color: var(--nT); }
+.cap { font-size: 13.5px; color: var(--muted); margin-top: -8px; }
+
+/* journey */
+.journey { display: flex; flex-direction: column; gap: 14px; }
+.stops { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; position: relative; }
+.stop {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 6px; text-align: left; cursor: pointer;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 10px 10px 12px; min-width: 0;
+}
+.stop .n { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; font: 600 12px/1 var(--mono); background: var(--surface-2); color: var(--muted); }
+.stop .t { font-weight: 600; font-size: 14.5px; line-height: 1.25; }
+.stop .id { font: 12px/1.3 var(--mono); color: var(--muted); overflow-wrap: anywhere; }
+.stop:hover { border-color: var(--plum); }
+.stop[aria-selected="true"] { border-color: var(--plum); background: var(--plum-soft); }
+.stop[aria-selected="true"] .n { background: var(--plum); color: var(--on-plum); }
+.stop-detail { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; }
+.stop-detail h3 { margin: 0 0 6px; }
+.stop-detail p { margin: 0 0 10px; font-size: 15.5px; }
+dl.kv { margin: 0; display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 6px 14px; font-size: 14.5px; }
+dl.kv dt { color: var(--muted); }
+dl.kv dd { margin: 0; overflow-wrap: anywhere; }
+.links { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+.links a { font-size: 13.5px; border: 1px solid var(--line); border-radius: 999px; padding: 3px 10px; text-decoration: none; background: var(--surface); }
+.links a:hover { border-color: var(--plum); }
+
+/* two-column comparison */
+.compare { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.compare h3 { margin: 0 0 8px; }
+.compare ul { margin: 0; padding-left: 18px; font-size: 15px; display: flex; flex-direction: column; gap: 4px; }
+.compare .ex { margin-top: 12px; font-size: 14px; color: var(--muted); }
+
+/* database grid */
+.dbgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+.db { display: flex; flex-direction: column; gap: 6px; }
+.db h4 { margin: 0; font: 600 11.5px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--heme); }
+.db ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 9px; font-size: 14.5px; }
+.db li b { display: block; }
+.db li b a { color: var(--ink); }
+.db li span { color: var(--muted); }
+
+/* decoder */
+.decoder { display: flex; flex-direction: column; gap: 12px; }
+.dec-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.dec-row input {
+  flex: 1 1 240px; min-width: 0; padding: 10px 12px; font: 16px var(--mono); border: 1px solid var(--line); border-radius: 6px;
+  background: var(--ground); color: var(--ink);
+}
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { border: 1px solid var(--line); background: var(--ground); border-radius: 999px; padding: 3px 10px; font: 12.5px var(--mono); cursor: pointer; }
+.chip:hover { border-color: var(--plum); }
+.dec-out { border-radius: 8px; padding: 14px 16px; background: var(--plum-soft); display: flex; flex-direction: column; gap: 6px; }
+.dec-out .db-name { font-weight: 600; font-size: 1.05rem; }
+.dec-out.miss { background: var(--surface-2); }
+.dec-parts { display: flex; flex-wrap: wrap; gap: 6px; }
+.dec-parts span { font: 13px var(--mono); background: var(--surface); border-radius: 4px; padding: 3px 7px; }
+.dec-parts span i { font-style: normal; font-family: var(--body); color: var(--muted); font-size: 12.5px; margin-left: 6px; }
+
+/* annotated header */
+.anno { display: flex; flex-wrap: wrap; gap: 6px; }
+.anno span { display: inline-flex; flex-direction: column; background: var(--surface-2); border-radius: 6px; padding: 5px 9px; font-size: 13px; }
+.anno code { font-size: 13px; color: var(--ink); }
+.anno i { font-style: normal; color: var(--muted); font-size: 12.5px; }
+
+/* fastq quality */
+.fq-read { font: 14px/1.4 var(--mono); overflow-x: auto; }
+.fq-grid { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(18px, 1fr); gap: 2px; min-width: 620px; }
+.fq-col { display: flex; flex-direction: column; align-items: center; gap: 2px; cursor: default; border-radius: 4px; padding: 2px 0; }
+.fq-col .b { font-weight: 600; }
+.fq-col .q { color: var(--muted); }
+.fq-col.on { background: var(--plum-soft); }
+.chart-scroll { overflow-x: auto; }
+.chart { position: relative; min-width: 620px; }
+.chart svg { display: block; width: 100%; height: auto; }
+.chart .grid line { stroke: var(--line); stroke-width: 1; }
+.chart .axis text { fill: var(--muted); font: 11px var(--mono); }
+.chart .ref { stroke: var(--heme); stroke-width: 1; }
+.chart .ref-l { fill: var(--heme); font: 600 11px var(--mono); }
+.chart .bar { fill: var(--bar); }
+.chart .bar.on { fill: var(--heme); }
+.tip {
+  position: absolute; pointer-events: none; background: var(--ink); color: var(--surface); font-size: 13px; line-height: 1.4;
+  padding: 7px 10px; border-radius: 6px; white-space: nowrap; transform: translate(-50%, -100%); margin-top: -8px;
+}
+.tip b { font-family: var(--mono); }
+.fq-readout { font-size: 15px; min-height: 1.6em; }
+
+/* tables */
+.tbl-wrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }
+table { border-collapse: collapse; width: 100%; font-size: 14.5px; }
+th, td { text-align: left; padding: 9px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+tr:last-child td { border-bottom: 0; }
+th { font: 600 11px/1.3 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+td.m { font-family: var(--mono); font-size: 13px; white-space: nowrap; }
+table.fmt { min-width: 720px; }
+table.cols { min-width: 520px; }
+
+/* coordinates */
+.coord { display: flex; flex-direction: column; gap: 14px; }
+.coord-in { display: flex; flex-wrap: wrap; gap: 12px; align-items: end; }
+.coord-in label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--muted); }
+.coord-in input { width: 7.5em; padding: 7px 9px; border: 1px solid var(--line); border-radius: 6px; background: var(--ground); color: var(--ink); font: 15px var(--mono); }
+.ruler-wrap { overflow-x: auto; }
+.ruler { display: grid; grid-template-columns: 92px repeat(12, 40px); gap: 0; font: 12.5px/1 var(--mono); min-width: 572px; }
+.ruler > div { height: 30px; display: grid; place-items: center; }
+.ruler .rl { justify-items: start; color: var(--muted); font-family: var(--body); font-size: 12.5px; }
+.ruler .base { border: 1px solid var(--line); border-right: 0; font-weight: 600; font-size: 14px; }
+.ruler .base.last { border-right: 1px solid var(--line); }
+.ruler .base.sel { background: var(--heme-soft); }
+.ruler .one { color: var(--plum); }
+.ruler .zero { color: var(--heme); justify-items: start; transform: translateX(-4px); }
+.coord-out { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.coord-out div { border-radius: 8px; padding: 10px 12px; background: var(--surface-2); }
+.coord-out b { display: block; font: 600 11px/1 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+.coord-out code { font-size: 14px; }
+
+/* PDB explorer */
+.pdbx { display: flex; flex-direction: column; gap: 12px; }
+.pdb-tabs { display: flex; gap: 4px; padding: 4px; background: var(--surface-2); border-radius: 8px; width: max-content; max-width: 100%; flex-wrap: wrap; }
+.pdb-tabs button { border: 0; background: transparent; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 14px; color: var(--muted); }
+.pdb-tabs button[aria-selected="true"] { background: var(--surface); color: var(--ink); font-weight: 600; }
+.pdbline { background: var(--code-bg); color: var(--code-ink); border-radius: 8px; padding: 12px 14px 14px; overflow-x: auto; }
+.pdbline .ticks, .pdbline .line { font: 14px/1.5 var(--mono); white-space: pre; }
+.pdbline .ticks { color: var(--code-dim); font-size: 14px; }
+.pdbline .line span { border-radius: 2px; cursor: pointer; }
+.pdbline .line span.f:hover, .pdbline .line span.on { background: var(--code-hl); color: #fff; }
+.pdb-fields { display: flex; flex-wrap: wrap; gap: 6px; }
+.pdb-fields button { border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 3px 10px; font-size: 13px; cursor: pointer; }
+.pdb-fields button.on { background: var(--plum); color: var(--on-plum); border-color: var(--plum); }
+.pdb-read { border-radius: 8px; background: var(--plum-soft); padding: 12px 14px; font-size: 15px; min-height: 4.2em; }
+.pdb-read b { font-family: var(--mono); }
+
+/* pLDDT legend */
+.plddt { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.plddt div { border-radius: 8px; padding: 10px 12px; background: var(--surface); border: 1px solid var(--line); display: flex; flex-direction: column; gap: 4px; font-size: 14px; }
+.plddt i { display: block; height: 10px; border-radius: 3px; }
+.plddt b { font-family: var(--mono); font-size: 13px; }
+
+/* copy rows */
+.fetch { display: flex; flex-direction: column; gap: 10px; }
+.fetch-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: stretch; }
+.fetch-row pre { margin: 0; }
+.fetch-row .what { grid-column: 1 / -1; font-size: 14.5px; margin-bottom: -4px; }
+.copy { border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 0 12px; cursor: pointer; font-size: 13.5px; }
+.copy:hover { border-color: var(--plum); }
+ol.check { margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 6px; max-width: 70ch; }
+
+/* quiz */
+.quiz { display: flex; flex-direction: column; gap: 14px; }
+.quiz-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.score { font-size: 15px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.score b { color: var(--ink); }
+.q { display: flex; flex-direction: column; gap: 10px; }
+.q .qt { font-weight: 600; margin: 0; }
+.opts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+.opt { text-align: left; border: 1px solid var(--line); background: var(--ground); border-radius: 6px; padding: 8px 12px; cursor: pointer; font-size: 15px; }
+.opt:hover:not([disabled]) { border-color: var(--plum); }
+.opt[disabled] { cursor: default; }
+.opt.right { background: var(--ok-soft); border-color: var(--ok); }
+.opt.wrong { background: var(--bad-soft); border-color: var(--bad); }
+.opt .mk { font-weight: 600; margin-right: 6px; }
+.opt.right .mk { color: var(--ok); }
+.opt.wrong .mk { color: var(--bad); }
+.why { font-size: 14.5px; color: var(--muted); margin: 0; }
+.btn { border: 1px solid var(--line); background: var(--surface); padding: 7px 13px; border-radius: 6px; cursor: pointer; font-size: 14px; }
+.btn:hover { border-color: var(--plum); }
+
+/* format reference */
+.ref-tools { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.ref-tools input { flex: 1 1 220px; max-width: 340px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); color: var(--ink); font: 15px var(--body); }
+.seg { display: flex; gap: 4px; padding: 4px; background: var(--surface-2); border-radius: 8px; flex-wrap: wrap; }
+.seg button { border: 0; background: transparent; padding: 5px 11px; border-radius: 6px; cursor: pointer; font-size: 13.5px; color: var(--muted); }
+.seg button[aria-pressed="true"] { background: var(--surface); color: var(--ink); font-weight: 600; }
+.tag { font: 600 11px/1 var(--mono); padding: 3px 6px; border-radius: 4px; background: var(--surface-2); color: var(--muted); white-space: nowrap; }
+footer { color: var(--muted); font-size: 14px; border-top: 1px solid var(--line); padding-top: 16px; max-width: 76ch; }
+
+@media (max-width: 980px) {
+  .page { grid-template-columns: minmax(0, 1fr); }
+  .toc { position: static; flex-direction: row; flex-wrap: wrap; }
+  .toc .lbl { width: 100%; margin-bottom: 2px; }
+  .toc a { display: inline-flex; gap: 6px; background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 3px 11px; }
+  .stops { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 640px) {
+  .stops { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .stop-detail, .compare, .coord-out, .opts { grid-template-columns: minmax(0, 1fr); }
+  .plddt { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+</style>
+
+<div class="wrap">
+<div class="page">
+  <nav class="toc" aria-label="Sections">
+    <span class="lbl">Contents</span>
+    <a href="#map"><span>1</span>One protein, many records</a>
+    <a href="#databases"><span>2</span>Databases</a>
+    <a href="#sequence"><span>3</span>Sequence formats</a>
+    <a href="#structure"><span>4</span>Structure formats</a>
+    <a href="#fetch"><span>5</span>Getting the data</a>
+    <a href="#quiz"><span>6</span>Check yourself</a>
+    <a href="#formats"><span>+</span>Format reference</a>
+  </nav>
+
+  <main>
+    <header class="hero">
+      <p class="eyebrow">BIO116 · Databases and data formats</p>
+      <h1>Data Atlas</h1>
+      <p>Every gene, protein and structure you study lives as a <b>record</b> in a public <b>database</b>, identified by an <b>accession</b> (its ID) and stored in a standard <b>file format</b>. This tutorial follows one protein, human β-globin, through those databases, then teaches you to read the files they give you: FASTA, FASTQ, VCF, BED, PDB and mmCIF.</p>
+      <div class="seqline" aria-label="Human beta-globin protein sequence, UniProt P68871"><b>P68871</b> MVHLTP<b>E</b>EKSAVTALWGKVNVDEVGGEALGRLLVVYPWTQRFFESFGDLSTPDAVMGNPKVKAHGKKVLGAFSDGLAHLDNLKGTFATLSELHCDKLHVDPENFRLLGNVLVCVLAHHFGKEFTPPVQAAYQKVVAGVANALAHKYH</div>
+    </header>
+
+    <!-- 1 -->
+    <section id="map">
+      <div class="sec-head"><span class="sec-num">Section 1</span><h2>One protein, many records</h2></div>
+      <p>No single database holds everything about a protein. Each stage from gene to structure has its own specialist resource, and the records link to each other through their accessions. Click a stop to see where β-globin (gene <i>HBB</i>) lives at each stage and which file you would download.</p>
+      <div class="journey">
+        <div class="stops" id="stops" role="tablist" aria-label="Stages from gene to structure"></div>
+        <div class="card stop-detail" id="stop-detail" role="tabpanel"></div>
+      </div>
+    </section>
+
+    <!-- 2 -->
+    <section id="databases">
+      <div class="sec-head"><span class="sec-num">Section 2</span><h2>Databases: archives and curated collections</h2></div>
+      <p>Biological databases come in two kinds. Knowing which kind you are using tells you how much to trust a record and whether it may contain duplicates.</p>
+      <div class="compare">
+        <div class="card">
+          <span class="kick">Primary (archival)</span>
+          <h3>What scientists submitted</h3>
+          <ul>
+            <li>Data deposited by the people who generated it</li>
+            <li>The submitter owns the record; the database rarely changes it</li>
+            <li>Many redundant and partial entries for the same gene</li>
+            <li>Complete and permanent: the scientific record</li>
+          </ul>
+          <p class="ex">GenBank / ENA / DDBJ, SRA, PDB, EMDB, UniProtKB/TrEMBL</p>
+        </div>
+        <div class="card">
+          <span class="kick">Secondary (curated)</span>
+          <h3>What experts reviewed</h3>
+          <ul>
+            <li>Built from primary data by curators or careful pipelines</li>
+            <li>One reference record per gene or protein</li>
+            <li>Annotated with function, evidence and literature</li>
+            <li>The best place to start a question</li>
+          </ul>
+          <p class="ex">RefSeq, UniProtKB/Swiss-Prot, Ensembl, InterPro, ClinVar, CATH</p>
+        </div>
+      </div>
+      <p>The biggest archives are shared by international partners that swap data every day, so a record submitted to one appears in all of them. <b>INSDC</b> links GenBank (USA), ENA (Europe) and DDBJ (Japan) for sequences. <b>wwPDB</b> links RCSB PDB, PDBe, PDBj, BMRB and EMDB for structures.</p>
+
+      <h3>The main databases, by what they store</h3>
+      <div class="dbgrid" id="dbgrid"></div>
+
+      <h3>Decode an accession</h3>
+      <p>An accession's shape usually tells you which database it came from and what kind of record it is. Paste one, or try an example.</p>
+      <div class="card decoder">
+        <div class="dec-row">
+          <input id="acc-in" type="text" value="NM_000518.5" autocomplete="off" autocapitalize="off" spellcheck="false" aria-label="Accession to decode">
+        </div>
+        <div class="chips" id="acc-chips"></div>
+        <div class="dec-out" id="acc-out" aria-live="polite"></div>
+      </div>
+      <div class="note"><span class="lbl">Cite the version</span>Records change. <code>NM_000518.5</code> is version 5 of the record; <code>NM_000518</code> means "whatever is current today". Write the full <code>accession.version</code> in your notes and methods so someone else can fetch exactly what you used.</div>
+    </section>
+
+    <!-- 3 -->
+    <section id="sequence">
+      <div class="sec-head"><span class="sec-num">Section 3</span><h2>Sequence and genomics formats</h2></div>
+      <p>Almost all sequence formats are plain text, so you can open them with <code>head</code> and search them with <code>grep</code>. What differs is the layout, and above all how each one counts positions.</p>
+
+      <h3>FASTA: just the sequence</h3>
+      <p>One header line starting with <code>&gt;</code>, then the sequence, often wrapped at 60 characters. The header is free text, but big databases use fixed layouts. This is the UniProt header for β-globin:</p>
+      <pre class="code"><span class="h">&gt;sp|P68871|HBB_HUMAN Hemoglobin subunit beta OS=Homo sapiens OX=9606 GN=HBB PE=1 SV=2</span>
+MVHLTPEEKSAVTALWGKVNVDEVGGEALGRLLVVYPWTQRFFESFGDLSTPDAVMGNPK
+VKAHGKKVLGAFSDGLAHLDNLKGTFATLSELHCDKLHVDPENFRLLGNVLVCVLAHHFG
+KEFTPPVQAAYQKVVAGVANALAHKYH</pre>
+      <div class="anno" aria-label="Parts of the UniProt FASTA header">
+        <span><code>sp</code><i>Swiss-Prot (reviewed); tr = TrEMBL</i></span>
+        <span><code>P68871</code><i>accession</i></span>
+        <span><code>HBB_HUMAN</code><i>entry name</i></span>
+        <span><code>OS=</code><i>organism</i></span>
+        <span><code>OX=9606</code><i>NCBI taxonomy ID</i></span>
+        <span><code>GN=HBB</code><i>gene name</i></span>
+        <span><code>PE=1</code><i>evidence at protein level</i></span>
+        <span><code>SV=2</code><i>sequence version</i></span>
+      </div>
+
+      <h3>FASTQ: reads with quality scores</h3>
+      <p>Sequencers report how sure they are of every base. FASTQ stores each read as four lines, and the fourth line holds one quality character per base. The character's ASCII code minus 33 is the <b>Phred score</b> Q, and the chance the base is wrong is 10<sup>−Q/10</sup>. Q30 means 1 error in 1,000, the usual bar for "good". Hover or tap a base.</p>
+      <div class="card" style="display:flex;flex-direction:column;gap:12px">
+        <pre class="code" id="fq-raw"></pre>
+        <div class="chart-scroll"><div class="chart" id="fq-chart"></div></div>
+        <div class="fq-read"><div class="fq-grid" id="fq-grid"></div></div>
+        <p class="fq-readout" id="fq-readout">Base 1: T, quality character <b>I</b> → Q40, error probability 0.0001 (1 in 10,000).</p>
+      </div>
+      <p class="cap">Read SRR1039508.1 from the Shell Lab data. Quality usually drops towards the end of a read, which is why reads get trimmed.</p>
+
+      <h3>GenBank flat file: the annotated record</h3>
+      <p>A full record with a header, a feature table and the sequence at the end. Keywords start at column 1, and features use 1-based, inclusive coordinates: a coding sequence from base 100 to base 540 is written <code>CDS 100..540</code>. The layout, simplified:</p>
+      <pre class="code"><span class="k">LOCUS</span>       NM_000518     <span class="d">length</span> bp    mRNA    linear   PRI <span class="d">date</span>
+<span class="k">DEFINITION</span>  Homo sapiens hemoglobin subunit beta (HBB), mRNA.
+<span class="k">ACCESSION</span>   NM_000518
+<span class="k">VERSION</span>     NM_000518.5
+<span class="k">SOURCE</span>      Homo sapiens (human)
+<span class="k">FEATURES</span>             Location/Qualifiers
+     gene            1..<span class="d">end</span>
+                     /gene="HBB"
+     CDS             <span class="d">start</span>..<span class="d">stop</span>
+                     /gene="HBB"
+                     /protein_id="NP_000509.1"
+                     /translation="MVHLTPEEKSAVTALWGKVNVDEVGGEALGRLLVVYPWTQRFFE..."
+<span class="k">ORIGIN</span>
+        1 <span class="d">the sequence, lower case, 60 bases per line in blocks of 10</span>
+<span class="k">//</span></pre>
+      <p class="cap">Structure only. Grey parts stand in for values that change between record versions; open the live record for the real ones.</p>
+
+      <h3>Aligned reads, variants and annotation</h3>
+      <div class="tbl-wrap">
+        <table class="cols">
+          <thead><tr><th>Format</th><th>One line is</th><th>Key columns</th><th>Counts from</th></tr></thead>
+          <tbody>
+            <tr><td><b>SAM</b> (BAM, CRAM)</td><td>one read aligned to the genome</td><td>read name, flag, chromosome, position, mapping quality, CIGAR (how it aligns), sequence, qualities</td><td>1</td></tr>
+            <tr><td><b>VCF</b></td><td>one variant site</td><td>CHROM, POS, ID, REF, ALT, QUAL, FILTER, INFO, then one column per sample</td><td>1</td></tr>
+            <tr><td><b>GFF3 / GTF</b></td><td>one feature (gene, exon, CDS)</td><td>seqid, source, type, start, end, score, strand, phase, attributes</td><td>1</td></tr>
+            <tr><td><b>BED</b></td><td>one interval</td><td>chrom, start, end, then optional name, score, strand</td><td>0</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>BAM and CRAM are compressed binary versions of SAM, so read them with <code>samtools view</code>, not <code>cat</code>. The sickle-cell variant in VCF, on the forward strand of GRCh38 (<i>HBB</i> sits on the reverse strand, which is why the gene-level change A&gt;T shows up as T&gt;A):</p>
+      <pre class="code"><span class="d">#CHROM  POS      ID     REF  ALT  QUAL  FILTER  INFO</span>
+chr11   5227002  rs334  T    A    .     .       .</pre>
+
+      <h3>0-based or 1-based? The most common bug in genomics</h3>
+      <p>GFF, VCF and SAM number the first base 1 and include both ends. BED numbers the <i>gaps between bases</i> from 0 and excludes the end. The same bases get different numbers, so converting between formats is where off-by-one errors creep in. Choose a region to see both.</p>
+      <div class="card coord">
+        <div class="coord-in">
+          <label for="c-start">First base (1-based)<input id="c-start" type="number" min="1" max="12" value="4"></label>
+          <label for="c-end">Last base (1-based)<input id="c-end" type="number" min="1" max="12" value="6"></label>
+        </div>
+        <div class="ruler-wrap"><div class="ruler" id="ruler"></div></div>
+        <div class="coord-out" id="coord-out"></div>
+      </div>
+    </section>
+
+    <!-- 4 -->
+    <section id="structure">
+      <div class="sec-head"><span class="sec-num">Section 4</span><h2>Structure formats</h2></div>
+      <p>A structure file is a list of atoms with x, y, z coordinates in ångströms (1 Å = 0.1 nm), plus metadata about how the structure was determined. The method decides what you can trust.</p>
+      <div class="tbl-wrap">
+        <table class="cols">
+          <thead><tr><th>Method</th><th>What was measured</th><th>Quality to check</th><th>Where the data goes</th></tr></thead>
+          <tbody>
+            <tr><td><b>X-ray crystallography</b></td><td>diffraction from a crystal</td><td>resolution (Å), R-free</td><td>model in PDB, structure factors alongside</td></tr>
+            <tr><td><b>Cryo-EM</b></td><td>images of frozen particles, averaged into a 3D density map</td><td>resolution (Å), map–model fit</td><td>map in EMDB, model in PDB</td></tr>
+            <tr><td><b>NMR</b></td><td>distances and angles in solution</td><td>restraint violations; files hold an ensemble of models</td><td>model in PDB, data in BMRB</td></tr>
+            <tr><td><b>Prediction</b> (AlphaFold)</td><td>nothing: computed from sequence</td><td>pLDDT per residue, PAE between residues</td><td>AlphaFold DB, not the PDB</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>For X-ray and cryo-EM, smaller numbers are better. Around 1.5 Å you can see individual atoms. At 2–2.5 Å side chains are clear, at 3–3.5 Å the backbone is reliable but side chains are guesses, and beyond 4 Å you mostly see the overall shape. 4HHB, deoxyhaemoglobin, was solved at 1.74 Å.</p>
+
+      <h3>The PDB format: fixed columns</h3>
+      <p>The original PDB format is 80 characters per line, and every field lives at fixed column positions. <code>ATOM</code> lines hold standard residues, while <code>HETATM</code> lines hold everything else: ligands, metals, water. Hover over or tap a field.</p>
+      <div class="card pdbx">
+        <div class="pdb-tabs" role="tablist" aria-label="Example line">
+          <button type="button" role="tab" data-line="atom" aria-selected="true">ATOM: protein atom</button>
+          <button type="button" role="tab" data-line="het" aria-selected="false">HETATM: heme iron</button>
+        </div>
+        <div class="pdbline"><div class="ticks" id="pdb-ticks"></div><div class="line" id="pdb-line"></div></div>
+        <div class="pdb-fields" id="pdb-fields"></div>
+        <div class="pdb-read" id="pdb-read" aria-live="polite"></div>
+      </div>
+      <p class="cap">Lines built to the PDB specification in the layout of entry 4HHB. Coordinates and B-factors are illustrative; download 4HHB for the real values.</p>
+
+      <h3>PDBx/mmCIF: the current standard</h3>
+      <p>The fixed columns caused hard limits: at most 99,999 atoms, one character per chain ID, and 4-character entry IDs. Ribosomes and viruses don't fit. Since 2014 the master format of the PDB archive has been <b>PDBx/mmCIF</b>, where each value is named and tables are written as <code>loop_</code> blocks with no column limits. Very large structures are only available as mmCIF. The same atom as above:</p>
+      <div class="compare">
+        <pre class="code"><span class="k">data_4HHB</span>
+<span class="d">#</span>
+_exptl.method              'X-RAY DIFFRACTION'
+_refine.ls_d_res_high      1.74
+<span class="d">#</span>
+<span class="k">loop_</span>
+_atom_site.group_PDB
+_atom_site.id
+_atom_site.type_symbol
+_atom_site.label_atom_id
+_atom_site.label_comp_id
+_atom_site.label_asym_id
+_atom_site.label_seq_id
+_atom_site.Cartn_x
+_atom_site.Cartn_y
+_atom_site.Cartn_z
+_atom_site.occupancy
+_atom_site.B_iso_or_equiv
+_atom_site.auth_seq_id
+_atom_site.auth_asym_id
+ATOM 1 N N VAL A 1 6.204 16.869 4.854 1.00 49.05 1 A</pre>
+        <div class="prose" style="display:flex;flex-direction:column;gap:10px">
+          <p><b>Key-value pairs</b> hold single facts, such as the method and the resolution.</p>
+          <p><b>A <code>loop_</code></b> is a table: first the column names, then one row per atom, separated by spaces.</p>
+          <p><b>Two numbering schemes.</b> <code>label_</code> columns are the archive's own consistent numbering. <code>auth_</code> columns are what the authors used, and match papers and the old PDB format. When residue numbers in a paper don't match your file, check which scheme your software shows.</p>
+          <p class="cap" style="margin:0">Abridged: real files have many more categories and columns. Values match the illustrative ATOM line.</p>
+        </div>
+      </div>
+
+      <h3>Predicted structures: read the B-factor column differently</h3>
+      <p>AlphaFold DB models use the same PDB and mmCIF formats, but the B-factor column holds the <b>pLDDT</b> score (0–100): the model's confidence in each residue. Viewers colour by it with this standard scale. The <b>PAE</b> (predicted aligned error) comes as a separate JSON file and tells you whether domains are placed correctly relative to each other.</p>
+      <div class="plddt">
+        <div><i style="background:#0053D6"></i><b>&gt; 90</b>Very high: trust side chains</div>
+        <div><i style="background:#65CBF3"></i><b>70–90</b>Confident: backbone is good</div>
+        <div><i style="background:#FFDB13"></i><b>50–70</b>Low: treat with caution</div>
+        <div><i style="background:#FF7D45"></i><b>&lt; 50</b>Very low: often a disordered region</div>
+      </div>
+      <p>Density maps from cryo-EM are stored separately in EMDB as 3D grids of numbers (MRC/CCP4 format, <code>.map</code>). Open them in a viewer such as ChimeraX, not a text editor.</p>
+
+      <h3>From the command line</h3>
+      <p>Because PDB fields sit at fixed positions, cut them by <b>character position</b> with <code>cut -c</code>. Splitting on spaces with <code>awk</code> breaks when numbers run together: a line containing <code>-10.123-20.456</code> has no space between the two coordinates.</p>
+      <pre class="code"><span class="d"># how many atoms, and how many α-carbons?</span>
+grep -c '^ATOM' 4HHB.pdb
+grep '^ATOM' 4HHB.pdb | cut -c 13-16 | grep -c ' CA '
+<span class="d"># which ligands and how many atoms each (heme is HEM, water is HOH)</span>
+grep '^HETATM' 4HHB.pdb | cut -c 18-20 | sort | uniq -c
+<span class="d"># the chains in the file</span>
+grep '^ATOM' 4HHB.pdb | cut -c 22 | sort -u</pre>
+    </section>
+
+    <!-- 5 -->
+    <section id="fetch">
+      <div class="sec-head"><span class="sec-num">Section 5</span><h2>Getting the data</h2></div>
+      <p>Every database has a website for browsing and a web address pattern for downloading. Downloading from the command line means you can record exactly what you fetched and repeat it for a hundred IDs with a loop. <code>curl -o name URL</code> saves a URL to a file.</p>
+      <div class="fetch" id="fetch"></div>
+      <p>For raw sequencing runs, use the SRA Toolkit (<code>fasterq-dump SRR1039508</code>) or ENA's file browser, which links straight to compressed FASTQ files.</p>
+      <h3>Good practice</h3>
+      <ol class="check">
+        <li>Record the full <code>accession.version</code> and the date or database release of everything you download.</li>
+        <li>Keep downloaded files unchanged in <code>data/raw/</code>. Write everything you derive from them to <code>results/</code>.</li>
+        <li>Save the download commands in a script, so the data can be fetched again.</li>
+        <li>Check large downloads against published checksums with <code>md5sum</code>.</li>
+        <li>Cite the databases you used. Most list the paper to cite on their website.</li>
+      </ol>
+      <p>You can practise every command in this tutorial in <a href="https://claude.ai/artifact/TKmYeoXnhc37EfPhQUW3JU" target="_blank" rel="noopener">Shell Lab</a>.</p>
+    </section>
+
+    <!-- 6 -->
+    <section id="quiz">
+      <div class="sec-head"><span class="sec-num">Section 6</span><h2>Check yourself</h2></div>
+      <div class="quiz">
+        <div class="quiz-top">
+          <p class="score" id="score"></p>
+          <button type="button" class="btn" id="quiz-reset">Start over</button>
+        </div>
+        <div id="quiz-list" style="display:flex;flex-direction:column;gap:12px"></div>
+      </div>
+    </section>
+
+    <!-- reference -->
+    <section id="formats">
+      <div class="sec-head"><span class="sec-num">Reference</span><h2>Format reference</h2></div>
+      <div class="ref-tools">
+        <input id="fmt-filter" type="search" placeholder="Filter: variants, .cif, binary…" aria-label="Filter formats">
+        <div class="seg" id="fmt-seg" role="group" aria-label="Kind of data">
+          <button type="button" data-k="all" aria-pressed="true">All</button>
+          <button type="button" data-k="Sequence" aria-pressed="false">Sequence</button>
+          <button type="button" data-k="Genomics" aria-pressed="false">Genomics</button>
+          <button type="button" data-k="Structure" aria-pressed="false">Structure</button>
+        </div>
+      </div>
+      <div class="tbl-wrap">
+        <table class="fmt">
+          <thead><tr><th>Format</th><th>Extensions</th><th>Holds</th><th>Text or binary</th><th>Open or read with</th></tr></thead>
+          <tbody id="fmt-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <footer>Accessions and example records were correct when this page was written, but databases update: follow the links for current versions. Coordinates shown in the PDB and mmCIF examples are illustrative. Quiz answers are saved on this device only.</footer>
+  </main>
+</div>
+</div>
+
+<script>
+(() => {
+'use strict';
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const store = {
+  get(k) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : null; } catch (e) { return null; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* storage unavailable */ } }
+};
+
+/* ---------------- 1. journey ---------------- */
+const STOPS = [
+  {
+    t: 'Gene', id: 'HBB · Gene 3043',
+    h: 'The gene: where it sits in the genome',
+    p: 'HBB is on chromosome 11 (band 11p15.4), on the reverse strand, inside the β-globin cluster with HBD, HBG1, HBG2 and HBE1. Gene databases collect its location, transcripts, orthologs and links to every other resource.',
+    kv: [['Databases', 'NCBI Gene, Ensembl'], ['Accessions', 'Gene ID 3043 · ENSG00000244734'], ['Download as', 'GFF3 or GTF annotation; genome sequence as FASTA']],
+    links: [['NCBI Gene', 'https://www.ncbi.nlm.nih.gov/gene/3043'], ['Ensembl', 'https://www.ensembl.org/id/ENSG00000244734']]
+  },
+  {
+    t: 'Transcript', id: 'NM_000518.5',
+    h: 'The mRNA: a curated reference transcript',
+    p: 'RefSeq picks one well-supported record per transcript. The NM_ prefix means a curated mRNA; XM_ would be a computer prediction. The record includes the untranslated regions and marks the coding sequence (CDS).',
+    kv: [['Database', 'RefSeq (NCBI)'], ['Accession', 'NM_000518.5'], ['Download as', 'FASTA or GenBank flat file']],
+    links: [['RefSeq record', 'https://www.ncbi.nlm.nih.gov/nuccore/NM_000518.5']]
+  },
+  {
+    t: 'Protein', id: 'P68871',
+    h: 'The protein: sequence plus curated knowledge',
+    p: 'UniProtKB/Swiss-Prot is the manually reviewed half of UniProt. The P68871 entry holds the 147-residue sequence, function, subcellular location, disease variants and links to every structure. Mature β-globin has 146 residues because the starting methionine is removed.',
+    kv: [['Databases', 'UniProtKB/Swiss-Prot, RefSeq'], ['Accessions', 'P68871 (HBB_HUMAN) · NP_000509.1'], ['Download as', 'FASTA, UniProt text or JSON']],
+    links: [['UniProt', 'https://www.uniprot.org/uniprotkb/P68871/entry'], ['RefSeq protein', 'https://www.ncbi.nlm.nih.gov/protein/NP_000509.1']]
+  },
+  {
+    t: 'Family & function', id: 'PF00042 · GO:0005344',
+    h: 'The family: what kind of protein it is',
+    p: 'Pfam groups proteins by shared domains; β-globin carries the globin domain, like myoglobin and neuroglobin. InterPro combines Pfam with other family databases. The Gene Ontology (GO) describes function with a controlled vocabulary, so thousands of genes can be compared.',
+    kv: [['Databases', 'InterPro (includes Pfam), Gene Ontology'], ['Accessions', 'PF00042 · IPR000971 · GO:0005344 oxygen carrier activity'], ['Download as', 'Stockholm alignments, HMM profiles, GO annotation files']],
+    links: [['Pfam globin', 'https://www.ebi.ac.uk/interpro/entry/pfam/PF00042/'], ['InterPro', 'https://www.ebi.ac.uk/interpro/entry/InterPro/IPR000971/'], ['GO term', 'https://www.ebi.ac.uk/QuickGO/term/GO:0005344']]
+  },
+  {
+    t: 'Structure', id: '4HHB · AF-P68871-F1',
+    h: 'The structure: atoms in 3D',
+    p: '4HHB is human deoxyhaemoglobin solved by X-ray crystallography at 1.74 Å (Fermi et al., 1984): two α chains (A, C) and two β chains (B, D), each holding a heme group. AlphaFold DB adds a predicted model of the single β chain, useful when no experimental structure exists.',
+    kv: [['Databases', 'wwPDB (RCSB PDB, PDBe, PDBj), AlphaFold DB'], ['Accessions', '4HHB · AF-P68871-F1'], ['Download as', 'PDBx/mmCIF (standard) or legacy PDB']],
+    links: [['RCSB PDB', 'https://www.rcsb.org/structure/4HHB'], ['PDBe', 'https://www.ebi.ac.uk/pdbe/entry/pdb/4hhb'], ['AlphaFold DB', 'https://alphafold.ebi.ac.uk/entry/P68871']]
+  },
+  {
+    t: 'Variant', id: 'rs334',
+    h: 'The variant: sickle-cell haemoglobin (HbS)',
+    p: 'One base change swaps glutamate for valine near the start of the protein. In HGVS notation it is c.20A>T, p.Glu7Val; older papers call it Glu6Val because they don\'t count the methionine. dbSNP gives the site an rs number, and ClinVar records its clinical meaning.',
+    kv: [['Databases', 'dbSNP, ClinVar, gnomAD'], ['Accession', 'rs334'], ['Download as', 'VCF']],
+    links: [['dbSNP', 'https://www.ncbi.nlm.nih.gov/snp/rs334'], ['ClinVar search', 'https://www.ncbi.nlm.nih.gov/clinvar/?term=rs334'], ['gnomAD (HBB gene)', 'https://gnomad.broadinstitute.org/gene/ENSG00000244734?dataset=gnomad_r4']]
+  }
+];
+let stopIdx = 0;
+function renderStops() {
+  $('stops').innerHTML = STOPS.map((s, i) => `<button type="button" class="stop" role="tab" aria-selected="${i === stopIdx}" data-i="${i}"><span class="n">${i + 1}</span><span class="t">${esc(s.t)}</span><span class="id">${esc(s.id)}</span></button>`).join('');
+  const s = STOPS[stopIdx];
+  $('stop-detail').innerHTML = `
+    <div><h3>${esc(s.h)}</h3><p>${esc(s.p)}</p></div>
+    <div><dl class="kv">${s.kv.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('')}</dl>
+    <div class="links">${s.links.map(([l, u]) => `<a href="${esc(u)}" target="_blank" rel="noopener">${esc(l)} ↗</a>`).join('')}</div></div>`;
+}
+$('stops').addEventListener('click', e => { const b = e.target.closest('.stop'); if (b) { stopIdx = +b.dataset.i; renderStops(); } });
+$('stops').addEventListener('keydown', e => {
+  if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+  stopIdx = (stopIdx + (e.key === 'ArrowRight' ? 1 : STOPS.length - 1)) % STOPS.length;
+  renderStops(); $('stops').children[stopIdx].focus();
+});
+renderStops();
+
+/* ---------------- 2. databases ---------------- */
+const DBS = [
+  ['Sequences and genomes', [
+    ['GenBank / ENA / DDBJ', 'https://www.ncbi.nlm.nih.gov/genbank/', 'The INSDC archive of every submitted DNA and RNA sequence'],
+    ['RefSeq', 'https://www.ncbi.nlm.nih.gov/refseq/', 'One curated reference record per genome, transcript and protein'],
+    ['Ensembl', 'https://www.ensembl.org', 'Annotated genomes of vertebrates, with a genome browser'],
+    ['UCSC Genome Browser', 'https://genome.ucsc.edu', 'Genome browser with hundreds of annotation tracks'],
+  ]],
+  ['Reads and expression', [
+    ['SRA / ENA', 'https://www.ncbi.nlm.nih.gov/sra', 'Raw sequencing reads (FASTQ) from published experiments'],
+    ['GEO / ArrayExpress', 'https://www.ncbi.nlm.nih.gov/geo/', 'Processed expression data with sample descriptions'],
+  ]],
+  ['Variants', [
+    ['dbSNP', 'https://www.ncbi.nlm.nih.gov/snp/', 'Catalogue of variant sites, each with an rs number'],
+    ['ClinVar', 'https://www.ncbi.nlm.nih.gov/clinvar/', 'Variants and their clinical significance'],
+    ['gnomAD', 'https://gnomad.broadinstitute.org', 'How common each variant is across populations'],
+  ]],
+  ['Proteins and families', [
+    ['UniProtKB', 'https://www.uniprot.org', 'Protein sequences and function: Swiss-Prot (reviewed) and TrEMBL (automatic)'],
+    ['InterPro / Pfam', 'https://www.ebi.ac.uk/interpro/', 'Protein families and domains, with alignments and HMM profiles'],
+    ['Gene Ontology', 'https://geneontology.org', 'Controlled vocabulary for function, process and location'],
+  ]],
+  ['Structures', [
+    ['PDB (RCSB, PDBe, PDBj)', 'https://www.wwpdb.org', 'Experimentally determined 3D structures'],
+    ['EMDB', 'https://www.ebi.ac.uk/emdb/', 'Cryo-EM density maps'],
+    ['AlphaFold DB', 'https://alphafold.ebi.ac.uk', 'Predicted structures for most known protein sequences'],
+    ['CATH / SCOP', 'https://www.cathdb.info', 'Structural domains classified by fold and evolution'],
+  ]],
+  ['Pathways and interactions', [
+    ['Reactome', 'https://reactome.org', 'Curated human pathways and reactions'],
+    ['KEGG', 'https://www.genome.jp/kegg/', 'Pathway maps and metabolism across species'],
+    ['STRING', 'https://string-db.org', 'Known and predicted protein–protein interactions'],
+  ]],
+];
+$('dbgrid').innerHTML = DBS.map(([g, list]) => `<div class="card db"><h4>${esc(g)}</h4><ul>${list.map(([n, u, d]) => `<li><b><a href="${esc(u)}" target="_blank" rel="noopener">${esc(n)}</a></b><span>${esc(d)}</span></li>`).join('')}</ul></div>`).join('');
+
+// Accession decoder: first matching rule wins.
+const REFSEQ = {
+  NM: 'curated mRNA', NR: 'curated non-coding RNA', XM: 'predicted mRNA (computed, not curated)', XR: 'predicted non-coding RNA',
+  NP: 'curated protein', XP: 'predicted protein', NC: 'complete chromosome or genome', NG: 'genomic region (gene)',
+  NT: 'genomic contig', NW: 'genomic contig from whole-genome shotgun assembly', NZ: 'whole-genome shotgun assembly', WP: 'non-redundant protein (prokaryotes)', YP: 'protein from a reference genome', AP: 'protein from an annotated genome'
+};
+const ENS = { G: 'gene', T: 'transcript', P: 'protein', E: 'exon', R: 'regulatory feature' };
+const RULES = [
+  { re: /^(NM|NR|XM|XR|NP|XP|NC|NG|NT|NW|NZ|WP|YP|AP)_(\d+)(?:\.(\d+))?$/i, f: m => ({
+    db: 'RefSeq (NCBI)', kind: REFSEQ[m[1].toUpperCase()],
+    parts: [[m[1].toUpperCase() + '_', REFSEQ[m[1].toUpperCase()]], [m[2], 'record number'], ...(m[3] ? [['.' + m[3], 'version ' + m[3]]] : [['(no version)', 'means the current version']])],
+    url: `https://www.ncbi.nlm.nih.gov/${/^(NP|XP|WP|YP|AP)$/i.test(m[1]) ? 'protein' : 'nuccore'}/${m[0]}` }) },
+  { re: /^ENS([A-Z]{3})?([GTPER])(\d{11})(?:\.(\d+))?$/i, f: m => ({
+    db: 'Ensembl', kind: `${ENS[m[2].toUpperCase()]}${m[1] ? ` (species code ${m[1].toUpperCase()}, e.g. MUS = mouse)` : ' (human)'}`,
+    parts: [['ENS' + (m[1] || '').toUpperCase(), m[1] ? 'Ensembl + species code' : 'Ensembl, human'], [m[2].toUpperCase(), ENS[m[2].toUpperCase()]], [m[3], 'stable ID'], ...(m[4] ? [['.' + m[4], 'version']] : [])],
+    url: `https://www.ensembl.org/id/${m[0]}` }) },
+  { re: /^(?:([OPQ][0-9][A-Z0-9]{3}[0-9])|([A-NR-Z][0-9](?:[A-Z][A-Z0-9]{2}[0-9]){1,2}))(?:-(\d+))?$/i, f: m => ({
+    db: 'UniProtKB', kind: 'protein entry' + (m[3] ? `, isoform ${m[3]}` : ''),
+    parts: [[(m[1] || m[2]).toUpperCase(), 'UniProt accession (stable across releases)'], ...(m[3] ? [['-' + m[3], 'isoform']] : [])],
+    note: 'Swiss-Prot (reviewed) and TrEMBL (unreviewed) accessions look the same. The entry page says which.',
+    url: `https://www.uniprot.org/uniprotkb/${(m[1] || m[2]).toUpperCase()}/entry` }) },
+  { re: /^[A-Z0-9]{1,10}_[A-Z0-9]{1,5}$/i, f: m => ({
+    db: 'UniProtKB', kind: 'entry name (mnemonic)', parts: [[m[0].split('_')[0].toUpperCase(), 'protein'], ['_' + m[0].split('_')[1].toUpperCase(), 'species']],
+    note: 'Entry names can change. Cite the accession (e.g. P68871) instead.', url: `https://www.uniprot.org/uniprotkb?query=${encodeURIComponent(m[0])}` }) },
+  { re: /^pdb_(\d{4})([0-9][a-z0-9]{3})$/i, f: m => ({
+    db: 'wwPDB', kind: 'extended PDB ID (12 characters)', parts: [['pdb_', 'prefix'], [m[1], 'extension digits'], [m[2].toUpperCase(), 'classic 4-character ID']],
+    note: 'Extended IDs are longer than the legacy PDB format allows, so these entries come as mmCIF.', url: `https://www.rcsb.org/structure/${m[2].toUpperCase()}` }) },
+  { re: /^[1-9](?=[A-Z0-9]*[A-Z])[A-Z0-9]{3}$/i, f: m => ({
+    db: 'Protein Data Bank (wwPDB)', kind: 'experimental structure', parts: [[m[0].toUpperCase(), '4-character PDB ID: a digit 1–9, then letters and digits']],
+    note: 'Case doesn\'t matter: 4HHB and 4hhb are the same entry.', url: `https://www.rcsb.org/structure/${m[0].toUpperCase()}` }) },
+  { re: /^EMD-(\d{4,5})$/i, f: m => ({ db: 'EMDB', kind: 'cryo-EM density map', parts: [['EMD-', 'EMDB'], [m[1], 'entry number']], url: `https://www.ebi.ac.uk/emdb/EMD-${m[1]}` }) },
+  { re: /^AF-([A-Z0-9]+)-F(\d+)$/i, f: m => ({
+    db: 'AlphaFold DB', kind: 'predicted structure', parts: [['AF-', 'AlphaFold'], [m[1].toUpperCase(), 'UniProt accession it models'], ['F' + m[2], 'fragment (long proteins are split)']],
+    url: `https://alphafold.ebi.ac.uk/entry/${m[1].toUpperCase()}` }) },
+  { re: /^(SRR|ERR|DRR|SRX|ERX|DRX|SRS|ERS|DRS|SRP|ERP|DRP)(\d+)$/i, f: m => {
+    const lvl = { R: 'run: the actual FASTQ files', X: 'experiment: one library', S: 'sample', P: 'study' }[m[1][2].toUpperCase()];
+    const site = { S: 'NCBI SRA', E: 'ENA', D: 'DDBJ' }[m[1][0].toUpperCase()];
+    return { db: 'Sequence Read Archive (' + site + ')', kind: lvl, parts: [[m[1].toUpperCase(), `${site}, ${lvl.split(':')[0]}`], [m[2], 'number']],
+      note: 'The three archives mirror each other, so an SRR run is also on ENA.', url: `https://www.ebi.ac.uk/ena/browser/view/${m[0].toUpperCase()}` };
+  } },
+  { re: /^(PRJNA|PRJEB|PRJDB)(\d+)$/i, f: m => ({ db: 'BioProject', kind: 'a whole research project', parts: [[m[1].toUpperCase(), 'BioProject'], [m[2], 'number']], url: `https://www.ncbi.nlm.nih.gov/bioproject/${m[0].toUpperCase()}` }) },
+  { re: /^(SAMN|SAMEA|SAMD)(\d+)$/i, f: m => ({ db: 'BioSample', kind: 'one biological sample', parts: [[m[1].toUpperCase(), 'BioSample'], [m[2], 'number']], url: `https://www.ncbi.nlm.nih.gov/biosample/${m[0].toUpperCase()}` }) },
+  { re: /^(GSE|GSM|GPL|GDS)(\d+)$/i, f: m => ({ db: 'GEO', kind: { GSE: 'series (a whole study)', GSM: 'one sample', GPL: 'platform (array or sequencer)', GDS: 'curated dataset' }[m[1].toUpperCase()], parts: [[m[1].toUpperCase(), 'GEO record type'], [m[2], 'number']], url: `https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=${m[0].toUpperCase()}` }) },
+  { re: /^rs(\d+)$/i, f: m => ({ db: 'dbSNP', kind: 'variant site (reference SNP)', parts: [['rs', 'reference SNP'], [m[1], 'number']], url: `https://www.ncbi.nlm.nih.gov/snp/rs${m[1]}` }) },
+  { re: /^(VCV|RCV|SCV)(\d+)(?:\.(\d+))?$/i, f: m => ({ db: 'ClinVar', kind: { VCV: 'variant record', RCV: 'variant–condition record', SCV: 'one lab\'s submission' }[m[1].toUpperCase()], parts: [[m[1].toUpperCase(), 'ClinVar record type'], [m[2], 'number']], url: `https://www.ncbi.nlm.nih.gov/clinvar/?term=${m[0]}` }) },
+  { re: /^PF(\d{5})$/i, f: m => ({ db: 'Pfam (in InterPro)', kind: 'protein family or domain', parts: [['PF', 'Pfam family'], [m[1], 'number']], url: `https://www.ebi.ac.uk/interpro/entry/pfam/PF${m[1]}/` }) },
+  { re: /^IPR(\d{6})$/i, f: m => ({ db: 'InterPro', kind: 'integrated family, domain or site', parts: [['IPR', 'InterPro entry'], [m[1], 'number']], url: `https://www.ebi.ac.uk/interpro/entry/InterPro/IPR${m[1]}/` }) },
+  { re: /^GO:(\d{7})$/i, f: m => ({ db: 'Gene Ontology', kind: 'function, process or location term', parts: [['GO:', 'Gene Ontology'], [m[1], '7-digit term number']], url: `https://www.ebi.ac.uk/QuickGO/term/GO:${m[1]}` }) },
+  { re: /^CHEBI:(\d+)$/i, f: m => ({ db: 'ChEBI', kind: 'small molecule', parts: [['CHEBI:', 'ChEBI'], [m[1], 'number']], url: `https://www.ebi.ac.uk/chebi/searchId.do?chebiId=CHEBI:${m[1]}` }) },
+  { re: /^([A-Z]{1,2})(\d{5,6})(?:\.(\d+))?$/i, f: m => ({ db: 'GenBank / ENA / DDBJ (INSDC)', kind: 'nucleotide sequence record', parts: [[m[1].toUpperCase(), 'prefix'], [m[2], 'number'], ...(m[3] ? [['.' + m[3], 'version']] : [])], note: 'An archival record from the original submitters, not a curated reference.', url: `https://www.ncbi.nlm.nih.gov/nuccore/${m[0].toUpperCase()}` }) },
+  { re: /^([A-Z]{3})(\d{5,7})(?:\.(\d+))?$/i, f: m => ({ db: 'GenBank / ENA / DDBJ (INSDC)', kind: 'protein translation of a submitted sequence', parts: [[m[1].toUpperCase(), 'prefix'], [m[2], 'number'], ...(m[3] ? [['.' + m[3], 'version']] : [])], url: `https://www.ncbi.nlm.nih.gov/protein/${m[0].toUpperCase()}` }) },
+  { re: /^\d+$/, f: m => ({ db: 'Ambiguous: a bare number', kind: 'could be an NCBI Gene ID, a taxonomy ID, a PubMed ID or a PubChem compound', parts: [[m[0], 'needs context']], note: 'Always write which database a number belongs to, e.g. "NCBI Gene 3043" or "taxon 9606".' }) },
+];
+const EXAMPLES = ['NM_000518.5', 'NP_000509.1', 'P68871', 'HBB_HUMAN', 'ENSG00000244734', '4HHB', 'AF-P68871-F1', 'rs334', 'SRR1039508', 'GSE52778', 'PF00042', 'GO:0005344', 'EMD-11638', '9606'];
+function decode() {
+  const v = $('acc-in').value.trim();
+  const out = $('acc-out');
+  if (!v) { out.className = 'dec-out miss'; out.innerHTML = 'Type or paste an accession above.'; return; }
+  for (const r of RULES) {
+    const m = v.match(r.re);
+    if (!m) continue;
+    const d = r.f(m);
+    out.className = 'dec-out';
+    out.innerHTML = `<span class="db-name">${esc(d.db)}</span><span>${esc(d.kind.charAt(0).toUpperCase() + d.kind.slice(1))}</span>
+      <div class="dec-parts">${d.parts.map(([a, b]) => `<span>${esc(a)}<i>${esc(b)}</i></span>`).join('')}</div>
+      ${d.note ? `<span class="cap" style="margin:0">${esc(d.note)}</span>` : ''}
+      ${d.url ? `<a href="${esc(d.url)}" target="_blank" rel="noopener">Open ${esc(v)} ↗</a>` : ''}`;
+    return;
+  }
+  out.className = 'dec-out miss';
+  out.innerHTML = `No pattern matched <code>${esc(v)}</code>. Check for typos or stray spaces, or search for it on <a href="https://www.ebi.ac.uk/ebisearch/search?query=${encodeURIComponent(v)}" target="_blank" rel="noopener">EBI Search ↗</a>.`;
+}
+$('acc-chips').innerHTML = EXAMPLES.map(x => `<button type="button" class="chip">${esc(x)}</button>`).join('');
+$('acc-chips').addEventListener('click', e => { const b = e.target.closest('.chip'); if (b) { $('acc-in').value = b.textContent; decode(); } });
+$('acc-in').addEventListener('input', decode);
+decode();
+
+/* ---------------- 3. FASTQ quality ---------------- */
+const FQ = { id: '@SRR1039508.1 HWI-ST177:290:C0TECACXX:1:1101:7001:173950', seq: 'TCAGCCGTATCACTGCGGATATGGATATCATCGACA', qual: 'IIIIIFGIHHGFGFHHHHIIDE;FEDE5;D@8?5?F' };
+$('fq-raw').innerHTML = `${esc(FQ.id)}\n${FQ.seq.replace(/[ACGT]/g, b => `<span class="n${b}">${b}</span>`)}\n+\n${esc(FQ.qual)}`;
+const Q = [...FQ.qual].map(c => c.charCodeAt(0) - 33);
+function errText(q) {
+  const p = Math.pow(10, -q / 10);
+  const one = Math.round(1 / p);
+  return `error probability ${p < 0.001 ? p.toExponential(1).replace('e-', ' × 10⁻').replace(/⁻(\d)/, (m, d) => '⁻' + '⁰¹²³⁴⁵⁶⁷⁸⁹'[d]) : p.toFixed(p < 0.01 ? 4 : 3)} (1 in ${one.toLocaleString('en-US')})`;
+}
+function drawChart() {
+  const W = 720, H = 190, L = 34, R = 40, T = 14, B = 26;
+  const n = Q.length, max = 42;
+  const bw = (W - L - R) / n;
+  const barW = Math.min(24, bw - 2);
+  const y = v => T + (H - T - B) * (1 - v / max);
+  const ticks = [0, 10, 20, 30, 40];
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Phred quality score for each of the 36 bases of the read, from 40 at the start falling to around 20 to 30 at the end">`;
+  s += '<g class="grid">' + ticks.map(t => `<line x1="${L}" x2="${W - R}" y1="${y(t)}" y2="${y(t)}"></line>`).join('') + '</g>';
+  s += '<g class="axis">' + ticks.map(t => `<text x="${L - 6}" y="${y(t) + 4}" text-anchor="end">${t}</text>`).join('');
+  [1, 10, 20, 30, 36].forEach(i => { s += `<text x="${L + bw * (i - 0.5)}" y="${H - 8}" text-anchor="middle">${i}</text>`; });
+  s += '</g>';
+  Q.forEach((q, i) => {
+    const x = L + bw * i + (bw - barW) / 2, top = y(q), h = y(0) - top, r = Math.min(4, h / 2);
+    s += `<path class="bar" data-i="${i}" d="M${x},${y(0)} V${top + r} Q${x},${top} ${x + r},${top} H${x + barW - r} Q${x + barW},${top} ${x + barW},${top + r} V${y(0)} Z"></path>`;
+  });
+  s += `<line class="ref" x1="${L}" x2="${W - R}" y1="${y(30)}" y2="${y(30)}"></line><text class="ref-l" x="${W - R + 6}" y="${y(30) + 4}" text-anchor="start">Q30</text>`;
+  Q.forEach((q, i) => { s += `<rect data-i="${i}" x="${L + bw * i}" y="${T}" width="${bw}" height="${H - T - B}" fill="transparent"></rect>`; });
+  s += '</svg><div class="tip" id="fq-tip" hidden></div>';
+  $('fq-chart').innerHTML = s;
+  $('fq-grid').innerHTML = [...FQ.seq].map((b, i) => `<div class="fq-col" data-i="${i}"><span class="b n${b}">${b}</span><span>${esc(FQ.qual[i])}</span><span class="q">${Q[i]}</span></div>`).join('');
+  const pick = i => {
+    document.querySelectorAll('#fq-chart .bar').forEach(el => el.classList.toggle('on', +el.dataset.i === i));
+    document.querySelectorAll('#fq-grid .fq-col').forEach(el => el.classList.toggle('on', +el.dataset.i === i));
+    $('fq-readout').innerHTML = `Base ${i + 1}: ${FQ.seq[i]}, quality character <b>${esc(FQ.qual[i])}</b> (ASCII ${FQ.qual.charCodeAt(i)}) → Q${Q[i]}, ${errText(Q[i])}.`;
+    const tip = $('fq-tip'), svg = $('fq-chart').querySelector('svg');
+    const sc = svg.getBoundingClientRect().width / W;
+    tip.hidden = false;
+    tip.innerHTML = `<b>${i + 1} · ${FQ.seq[i]} · ${esc(FQ.qual[i])}</b> → Q${Q[i]}`;
+    tip.style.left = Math.min(Math.max((L + bw * (i + 0.5)) * sc, 60), svg.getBoundingClientRect().width - 60) + 'px';
+    tip.style.top = y(Q[i]) * sc + 'px';
+  };
+  const hit = e => { const el = e.target.closest('[data-i]'); if (el) pick(+el.dataset.i); };
+  $('fq-chart').addEventListener('pointermove', hit);
+  $('fq-chart').addEventListener('click', hit);
+  $('fq-chart').addEventListener('pointerleave', () => { $('fq-tip').hidden = true; });
+  $('fq-grid').addEventListener('pointermove', hit);
+  $('fq-grid').addEventListener('click', hit);
+  pick(0);
+  $('fq-tip').hidden = true;
+}
+drawChart();
+
+/* ---------------- coordinates ---------------- */
+const SEQ12 = 'ATGGTGCATCTG';
+function renderCoords() {
+  let s = Math.round(+$('c-start').value), e = Math.round(+$('c-end').value);
+  if (!(s >= 1)) s = 1; if (s > 12) s = 12;
+  if (!(e >= 1)) e = 1; if (e > 12) e = 12;
+  const bad = e < s;
+  if (bad) e = s;
+  let h = '<div class="rl">1-based</div>';
+  for (let i = 1; i <= 12; i++) h += `<div class="one">${i}</div>`;
+  h += '<div class="rl">Bases</div>';
+  for (let i = 1; i <= 12; i++) h += `<div class="base${i === 12 ? ' last' : ''}${i >= s && i <= e ? ' sel' : ''} n${SEQ12[i - 1]}">${SEQ12[i - 1]}</div>`;
+  h += '<div class="rl">0-based</div>';
+  for (let i = 0; i < 12; i++) h += `<div class="zero">${i}</div>`;
+  $('ruler').innerHTML = h;
+  $('coord-out').innerHTML = `
+    <div><b>GFF, VCF, SAM (1-based, inclusive)</b><code>start ${s}, end ${e}</code><br><span class="cap">length = end − start + 1 = ${e - s + 1}</span></div>
+    <div><b>BED (0-based, half-open)</b><code>start ${s - 1}, end ${e}</code><br><span class="cap">length = end − start = ${e - s + 1}</span></div>`
+    + (bad ? '<p class="cap" style="grid-column:1/-1;margin:0">The last base can\'t come before the first, so it was set to match.</p>' : '');
+}
+['c-start', 'c-end'].forEach(id => $(id).addEventListener('input', renderCoords));
+renderCoords();
+
+/* ---------------- 4. PDB explorer ---------------- */
+// [start col (1-based), end col, label, explanation]
+const PDB_FIELDS = [
+  [1, 6, 'Record type', 'ATOM for standard amino acids and nucleotides; HETATM for ligands, metals, modified residues and water.'],
+  [7, 11, 'Atom serial number', 'Running number of the atom in the file. Five columns is why the format tops out at 99,999 atoms.'],
+  [13, 16, 'Atom name', 'Which atom in the residue: N, CA (α-carbon), C, O, CB and so on. The position inside these 4 columns carries meaning: one-letter elements start in column 14.'],
+  [17, 17, 'Alternate location', 'A letter (A, B) when part of the structure was seen in two positions. Blank here.'],
+  [18, 20, 'Residue name', 'Three-letter code: VAL for valine, HEM for heme, HOH for water. Ligand codes are defined in the PDB Chemical Component Dictionary.'],
+  [22, 22, 'Chain ID', 'One character. In 4HHB, chains A and C are α-globin and B and D are β-globin.'],
+  [23, 26, 'Residue number', 'Position in the chain, as numbered by the authors. Numbers may skip or start above 1.'],
+  [27, 27, 'Insertion code', 'A letter that squeezes an extra residue in without renumbering (100, 100A, 101). Blank here.'],
+  [31, 38, 'x coordinate', 'Position in ångströms, 3 decimal places.'],
+  [39, 46, 'y coordinate', 'Position in ångströms.'],
+  [47, 54, 'z coordinate', 'Position in ångströms. The three coordinates are only meaningful relative to each other.'],
+  [55, 60, 'Occupancy', 'Fraction of molecules in the crystal with the atom at this position: 1.00 unless there are alternate locations.'],
+  [61, 66, 'B-factor', 'How much the atom moves or is uncertain (Å²); high values mean floppy or poorly defined. In AlphaFold models this column holds pLDDT instead.'],
+  [77, 78, 'Element', 'Chemical element, right-justified: N, C, O, S, FE.'],
+];
+const PDB_LINES = {
+  atom: 'ATOM      1  N   VAL A   1       6.204  16.869   4.854  1.00 49.05           N  ',
+  het: 'HETATM 4384 FE   HEM A 142       8.128   7.371 -15.022  1.00 16.74          FE  '
+};
+let pdbLine = 'atom', pdbField = 11;
+function renderPdb() {
+  const line = PDB_LINES[pdbLine];
+  let ticks = '';
+  for (let c = 1; c <= 80; c++) ticks += c % 10 === 0 ? String(c / 10) : (c % 5 === 0 ? '·' : ' ');
+  $('pdb-ticks').textContent = ticks + '\n' + '1234567890'.repeat(8);
+  let h = '', col = 1;
+  for (let fi = 0; fi < PDB_FIELDS.length; fi++) {
+    const [a, b] = PDB_FIELDS[fi];
+    if (a > col) h += esc(line.slice(col - 1, a - 1));
+    h += `<span class="f${fi === pdbField ? ' on' : ''}" data-f="${fi}">${esc(line.slice(a - 1, b)).replace(/ /g, ' ')}</span>`;
+    col = b + 1;
+  }
+  h += esc(line.slice(col - 1));
+  $('pdb-line').innerHTML = h;
+  $('pdb-fields').innerHTML = PDB_FIELDS.map((f, i) => `<button type="button" data-f="${i}" class="${i === pdbField ? 'on' : ''}">${esc(f[2])}</button>`).join('');
+  const [a, b, lab, ex] = PDB_FIELDS[pdbField];
+  const val = line.slice(a - 1, b);
+  $('pdb-read').innerHTML = `<b>Columns ${a}${b > a ? '–' + b : ''}</b> · ${esc(lab)}: <b>"${esc(val).replace(/ /g, '&nbsp;')}"</b><br>${esc(ex)}`;
+}
+$('pdb-line').addEventListener('pointerover', e => { const s = e.target.closest('[data-f]'); if (s && +s.dataset.f !== pdbField) { pdbField = +s.dataset.f; renderPdb(); } });
+$('pdb-line').addEventListener('click', e => { const s = e.target.closest('[data-f]'); if (s) { pdbField = +s.dataset.f; renderPdb(); } });
+$('pdb-fields').addEventListener('click', e => { const s = e.target.closest('[data-f]'); if (s) { pdbField = +s.dataset.f; renderPdb(); } });
+document.querySelectorAll('.pdb-tabs button').forEach(b => b.addEventListener('click', () => {
+  pdbLine = b.dataset.line;
+  document.querySelectorAll('.pdb-tabs button').forEach(x => x.setAttribute('aria-selected', x === b));
+  renderPdb();
+}));
+renderPdb();
+
+/* ---------------- 5. fetch ---------------- */
+const FETCH = [
+  ['A structure from the PDB, as mmCIF', 'curl -o 4HHB.cif https://files.rcsb.org/download/4HHB.cif'],
+  ['The same structure in legacy PDB format', 'curl -o 4HHB.pdb https://files.rcsb.org/download/4HHB.pdb'],
+  ['A protein sequence from UniProt', 'curl -o P68871.fasta https://rest.uniprot.org/uniprotkb/P68871.fasta'],
+  ['A GenBank record from NCBI (E-utilities)', 'curl -o NM_000518.gb "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=nuccore&id=NM_000518.5&rettype=gb&retmode=text"'],
+  ['AlphaFold model information, including current file links (JSON)', 'curl https://alphafold.ebi.ac.uk/api/prediction/P68871'],
+  ['Several structures in a loop', 'for id in 4HHB 2HHB 1A3N; do curl -o "$id.cif" "https://files.rcsb.org/download/$id.cif"; done'],
+];
+$('fetch').innerHTML = FETCH.map(([w, c], i) => `<div class="fetch-row"><span class="what">${esc(w)}</span><pre class="code" id="fetch-${i}">${esc(c)}</pre><button type="button" class="copy" data-i="${i}">Copy</button></div>`).join('');
+$('fetch').addEventListener('click', e => {
+  const b = e.target.closest('.copy'); if (!b) return;
+  const pre = $('fetch-' + b.dataset.i);
+  const done = t => { b.textContent = t; setTimeout(() => { b.textContent = 'Copy'; }, 1600); };
+  const select = () => { const r = document.createRange(); r.selectNodeContents(pre); const s = window.getSelection(); s.removeAllRanges(); s.addRange(r); done('Selected'); };
+  try { navigator.clipboard.writeText(pre.textContent).then(() => done('Copied'), select); } catch (err) { select(); }
+});
+
+/* ---------------- 6. quiz ---------------- */
+const QUIZ = [
+  ['You want the reviewed, curated description of human β-globin\'s function. Where do you look?', ['UniProtKB/Swiss-Prot', 'UniProtKB/TrEMBL', 'GenBank', 'SRA'], 0, 'Swiss-Prot entries are reviewed by curators. TrEMBL is automatic, GenBank is an archive of submissions, and SRA holds raw reads.'],
+  ['Which of these is a RefSeq protein accession?', ['NM_000518.5', 'NP_000509.1', 'P68871', '4HHB'], 1, 'NP_ is a curated RefSeq protein. NM_ is its mRNA, P68871 is UniProt and 4HHB is a PDB structure.'],
+  ['The raw FASTQ reads behind a published RNA-seq study are stored in…', ['GEO', 'SRA / ENA', 'RefSeq', 'PDB'], 1, 'SRA and ENA hold raw reads (runs like SRR1039508). GEO holds processed expression tables and links to the reads.'],
+  ['In Phred+33 FASTQ, the quality character "I" (ASCII 73) means…', ['Q40: 1 error in 10,000', 'Q33: 1 error in 2,000', 'Q9: 1 error in 8', 'Q73'], 0, '73 − 33 = 40, and 10^(−40/10) = 0.0001.'],
+  ['A BED line reads "chr11  5227001  5227002". Which 1-based position is that?', ['5227001', '5227002', '5227001 and 5227002', '5227003'], 1, 'BED starts count from 0 and exclude the end, so 0-based 5227001–5227002 is the single 1-based base 5227002. That is the rs334 site.'],
+  ['A ribosome structure has 250,000 atoms. Which format can hold it?', ['Legacy PDB format', 'PDBx/mmCIF', 'FASTA', 'Either PDB or mmCIF'], 1, 'The PDB format\'s 5-column serial number stops at 99,999 atoms. mmCIF has no column limits.'],
+  ['In an AlphaFold PDB file, the B-factor column contains…', ['Atomic motion', 'pLDDT confidence', 'Occupancy', 'Nothing'], 1, 'AlphaFold stores per-residue pLDDT (0–100) in the B-factor column, so ordinary viewers can colour by it.'],
+  ['Which X-ray structure lets you place side chains with more confidence?', ['1.5 Å', '3.5 Å', 'They are the same', 'Resolution only matters for cryo-EM'], 0, 'Lower numbers mean finer detail. At 3.5 Å the backbone is reliable but side chains are uncertain.'],
+  ['Why use cut -c rather than awk to pull coordinates out of a PDB file?', ['awk can\'t read PDB files', 'Fields are fixed-width and can run together without spaces', 'cut is faster', 'PDB files are binary'], 1, 'A negative coordinate can fill its whole field, as in "-10.123-20.456". awk would treat that as a single field.'],
+  ['Where is a cryo-EM density map deposited?', ['PDB', 'EMDB', 'AlphaFold DB', 'BMRB'], 1, 'Maps go to EMDB (IDs like EMD-11638); the atomic model built into the map goes to the PDB.'],
+];
+const K_QUIZ = 'bio116-atlas-quiz-v1';
+let answers = store.get(K_QUIZ) || {};
+function renderQuiz() {
+  $('quiz-list').innerHTML = QUIZ.map(([q, opts, right, why], i) => {
+    const a = answers[i];
+    const done = a !== undefined;
+    return `<div class="card q"><p class="qt">${i + 1}. ${esc(q)}</p><div class="opts">${opts.map((o, j) => {
+      const cls = done ? (j === right ? ' right' : (j === a ? ' wrong' : '')) : '';
+      const mk = done ? (j === right ? '<span class="mk">✓</span>' : (j === a ? '<span class="mk">✗</span>' : '')) : '';
+      return `<button type="button" class="opt${cls}" data-q="${i}" data-o="${j}" ${done ? 'disabled' : ''}>${mk}${esc(o)}</button>`;
+    }).join('')}</div>${done ? `<p class="why">${a === right ? 'Correct. ' : 'Not quite. '}${esc(why)}</p>` : ''}</div>`;
+  }).join('');
+  const n = Object.keys(answers).length;
+  const c = Object.entries(answers).filter(([i, a]) => QUIZ[i] && QUIZ[i][2] === a).length;
+  $('score').innerHTML = `<b>${c}</b> correct out of <b>${n}</b> answered · ${QUIZ.length} questions`;
+}
+$('quiz-list').addEventListener('click', e => {
+  const b = e.target.closest('.opt'); if (!b || b.disabled) return;
+  answers[b.dataset.q] = +b.dataset.o; store.set(K_QUIZ, answers); renderQuiz();
+});
+$('quiz-reset').addEventListener('click', () => { answers = {}; store.set(K_QUIZ, answers); renderQuiz(); });
+renderQuiz();
+
+/* ---------------- format reference ---------------- */
+const FMTS = [
+  ['FASTA', '.fa .fasta .faa .fna', 'Sequences, each with a > header', 'Text', 'head, grep, any aligner', 'Sequence'],
+  ['FASTQ', '.fastq .fq (.gz)', 'Sequencing reads with per-base quality', 'Text', 'zcat, FastQC, trimmers', 'Sequence'],
+  ['GenBank / EMBL flat file', '.gb .gbk .embl', 'Annotated sequence record with feature table', 'Text', 'less, Biopython', 'Sequence'],
+  ['Clustal / Stockholm', '.aln .sto', 'Multiple sequence alignments (Pfam uses Stockholm)', 'Text', 'Jalview, HMMER', 'Sequence'],
+  ['Newick', '.nwk .tree', 'Phylogenetic trees as nested brackets', 'Text', 'FigTree, iTOL, ete3', 'Sequence'],
+  ['SAM / BAM / CRAM', '.sam .bam .cram', 'Reads aligned to a reference (1-based)', 'Text / binary', 'samtools, IGV', 'Genomics'],
+  ['VCF / BCF', '.vcf .vcf.gz .bcf', 'Variant sites and genotypes (1-based)', 'Text / binary', 'bcftools, grep, awk', 'Genomics'],
+  ['GFF3 / GTF', '.gff3 .gtf', 'Gene annotation (1-based, inclusive)', 'Text', 'cut, awk, genome browsers', 'Genomics'],
+  ['BED', '.bed', 'Genomic intervals (0-based, half-open)', 'Text', 'bedtools, genome browsers', 'Genomics'],
+  ['bigWig / bigBed', '.bw .bb', 'Indexed coverage or interval tracks', 'Binary', 'UCSC tools, IGV', 'Genomics'],
+  ['HDF5 / AnnData', '.h5 .h5ad', 'Large matrices, e.g. single-cell expression', 'Binary', 'Scanpy, h5py', 'Genomics'],
+  ['PDB', '.pdb .ent', 'Atomic coordinates in fixed columns (legacy)', 'Text', 'cut -c, PyMOL, ChimeraX', 'Structure'],
+  ['PDBx/mmCIF', '.cif .mmcif', 'Atomic coordinates and metadata (current standard)', 'Text', 'ChimeraX, PyMOL, gemmi, Biopython', 'Structure'],
+  ['BinaryCIF', '.bcif', 'Compressed mmCIF for fast loading in web viewers', 'Binary', 'Mol*', 'Structure'],
+  ['MRC / CCP4 map', '.map .mrc', 'Cryo-EM or crystallographic density on a 3D grid', 'Binary', 'ChimeraX, Coot', 'Structure'],
+  ['PAE (AlphaFold)', '.json', 'Predicted aligned error between residue pairs', 'Text', 'AlphaFold DB viewer, Python', 'Structure'],
+  ['SDF / MOL2', '.sdf .mol2', 'Small molecules and ligands with bonds', 'Text', 'RDKit, Open Babel, PyMOL', 'Structure'],
+];
+let fmtKind = 'all';
+function renderFmts() {
+  const f = $('fmt-filter').value.trim().toLowerCase();
+  const rows = FMTS.filter(r => (fmtKind === 'all' || r[5] === fmtKind) && (!f || r.join(' ').toLowerCase().includes(f)));
+  $('fmt-body').innerHTML = rows.length ? rows.map(r => `<tr><td><b>${esc(r[0])}</b> <span class="tag">${esc(r[5])}</span></td><td class="m">${esc(r[1])}</td><td>${esc(r[2])}</td><td>${esc(r[3])}</td><td>${esc(r[4])}</td></tr>`).join('')
+    : `<tr><td colspan="5">No format matches "${esc(f)}".</td></tr>`;
+}
+$('fmt-filter').addEventListener('input', renderFmts);
+$('fmt-seg').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  fmtKind = b.dataset.k;
+  document.querySelectorAll('#fmt-seg button').forEach(x => x.setAttribute('aria-pressed', x === b));
+  renderFmts();
+});
+renderFmts();
+
+/* ---------------- TOC highlight ---------------- */
+const links = [...document.querySelectorAll('.toc a')];
+const secs = links.map(a => document.querySelector(a.getAttribute('href')));
+function onScroll() {
+  let cur = 0;
+  secs.forEach((s, i) => { if (s && s.getBoundingClientRect().top < 140) cur = i; });
+  links.forEach((a, i) => a.classList.toggle('on', i === cur));
+}
+window.addEventListener('scroll', onScroll, { passive: true });
+onScroll();
+})();
+</script>
