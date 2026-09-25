@@ -446,6 +446,18 @@ table.hits tr.hl td{background:var(--heme-soft)}
     <li><b>Other programs.</b> The same form layout is used for blastn, blastx and tblastn, with nucleotide-specific options such as megablast, match/mismatch scores and species-specific repeat filters.</li>
   </ul>
   </div>
+  <div class="panel"><h3>Note: what BLAST cannot tell you</h3><div class="body">
+  <ul class="goals" style="margin:0">
+    <li><b>No hit does not mean no homolog.</b> BLAST is a heuristic. It never reported human myoglobin for a β-globin query (Exercise 3), even though myoglobin was in the database and the two proteins are homologs. In the command-line tutorial, β-globin also fails to find <i>E. coli</i>'s flavohemoglobin, although neuroglobin finds it.</li>
+    <li><b>Settings change what is found.</b> Cytoglobin and neuroglobin appeared only at word size 3. The hits you see depend on word size, matrix, filters and compositional adjustment as well as on the sequences.</li>
+    <li><b>E-values belong to one search.</b> They scale with database size and depend on the settings, so an E-value means little without the database and parameters it came from.</li>
+    <li><b>Lists are cut off.</b> The Max target sequences default of 100 hid 639 of the 739 significant β-globin hits (Exercise 2).</li>
+    <li><b>The database is not everything.</b> Swiss-Prot, core_nt and nr are subsets of what exists. No single database holds all of GenBank (section 10).</li>
+    <li><b>Alignments are local.</b> A significant hit may cover one domain, not the whole protein. Neuroglobin aligns only to residues 28–129 of the 396-residue Hmp, its globin domain. Check query coverage before calling two proteins the same.</li>
+    <li><b>Names are borrowed.</b> Hit descriptions come from the database records, not from BLAST. Many leghemoglobin hits are named "Anaerobic nitrite reductase" (Exercise 4).</li>
+    <li><b>For distant relatives, go further.</b> Profile methods (PSI-BLAST, HMMER) and structure comparison detect relationships that pairwise BLAST misses. The course tutorials on HMMER and structural alignment show them at work on these same globins.</li>
+  </ul>
+  </div></div>
 </section>
 
 <section id="genbank" aria-labelledby="genbank-h">
