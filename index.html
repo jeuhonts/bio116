@@ -315,6 +315,19 @@ table.data td.num{font-variant-numeric:tabular-nums;font-family:var(--f-mono);fo
 .fc-bar{position:relative;display:inline-block;width:120px;height:10px;background:var(--surface-2);border-radius:3px}
 .fc-bar::after{content:"";position:absolute;left:50%;top:-2px;bottom:-2px;width:1px;background:var(--ink-2)}
 .fc-bar span{position:absolute;top:0;height:10px;border-radius:3px}
+/* metabolism, phylogenetics */
+.flow{display:flex;flex-wrap:wrap;gap:6px;align-items:stretch}
+.flow .arr{align-self:center;color:var(--muted);font-size:1.1rem}
+.flowcard{flex:1 1 150px;display:grid;gap:3px;align-content:start;text-align:left;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer}
+.flowcard .c{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:.75rem;font-family:var(--f-mono);border:1.5px solid var(--primary);color:var(--primary)}
+.flowcard .t{font-weight:700;line-height:1.25}
+.flowcard .l{font-size:.78rem;color:var(--muted)}
+.flowcard .y{font-family:var(--f-mono);font-size:.8rem;color:var(--ink-2)}
+.flowcard.on{border-color:var(--primary);background:var(--primary-soft)}
+.flowcard.off{opacity:.4;cursor:default;flex:0 1 120px}
+.flowcard.ferm{border-style:dashed;border-color:var(--accent)}
+.flowcard.ferm.on{background:var(--accent-soft)}
+.dm td,.dm th{width:auto;min-width:46px;padding:4px 6px;font-size:.78rem;white-space:nowrap}
 footer{border-top:1px solid var(--line);padding-block:20px;color:var(--muted);font-size:.85rem}
 footer .in{max-width:1280px;margin:0 auto;padding-inline:16px}
 </style>
@@ -350,7 +363,7 @@ footer .in{max-width:1280px;margin:0 auto;padding-inline:16px}
 <section class="ch hero" id="intro" data-title="Start here" data-num="00">
   <p class="eyebrow">Bio116 · Bioinformatics · Biology review</p>
   <h1>The biology you need before you write your first alignment</h1>
-  <p class="lede">Bioinformatics treats living systems as data. This primer walks through the biology behind that data, from the cell down to a single base, and every idea comes with something you can try. Chapter 12 runs real analyses on the course sequence file, <code>triplets.txt</code>.</p>
+  <p class="lede">Bioinformatics treats living systems as data. This primer walks through the biology behind that data, from the cell down to a single base, and every idea comes with something you can try. Chapter 14 runs real analyses on the course sequence file, <code>triplets.txt</code>.</p>
   <div class="strand-banner" aria-label="A short DNA duplex" id="banner"></div>
   <div class="aud-grid">
     <div class="aud">
@@ -578,7 +591,7 @@ footer .in{max-width:1280px;margin:0 auto;padding-inline:16px}
   </div>
   <div class="prose">
     <h3>What the rest of the genome is made of</h3>
-    <p>Roughly half of the human genome is repeated sequence. The most abundant single family is the <b>Alu element</b>, a ~300 bp sequence present in over a million copies and making up about 10% of our DNA. Alus copy themselves through an RNA intermediate and end in a poly-A tail. You will find two of them in the course sequence in Chapter 12.</p>
+    <p>Roughly half of the human genome is repeated sequence. The most abundant single family is the <b>Alu element</b>, a ~300 bp sequence present in over a million copies and making up about 10% of our DNA. Alus copy themselves through an RNA intermediate and end in a poly-A tail. You will find two of them in the course sequence in Chapter 14.</p>
     <ul>
       <li><b>Transposable elements</b> (Alu, LINE-1, endogenous retroviruses): sequences that copy and paste themselves around the genome.</li>
       <li><b>Tandem repeats</b>: short units repeated head to tail. Microsatellites have 1–6 bp units, minisatellites 10–60 bp. They vary in length between people, which makes them useful in forensics.</li>
@@ -877,7 +890,7 @@ footer .in{max-width:1280px;margin:0 auto;padding-inline:16px}
   </div>
   <div class="prose">
     <h3>Structure explains disease: sickle-cell haemoglobin</h3>
-    <p>In Chapter 09 you can make the single change <code>c.20A&gt;T</code> in the β-globin gene. It swaps a charged glutamate on the protein's surface for a hydrophobic valine. That valine creates a sticky patch. When oxygen is low, haemoglobin molecules stick to each other through it and form long fibres, which bend red cells into a sickle shape. One base changes one residue, the residue changes a surface, and the surface changes a whole cell.</p>
+    <p>In Chapter 10 you can make the single change <code>c.20A&gt;T</code> in the β-globin gene. It swaps a charged glutamate on the protein's surface for a hydrophobic valine. That valine creates a sticky patch. When oxygen is low, haemoglobin molecules stick to each other through it and form long fibres, which bend red cells into a sickle shape. One base changes one residue, the residue changes a surface, and the surface changes a whole cell.</p>
   </div>
   <div class="scroll-x">
     <table class="data">
@@ -897,9 +910,79 @@ ATOM      2  CA  MET A   1      11.104  13.207   2.100  1.00 20.00           C</
   <div class="quiz" data-quiz="proteins"></div>
 </section>
 
+<!-- ============ METABOLISM ============ -->
+<section class="ch" id="metabolism" data-title="Metabolism" data-num="09">
+  <div class="ch-head"><span class="num">Chapter 09</span><h2>Metabolism: chemistry run by enzymes</h2><p>Metabolism is every chemical reaction in a cell. Enzymes from the last chapter carry out the reactions, genes encode the enzymes, and pathways chain the reactions together into a network.</p></div>
+  <div class="two">
+    <div class="panel">
+      <p class="eyebrow">Catabolism</p>
+      <h3>Breaking down</h3>
+      <ul>
+        <li>Splits food molecules (sugars, fats, proteins) into smaller ones.</li>
+        <li>Releases energy and captures it as <b>ATP</b>, and as electrons carried by <b>NADH</b> and FADH₂.</li>
+        <li>Example: glucose → CO₂ + H₂O in cellular respiration.</li>
+      </ul>
+    </div>
+    <div class="panel">
+      <p class="eyebrow">Anabolism</p>
+      <h3>Building up</h3>
+      <ul>
+        <li>Builds large molecules (proteins, DNA, lipids) from small ones.</li>
+        <li>Spends ATP for energy and NADPH for electrons.</li>
+        <li>Example: amino acids → protein at the ribosome.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="prose">
+    <p><b>ATP</b> (adenosine triphosphate) is the cell's energy currency. Breaking off its last phosphate releases about 30 kJ/mol under standard conditions, and a lot more under real cell conditions. A resting adult turns over roughly their own body weight in ATP every day, recycling the same small pool thousands of times.</p>
+  </div>
+  <div class="bench">
+    <div class="bench-head"><h3>Energy from one glucose</h3><span class="hint">Click a stage for details. Switch oxygen off to see what fermentation leaves you with.</span></div>
+    <div class="bench-body">
+      <div class="controls">
+        <div class="seg" role="group" aria-label="Oxygen"><button type="button" data-o2="1" aria-pressed="true">Oxygen present</button><button type="button" data-o2="0" aria-pressed="false">No oxygen</button></div>
+        <div class="seg" role="group" aria-label="Organism" id="ferm-org" hidden><button type="button" data-org="muscle" aria-pressed="true">Human muscle</button><button type="button" data-org="yeast" aria-pressed="false">Yeast</button></div>
+      </div>
+      <div class="flow" id="resp-flow"></div>
+      <div class="stats" id="resp-stats"></div>
+      <div class="part-info" id="resp-info" aria-live="polite"></div>
+    </div>
+  </div>
+  <div class="bench">
+    <div class="bench-head"><h3>Inborn errors of metabolism</h3><span class="hint">The phenylalanine breakdown pathway. Knock out an enzyme and see what builds up.</span></div>
+    <div class="bench-body">
+      <div class="controls" id="pku-ctl"><span class="small muted">Knock out:</span></div>
+      <div class="controls"><label class="fld" for="pku-diet"><span>Dietary phenylalanine: <span class="mono" id="pku-diet-v">100%</span> of normal</span><input type="range" id="pku-diet" min="10" max="200" step="10" value="100"></label></div>
+      <div class="chart-wrap scroll-x" id="pku-wrap"><div class="tip" id="pku-tip" hidden></div></div>
+      <div class="verdict" id="pku-out" aria-live="polite"></div>
+      <p class="small muted">Bars show steady-state levels relative to a healthy cell, on a log scale. The numbers come from a small toy model (each enzyme follows Michaelis–Menten kinetics, with slow excretion of every metabolite). The direction of every change matches the real diseases; the sizes are illustrative.</p>
+    </div>
+  </div>
+  <div class="prose">
+    <p>Archibald Garrod studied alkaptonuria in 1902 and proposed that it was a recessively inherited "inborn error of metabolism": one missing enzyme, one blocked step. It was one of the first links between genes and biochemistry. Today every newborn in many countries is screened by a heel-prick blood test for PKU and dozens of similar conditions, often using mass spectrometry.</p>
+  </div>
+  <div class="scroll-x">
+    <table class="data">
+      <thead><tr><th>EC class</th><th>Enzyme type</th><th>What it does</th><th>Example</th></tr></thead>
+      <tbody>
+        <tr><td class="num">EC 1</td><td>Oxidoreductases</td><td>Move electrons (oxidation and reduction)</td><td>Phenylalanine hydroxylase, EC 1.14.16.1</td></tr>
+        <tr><td class="num">EC 2</td><td>Transferases</td><td>Move a chemical group between molecules</td><td>Hexokinase, EC 2.7.1.1 (adds a phosphate to glucose)</td></tr>
+        <tr><td class="num">EC 3</td><td>Hydrolases</td><td>Break bonds using water</td><td>Lactase, EC 3.2.1.108</td></tr>
+        <tr><td class="num">EC 4</td><td>Lyases</td><td>Break bonds without water or oxidation</td><td>Aldolase in glycolysis</td></tr>
+        <tr><td class="num">EC 5</td><td>Isomerases</td><td>Rearrange atoms within a molecule</td><td>Triose-phosphate isomerase</td></tr>
+        <tr><td class="num">EC 6</td><td>Ligases</td><td>Join molecules, spending ATP</td><td>DNA ligase</td></tr>
+        <tr><td class="num">EC 7</td><td>Translocases</td><td>Move molecules across membranes</td><td>ATP synthase (added as a class in 2018)</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="lens cs"><span class="tag">CS lens</span><p>A metabolic network is a graph: metabolites are nodes, reactions are edges (really hyperedges, since one reaction can take several inputs). Databases such as KEGG, Reactome and MetaCyc store these maps. <b>Flux balance analysis</b> writes the whole network as a stoichiometric matrix <i>S</i> and finds reaction rates <i>v</i> with <i>S·v = 0</i> (nothing piles up) that maximise some goal, such as growth. That is a linear programming problem. It is used to predict which gene knockouts will kill a bacterium or make it produce more of a chemical.</p></div>
+  <div class="lens bio"><span class="tag">Bio depth</span><p>Most mammals stop making lactase after weaning. In many people of European, East African and Middle Eastern ancestry, variants in an enhancer upstream of the lactase gene <i>LCT</i> keep it switched on into adulthood. The best known is −13910C&gt;T, which sits inside the neighbouring gene <i>MCM6</i>. It is a textbook case of a regulatory variant (Chapter 07) under recent natural selection. <b>Metabolomics</b> measures hundreds to thousands of small molecules at once, mostly by mass spectrometry.</p></div>
+  <div class="quiz" data-quiz="metabolism"></div>
+</section>
+
 <!-- ============ 7 VARIATION ============ -->
-<section class="ch" id="variation" data-title="Mutation and variation" data-num="09">
-  <div class="ch-head"><span class="num">Chapter 09</span><h2>Mutation and variation</h2><p>Two people's genomes differ at roughly 4–5 million sites. Most differences do nothing. A few change a protein, and some of those cause disease.</p></div>
+<section class="ch" id="variation" data-title="Mutation and variation" data-num="10">
+  <div class="ch-head"><span class="num">Chapter 10</span><h2>Mutation and variation</h2><p>Two people's genomes differ at roughly 4–5 million sites. Most differences do nothing. A few change a protein, and some of those cause disease.</p></div>
   <div class="bench">
     <div class="bench-head"><h3>Mutation lab</h3><span class="hint">The start of the human β-globin gene (<i>HBB</i>). Click a base, then change, delete or insert.</span></div>
     <div class="bench-body">
@@ -936,8 +1019,8 @@ ATOM      2  CA  MET A   1      11.104  13.207   2.100  1.00 20.00           C</
 </section>
 
 <!-- ============ 8 HOMOLOGY ============ -->
-<section class="ch" id="homology" data-title="Evolution and alignment" data-num="10">
-  <div class="ch-head"><span class="num">Chapter 10</span><h2>Evolution, homology and alignment</h2><p>Sequences are similar because they share an ancestor. Alignment is how we measure that similarity, and it is the core algorithm of the field.</p></div>
+<section class="ch" id="homology" data-title="Evolution and alignment" data-num="11">
+  <div class="ch-head"><span class="num">Chapter 11</span><h2>Evolution, homology and alignment</h2><p>Sequences are similar because they share an ancestor. Alignment is how we measure that similarity, and it is the core algorithm of the field.</p></div>
   <div class="two">
     <div class="panel">
       <h3>Words that are often misused</h3>
@@ -980,9 +1063,102 @@ ATOM      2  CA  MET A   1      11.104  13.207   2.100  1.00 20.00           C</
   <div class="quiz" data-quiz="homology"></div>
 </section>
 
+<!-- ============ PHYLOGENETICS ============ -->
+<section class="ch" id="phylogenetics" data-title="Phylogenetics" data-num="12">
+  <div class="ch-head"><span class="num">Chapter 12</span><h2>Phylogenetics: reading and building trees</h2><p>A phylogenetic tree is a hypothesis about how sequences or species are related through common ancestors. You will read hundreds of them, so learn to read them correctly first.</p></div>
+  <div class="two">
+    <div class="panel">
+      <h3>Parts of a tree</h3>
+      <ul>
+        <li><b>Tips</b> (leaves): the sequences or species you sampled, usually living today.</li>
+        <li><b>Internal nodes</b>: inferred common ancestors. They were not observed.</li>
+        <li><b>Root</b>: the common ancestor of everything in the tree. It gives the direction of time.</li>
+        <li><b>Branch lengths</b>: in a <i>phylogram</i>, the amount of change, usually substitutions per site. In a <i>cladogram</i>, only the branching order is shown.</li>
+        <li><b>Clade</b>: an ancestor and <i>all</i> of its descendants. Also called a monophyletic group.</li>
+      </ul>
+    </div>
+    <div class="panel">
+      <h3>Common misreadings</h3>
+      <ul>
+        <li>Tips drawn next to each other are not necessarily closest relatives. Relatedness is set by the <b>most recent common ancestor</b> (MRCA).</li>
+        <li>Branches can rotate around any node without changing the tree, like a mobile.</li>
+        <li>No living species is "more evolved". Human and chimpanzee have had exactly the same time to evolve since their split.</li>
+        <li>An <b>unrooted</b> tree shows relationships but not direction. Adding an <b>outgroup</b>, a sequence known to lie outside the group, lets you place the root.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="bench">
+    <div class="bench-head"><h3>Tree reader</h3><span class="hint">Click two tips to find their most recent common ancestor. Click an internal node (●) to rotate it.</span></div>
+    <div class="bench-body">
+      <label class="fld" for="nwk-in">Newick string
+        <textarea id="nwk-in" class="seqin" rows="2" spellcheck="false">((((((Human,Chimpanzee),Gorilla),Orangutan),((Mouse,Rat),Rabbit)),(Cow,Dog)),Chicken);</textarea>
+      </label>
+      <div class="chips" id="nwk-presets"><span class="small muted">Examples:</span></div>
+      <p class="err" id="nwk-err" hidden></p>
+      <div class="chart-wrap scroll-x" id="tree-wrap"></div>
+      <div class="part-info" id="tree-info" aria-live="polite"></div>
+      <div class="outrow"><span class="lbl">Newick after your rotations</span><span class="val" id="nwk-out"></span><button class="btn" type="button" data-copy="nwk-out">Copy</button></div>
+    </div>
+  </div>
+  <div class="prose">
+    <h3>How trees are built</h3>
+    <ol>
+      <li><b>Collect homologous sequences</b> and align them (Chapter 11). A tree is only as good as its alignment.</li>
+      <li><b>Pick a method.</b> Distance methods (UPGMA, neighbour joining) turn the alignment into a table of pairwise distances and cluster it. Character methods look at every column: <b>maximum parsimony</b> finds the tree needing the fewest changes, <b>maximum likelihood</b> (IQ-TREE, RAxML) and <b>Bayesian</b> methods (MrBayes, BEAST) use an explicit model of how sequences change.</li>
+      <li><b>Measure support.</b> <b>Bootstrapping</b> resamples alignment columns with replacement, rebuilds the tree many times, and reports how often each clade reappears. Values above about 70–95% (depending on the method) are usually taken as good support.</li>
+      <li><b>Root it</b> with an outgroup, or with a molecular clock.</li>
+    </ol>
+  </div>
+  <div class="bench">
+    <div class="bench-head"><h3>Build a tree with UPGMA</h3><span class="hint">From alignment to distances to tree. Edit the sequences or step through the clustering.</span></div>
+    <div class="bench-body">
+      <label class="fld" for="up-in">Aligned sequences, one per line: name then sequence (same length)
+        <textarea id="up-in" class="seqin" rows="6" spellcheck="false">Sp_A  ATGCTAGCTAGGCTACGATCGATCCTAG
+Sp_B  ATGCTAGCTAGGCTACGATCGTTCCTAG
+Sp_C  ATGCTAGCAAGGCTTCGATCGATCCAAG
+Sp_D  ATGGTACCAAGCCTTCGTTCGAACCAAG
+Sp_E  TTGGTACCTAGCCTTCCTTGGAACGAAG</textarea>
+      </label>
+      <div class="controls">
+        <div class="seg" role="group" aria-label="Distance" id="up-dist"><button type="button" data-d="p" aria-pressed="true">p-distance</button><button type="button" data-d="jc" aria-pressed="false">Jukes–Cantor</button></div>
+        <button class="btn" type="button" id="up-prev">← Previous merge</button><button class="btn primary" type="button" id="up-next">Next merge →</button>
+        <span class="small muted" id="up-step"></span>
+      </div>
+      <p class="err" id="up-err" hidden></p>
+      <div class="two">
+        <div style="display:grid;gap:8px;min-width:0"><p class="eyebrow">Current distance matrix</p><div class="scroll-x"><table class="dp dm" id="up-mat"></table></div><div class="part-info small" id="up-note"></div></div>
+        <div style="display:grid;gap:8px;min-width:0"><p class="eyebrow">Tree so far (phylogram)</p><div class="chart-wrap scroll-x" id="up-tree"></div></div>
+      </div>
+    </div>
+  </div>
+  <div class="two">
+    <div class="panel">
+      <h3>The tree of life</h3>
+      <ul>
+        <li>All cellular life falls into <b>Bacteria</b>, <b>Archaea</b> and <b>eukaryotes</b>. Carl Woese defined this split in 1977 by comparing 16S/18S ribosomal RNA.</li>
+        <li>Recent genome data place eukaryotes <i>within</i> the Archaea, close to the Asgard archaea.</li>
+        <li>Mitochondria descend from an engulfed alphaproteobacterium, and chloroplasts from a cyanobacterium (endosymbiosis). Their genomes still group with those bacteria on trees.</li>
+        <li>Genes also move sideways between bacteria by <b>horizontal gene transfer</b>, which is how antibiotic resistance spreads. This makes the bacterial "tree" partly a web.</li>
+      </ul>
+    </div>
+    <div class="panel">
+      <h3>What trees are used for</h3>
+      <ul>
+        <li><b>Outbreak tracking</b>: SARS-CoV-2 lineages and transmission chains were followed in near real time with trees (Nextstrain).</li>
+        <li><b>Ortholog and paralog calling</b>: a gene tree reconciled with the species tree shows which splits were speciations and which were duplications (Chapter 11).</li>
+        <li><b>Metagenomics</b>: placing 16S rRNA reads on a reference tree identifies which microbes are in a sample.</li>
+        <li><b>Dating</b>: with fossils or sampling dates as calibration, a molecular clock converts branch lengths into years.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="lens cs"><span class="tag">CS lens</span><p>A rooted phylogeny is a binary tree, and <b>Newick</b> is its serialisation: nested parentheses, commas between children, optional <code>:length</code> after each node, ending in <code>;</code>. The number of distinct rooted binary trees for <i>n</i> tips is (2n−3)!!. That is 10,395 trees for 7 tips and about 8 × 10²¹ for 20, so exhaustive search is impossible and tree building uses heuristics. Maximum parsimony scoring on a fixed tree uses the Fitch algorithm, a bottom-up pass of set intersections and unions.</p></div>
+  <div class="lens bio"><span class="tag">Bio depth</span><p>The p-distance, the fraction of sites that differ, underestimates true divergence. Once sequences have diverged a lot, a site can change twice (A→G→A) and look unchanged. The <b>Jukes–Cantor</b> correction, d = −¾ ln(1 − 4p/3), estimates the hidden changes. It tends to infinity as p approaches 0.75, the level at which two random DNA sequences would match by chance. More realistic models (K80, HKY, GTR) allow transitions and transversions to happen at different rates.</p></div>
+  <div class="quiz" data-quiz="phylogenetics"></div>
+</section>
+
 <!-- ============ 9 DATA ============ -->
-<section class="ch" id="data" data-title="Sequencing and file formats" data-num="11">
-  <div class="ch-head"><span class="num">Chapter 11</span><h2>From molecules to files</h2><p>Sequencers do not read a genome from end to end. They produce millions of short, error-prone fragments, and software reassembles the picture.</p></div>
+<section class="ch" id="data" data-title="Sequencing and file formats" data-num="13">
+  <div class="ch-head"><span class="num">Chapter 13</span><h2>From molecules to files</h2><p>Sequencers do not read a genome from end to end. They produce millions of short, error-prone fragments, and software reassembles the picture.</p></div>
   <div class="scroll-x">
     <table class="data">
       <thead><tr><th>Technology</th><th>Read length</th><th>Per-read accuracy</th><th>Good for</th></tr></thead>
@@ -1049,8 +1225,8 @@ ATOM      2  CA  MET A   1      11.104  13.207   2.100  1.00 20.00           C</
 </section>
 
 <!-- ============ 10 BENCH ============ -->
-<section class="ch" id="bench" data-title="Workbench: triplets.txt" data-num="12">
-  <div class="ch-head"><span class="num">Chapter 12</span><h2>Workbench: the course sequence</h2><p>This is the sequence from <code>triplets.txt</code> in the course repository. The file lists one human DNA sequence three times, split into triplets starting at base 1, 2 and 3. Those are its three forward reading frames. Here it is joined back into one string of 10,309 bases so you can analyse it.</p></div>
+<section class="ch" id="bench" data-title="Workbench: triplets.txt" data-num="14">
+  <div class="ch-head"><span class="num">Chapter 14</span><h2>Workbench: the course sequence</h2><p>This is the sequence from <code>triplets.txt</code> in the course repository. The file lists one human DNA sequence three times, split into triplets starting at base 1, 2 and 3. Those are its three forward reading frames. Here it is joined back into one string of 10,309 bases so you can analyse it.</p></div>
   <div class="bench">
     <div class="bench-head"><h3>Composition</h3><span class="hint" id="wb-src"></span></div>
     <div class="bench-body">
@@ -1111,8 +1287,8 @@ ATOM      2  CA  MET A   1      11.104  13.207   2.100  1.00 20.00           C</
 </section>
 
 <!-- ============ GLOSSARY ============ -->
-<section class="ch" id="glossary" data-title="Glossary" data-num="13">
-  <div class="ch-head"><span class="num">Chapter 13</span><h2>Glossary and translation table</h2><p>Terms from both fields, and how they map onto each other.</p></div>
+<section class="ch" id="glossary" data-title="Glossary" data-num="15">
+  <div class="ch-head"><span class="num">Chapter 15</span><h2>Glossary and translation table</h2><p>Terms from both fields, and how they map onto each other.</p></div>
   <div class="scroll-x">
     <table class="data">
       <thead><tr><th>Biology</th><th>Computing analogy</th><th>Where the analogy breaks</th></tr></thead>
@@ -2113,8 +2289,143 @@ drawKaryotype();
   ['mm-km','mm-i'].forEach(id=>$('#'+id).addEventListener('input',draw));
   $('#mm-type').addEventListener('click',e=>{const b=e.target.closest('[data-t]');if(!b)return;type=b.dataset.t;$$('#mm-type button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));draw()});draw()})();
 
+/* ---------- 9. metabolism: respiration ---------- */
+(function(){const st={o2:true,org:'muscle',sel:0};
+  const S=[
+   {n:'Glycolysis',loc:'Cytoplasm',y:'+2 ATP · +2 NADH',txt:'Glucose (6 carbons) is split into two pyruvate (3 carbons each) in ten enzyme steps. Two ATP are invested and four are made, a net gain of 2. Two NAD⁺ are reduced to NADH. No oxygen is needed, which is why every living cell can do it.'},
+   {n:'Pyruvate oxidation',loc:'Mitochondrial matrix',y:'+2 NADH · 2 CO₂',txt:'Each pyruvate enters the mitochondrion, loses one carbon as CO₂ and becomes acetyl-CoA. The pyruvate dehydrogenase complex makes one NADH per pyruvate.'},
+   {n:'Citric acid cycle',loc:'Mitochondrial matrix',y:'+2 ATP · +6 NADH · +2 FADH₂ · 4 CO₂',txt:'Acetyl-CoA joins oxaloacetate and is oxidised round an eight-step cycle, releasing 2 CO₂ per turn. Two turns per glucose give 2 ATP (made as GTP), 6 NADH and 2 FADH₂. The cycle also supplies starting materials for amino acids, haem and fats.'},
+   {n:'Oxidative phosphorylation',loc:'Inner mitochondrial membrane',y:'≈ +28 ATP · O₂ → H₂O',txt:'NADH and FADH₂ hand their electrons to the electron transport chain. That energy pumps protons across the membrane, and ATP synthase uses the protons flowing back to make ATP: about 2.5 per NADH and 1.5 per FADH₂. Oxygen is the final electron acceptor and becomes water. Without oxygen the chain stops, and so do the two stages before it.'}];
+  const FERM={muscle:['Lactic acid fermentation','Pyruvate + NADH → lactate + NAD⁺ (lactate dehydrogenase). Hard-working muscle does this when oxygen runs short. The liver later turns lactate back into glucose.'],yeast:['Alcoholic fermentation','Pyruvate → acetaldehyde + CO₂ → ethanol, regenerating NAD⁺. This is how yeast raises bread and makes beer and wine.']};
+  function draw(){const off=i=>!st.o2&&i>0;
+    let h=S.map((s,i)=>`<button type="button" class="flowcard${off(i)?' off':''}${st.sel===i?' on':''}" data-i="${i}"><span class="c">${i+1}</span><span class="t">${s.n}</span><span class="l">${s.loc}</span><span class="y">${off(i)?'stopped':s.y}</span></button>`).join('<span class="arr" aria-hidden="true">→</span>');
+    if(!st.o2){const f=FERM[st.org];h=`<button type="button" class="flowcard${st.sel===0?' on':''}" data-i="0"><span class="c">1</span><span class="t">${S[0].n}</span><span class="l">${S[0].loc}</span><span class="y">${S[0].y}</span></button><span class="arr" aria-hidden="true">→</span><button type="button" class="flowcard ferm${st.sel===9?' on':''}" data-i="9"><span class="c">2</span><span class="t">${f[0]}</span><span class="l">Cytoplasm</span><span class="y">0 ATP · NADH → NAD⁺</span></button>`+S.slice(1).map((s,i)=>`<span class="arr" aria-hidden="true">·</span><button type="button" class="flowcard off" data-i="${i+1}"><span class="t">${s.n}</span><span class="y">stopped</span></button>`).join('')}
+    $('#resp-flow').innerHTML=h;
+    const cell=(k,v)=>`<div class="stat"><div class="k">${k}</div><div class="v">${v}</div></div>`;
+    $('#resp-stats').innerHTML=st.o2?cell('ATP, directly','4')+cell('ATP, via O₂','≈ 28')+cell('Total ATP','≈ 30–32')+cell('NADH / FADH₂','10 / 2')+cell('CO₂ released','6'):cell('ATP, directly','2')+cell('ATP, via O₂','0')+cell('Total ATP','2')+cell('NADH','2 made, 2 recycled')+cell('CO₂ released',st.org==='yeast'?'2':'0');
+    const s=st.sel===9?{n:FERM[st.org][0],txt:FERM[st.org][1]+' Fermentation makes no ATP itself. Its job is to regenerate NAD⁺ so glycolysis can keep going. That is why anaerobic cells need about 15 times more glucose for the same energy.'}:S[st.sel];
+    $('#resp-info').innerHTML=`<b>${esc(s.n)}.</b> ${esc(s.txt)}${st.sel===3?' <span class="muted">Textbooks give 30–38 ATP per glucose; the modern estimate is about 30–32, depending on how NADH from glycolysis enters the mitochondrion.</span>':''}`}
+  $('#resp-flow').addEventListener('click',e=>{const b=e.target.closest('.flowcard');if(!b||b.classList.contains('off'))return;st.sel=+b.dataset.i;draw()});
+  $$('[data-o2]').forEach(b=>b.addEventListener('click',()=>{st.o2=b.dataset.o2==='1';$$('[data-o2]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));$('#ferm-org').hidden=st.o2;st.sel=st.o2?0:9;draw()}));
+  $$('[data-org]').forEach(b=>b.addEventListener('click',()=>{st.org=b.dataset.org;$$('[data-org]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));draw()}));draw()})();
+
+/* ---------- 9. metabolism: phenylalanine pathway ---------- */
+(function(){const ENZ=[['PAH','Phenylalanine hydroxylase','Phenylketonuria (PKU)','Phenylalanine builds up to toxic levels and harms the developing brain. Some is diverted to phenylpyruvate, a "phenylketone" that spills into urine and gives the disease its name. Tyrosine becomes scarce, so it must come from the diet. Treatment is a low-phenylalanine diet from birth: move the diet slider down to see why it works.'],
+    ['TAT','Tyrosine aminotransferase','Tyrosinaemia type II','Tyrosine accumulates and forms crystals in the eyes and skin. Treated with a diet low in both tyrosine and phenylalanine.'],
+    ['HPD','4-Hydroxyphenylpyruvate dioxygenase','Tyrosinaemia type III','4-Hydroxyphenylpyruvate and tyrosine rise. The drug nitisinone deliberately blocks this same enzyme to treat tyrosinaemia type I, where a later step fails and toxic products form downstream.'],
+    ['HGD','Homogentisate 1,2-dioxygenase','Alkaptonuria','Homogentisic acid builds up and is excreted. Urine turns black on standing, and over decades the pigment deposits in cartilage and joints. The first disease Garrod described as an inborn error of metabolism.']];
+  const MET=['Phenylalanine','Tyrosine','4-Hydroxyphenylpyruvate','Homogentisate'];let ko=-1;
+  const V=4,K=1,ex=0.02,ks=0.05,kp=0.1,kt=0.5,tyrDiet=0.3;
+  const ss=(inp,Vm,k)=>{const b=k*K+Vm-inp;const S=(-b+Math.sqrt(b*b+4*k*inp*K))/(2*k);return[S,Vm*S/(K+S)]};
+  function solve(diet,kox){const Vs=[0,1,2,3].map(i=>i===kox?0:V);
+    const [P,v1]=ss(diet,Vs[0],kp+ks+ex);const [T,v2]=ss(v1+tyrDiet,Vs[1],kt+ex);const [H,v3]=ss(v2,Vs[2],ex);const [G,v4]=ss(v3,Vs[3],ex);return{lv:[P,T,H,G],pp:ks*P,out:v4}}
+  const base=solve(1,-1);
+  $('#pku-ctl').insertAdjacentHTML('beforeend',`<div class="seg" role="group" aria-label="Enzyme knocked out"><button type="button" data-ko="-1" aria-pressed="true">None (healthy)</button>${ENZ.map((e,i)=>`<button type="button" data-ko="${i}" aria-pressed="false">${e[0]}</button>`).join('')}</div>`);
+  function draw(){const diet=+$('#pku-diet').value/100;$('#pku-diet-v').textContent=Math.round(diet*100)+'%';const r=solve(diet,ko);
+    const rows=[];MET.forEach((m,i)=>{rows.push({t:'m',name:m,f:r.lv[i]/base.lv[i]});if(i<4)rows.push({t:'e',i})});rows.push({t:'m',name:'Energy (fumarate + acetoacetate)',f:r.out/base.out});rows.push({t:'gap'});rows.push({t:'m',name:'Phenylpyruvate (side route)',f:r.pp/base.pp});
+    const W=800,ml=240,mr=70,rh=26,eh=20,lo=-2,hi=2;const X=f=>ml+(Math.log10(Math.max(1e-2,Math.min(1e2,f)))-lo)/(hi-lo)*(W-ml-mr);let y=18,h='';
+    const body=[];rows.forEach(rw=>{if(rw.t==='gap'){y+=12;return}if(rw.t==='e'){const e=ENZ[rw.i];const k=ko===rw.i;body.push(`<text x="${ml-150}" y="${y+14}" style="font-size:11px;fill:${k?'var(--bad)':'var(--ink-2)'};font-family:var(--f-mono)">↓ ${e[0]}${k?' ✕ knocked out':''}</text>`);y+=eh;return}
+      const x0=X(1),x1=X(rw.f),up=rw.f>=1;const fl=rw.f<0.01?'<0.01×':rw.f>100?'>100×':rw.f>=10?fmt(rw.f,0)+'×':rw.f.toFixed(rw.f<0.1?3:2)+'×';
+      body.push(`<g class="pkb" data-t="${esc(rw.name)}" data-f="${fl}"><rect x="0" y="${y}" width="${W}" height="${rh}" style="fill:transparent"/><text x="${ml-10}" y="${y+17}" text-anchor="end" style="fill:var(--ink)">${esc(rw.name)}</text><rect x="${Math.min(x0,x1).toFixed(1)}" y="${y+5}" width="${Math.max(2,Math.abs(x1-x0)).toFixed(1)}" height="${rh-10}" rx="3" style="fill:${Math.abs(Math.log10(rw.f))<0.05?'var(--muted)':up?'var(--chart-2)':'var(--chart)'}"/><text x="${(up?Math.max(x0,x1)+6:Math.min(x0,x1)-6).toFixed(1)}" y="${y+17}" text-anchor="${up?'start':'end'}" style="fill:var(--ink-2);font-variant-numeric:tabular-nums">${fl}</text></g>`);y+=rh});
+    const H=y+30;h=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Metabolite levels relative to a healthy cell" style="min-width:600px"><g class="grid">${[-2,-1,0,1,2].map(e=>`<line x1="${X(10**e)}" x2="${X(10**e)}" y1="10" y2="${H-24}"/>`).join('')}</g><line x1="${X(1)}" x2="${X(1)}" y1="10" y2="${H-24}" style="stroke:var(--ink-2)"/>${[-2,-1,0,1,2].map(e=>`<text x="${X(10**e)}" y="${H-8}" text-anchor="middle">${['0.01×','0.1×','1× (healthy)','10×','100×'][e+2]}</text>`).join('')}${body.join('')}</svg>`;
+    const wrap=$('#pku-wrap');wrap.querySelectorAll('svg').forEach(s=>s.remove());wrap.insertAdjacentHTML('beforeend',h);const svg=wrap.querySelector('svg');
+    svg.addEventListener('mousemove',e=>{const g=e.target.closest('.pkb');if(!g){$('#pku-tip').hidden=true;return}const p=svgPoint(svg,e,W);tip($('#pku-tip'),wrap,p.px,p.py,`${esc(g.dataset.t)}<br><b>${esc(g.dataset.f)}</b> healthy level`)});
+    svg.addEventListener('mouseleave',()=>$('#pku-tip').hidden=true);
+    $('#pku-out').innerHTML=ko<0?`<span class="badge silent">Healthy</span><span>Every enzyme works, so nothing piles up. Phenylalanine not used for protein is converted to tyrosine and finally broken down for energy.${diet!==1?' Changing the diet shifts levels a little, but the enzymes absorb most of the change.':''}</span>`:`<span class="badge nonsense">${ENZ[ko][2]}</span><span><b>${ENZ[ko][1]}</b> (<i>${ENZ[ko][0]}</i> gene) is missing. The step before it backs up and everything after it drops. ${ENZ[ko][3]}</span>`}
+  $('#pku-ctl').addEventListener('click',e=>{const b=e.target.closest('[data-ko]');if(!b)return;ko=+b.dataset.ko;$$('#pku-ctl [data-ko]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));draw()});
+  $('#pku-diet').addEventListener('input',draw);draw()})();
+
+/* ---------- 12. phylogenetics: tree tools ---------- */
+function parseNewick(str){const s=str.replace(/\s+/g,'');let i=0;
+  function node(){const n={children:[],name:'',len:null};if(s[i]==='('){i++;n.children.push(node());while(s[i]===','){i++;n.children.push(node())}if(s[i]!==')')throw new Error('A "(" is never closed, or a name contains a bracket.');i++}
+    let nm='';while(i<s.length&&!',():;'.includes(s[i]))nm+=s[i++];n.name=nm.replace(/_/g,' ');
+    if(s[i]===':'){i++;let num='';while(i<s.length&&!',();'.includes(s[i]))num+=s[i++];n.len=parseFloat(num);if(isNaN(n.len))throw new Error(`"${num}" is not a valid branch length.`)}return n}
+  if(!s)throw new Error('Enter a Newick string, ending with ";".');const r=node();if(s[i]!==';')throw new Error(i<s.length?`Unexpected "${s[i]}" at character ${i+1}.`:'Newick strings end with ";".');
+  if(!r.children.length)throw new Error('A tree needs at least two tips.');return r}
+function toNewick(n,top=true){const nm=n.name.replace(/ /g,'_');return(n.children.length?'('+n.children.map(c=>toNewick(c,false)).join(',')+')':'')+nm+(n.len!=null?':'+(+n.len.toFixed(4)):'')+(top?';':'')}
+function layoutTree(root){const tips=[],all=[];let hasLen=true;
+  (function w(n,p){n.parent=p;all.push(n);if(p&&n.len==null)hasLen=false;if(!n.children.length)tips.push(n);n.children.forEach(c=>w(c,n))})(root,null);
+  if(hasLen)(function w(n,x){n.x=x;n.children.forEach(c=>w(c,x+Math.max(0,c.len)))})(root,0);
+  else{const ht=n=>(n.ht=n.children.length?1+Math.max(...n.children.map(ht)):0);ht(root);all.forEach(n=>n.x=root.ht-n.ht)}
+  tips.forEach((t,i)=>t.y=i);(function w(n){if(n.children.length){n.children.forEach(w);n.y=(n.children[0].y+n.children[n.children.length-1].y)/2}})(root);
+  return{tips,all,hasLen,maxX:Math.max(1e-9,...all.map(n=>n.x))}}
+function mrcaOf(a,b){const anc=new Set();for(let n=a;n;n=n.parent)anc.add(n);let m=b;while(m&&!anc.has(m))m=m.parent;return m}
+function tipsUnder(n){return n.children.length?n.children.flatMap(tipsUnder):[n]}
+function renderTree(wrap,root,o={}){const L=layoutTree(root),W=o.W||800,rh=o.rh||26;const lw=Math.max(...L.tips.map(t=>t.name.length))*7.4+16;
+  const ml=18,mr=lw,mt=14,H=mt+L.tips.length*rh+(L.hasLen?34:4);const X=x=>ml+x/L.maxX*(W-ml-mr),Y=y=>mt+y*rh+rh/2;
+  const path=new Set();let mrca=null;if(o.sel&&o.sel.length===2){mrca=mrcaOf(o.sel[0],o.sel[1]);o.sel.forEach(t=>{for(let n=t;n&&n!==mrca;n=n.parent)path.add(n)})}
+  let h=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(o.label||'Phylogenetic tree')}" style="min-width:${o.minW||420}px">`;
+  const es=o.edgeStyle||(()=> 'stroke:var(--ink-2);stroke-width:1.6');
+  L.all.forEach(n=>{if(!n.children.length)return;const f=n.children[0],l=n.children[n.children.length-1];
+    n.children.forEach(c=>{h+=`<path d="M${X(n.x).toFixed(1)} ${Y(n.y).toFixed(1)}V${Y(c.y).toFixed(1)}H${X(c.x).toFixed(1)}" style="fill:none;${es(n,c)}"/>`});
+    void f;void l});
+  path.forEach(c=>{const n=c.parent;h+=`<path d="M${X(n.x).toFixed(1)} ${Y(n.y).toFixed(1)}V${Y(c.y).toFixed(1)}H${X(c.x).toFixed(1)}" style="fill:none;stroke:var(--accent);stroke-width:3.2"/>`});
+  h+=`<path d="M${ml-12} ${Y(root.y)}H${X(root.x)}" style="stroke:var(--ink-2);stroke-width:1.6"/>`;
+  L.all.forEach((n,k)=>{n._k=k;if(n.children.length){const on=n===mrca;h+=`<g class="tnode" data-k="${k}" ${o.interactive?'tabindex="0" role="button" aria-label="Rotate this node"':''} style="${o.interactive?'cursor:pointer':''}"><circle cx="${X(n.x)}" cy="${Y(n.y)}" r="${o.interactive?11:0}" style="fill:transparent"/><circle cx="${X(n.x)}" cy="${Y(n.y)}" r="${on?6.5:4}" style="fill:${on?'var(--accent)':'var(--ink-2)'}"/>${on?`<text x="${X(n.x)-8}" y="${Y(n.y)-9}" text-anchor="end" style="fill:var(--accent);font-weight:700">MRCA</text>`:''}${n.name?`<text x="${X(n.x)+6}" y="${Y(n.y)-7}" style="font-size:11px;fill:var(--ink-2)">${esc(n.name)}</text>`:''}</g>`}
+    else{const s=o.sel&&o.sel.includes(n);h+=`<g class="ttip" data-k="${k}" ${o.interactive?'tabindex="0" role="button"':''} style="${o.interactive?'cursor:pointer':''}"><rect x="${X(n.x)}" y="${Y(n.y)-rh/2}" width="${W-X(n.x)}" height="${rh}" style="fill:transparent"/><circle cx="${X(n.x)}" cy="${Y(n.y)}" r="3" style="fill:var(--ink-2)"/><text x="${X(n.x)+8}" y="${Y(n.y)+4}" style="fill:${s?'var(--accent)':'var(--ink)'};${s?'font-weight:700':''}">${esc(n.name||'(unnamed)')}</text></g>`}});
+  if(L.hasLen){const raw=L.maxX/4,p=10**Math.floor(Math.log10(raw)),bar=[1,2,5].map(m=>m*p).filter(v=>v<=raw).pop()||p;const x0=ml,x1=ml+bar/L.maxX*(W-ml-mr);
+    h+=`<path d="M${x0} ${H-16}H${x1}" style="stroke:var(--ink);stroke-width:1.6"/><text x="${x1+6}" y="${H-12}">${+bar.toPrecision(2)} ${esc(o.unit||'substitutions per site')}</text>`}
+  h+='</svg>';wrap.querySelectorAll('svg').forEach(s=>s.remove());wrap.insertAdjacentHTML('beforeend',h);return{L,mrca,svg:wrap.querySelector('svg')}}
+
+/* tree reader */
+(function(){const P=[['Vertebrates (cladogram)','((((((Human,Chimpanzee),Gorilla),Orangutan),((Mouse,Rat),Rabbit)),(Cow,Dog)),Chicken);'],
+    ['Apes with branch lengths','((((Human:0.006,Chimpanzee:0.006):0.002,Gorilla:0.008):0.0075,Orangutan:0.0155):0.004,Gibbon:0.02);'],
+    ['Tree of life (one current view)','((Escherichia_coli,Cyanobacterium)Bacteria,(Methanogen,(Asgard_archaeon,(Arabidopsis,(Yeast,Human))Eukaryotes)));']];
+  $('#nwk-presets').insertAdjacentHTML('beforeend',P.map(([n,s])=>`<button type="button" class="chip" data-nwk="${esc(s)}">${esc(n)}</button>`).join(''));
+  let root=null,sel=[];
+  function info(r){const out=$('#tree-info');
+    if(sel.length<2){out.innerHTML=sel.length?`<b>${esc(sel[0].name)}</b> selected. Click a second tip.`:`${r.L.tips.length} tips, ${r.L.all.length-r.L.tips.length} internal nodes, ${r.L.hasLen?'drawn as a phylogram (branch lengths shown to scale)':'drawn as a cladogram (branching order only)'}. Click two tips.`;return}
+    const cl=tipsUnder(r.mrca),others=r.L.tips.filter(t=>!cl.includes(t));let d='';
+    if(r.L.hasLen){let s=0;sel.forEach(t=>{for(let n=t;n!==r.mrca;n=n.parent)s+=n.len});d=` The path between them adds up to ${+s.toFixed(4)} substitutions per site.`}
+    out.innerHTML=`The most recent common ancestor of <b>${esc(sel[0].name)}</b> and <b>${esc(sel[1].name)}</b> is the pink node. Its clade holds ${cl.length} tips: ${cl.map(t=>esc(t.name)).join(', ')}.${others.length?` ${others.map(t=>esc(t.name)).join(', ')} ${others.length>1?'are':'is'} outside this clade, so ${others.length>1?'they are':'it is'} equally related to both.`:' That is the whole tree: they are related only through the root.'}${d}`}
+  function draw(){const r=renderTree($('#tree-wrap'),root,{interactive:true,sel,label:'Interactive phylogenetic tree'});info(r);$('#nwk-out').textContent=toNewick(root);
+    r.svg.addEventListener('click',e=>{const t=e.target.closest('.ttip'),n=e.target.closest('.tnode');
+      if(t){const node=r.L.all[+t.dataset.k];const i=sel.indexOf(node);if(i>=0)sel.splice(i,1);else{sel.push(node);if(sel.length>2)sel.shift()}draw()}
+      else if(n){r.L.all[+n.dataset.k].children.reverse();draw()}});
+    r.svg.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){const g=e.target.closest('.ttip,.tnode');if(g){e.preventDefault();g.dispatchEvent(new MouseEvent('click',{bubbles:true}))}}})}
+  function load(){const err=$('#nwk-err');try{root=parseNewick($('#nwk-in').value);err.hidden=true;sel=[];draw()}catch(x){err.textContent=x.message;err.hidden=false}}
+  $('#nwk-in').addEventListener('input',load);$('#nwk-presets').addEventListener('click',e=>{const b=e.target.closest('[data-nwk]');if(!b)return;$('#nwk-in').value=b.dataset.nwk;load()});load()})();
+
+/* UPGMA builder */
+(function(){let mode='p',step=0,res=null;
+  function build(){const err=$('#up-err');const lines=$('#up-in').value.split('\n').map(l=>l.trim()).filter(Boolean);
+    const seqs=[];for(const l of lines){const m=/^(\S+)\s+([A-Za-z-]+)$/.exec(l);if(!m)return err.textContent=`Could not read "${l.slice(0,30)}". Write a name, a space, then the sequence.`,null;seqs.push([m[1],m[2].toUpperCase()])}
+    if(seqs.length<3)return err.textContent='Enter at least three sequences.',null;if(seqs.length>10)return err.textContent='Keep it to ten sequences or fewer.',null;
+    const len=seqs[0][1].length;if(seqs.some(s=>s[1].length!==len))return err.textContent='All sequences must be the same length. Aligned sequences use "-" for gaps.',null;
+    if(new Set(seqs.map(s=>s[0])).size!==seqs.length)return err.textContent='Each sequence needs a different name.',null;
+    const n=seqs.length,D=[...Array(n)].map(()=>Array(n).fill(0));
+    for(let i=0;i<n;i++)for(let j=i+1;j<n;j++){let dif=0,cmp=0;for(let k=0;k<len;k++){const a=seqs[i][1][k],b=seqs[j][1][k];if(a==='-'||b==='-')continue;cmp++;if(a!==b)dif++}
+      if(!cmp)return err.textContent=`${seqs[i][0]} and ${seqs[j][0]} share no ungapped positions.`,null;let p=dif/cmp;
+      if(mode==='jc'){if(p>=0.75)return err.textContent=`${seqs[i][0]} and ${seqs[j][0]} differ at ${(100*p).toFixed(0)}% of sites. That is at or beyond the 75% expected between random sequences, so the Jukes–Cantor distance is infinite.`,null;p=-0.75*Math.log(1-4*p/3)}
+      D[i][j]=D[j][i]=p}
+    let cl=seqs.map(s=>({node:{name:s[0],children:[],len:null,m:-1},size:1,h:0,label:s[0]}));let M=D.map(r=>r.slice());const snaps=[];
+    for(let m=0;cl.length>1;m++){let bi=0,bj=1,bv=Infinity;for(let i=0;i<cl.length;i++)for(let j=i+1;j<cl.length;j++)if(M[i][j]<bv){bv=M[i][j];bi=i;bj=j}
+      snaps.push({labels:cl.map(c=>c.label),M:M.map(r=>r.slice()),bi,bj,bv});
+      const A=cl[bi],B=cl[bj],h=bv/2;A.node.len=Math.max(0,h-A.h);B.node.len=Math.max(0,h-B.h);
+      const nn={name:'',children:[A.node,B.node],len:null,m};const nc={node:nn,size:A.size+B.size,h,label:A.label+'+'+B.label};
+      const keep=cl.map((c,i)=>i).filter(i=>i!==bi&&i!==bj);const nd=keep.map(k=>(A.size*M[bi][k]+B.size*M[bj][k])/(A.size+B.size));
+      M=keep.map((a,x)=>keep.map(b=>M[a][b]).concat([nd[x]]));M.push(nd.concat([0]));cl=keep.map(k=>cl[k]).concat([nc])}
+    err.hidden=true;return{root:cl[0].node,snaps,n}}
+  function show(){const s=Math.min(step,res.snaps.length);$('#up-step').textContent=s<res.snaps.length?`Merge ${s+1} of ${res.snaps.length}`:'Finished';
+    $('#up-prev').disabled=s===0;$('#up-next').disabled=s>=res.snaps.length;
+    if(s<res.snaps.length){const sn=res.snaps[s];const lab=l=>esc(l.length>14?l.split('+').length+' seqs':l.replace(/\+/g,' + '));
+      $('#up-mat').innerHTML='<tr><th></th>'+sn.labels.map(l=>`<th title="${esc(l)}">${lab(l)}</th>`).join('')+'</tr>'+sn.M.map((r,i)=>`<tr><th title="${esc(sn.labels[i])}">${lab(sn.labels[i])}</th>${r.map((v,j)=>`<td class="${(i===sn.bi&&j===sn.bj)||(i===sn.bj&&j===sn.bi)?'path':''}">${i===j?'–':v.toFixed(3)}</td>`).join('')}</tr>`).join('');
+      $('#up-note').innerHTML=`The smallest distance is <b>${sn.bv.toFixed(3)}</b>, between <b>${esc(sn.labels[sn.bi])}</b> and <b>${esc(sn.labels[sn.bj])}</b>. Join them. The new node sits at height ${sn.bv.toFixed(3)} / 2 = <b>${(sn.bv/2).toFixed(3)}</b>. Distances from the new cluster to the others are the averages of its members' distances, weighted by cluster size.`}
+    else{$('#up-mat').innerHTML='';$('#up-note').innerHTML=`All sequences are joined. The root sits at height ${(res.snaps[res.snaps.length-1].bv/2).toFixed(3)}. Because UPGMA assumes every lineage evolves at the same rate, all tips line up at the right-hand edge. Real data rarely behaves that well; neighbour joining drops this assumption.<br><code class="small" style="word-break:break-all">${esc(toNewick(res.root))}</code>`}
+    renderTree($('#up-tree'),res.root,{W:460,rh:28,minW:320,label:'UPGMA tree',unit:mode==='jc'?'JC distance':'p-distance',edgeStyle:(n)=>n.m<s?'stroke:var(--ink-2);stroke-width:1.8':n.m===s?'stroke:var(--accent);stroke-width:3':'stroke:var(--line);stroke-width:1.4;stroke-dasharray:3 3'})}
+  function run(){const r=build();if(!r){$('#up-err').hidden=false;return}res=r;step=Math.min(step,res.snaps.length);show()}
+  $('#up-in').addEventListener('input',()=>{step=0;run()});$('#up-prev').addEventListener('click',()=>{step--;show()});$('#up-next').addEventListener('click',()=>{step++;show()});
+  $('#up-dist').addEventListener('click',e=>{const b=e.target.closest('[data-d]');if(!b)return;mode=b.dataset.d;$$('#up-dist button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));run()});run()})();
+
 /* ---------- quizzes ---------- */
 const QUIZ={
+ metabolism:[['Roughly how many ATP does complete aerobic breakdown of one glucose give?',['2','About 4','About 30–32','About 100'],2,'Most of it comes from oxidative phosphorylation, which needs oxygen.'],
+  ['In phenylketonuria (PKU), which enzyme is missing, and what builds up?',['HGD; homogentisate','Phenylalanine hydroxylase; phenylalanine','Lactase; lactose','Hexokinase; glucose'],1,'The step before the missing enzyme backs up. Phenylalanine rises and spills into side routes.'],
+  ['Without oxygen, why do cells make lactate or ethanol?',['To make extra ATP','To regenerate NAD⁺ so glycolysis can keep running','To store energy as fat','To produce oxygen'],1,'Fermentation makes no ATP itself; it recycles NADH back to NAD⁺.']],
+ phylogenetics:[['On a phylogenetic tree, which two tips are most closely related?',['The two tips drawn next to each other','The two tips that share the most recent common ancestor','The two tips with the shortest names','The two tips nearest the root'],1,'Drawing order can change by rotating nodes; shared ancestry cannot.'],
+  ['What does rotating the branches around an internal node change?',['The relationships between the tips','Only the drawing order; the relationships stay the same','The branch lengths','The position of the root'],1,'Rotation is like spinning part of a mobile. The tree is the same.'],
+  ['UPGMA assumes…',['a constant rate of evolution in every lineage (a molecular clock)','that no mutations have happened','that the tree is unrooted','that all sequences are the same length before alignment'],0,'That is why every UPGMA tree has all its tips lined up at the same distance from the root.'],
+  ['Why apply the Jukes–Cantor correction to p-distances?',['To speed up the calculation','Because repeat changes at the same site are hidden, so raw p-distance underestimates divergence','To remove gaps','To root the tree'],1,'A site that changed A→G→A looks unchanged. The correction estimates these hidden changes.']],
  chromosomes:[['What is a nucleosome?',['A gene found inside the nucleus','About 147 bp of DNA wrapped around eight histone proteins','A chromosome during cell division','A ribosome inside the nucleus'],1,'Nucleosomes are the first level of DNA packing: beads of histone with DNA wound round them.'],
   ['In the band address 17p13.1, what does "p" mean?',['The protein-coding strand','The short arm','The long arm','The copy from the father'],1,'p is the short arm (petit); q is the long arm.'],
   ['Your BAM file names chromosomes "chr1" but your annotation file uses "1". What happens if you intersect them without fixing it?',['The tool converts the names automatically','You get no overlaps, often with no error message','All coordinates shift by one','Only chromosome 1 fails'],1,'Most tools match names as exact strings. Check and harmonise chromosome names before comparing files.']],
@@ -2165,7 +2476,8 @@ $$('[data-dot]').forEach(d=>{if(!QUIZ[d.dataset.dot])d.style.visibility='hidden'
 updateProgress();
 
 /* ---------- glossary ---------- */
-const GL=[['Active site','The pocket of an enzyme where the substrate binds and the reaction happens.'],['Alternative splicing','Joining different combinations of exons from one gene to make different mRNAs.'],['Aneuploidy','Having an extra or missing chromosome, as in trisomy 21.'],['Centromere','The constricted region that joins sister chromatids and attaches to the spindle during division.'],['Chromatin','DNA packaged with histones and other proteins.'],['CPM / TPM','Counts per million and transcripts per million: RNA-seq units that correct for sequencing depth, and (TPM) gene length.'],['DNA methylation','A methyl group added to cytosine, usually at CpG sites. Promoter methylation tends to silence genes.'],['Domain','A compact part of a protein that folds on its own and often has its own function.'],['Enhancer','A regulatory DNA region, often far from the gene, where activators bind to boost transcription.'],['Enzyme','A protein (or RNA) that speeds up a chemical reaction without being used up.'],['Epigenetics','Heritable changes in gene activity that do not change the DNA sequence, such as methylation and histone marks.'],['Euchromatin / heterochromatin','Loosely packed, active chromatin versus tightly packed, mostly silent chromatin.'],['Fold change','The ratio of expression between two conditions, usually reported as log₂.'],['Histone','A protein that DNA wraps around. Its tails carry chemical marks that affect gene activity.'],['Isoform','One of several versions of a transcript or protein made from the same gene.'],['Karyotype','The full set of chromosomes of a cell, and the notation for it, such as 46,XX.'],['Kₘ','The substrate concentration at which an enzyme works at half its maximum rate.'],['Nucleosome','About 147 bp of DNA wrapped around a core of eight histones.'],['Operon','A group of bacterial genes transcribed together from one promoter.'],['Post-translational modification','A chemical change to a protein after it is made, such as phosphorylation.'],['Signal peptide','A hydrophobic N-terminal stretch that directs a protein into the secretory pathway.'],['Telomere','Repeats of TTAGGG that cap each chromosome end.'],['Transcription factor','A protein that binds a specific DNA motif and turns genes up or down.'],
+const GL=[['ATP','Adenosine triphosphate, the energy currency of the cell.'],['Catabolism / anabolism','Breaking molecules down to release energy versus building them up using energy.'],['Citric acid cycle','The mitochondrial cycle that oxidises acetyl-CoA to CO₂ and loads NADH and FADH₂. Also called the Krebs or TCA cycle.'],['EC number','Enzyme Commission number: a four-part code classifying an enzyme by the reaction it catalyses.'],['Fermentation','Regenerating NAD⁺ without oxygen by turning pyruvate into lactate or ethanol.'],['Flux balance analysis','Predicting reaction rates in a metabolic network with linear programming, assuming nothing accumulates.'],['Glycolysis','The ten-step pathway splitting glucose into two pyruvate in the cytoplasm.'],['Inborn error of metabolism','An inherited disease caused by a missing or faulty enzyme, such as PKU.'],['Metabolite','A small molecule made or used in metabolism.'],['NADH','A carrier of high-energy electrons, made in catabolism and used to power ATP synthesis.'],['Pathway','A chain of enzyme reactions that converts one molecule into another.'],['Bootstrap','Resampling alignment columns to measure how strongly the data support each clade.'],['Clade','An ancestor and all of its descendants. Also called a monophyletic group.'],['Cladogram / phylogram','A tree showing only branching order, versus one with branch lengths drawn to scale.'],['Jukes–Cantor','The simplest model for correcting distances for hidden repeat substitutions.'],['MRCA','Most recent common ancestor of a set of tips.'],['Molecular clock','The assumption that sequences change at a roughly constant rate, so distance tracks time.'],['Neighbour joining','A fast distance method for building trees that does not assume a molecular clock.'],['Newick','The standard text format for trees, using nested parentheses, e.g. ((A,B),C);'],['Outgroup','A sequence known to lie outside the group being studied, used to root the tree.'],['Phylogeny','The evolutionary history of a set of species or sequences, drawn as a tree.'],['UPGMA','A distance-based tree method that repeatedly joins the closest pair and assumes a molecular clock.'],
+['Active site','The pocket of an enzyme where the substrate binds and the reaction happens.'],['Alternative splicing','Joining different combinations of exons from one gene to make different mRNAs.'],['Aneuploidy','Having an extra or missing chromosome, as in trisomy 21.'],['Centromere','The constricted region that joins sister chromatids and attaches to the spindle during division.'],['Chromatin','DNA packaged with histones and other proteins.'],['CPM / TPM','Counts per million and transcripts per million: RNA-seq units that correct for sequencing depth, and (TPM) gene length.'],['DNA methylation','A methyl group added to cytosine, usually at CpG sites. Promoter methylation tends to silence genes.'],['Domain','A compact part of a protein that folds on its own and often has its own function.'],['Enhancer','A regulatory DNA region, often far from the gene, where activators bind to boost transcription.'],['Enzyme','A protein (or RNA) that speeds up a chemical reaction without being used up.'],['Epigenetics','Heritable changes in gene activity that do not change the DNA sequence, such as methylation and histone marks.'],['Euchromatin / heterochromatin','Loosely packed, active chromatin versus tightly packed, mostly silent chromatin.'],['Fold change','The ratio of expression between two conditions, usually reported as log₂.'],['Histone','A protein that DNA wraps around. Its tails carry chemical marks that affect gene activity.'],['Isoform','One of several versions of a transcript or protein made from the same gene.'],['Karyotype','The full set of chromosomes of a cell, and the notation for it, such as 46,XX.'],['Kₘ','The substrate concentration at which an enzyme works at half its maximum rate.'],['Nucleosome','About 147 bp of DNA wrapped around a core of eight histones.'],['Operon','A group of bacterial genes transcribed together from one promoter.'],['Post-translational modification','A chemical change to a protein after it is made, such as phosphorylation.'],['Signal peptide','A hydrophobic N-terminal stretch that directs a protein into the secretory pathway.'],['Telomere','Repeats of TTAGGG that cap each chromosome end.'],['Transcription factor','A protein that binds a specific DNA motif and turns genes up or down.'],
 ['Allele','One version of a gene or site. You inherit one allele from each parent at most positions.'],['Alignment','An arrangement of two or more sequences that lines up positions thought to share an ancestor, with gaps for insertions and deletions.'],['Alu element','A ~300 bp primate-specific repeat with over a million copies in the human genome, ending in an A-rich tail.'],['Amino acid','One of the 20 building blocks of proteins, each with a one-letter code.'],['Antiparallel','The two DNA strands run in opposite 5′→3′ directions.'],['Assembly','Reconstructing a genome sequence from many overlapping reads.'],['BAM / SAM','Formats for reads aligned to a reference. SAM is text; BAM is its compressed binary form.'],['BLAST','A fast heuristic search that finds local alignments between a query and a database.'],['Codon','Three consecutive bases in a coding sequence that specify one amino acid or a stop.'],['Coding strand','The DNA strand with the same sequence as the mRNA (T instead of U). Also called the sense strand.'],['Contig','A continuous stretch of sequence produced by assembly.'],['Coverage (depth)','How many reads overlap a given base, on average or at one position.'],['CpG island','A stretch of DNA richer in CG dinucleotides than expected. Often marks promoters.'],['E-value','In BLAST, the number of hits this good expected by chance. Smaller is more significant.'],['Exon','A segment of a gene kept in the mature RNA after splicing.'],['FASTA','A text format: a ">" header line followed by sequence lines.'],['FASTQ','A four-line-per-read format with sequence and per-base quality scores.'],['Frameshift','An insertion or deletion whose length is not a multiple of 3, shifting all downstream codons.'],['Gene','A region of DNA transcribed into a functional RNA, which may be translated into protein.'],['Genome','All the DNA of an organism (or organelle).'],['Haploid / diploid','One copy of each chromosome (sperm, egg) versus two copies (most human cells).'],['Homolog','A sequence that shares common ancestry with another. Includes orthologs and paralogs.'],['Indel','An insertion or deletion of bases.'],['Intron','A segment removed from RNA by splicing. Usually starts with GT and ends with AG.'],['k-mer','A substring of length k. Used in assembly, read counting and fast search.'],['Missense','A substitution that changes one amino acid to another.'],['Motif','A short sequence pattern with biological meaning, such as a binding site.'],['Nonsense','A substitution that creates a premature stop codon.'],['Nucleotide','A sugar, a phosphate and a base: the unit of DNA or RNA.'],['Open reading frame (ORF)','A stretch from a start codon to the next in-frame stop codon.'],['Ortholog','Homologs in different species that diverged by speciation.'],['Paralog','Homologs in the same genome that diverged by gene duplication.'],['Phred score','Base quality: Q = −10·log₁₀(error probability). Q30 means 1 error in 1,000.'],['Promoter','DNA upstream of a gene where transcription machinery binds.'],['Read','One sequenced fragment reported by a sequencer.'],['Reference genome','A standard assembled genome (such as GRCh38) that reads are compared against.'],['Reverse complement','The sequence of the opposite strand, read 5′→3′.'],['RNA-seq','Sequencing a sample\'s RNA to measure gene expression.'],['SNP / SNV','A single-nucleotide variant. "SNP" usually means one common in the population.'],['Splicing','Removing introns from pre-mRNA and joining exons together.'],['Template strand','The DNA strand RNA polymerase reads. It is complementary to the RNA.'],['Transcription','Making RNA from a DNA template.'],['Translation','Making protein from an mRNA template at the ribosome.'],['UTR','Untranslated region at the 5′ or 3′ end of an mRNA.'],['VCF','Variant Call Format: one row per variant site with position, alleles, quality and genotypes.']];
 GL.sort((a,b)=>a[0].localeCompare(b[0]));
 function renderGloss(){const q=$('#gl-q').value.trim().toLowerCase();const items=GL.filter(([t,d])=>!q||t.toLowerCase().includes(q)||d.toLowerCase().includes(q));
