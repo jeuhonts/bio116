@@ -192,6 +192,8 @@ ol.steps > li::before {
 }
 ol.steps > li > * { grid-column: 2; margin: 0; }
 ol.steps pre.block { margin-top: 6px; }
+.fallback-head { font-family: var(--display); font-weight: 600; font-size: 1.15rem; color: var(--pine); margin-top: 8px !important; }
+.os-panel a { color: var(--pine); text-underline-offset: 2px; }
 .alt { font-size: 14.5px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 10px; }
 .challenge { border-radius: 8px; padding: 16px; background: var(--pine-soft); display: flex; flex-direction: column; gap: 10px; }
 .challenge-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
@@ -2426,6 +2428,14 @@ const LESSONS = [
           <li><b>Open it any time</b><span>from the Start menu (<b>Ubuntu</b>), or open <b>Terminal</b> and pick Ubuntu from the <b>⌄</b> menu next to the tabs.</span></li>
         </ol>
         <p class="alt">Your Windows files are at <code>/mnt/c/Users/YourName</code>. Keep project data in your Linux home folder (<code>~</code>) instead; it is much faster. If the install complains about virtualization, it needs switching on in your computer's BIOS/UEFI settings: ask IT support or search your laptop model plus "enable virtualization".</p>
+        <p class="fallback-head">No admin rights? Use Git Bash instead</p>
+        <p class="why-os">On a managed university laptop you may not be allowed to install WSL. <b>Git Bash</b> comes with Git for Windows and gives you bash plus the core tools from these lessons: <code>ls</code>, <code>grep</code>, <code>sed</code>, <code>awk</code>, <code>cut</code>, <code>sort</code>, <code>gzip</code> and <code>ssh</code>.</p>
+        <ol class="steps">
+          <li><b>Download Git for Windows</b><span>from <a href="https://git-scm.com/downloads/win" target="_blank" rel="noopener">git-scm.com/downloads/win</a>. If the normal installer asks for an administrator password, download the <b>Portable</b> ("thumbdrive edition") version instead. It needs no installation.</span></li>
+          <li><b>Install or unpack it.</b><span>Accept the default options. The portable version asks for a folder: pick one inside your user folder, such as <code>Documents\\PortableGit</code>.</span></li>
+          <li><b>Open Git Bash.</b><span>Find <b>Git Bash</b> in the Start menu. For the portable version, double-click <code>git-bash.exe</code> in the folder you chose.</span></li>
+        </ol>
+        <p class="alt">Git Bash is enough for these lessons and for logging in to a server with <code>ssh</code>. It is not a full Linux system, though: there is no <code>apt</code>, so bioinformatics tools like samtools can't be installed there. Windows drives appear as <code>/c/Users/YourName</code>, not <code>/mnt/c</code>. Paste with <kbd>Shift</kbd> <kbd>Insert</kbd> or a right-click.</p>
       </div>
 
       <div class="os-panel" role="tabpanel" data-panel="mac" id="panel-mac" aria-labelledby="tab-mac">
