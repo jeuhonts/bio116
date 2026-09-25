@@ -187,9 +187,9 @@ footer{font-size:13px;color:var(--muted);padding-top:24px}
 <header class="hero">
   <div class="eyebrow">Bio 116 · Bioinformatics</div>
   <h1>Sequence Analysis Tutorials</h1>
-  <p class="lede">Six interactive tutorials that take you from aligning two proteins to building a family tree. Every tutorial uses the same five globins, so each new method can be tested on sequences you already know. Everything runs in your browser; there is nothing to install.</p>
+  <p class="lede">Seven interactive tutorials that take you from aligning two proteins to building a family tree and comparing 3D structures. Every tutorial uses the same five globins, so each new method can be tested on sequences you already know. Everything runs in your browser; there is nothing to install.</p>
   <ul class="meta">
-    <li>6 tutorials, about 5 hours in total</li>
+    <li>7 tutorials, about 6 hours in total</li>
     <li>Take them in order</li>
     <li>Assumes: amino-acid chemistry, basic probability</li>
   </ul>
@@ -240,6 +240,13 @@ footer{font-size:13px;color:var(--muted);padding-top:24px}
       <p>Turn the globin alignment into a tree. Correct distances for multiple substitutions, build a neighbor-joining tree step by step, score all 15 trees by parsimony, test support with the bootstrap, and meet likelihood and Bayesian methods.</p>
       <div class="tools">Tools: distance corrections and saturation chart · neighbor-joining stepper · parsimony over all trees · bootstrap · alignment export for IQ-TREE</div>
     </li>
+    <li class="card">
+      <span class="num">7</span>
+      <h2><a href="https://claude.ai/artifact/LiXQBzA7UJBwesJki6Vroe" target="_blank" rel="noopener">Superposing the Globins</a></h2>
+      <div class="sub"><span>Structural alignment</span><span>About 45 minutes</span></div>
+      <p>Compare real crystal structures instead of sequences. Superpose globins in 3D, measure RMSD and TM-score, build a structure-based alignment, see where it disagrees with the sequence alignment, and check an AlphaFold model against experiment.</p>
+      <div class="tools">Tools: rotatable 3D superposition · TM-align-style aligner · sequence vs structure comparison table · AlphaFold vs crystal</div>
+    </li>
   </ol>
 </section>
 
@@ -274,6 +281,7 @@ footer{font-size:13px;color:var(--muted);padding-top:24px}
     <li><b>4 · Profile HMMs</b>A model trained on hemoglobins finds it in the course database, but not at Swiss-Prot scale. Adding near-identical myoglobins to the training set tilts the model away from it.</li>
     <li><b>5 · Multiple alignment</b>The guide tree adds it last. With cheap gap extension, its distal histidine slides 18 columns out of place.</li>
     <li><b>6 · Phylogeny</b>As the outgroup it roots the tree, but its long branch tugs on β-globin: in about a third of bootstrap replicates the two pair up, a small case of long-branch attraction.</li>
+    <li><b>7 · Structural alignment</b>Its crystal structure superposes on β-globin with a TM-score of 0.70, the same fold at 13% identity. The proximal histidine lines up in 3D; the distal one sits about one helical turn away.</li>
   </ol>
 </section>
 
