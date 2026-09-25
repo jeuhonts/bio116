@@ -179,6 +179,20 @@ p code, li code, td code, .callout code, dd code {
 .callout { border-radius: 8px; padding: 12px 14px; font-size: 15px; background: var(--warn-soft); }
 .callout .lbl { display: block; font: 600 11px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--warn); margin-bottom: 6px; }
 
+.os-tabs { display: flex; flex-wrap: wrap; gap: 4px; padding: 4px; background: var(--surface-2); border-radius: 8px; width: max-content; max-width: 100%; }
+.os-tabs button { border: 0; background: transparent; padding: 7px 14px; border-radius: 6px; cursor: pointer; font-size: 14.5px; color: var(--muted); }
+.os-tabs button[aria-selected="true"] { background: var(--surface); color: var(--ink); font-weight: 600; box-shadow: 0 1px 2px rgba(0,0,0,.08); }
+.os-panel { display: flex; flex-direction: column; gap: 12px; }
+.os-panel .why-os { font-size: 15px; color: var(--muted); }
+ol.steps { margin: 0; padding: 0; list-style: none; counter-reset: step; display: flex; flex-direction: column; gap: 12px; }
+ol.steps > li { counter-increment: step; display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 4px 10px; align-items: start; }
+ol.steps > li::before {
+  content: counter(step); grid-row: span 2; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center;
+  font: 600 12.5px/1 var(--mono); background: var(--pine); color: var(--on-pine); margin-top: 1px;
+}
+ol.steps > li > * { grid-column: 2; margin: 0; }
+ol.steps pre.block { margin-top: 6px; }
+.alt { font-size: 14.5px; color: var(--muted); border-top: 1px solid var(--line); padding-top: 10px; }
 .challenge { border-radius: 8px; padding: 16px; background: var(--pine-soft); display: flex; flex-direction: column; gap: 10px; }
 .challenge-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
 .challenge-head .lbl { font: 600 12px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--pine); }
@@ -290,7 +304,7 @@ footer { color: var(--muted); font-size: 14px; border-top: 1px solid var(--line)
     <div>
       <p class="eyebrow">BIO116 · Unix for bioinformatics</p>
       <h1>Shell Lab</h1>
-      <p class="lede">Eight short lessons on the command line, each with a challenge. The terminal on the right is a practice shell loaded with FASTA, FASTQ, GFF and VCF files. Type freely: nothing you do here can break a real computer.</p>
+      <p class="lede">Nine short lessons on the command line, each with a challenge, starting with how to open a shell on your own computer. The terminal on the right is a practice shell loaded with FASTA, FASTQ, GFF and VCF files. Type freely: nothing you do here can break a real computer.</p>
     </div>
     <div class="progress" aria-live="polite">
       <span class="progress-label"><strong id="solved-count">0</strong> of <span id="lesson-total">8</span> challenges solved</span>
@@ -2392,6 +2406,66 @@ const firstInt = s => { const m = s.match(/-?\d+/); return m ? +m[0] : null; };
 
 const LESSONS = [
   {
+    id: 'setup', tag: 'Setup', title: 'Open a shell on your computer',
+    body: `
+      <p>A <em>shell</em> is a program that reads the commands you type and runs them. The window it lives in is called a <em>terminal</em>. Linux and macOS come with one. Windows 11 needs a one-time setup to get a proper UNIX shell.</p>
+      <p>You don't need your own shell to start: the practice terminal on this page works in any browser. Set up your computer when you are ready to work with real data.</p>
+      <div class="os-tabs" role="tablist" aria-label="Operating system">
+        <button type="button" role="tab" data-os="win" id="tab-win" aria-controls="panel-win">Windows 11</button>
+        <button type="button" role="tab" data-os="mac" id="tab-mac" aria-controls="panel-mac">macOS</button>
+        <button type="button" role="tab" data-os="linux" id="tab-linux" aria-controls="panel-linux">Ubuntu</button>
+      </div>
+
+      <div class="os-panel" role="tabpanel" data-panel="win" id="panel-win" aria-labelledby="tab-win">
+        <p class="why-os">PowerShell and Command Prompt are Windows shells, and most commands in these lessons don't work there. Install <b>WSL</b> (Windows Subsystem for Linux), which runs a real Ubuntu system inside Windows.</p>
+        <ol class="steps">
+          <li><b>Open Terminal as administrator.</b><span>Right-click the Start button and choose <b>Terminal (Admin)</b>. Click <b>Yes</b> when Windows asks for permission.</span></li>
+          <li><b>Install WSL with Ubuntu.</b><span>Type this and press Enter. It downloads Ubuntu and takes a few minutes.</span><pre class="block">wsl --install</pre></li>
+          <li><b>Restart your computer</b><span>when the install finishes.</span></li>
+          <li><b>Create your Linux account.</b><span>Ubuntu opens by itself after the restart (if it doesn't, open <b>Ubuntu</b> from the Start menu). Choose a username and password. The password stays invisible while you type it; that's normal.</span></li>
+          <li><b>Open it any time</b><span>from the Start menu (<b>Ubuntu</b>), or open <b>Terminal</b> and pick Ubuntu from the <b>⌄</b> menu next to the tabs.</span></li>
+        </ol>
+        <p class="alt">Your Windows files are at <code>/mnt/c/Users/YourName</code>. Keep project data in your Linux home folder (<code>~</code>) instead; it is much faster. If the install complains about virtualization, it needs switching on in your computer's BIOS/UEFI settings: ask IT support or search your laptop model plus "enable virtualization".</p>
+      </div>
+
+      <div class="os-panel" role="tabpanel" data-panel="mac" id="panel-mac" aria-labelledby="tab-mac">
+        <p class="why-os">macOS is a UNIX system, so the shell is already installed.</p>
+        <ol class="steps">
+          <li><b>Open Terminal.</b><span>Press <kbd>⌘</kbd> <kbd>Space</kbd>, type <b>Terminal</b>, press Enter. It also lives in Applications › Utilities.</span></li>
+          <li><b>Keep it handy.</b><span>Right-click the Terminal icon in the Dock and choose Options › <b>Keep in Dock</b>.</span></li>
+          <li><b>Install the developer tools if asked.</b><span>The first time you use a tool like <code>git</code>, macOS may offer to install the Command Line Tools. Accept, or run:</span><pre class="block">xcode-select --install</pre></li>
+        </ol>
+        <p class="alt">macOS uses <b>zsh</b> rather than bash, so <code>echo $SHELL</code> prints <code>/bin/zsh</code>. Everything in these lessons works the same, with one catch: macOS ships the BSD versions of a few tools, so in-place editing is <code>sed -i '' 's/a/b/' file</code> (note the empty quotes).</p>
+      </div>
+
+      <div class="os-panel" role="tabpanel" data-panel="linux" id="panel-linux" aria-labelledby="tab-linux">
+        <p class="why-os">Ubuntu is Linux: the shell is built in, and it is bash, the same shell this page imitates.</p>
+        <ol class="steps">
+          <li><b>Open Terminal.</b><span>Press <kbd>Ctrl</kbd> <kbd>Alt</kbd> <kbd>T</kbd>. Or press the <kbd>Super</kbd> (Windows) key, type <b>Terminal</b>, and press Enter.</span></li>
+          <li><b>Pin it.</b><span>Right-click the Terminal icon in the dock and choose <b>Pin to Dash</b>.</span></li>
+          <li><b>Install software with apt.</b><span><code>sudo</code> runs a command as administrator and asks for your password (invisible while typing). For example:</span><pre class="block">sudo apt update
+sudo apt install samtools</pre></li>
+        </ol>
+        <p class="alt">Ubuntu's terminal shortcuts differ from other apps: copy is <kbd>Ctrl</kbd> <kbd>Shift</kbd> <kbd>C</kbd> and paste is <kbd>Ctrl</kbd> <kbd>Shift</kbd> <kbd>V</kbd>, because <kbd>Ctrl</kbd> <kbd>C</kbd> stops the running command.</p>
+      </div>
+
+      <p><b>Working on a university server?</b> Whichever system you use, the same terminal connects to a remote Linux machine with <code>ssh username@server.address</code>. Your course will give you the address.</p>`,
+    tries: [
+      ['echo $SHELL', 'Which shell is this? (/bin/bash here, /bin/zsh on a Mac)'],
+      ['whoami', 'Your username'],
+      ['pwd', 'Where you start: your home folder'],
+      ['date', 'A command with no options at all'],
+    ],
+    after: `<p class="tip">Try the same four commands in the terminal you just opened on your own computer. If they work there too, you are set up.</p>`,
+    challenge: {
+      q: 'In the practice terminal, find out which shell you are using.',
+      hint: 'The name of your shell is stored in a variable called SHELL. Print a variable with echo and a $ in front of its name.',
+      solution: 'echo $SHELL',
+      why: 'Checked when the output shows /bin/bash.',
+      check: c => /SHELL/.test(c.cmd) && /\/bin\/bash/.test(c.out)
+    }
+  },
+  {
     id: 'nav', tag: 'Navigation', title: 'Find your way around',
     body: `
       <p>The shell always has a <em>working directory</em>: the folder your commands act on. Folders form a tree that starts at <code>/</code>. Your home folder is <code>/home/student</code>, written <code>~</code> for short.</p>
@@ -2637,6 +2711,8 @@ done</pre>
 const $ = id => document.getElementById(id);
 const outEl = $('term-out'), inputEl = $('term-input'), screenEl = $('term-screen');
 const prog = Object.assign({ solved: {}, lesson: 0 }, store.get(K_PROG) || {});
+// Version 2 added the setup lesson at the front: shift a saved position by one.
+if (prog.v !== 2) { if (store.get(K_PROG)) prog.lesson = (prog.lesson || 0) + 1; prog.v = 2; }
 if (!(prog.lesson >= 0 && prog.lesson < LESSONS.length)) prog.lesson = 0;
 const saveProg = () => store.set(K_PROG, prog);
 
@@ -2832,6 +2908,7 @@ function renderLesson() {
       <button type="button" class="btn" id="prev" ${i === 0 ? 'disabled' : ''}>← Previous</button>
       <button type="button" class="btn primary" id="next" ${i === LESSONS.length - 1 ? 'disabled' : ''}>Next lesson →</button>
     </div>`;
+  applyOs();
   $('prev').onclick = () => go(i - 1);
   $('next').onclick = () => go(i + 1);
 }
@@ -2843,6 +2920,28 @@ function go(i) {
   if (top < 0) document.querySelector('.left').scrollIntoView({ block: 'start' });
 }
 $('chips').addEventListener('click', e => { const b = e.target.closest('.chip'); if (b) go(+b.dataset.i); });
+
+// Operating-system tabs in the setup lesson; defaults to the viewer's own system.
+const UA = navigator.userAgent || '';
+let osChoice = /Windows/.test(UA) ? 'win' : /Mac/.test(UA) && !/iPhone|iPad/.test(UA) ? 'mac' : /Linux|X11/.test(UA) && !/Android/.test(UA) ? 'linux' : 'win';
+function applyOs() {
+  document.querySelectorAll('.os-tabs [role="tab"]').forEach(t => {
+    const on = t.dataset.os === osChoice;
+    t.setAttribute('aria-selected', on); t.tabIndex = on ? 0 : -1;
+  });
+  document.querySelectorAll('.os-panel').forEach(p => { p.hidden = p.dataset.panel !== osChoice; });
+}
+$('lesson').addEventListener('click', e => {
+  const t = e.target.closest('.os-tabs [role="tab"]');
+  if (t) { osChoice = t.dataset.os; applyOs(); }
+});
+$('lesson').addEventListener('keydown', e => {
+  const t = e.target.closest('.os-tabs [role="tab"]');
+  if (!t || (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft')) return;
+  const tabs = [...document.querySelectorAll('.os-tabs [role="tab"]')];
+  const n = tabs[(tabs.indexOf(t) + (e.key === 'ArrowRight' ? 1 : tabs.length - 1)) % tabs.length];
+  osChoice = n.dataset.os; applyOs(); n.focus();
+});
 $('lesson').addEventListener('click', e => {
   const b = e.target.closest('.try');
   if (!b) return;
