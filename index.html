@@ -1,0 +1,1657 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Bio116 Biology Primer</title>
+<meta name="description" content="An interactive review of the biology behind bioinformatics: cells, DNA, genomes, the central dogma, proteins, variation, homology, sequencing data, and a sequence workbench.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400;600&family=Literata:opsz,wght@7..72,500;7..72,700&display=swap">
+<style>
+:root{
+  --bg:#F3F6F5; --surface:#FFFFFF; --surface-2:#EAF0EE; --ink:#15211E; --ink-2:#3F4D49; --muted:#66746F; --line:#D5DEDA;
+  --primary:#0B6E5F; --primary-ink:#FFFFFF; --primary-soft:#DCEEE9;
+  --accent:#B0306A; --accent-soft:#F6E2EB;
+  --ok:#1E7B3A; --ok-soft:#DFF1E4; --bad:#B42318; --bad-soft:#FBE4E1; --warn:#9A6200; --warn-soft:#FBF0D9;
+  --nA:#2E9E44; --nC:#2F6FD6; --nG:#C98E00; --nT:#D1343F;
+  --cls-hyd:#A8741A; --cls-pol:#0E8A7B; --cls-pos:#3563C9; --cls-neg:#C23B3B; --cls-spe:#7A55B8;
+  --chart:#0B6E5F; --chart-2:#B0306A; --grid:#E3E9E6;
+  --shadow:0 1px 2px rgba(15,40,34,.06),0 4px 16px rgba(15,40,34,.06);
+  --f-display:"Literata",Georgia,"Times New Roman",serif;
+  --f-body:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",Arial,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --r:10px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#0E1412; --surface:#151D1A; --surface-2:#1B2521; --ink:#E5ECE9; --ink-2:#B7C3BE; --muted:#8A9893; --line:#2A3632;
+    --primary:#4DC2A6; --primary-ink:#06231C; --primary-soft:#16322B;
+    --accent:#EE7BA8; --accent-soft:#3A1C2A;
+    --ok:#5BCB7A; --ok-soft:#173222; --bad:#F2796D; --bad-soft:#3A1916; --warn:#E6B04A; --warn-soft:#352812;
+    --nA:#3AAD57; --nC:#5A8EE6; --nG:#C99416; --nT:#E2535D;
+    --cls-hyd:#D4A24A; --cls-pol:#3CBFAE; --cls-pos:#7C9FF0; --cls-neg:#EE7A7A; --cls-spe:#AD8BE6;
+    --chart:#4DC2A6; --chart-2:#EE7BA8; --grid:#24302C;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 4px 16px rgba(0,0,0,.25);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0E1412; --surface:#151D1A; --surface-2:#1B2521; --ink:#E5ECE9; --ink-2:#B7C3BE; --muted:#8A9893; --line:#2A3632;
+  --primary:#4DC2A6; --primary-ink:#06231C; --primary-soft:#16322B;
+  --accent:#EE7BA8; --accent-soft:#3A1C2A;
+  --ok:#5BCB7A; --ok-soft:#173222; --bad:#F2796D; --bad-soft:#3A1916; --warn:#E6B04A; --warn-soft:#352812;
+  --nA:#3AAD57; --nC:#5A8EE6; --nG:#C99416; --nT:#E2535D;
+  --cls-hyd:#D4A24A; --cls-pol:#3CBFAE; --cls-pos:#7C9FF0; --cls-neg:#EE7A7A; --cls-spe:#AD8BE6;
+  --chart:#4DC2A6; --chart-2:#EE7BA8; --grid:#24302C;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 4px 16px rgba(0,0,0,.25);
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{scroll-behavior:smooth;scroll-padding-top:72px}
+@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}*{transition:none!important;animation:none!important}}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:17px;line-height:1.6;margin:0}
+a{color:var(--primary)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+h1,h2,h3{font-family:var(--f-display);font-weight:700;line-height:1.2;text-wrap:balance;margin:0}
+h2{font-size:clamp(1.6rem,1.2rem + 1.6vw,2.2rem)}
+h3{font-size:1.2rem;font-weight:500}
+p{margin:0}
+code,.mono{font-family:var(--f-mono);font-size:.9em}
+.eyebrow{font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:700}
+
+/* top bar */
+.topbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.topbar-in{max-width:1280px;margin:0 auto;padding-inline:16px;padding-block:10px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--f-display);font-weight:700;font-size:1.05rem;text-decoration:none;color:var(--ink)}
+.brand svg{flex:none}
+.lens-switch{margin-left:auto;display:flex;align-items:center;gap:8px;font-size:.85rem;color:var(--muted)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:2px;background:var(--surface)}
+.seg button{border:0;background:transparent;color:var(--ink-2);font:inherit;font-size:.85rem;padding:4px 12px;border-radius:999px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--primary);color:var(--primary-ink)}
+.progress-pill{font-size:.8rem;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.progress-pill b{color:var(--ink)}
+
+/* layout */
+.layout{max-width:1280px;margin:0 auto;padding-inline:16px;display:grid;grid-template-columns:230px minmax(0,1fr);gap:40px}
+.toc{position:sticky;top:calc(env(safe-area-inset-top,0px) + 70px);align-self:start;padding-block:28px;max-height:calc(100vh - 80px);overflow:auto}
+.toc ol{list-style:none;margin:0;padding:0;display:grid;gap:2px}
+.toc a{display:grid;grid-template-columns:26px 1fr 12px;align-items:center;gap:6px;padding:6px 8px;border-radius:8px;text-decoration:none;color:var(--ink-2);font-size:.92rem;line-height:1.3}
+.toc a:hover{background:var(--surface-2)}
+.toc a.active{background:var(--primary-soft);color:var(--ink)}
+.toc .n{font-family:var(--f-mono);font-size:.75rem;color:var(--muted)}
+.toc .dot{width:9px;height:9px;border-radius:50%;border:1.5px solid var(--line)}
+.toc .dot.done{background:var(--ok);border-color:var(--ok)}
+.toc-note{margin-top:16px;font-size:.78rem;color:var(--muted);line-height:1.45}
+main{min-width:0;padding-block:28px 80px;display:grid;gap:72px}
+@media (max-width:920px){
+  .layout{grid-template-columns:1fr;gap:0}
+  .toc{position:static;max-height:none;padding-block:16px 0}
+  .toc ol{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
+  .toc-note{display:none}
+}
+
+/* hero */
+.hero{display:grid;gap:18px;padding-top:8px}
+.hero h1{font-size:clamp(2rem,1.3rem + 3vw,3.3rem);max-width:18ch}
+.hero .lede{font-size:1.15rem;color:var(--ink-2);max-width:62ch}
+.strand-banner{font-family:var(--f-mono);font-size:clamp(.72rem,.6rem + .5vw,.95rem);line-height:1.25;overflow-x:auto;white-space:pre;padding:14px 16px;border-radius:var(--r);background:var(--surface);border:1px solid var(--line)}
+.aud-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.aud{padding:16px 18px;border-radius:var(--r);border:1px solid var(--line);background:var(--surface)}
+.aud h3{margin-bottom:6px}
+.aud ul{margin:0;padding-left:1.1em;color:var(--ink-2)}
+
+/* sections */
+section.ch{display:grid;gap:22px;scroll-margin-top:72px}
+.ch-head{display:grid;gap:6px;border-top:2px solid var(--ink);padding-top:14px}
+.ch-head .num{font-family:var(--f-mono);font-size:.8rem;color:var(--accent);letter-spacing:.06em}
+.ch-head p{color:var(--ink-2);max-width:65ch}
+.prose{display:grid;gap:14px;max-width:70ch}
+.prose ul,.prose ol{margin:0;padding-left:1.2em;display:grid;gap:4px}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+@media (max-width:700px){.two{grid-template-columns:1fr}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;display:grid;gap:10px;align-content:start}
+.panel h3{font-size:1.05rem}
+.panel ul{margin:0;padding-left:1.1em;display:grid;gap:3px;color:var(--ink-2)}
+
+/* lens callouts */
+.lens{border-radius:var(--r);padding:14px 16px;display:grid;gap:6px;max-width:70ch;font-size:.97rem}
+.lens .tag{font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;font-weight:700}
+.lens.cs{background:var(--accent-soft);border-left:3px solid var(--accent)}
+.lens.cs .tag{color:var(--accent)}
+.lens.bio{background:var(--primary-soft);border-left:3px solid var(--primary)}
+.lens.bio .tag{color:var(--primary)}
+body[data-lens="bio"] .lens.cs{display:none}
+body[data-lens="cs"] .lens.bio{display:none}
+
+/* bench widgets */
+.bench{background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);overflow:hidden}
+.bench-head{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;padding:12px 18px;border-bottom:1px solid var(--line);background:var(--surface-2)}
+.bench-head h3{font-size:1.05rem}
+.bench-head .hint{font-size:.85rem;color:var(--muted)}
+.bench-body{padding:16px 18px;display:grid;gap:14px}
+.controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+label.fld{display:grid;gap:4px;font-size:.82rem;color:var(--muted);font-weight:700}
+input[type=text],input[type=number],textarea,select{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px 10px;min-width:0}
+input[type=text].seqin,textarea.seqin{font-family:var(--f-mono);font-size:.9rem;width:100%;letter-spacing:.02em}
+textarea{resize:vertical}
+input[type=range]{accent-color:var(--primary)}
+.btn{font:inherit;font-size:.88rem;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:6px 12px;border-radius:8px;cursor:pointer;line-height:1.3}
+.btn:hover{border-color:var(--primary)}
+.btn.primary{background:var(--primary);color:var(--primary-ink);border-color:var(--primary)}
+.btn[aria-pressed="true"]{background:var(--primary-soft);border-color:var(--primary)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-size:.8rem;padding:3px 10px;border-radius:999px;border:1px solid var(--line);background:var(--bg);cursor:pointer;color:var(--ink-2);font-family:inherit}
+.chip:hover{border-color:var(--primary);color:var(--ink)}
+.stats{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px}
+.stat{border:1px solid var(--line);border-radius:8px;padding:8px 10px;background:var(--bg)}
+.stat .k{font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.stat .v{font-family:var(--f-mono);font-size:1.05rem;font-variant-numeric:tabular-nums}
+.err{color:var(--bad);font-size:.88rem}
+.muted{color:var(--muted)}
+.small{font-size:.85rem}
+.scroll-x{overflow-x:auto}
+
+/* nucleotides */
+.nt{font-family:var(--f-mono);font-weight:600}
+.nA{color:var(--nA)}.nC{color:var(--nC)}.nG{color:var(--nG)}.nT,.nU{color:var(--nT)}
+.duplex{font-family:var(--f-mono);font-size:.95rem;line-height:1.35;white-space:pre;overflow-x:auto;padding:12px;border-radius:8px;background:var(--bg);border:1px solid var(--line)}
+.duplex .bond{color:var(--muted)}
+.outrow{display:grid;grid-template-columns:150px minmax(0,1fr) auto;gap:10px;align-items:center;font-size:.9rem}
+.outrow .lbl{color:var(--muted);font-weight:700;font-size:.8rem}
+.outrow .val{font-family:var(--f-mono);word-break:break-all;background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:4px 8px}
+@media (max-width:560px){.outrow{grid-template-columns:1fr auto}.outrow .lbl{grid-column:1/-1}}
+
+/* scale ladder */
+.ladder{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
+@media (max-width:700px){.ladder{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.rung{border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:8px;cursor:pointer;text-align:left;font:inherit;color:var(--ink);display:grid;gap:2px}
+.rung .sz{font-family:var(--f-mono);font-size:.75rem;color:var(--muted)}
+.rung .nm{font-size:.88rem;font-weight:700;line-height:1.2}
+.rung[aria-pressed="true"]{border-color:var(--primary);background:var(--primary-soft)}
+.rung-detail{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
+@media (max-width:700px){.rung-detail{grid-template-columns:1fr}}
+
+/* charts */
+.chart-wrap{position:relative}
+.chart-wrap svg{display:block;width:100%;height:auto}
+svg text{fill:var(--muted);font-family:var(--f-body);font-size:12px}
+svg .axis line,svg .axis path{stroke:var(--line)}
+svg .grid line{stroke:var(--grid)}
+.tip{position:absolute;pointer-events:none;background:var(--ink);color:var(--bg);font-size:.8rem;padding:6px 9px;border-radius:6px;white-space:nowrap;transform:translate(-50%,calc(-100% - 10px));z-index:5;line-height:1.35;font-variant-numeric:tabular-nums}
+.tip[hidden]{display:none}
+
+/* gene diagram */
+.gene-legend{display:flex;flex-wrap:wrap;gap:6px}
+.part-info{min-height:4.5em;padding:10px 12px;border-radius:8px;background:var(--bg);border:1px solid var(--line)}
+svg .gpart{cursor:pointer}
+svg .gpart:hover rect,svg .gpart.sel rect{stroke:var(--ink);stroke-width:2}
+
+/* dogma stepper */
+.steps{display:flex;gap:6px;flex-wrap:wrap}
+.step-btn{display:flex;align-items:center;gap:8px}
+.step-btn .c{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:.75rem;font-family:var(--f-mono);border:1.5px solid currentColor}
+.molecule{font-family:var(--f-mono);font-size:.9rem;line-height:1.5;overflow-x:auto;white-space:pre;padding:12px;background:var(--bg);border:1px solid var(--line);border-radius:8px}
+.intron{background:var(--warn-soft);color:var(--warn);text-decoration:line-through;text-decoration-thickness:1px}
+.cap{color:var(--accent);font-weight:600}
+.codon-row{display:flex;flex-wrap:wrap;gap:4px}
+.codon{display:grid;justify-items:center;border:1px solid var(--line);border-radius:6px;padding:3px 6px;background:var(--bg);min-width:44px}
+.codon .b{font-family:var(--f-mono);font-size:.85rem;letter-spacing:.04em}
+.codon .a{font-family:var(--f-mono);font-size:.78rem;color:var(--muted)}
+.codon.start{border-color:var(--ok);background:var(--ok-soft)}
+.codon.stop{border-color:var(--bad);background:var(--bad-soft)}
+.codon.part{opacity:.45}
+
+/* codon table */
+.ctable{border-collapse:separate;border-spacing:3px;width:100%;min-width:620px;font-family:var(--f-mono);font-size:.8rem}
+.ctable th{font-family:var(--f-body);color:var(--muted);font-size:.8rem;padding:4px}
+.ctable td{padding:0}
+.ccell{display:grid;gap:1px}
+.cc{display:flex;justify-content:space-between;gap:6px;padding:3px 6px;border-radius:4px;border:1px solid transparent;background:var(--bg);cursor:pointer;color:var(--ink);font:inherit;width:100%;text-align:left}
+.cc .aa3{color:var(--muted)}
+.cc.hl{background:var(--accent-soft);border-color:var(--accent)}
+.cc.dim{opacity:.3}
+.cc.stopc .aa3{color:var(--bad);font-weight:600}
+.cc.startc{box-shadow:inset 3px 0 0 var(--ok)}
+
+/* amino acids */
+.aa-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:6px}
+.aa-tile{border:1px solid var(--line);border-left:4px solid var(--c);border-radius:8px;padding:6px 8px;background:var(--bg);cursor:pointer;text-align:left;font:inherit;color:var(--ink);display:grid;gap:0}
+.aa-tile .one{font-family:var(--f-mono);font-size:1.15rem;font-weight:600}
+.aa-tile .nm{font-size:.78rem;color:var(--ink-2)}
+.aa-tile .cl{font-size:.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.aa-tile[aria-pressed="true"]{background:var(--surface-2);outline:2px solid var(--c)}
+.levels{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+@media (max-width:760px){.levels{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.lvl{border:1px solid var(--line);border-radius:var(--r);background:var(--surface);padding:12px;display:grid;gap:6px;align-content:start}
+.lvl .k{font-family:var(--f-mono);font-size:.75rem;color:var(--accent)}
+.lvl svg{width:100%;height:70px}
+
+/* mutation lab */
+.mut-seq{display:flex;flex-wrap:wrap;gap:8px}
+.mut-codon{display:grid;gap:2px;justify-items:center}
+.mut-codon .bases{display:flex}
+.mb{font-family:var(--f-mono);font-weight:600;font-size:.95rem;width:22px;height:28px;border:1px solid var(--line);background:var(--bg);cursor:pointer;padding:0;color:inherit}
+.mb:first-child{border-radius:5px 0 0 5px}.mb:last-child{border-radius:0 5px 5px 0}
+.mb.sel{outline:2px solid var(--accent);outline-offset:-1px;background:var(--accent-soft)}
+.mb.changed{background:var(--warn-soft)}
+.mut-codon .aa{font-family:var(--f-mono);font-size:.8rem;color:var(--muted)}
+.mut-codon .aa.diff{color:var(--bad);font-weight:600}
+.verdict{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:10px 12px;border-radius:8px;border:1px solid var(--line);background:var(--bg)}
+.badge{font-size:.75rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:3px 9px;border-radius:999px}
+.badge.silent{background:var(--ok-soft);color:var(--ok)}
+.badge.missense{background:var(--warn-soft);color:var(--warn)}
+.badge.nonsense,.badge.frameshift{background:var(--bad-soft);color:var(--bad)}
+.badge.none{background:var(--surface-2);color:var(--muted)}
+.badge.inframe{background:var(--accent-soft);color:var(--accent)}
+.prot-cmp{font-family:var(--f-mono);font-size:.9rem;white-space:pre;overflow-x:auto;line-height:1.5}
+
+/* alignment */
+.dp{border-collapse:collapse;font-family:var(--f-mono);font-size:.8rem;font-variant-numeric:tabular-nums}
+.dp th,.dp td{width:34px;height:30px;text-align:center;border:1px solid var(--line)}
+.dp th{color:var(--ink);background:var(--surface-2);font-weight:600}
+.dp td{color:var(--ink-2)}
+.dp td.path{background:var(--accent-soft);color:var(--ink);font-weight:600;border-color:var(--accent)}
+.dp td.best{outline:2px solid var(--accent);outline-offset:-2px}
+.aln{font-family:var(--f-mono);font-size:1rem;white-space:pre;line-height:1.35;overflow-x:auto;padding:10px 12px;background:var(--bg);border:1px solid var(--line);border-radius:8px}
+
+/* tables */
+table.data{border-collapse:collapse;width:100%;font-size:.92rem}
+table.data th,table.data td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+table.data th{font-size:.75rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+table.data td.num{font-variant-numeric:tabular-nums;font-family:var(--f-mono);font-size:.85rem}
+
+/* fastq */
+.fq{font-family:var(--f-mono);font-size:.88rem;line-height:1.6;overflow-x:auto;white-space:pre;padding:12px;background:var(--bg);border:1px solid var(--line);border-radius:8px}
+.fq .ln{color:var(--muted);user-select:none}
+.fq .q{cursor:crosshair;border-radius:2px}
+.fq .q:hover,.fq .q.on{background:var(--accent-soft);outline:1px solid var(--accent)}
+.fq .b.on{background:var(--accent-soft);outline:1px solid var(--accent)}
+
+/* workbench */
+.seqview{font-family:var(--f-mono);font-size:.82rem;line-height:1.55;white-space:pre;overflow:auto;max-height:340px;padding:10px 12px;background:var(--bg);border:1px solid var(--line);border-radius:8px}
+.seqview .pos{color:var(--muted);user-select:none}
+.seqview mark{background:var(--accent-soft);color:var(--ink);outline:1px solid var(--accent);border-radius:1px}
+.seqview mark.orf{background:var(--primary-soft);outline-color:var(--primary)}
+.hits{max-height:160px;overflow:auto;font-size:.85rem}
+.orf-out{font-family:var(--f-mono);font-size:.82rem;word-break:break-all;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+
+/* quiz */
+.quiz{border:1px dashed var(--line);border-radius:var(--r);padding:16px 18px;display:grid;gap:18px;background:var(--surface)}
+.quiz-head{display:flex;justify-content:space-between;gap:10px;align-items:baseline;flex-wrap:wrap}
+.quiz-head .score{font-size:.85rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.q{display:grid;gap:8px}
+.q .qt{font-weight:700}
+.opts{display:grid;gap:6px}
+.opt{text-align:left;font:inherit;font-size:.95rem;padding:8px 12px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.opt:hover:not(:disabled){border-color:var(--primary)}
+.opt.right{border-color:var(--ok);background:var(--ok-soft)}
+.opt.wrong{border-color:var(--bad);background:var(--bad-soft)}
+.opt:disabled{cursor:default}
+.why{font-size:.9rem;color:var(--ink-2);padding-left:12px;border-left:2px solid var(--line)}
+
+/* glossary */
+.gloss{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px}
+.term{border:1px solid var(--line);border-radius:8px;padding:10px 12px;background:var(--surface)}
+.term dt{font-weight:700}
+.term dd{margin:2px 0 0;color:var(--ink-2);font-size:.92rem}
+footer{border-top:1px solid var(--line);padding-block:20px;color:var(--muted);font-size:.85rem}
+footer .in{max-width:1280px;margin:0 auto;padding-inline:16px}
+</style>
+
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-in">
+    <a class="brand" href="#top">
+      <svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true"><path d="M7 2c0 7 12 7 12 11S7 17 7 24" fill="none" stroke="var(--primary)" stroke-width="2.2" stroke-linecap="round"/><path d="M19 2c0 7-12 7-12 11s12 4 12 11" fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linecap="round"/><path d="M9 6h8M9 20h8M11 10h4M11 16h4" stroke="var(--muted)" stroke-width="1.4"/></svg>
+      Bio116 Biology Primer
+    </a>
+    <div class="lens-switch">
+      <span id="lens-label">I'm coming from</span>
+      <div class="seg" role="group" aria-labelledby="lens-label">
+        <button type="button" data-lens="bio" aria-pressed="false">Life sciences</button>
+        <button type="button" data-lens="cs" aria-pressed="false">Computer science</button>
+        <button type="button" data-lens="both" aria-pressed="true">Show both</button>
+      </div>
+    </div>
+    <span class="progress-pill" id="progress-pill">Checks passed: <b>0</b> / 0</span>
+  </div>
+</header>
+
+<div class="layout" id="top">
+<nav class="toc" aria-label="Chapters">
+  <ol id="toc-list"></ol>
+  <p class="toc-note">A dot fills in when every question in that chapter's check is answered correctly. Progress stays in this browser only.</p>
+</nav>
+
+<main>
+<!-- ============ INTRO ============ -->
+<section class="ch hero" id="intro" data-title="Start here" data-num="00">
+  <p class="eyebrow">Bio116 · Bioinformatics · Biology review</p>
+  <h1>The biology you need before you write your first alignment</h1>
+  <p class="lede">Bioinformatics treats living systems as data. This primer walks through the biology behind that data, from the cell down to a single base, and every idea comes with something you can try. Chapter 10 runs real analyses on the course sequence file, <code>triplets.txt</code>.</p>
+  <div class="strand-banner" aria-label="A short DNA duplex" id="banner"></div>
+  <div class="aud-grid">
+    <div class="aud">
+      <h3>If you studied life sciences</h3>
+      <ul>
+        <li>Treat this as a fast review. Skim the prose and try the tools.</li>
+        <li>Pink <b>CS lens</b> boxes show how a programmer sees each idea. They are the vocabulary your code will use.</li>
+        <li>Pick <i>Life sciences</i> above to hide the biology refreshers.</li>
+      </ul>
+    </div>
+    <div class="aud">
+      <h3>If you studied computer science</h3>
+      <ul>
+        <li>Read the chapters in order. Each one builds on the last.</li>
+        <li>Green <b>Bio depth</b> boxes add detail that biologists take for granted.</li>
+        <li>The chapter checks are short. Getting one wrong is useful, so answer before you look things up.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="lens cs"><span class="tag">CS lens</span><p>A genome is a string over the alphabet Σ = {A, C, G, T}. The human one is about 3.1 × 10⁹ characters per copy. At 2 bits per base that is roughly 775 MB, which is smaller than many video games. Much of bioinformatics comes down to string algorithms, statistics and databases, applied to strings that were produced by evolution and read by noisy machines.</p></div>
+</section>
+
+<!-- ============ 1 CELLS ============ -->
+<section class="ch" id="cells" data-title="Cells and scale" data-num="01">
+  <div class="ch-head"><span class="num">Chapter 01</span><h2>Cells, and the scale of things</h2><p>Every sequence you analyse came out of a cell. It helps to know where in the cell it came from and how big the pieces are.</p></div>
+  <div class="bench" id="ladder-bench">
+    <div class="bench-head"><h3>Zoom ladder</h3><span class="hint">Click a level to zoom from a whole person down to one base pair.</span></div>
+    <div class="bench-body">
+      <div class="ladder" id="ladder" role="group" aria-label="Scale levels"></div>
+      <div class="rung-detail" id="rung-detail"></div>
+    </div>
+  </div>
+  <div class="two">
+    <div class="panel">
+      <p class="eyebrow">Prokaryotes</p>
+      <h3>Bacteria and archaea</h3>
+      <ul>
+        <li>No nucleus. DNA sits in the cytoplasm in a region called the nucleoid.</li>
+        <li>Usually one circular chromosome, plus small circular <b>plasmids</b>.</li>
+        <li>Genes are packed densely, often ~88% coding, and have few or no introns.</li>
+        <li>Related genes are often grouped in <b>operons</b> and transcribed together.</li>
+        <li>Transcription and translation happen at the same time and in the same place.</li>
+      </ul>
+    </div>
+    <div class="panel">
+      <p class="eyebrow">Eukaryotes</p>
+      <h3>Animals, plants, fungi, protists</h3>
+      <ul>
+        <li>DNA is enclosed in a nucleus and wrapped around histones as <b>chromatin</b>.</li>
+        <li>Several linear chromosomes with <b>telomeres</b> at the ends.</li>
+        <li>Genes are split into <b>exons</b> and <b>introns</b>. Only ~1–2% of the human genome codes for protein.</li>
+        <li>Transcripts are processed (capped, spliced, polyadenylated) before they leave the nucleus.</li>
+        <li>Mitochondria, and chloroplasts in plants, carry their own small genomes.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="prose">
+    <p>Nearly every cell in your body carries the same genome. A neuron and a liver cell differ because they <b>express</b> different genes: they make RNA and protein from different parts of the same instructions. That is why bioinformatics works at several layers, each with its own data type and measuring technology.</p>
+  </div>
+  <div class="scroll-x">
+    <table class="data">
+      <thead><tr><th>Layer</th><th>What is measured</th><th>Typical technology</th><th>Typical data</th></tr></thead>
+      <tbody>
+        <tr><td>Genomics</td><td>The DNA sequence itself, and how it varies between individuals</td><td>DNA sequencing</td><td>FASTA, FASTQ, BAM, VCF</td></tr>
+        <tr><td>Epigenomics</td><td>Chemical marks on DNA and histones that change gene activity without changing the sequence</td><td>Bisulfite-seq, ChIP-seq, ATAC-seq</td><td>BED, bigWig</td></tr>
+        <tr><td>Transcriptomics</td><td>Which genes are being transcribed, and how much</td><td>RNA-seq, single-cell RNA-seq</td><td>Count matrices (genes × samples)</td></tr>
+        <tr><td>Proteomics</td><td>Which proteins are present, their amounts and modifications</td><td>Mass spectrometry</td><td>Peptide spectra, abundance tables</td></tr>
+        <tr><td>Structural biology</td><td>3D shapes of proteins and complexes</td><td>X-ray crystallography, cryo-EM, AlphaFold predictions</td><td>PDB / mmCIF coordinates</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="lens bio"><span class="tag">Bio depth</span><p>The human mitochondrial genome is a 16,569 bp circle with 37 genes. It is inherited only from the mother and has no introns, which is why it is used in ancestry studies and forensics. Each cell holds hundreds to thousands of copies of it.</p></div>
+  <div class="lens cs"><span class="tag">CS lens</span><p>Think of the genome as source code that every cell has a full copy of. Gene expression is closer to which functions actually get called in a given process. Two cells with identical "code" can behave very differently, so knowing the sequence alone rarely tells you what a cell is doing.</p></div>
+  <div class="quiz" data-quiz="cells"></div>
+</section>
+
+<!-- ============ 2 DNA ============ -->
+<section class="ch" id="dna" data-title="DNA, the molecule" data-num="02">
+  <div class="ch-head"><span class="num">Chapter 02</span><h2>DNA, the molecule</h2><p>Four letters, two strands, one direction. Most sequence-handling bugs come from forgetting one of these three facts.</p></div>
+  <div class="prose">
+    <p>A DNA strand is a chain of <b>nucleotides</b>. Each nucleotide has a sugar (deoxyribose), a phosphate and one of four <b>bases</b>: <span class="nt nA">A</span>denine, <span class="nt nC">C</span>ytosine, <span class="nt nG">G</span>uanine and <span class="nt nT">T</span>hymine. The sugar–phosphate backbone has a direction. One end is called <b>5′</b> (five-prime) and the other <b>3′</b>, after the carbon atoms of the sugar. Sequences are always written 5′ → 3′.</p>
+    <p>Two strands pair up into the double helix. <span class="nt nA">A</span> pairs with <span class="nt nT">T</span> through two hydrogen bonds, and <span class="nt nG">G</span> pairs with <span class="nt nC">C</span> through three. The strands run in opposite directions, which is called <b>antiparallel</b>. So the partner of a strand is its <b>reverse complement</b>: complement every base, then read backwards.</p>
+  </div>
+  <div class="bench" id="duplex-bench">
+    <div class="bench-head"><h3>Strand builder</h3><span class="hint">Type or paste a DNA sequence. Everything below updates as you type.</span></div>
+    <div class="bench-body">
+      <label class="fld" for="dup-in">Top strand (5′ → 3′)
+        <input type="text" id="dup-in" class="seqin" value="ATGGCCATTGTAATGGGCCGCTGAAAGGGTGCCCGATAG" spellcheck="false" autocomplete="off">
+      </label>
+      <div class="chips"><span class="small muted">Try:</span>
+        <button class="chip" type="button" data-dup="GAATTC">EcoRI site</button>
+        <button class="chip" type="button" data-dup="GGATCCCGGGATCC">Palindrome</button>
+        <button class="chip" type="button" data-dup="ATATATATATATATAT">AT-rich</button>
+        <button class="chip" type="button" data-dup="GCGGCCGCGGCGCCGC">GC-rich</button>
+      </div>
+      <p class="err" id="dup-err" hidden></p>
+      <div class="duplex" id="dup-out" aria-live="polite"></div>
+      <div class="stats" id="dup-stats"></div>
+      <div class="outrow"><span class="lbl">Complement (3′→5′)</span><span class="val" id="dup-comp"></span><button class="btn" type="button" data-copy="dup-comp">Copy</button></div>
+      <div class="outrow"><span class="lbl">Reverse complement (5′→3′)</span><span class="val" id="dup-rc"></span><button class="btn" type="button" data-copy="dup-rc">Copy</button></div>
+      <div class="outrow"><span class="lbl">As RNA (5′→3′)</span><span class="val" id="dup-rna"></span><button class="btn" type="button" data-copy="dup-rna">Copy</button></div>
+    </div>
+  </div>
+  <div class="two">
+    <div class="panel">
+      <h3>Numbers worth remembering</h3>
+      <ul>
+        <li>Rise per base pair: <b>0.34 nm</b>. About <b>10.5 bp</b> per helical turn.</li>
+        <li>Helix diameter: about <b>2 nm</b>.</li>
+        <li>Stretched out, the DNA in one human cell is about <b>2 m</b> long.</li>
+        <li>G·C pairs have three hydrogen bonds and stack more strongly, so GC-rich DNA melts at a higher temperature.</li>
+        <li>Purines (A, G) have two rings. Pyrimidines (C, T, U) have one.</li>
+      </ul>
+    </div>
+    <div class="panel">
+      <h3>IUPAC ambiguity codes</h3>
+      <p class="small muted">Used in FASTA files, primers and motifs when a position is not a single base.</p>
+      <div class="scroll-x"><table class="data" style="font-size:.85rem">
+        <tbody>
+          <tr><td class="num">R</td><td>A or G (purine)</td><td class="num">Y</td><td>C or T (pyrimidine)</td></tr>
+          <tr><td class="num">S</td><td>G or C (strong)</td><td class="num">W</td><td>A or T (weak)</td></tr>
+          <tr><td class="num">K</td><td>G or T (keto)</td><td class="num">M</td><td>A or C (amino)</td></tr>
+          <tr><td class="num">B</td><td>not A</td><td class="num">D</td><td>not C</td></tr>
+          <tr><td class="num">H</td><td>not G</td><td class="num">V</td><td>not T</td></tr>
+          <tr><td class="num">N</td><td>any base</td><td class="num">-</td><td>gap (alignments)</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+  </div>
+  <div class="lens cs"><span class="tag">CS lens</span><p>Reverse complement is the most common operation in the field, and forgetting it is the most common bug. A read from a sequencer can come from either strand. A motif search that only scans the given string misses half the genome. Watch out for <b>reverse palindromes</b> like <code>GAATTC</code>, whose reverse complement is the same string. Many restriction enzymes recognise exactly these.</p></div>
+  <div class="lens bio"><span class="tag">Bio depth</span><p>RNA uses ribose instead of deoxyribose and uracil (U) in place of thymine. It is usually single-stranded and folds back on itself into hairpins and loops. In sequence files, RNA is often still written with T.</p></div>
+  <div class="quiz" data-quiz="dna"></div>
+</section>
+
+<!-- ============ 3 GENOMES ============ -->
+<section class="ch" id="genomes" data-title="Genomes and genes" data-num="03">
+  <div class="ch-head"><span class="num">Chapter 03</span><h2>Genomes and genes</h2><p>A genome is all the DNA of an organism. Genes are the parts that get transcribed into RNA, and they are a small share of the whole in humans.</p></div>
+  <div class="bench">
+    <div class="bench-head"><h3>Genome size is not complexity</h3><span class="hint">Approximate haploid genome sizes, log scale. Hover a bar for gene counts.</span></div>
+    <div class="bench-body">
+      <div class="chart-wrap" id="gsize-wrap"><div class="tip" id="gsize-tip" hidden></div></div>
+      <p class="small muted">A lungfish or an onion has far more DNA than you do, and roughly as many protein-coding genes. Most of the difference is repetitive, non-coding DNA. This mismatch is called the <b>C-value paradox</b>.</p>
+    </div>
+  </div>
+  <div class="bench">
+    <div class="bench-head"><h3>Anatomy of a eukaryotic gene</h3><span class="hint">Click a part of the gene to see what it does.</span></div>
+    <div class="bench-body">
+      <div class="controls">
+        <div class="seg" role="group" aria-label="Molecule shown">
+          <button type="button" id="gene-dna" aria-pressed="true">Gene (DNA)</button>
+          <button type="button" id="gene-mrna" aria-pressed="false">Mature mRNA</button>
+        </div>
+      </div>
+      <div class="chart-wrap scroll-x"><svg id="gene-svg" viewBox="0 0 820 150" role="img" aria-label="Diagram of a gene with promoter, exons, introns and untranslated regions"></svg></div>
+      <div class="part-info" id="gene-info" aria-live="polite"><b>Promoter.</b> Click any part of the gene.</div>
+    </div>
+  </div>
+  <div class="prose">
+    <h3>What the rest of the genome is made of</h3>
+    <p>Roughly half of the human genome is repeated sequence. The most abundant single family is the <b>Alu element</b>, a ~300 bp sequence present in over a million copies and making up about 10% of our DNA. Alus copy themselves through an RNA intermediate and end in a poly-A tail. You will find two of them in the course sequence in Chapter 10.</p>
+    <ul>
+      <li><b>Transposable elements</b> (Alu, LINE-1, endogenous retroviruses): sequences that copy and paste themselves around the genome.</li>
+      <li><b>Tandem repeats</b>: short units repeated head to tail. Microsatellites have 1–6 bp units, minisatellites 10–60 bp. They vary in length between people, which makes them useful in forensics.</li>
+      <li><b>Regulatory DNA</b>: promoters, enhancers and insulators that control when and where genes are switched on.</li>
+      <li><b>Non-coding RNA genes</b>: rRNA, tRNA, microRNAs, long non-coding RNAs. They are transcribed but never translated.</li>
+      <li><b>Pseudogenes</b>: broken copies of genes that no longer make a working protein.</li>
+    </ul>
+  </div>
+  <div class="lens cs"><span class="tag">CS lens</span><p>Repeats are the main reason genome assembly is hard. If a repeat is longer than your reads, you cannot tell which copy a read came from, just as you cannot rebuild a text from shreds shorter than its duplicated paragraphs. This is why long-read sequencing was needed to finish the human genome (the T2T assembly, 2022).</p></div>
+  <div class="lens bio"><span class="tag">Bio depth</span><p>Genome coordinates depend on the <b>reference assembly</b>. Human position chr7:117,559,590 means different bases in GRCh37 (hg19) and GRCh38 (hg38). Always check which build a file uses before you compare coordinates.</p></div>
+  <div class="quiz" data-quiz="genomes"></div>
+</section>
+
+<!-- ============ 4 CENTRAL DOGMA ============ -->
+<section class="ch" id="dogma" data-title="The central dogma" data-num="04">
+  <div class="ch-head"><span class="num">Chapter 04</span><h2>The central dogma: DNA → RNA → protein</h2><p>Information flows from DNA to RNA by <b>transcription</b>, and from RNA to protein by <b>translation</b>. Step through one toy gene to watch it happen.</p></div>
+  <div class="bench">
+    <div class="bench-head"><h3>From gene to protein</h3><span class="hint">A made-up gene with two exons and one intron.</span></div>
+    <div class="bench-body">
+      <div class="steps" id="dogma-steps" role="group" aria-label="Steps"></div>
+      <div id="dogma-view" aria-live="polite" style="display:grid;gap:12px"></div>
+      <div class="controls"><button class="btn" type="button" id="dogma-prev">← Previous step</button><button class="btn primary" type="button" id="dogma-next">Next step →</button></div>
+    </div>
+  </div>
+  <div class="prose">
+    <h3>Reading frames</h3>
+    <p>The ribosome reads mRNA three bases at a time, starting at a start codon (almost always <code>AUG</code>). Which of the three possible starting offsets it uses is the <b>reading frame</b>. Counting both strands, any stretch of DNA has <b>six</b> reading frames: three forward and three on the reverse complement. An <b>open reading frame (ORF)</b> is a stretch that starts with ATG and runs to the next stop codon without interruption.</p>
+  </div>
+  <div class="bench">
+    <div class="bench-head"><h3>Frame shifter</h3><span class="hint">Same DNA, six different readings. Green is a start codon, red is a stop.</span></div>
+    <div class="bench-body">
+      <label class="fld" for="rf-in">DNA sequence
+        <textarea id="rf-in" class="seqin" rows="2" spellcheck="false">GCCATGGCTAGCAAGGGCGAGGAGCTGTTCACCGGGTAGCATGAA</textarea>
+      </label>
+      <div class="seg" role="group" aria-label="Reading frame" id="rf-frames"></div>
+      <p class="err" id="rf-err" hidden></p>
+      <div class="codon-row" id="rf-out" aria-live="polite"></div>
+      <p class="small" id="rf-prot"></p>
+    </div>
+  </div>
+  <div class="lens cs"><span class="tag">CS lens</span><p>Translation is a lookup table applied to non-overlapping 3-character chunks: <code>protein = "".join(CODE[dna[i:i+3]] for i in range(f, len(dna)-2, 3))</code>. Six-frame translation is that loop run with offsets 0, 1, 2 on the string and on its reverse complement. Gene finders build on this, then add statistics about codon usage and splice sites.</p></div>
+  <div class="lens bio"><span class="tag">Bio depth</span><p>The template strand is the one RNA polymerase reads. The mRNA is complementary to the template, so it has the same sequence as the <b>coding</b> (sense) strand, with U for T. Databases and gene annotations report the coding strand. "The gene is on the minus strand" means its coding strand is the reverse complement of the reference.</p></div>
+  <div class="quiz" data-quiz="dogma"></div>
+</section>
+
+<!-- ============ 5 GENETIC CODE ============ -->
+<section class="ch" id="code" data-title="The genetic code" data-num="05">
+  <div class="ch-head"><span class="num">Chapter 05</span><h2>The genetic code</h2><p>64 codons map to 20 amino acids and a stop signal. The code is redundant, and that redundancy has a structure.</p></div>
+  <div class="bench">
+    <div class="bench-head"><h3>Standard codon table</h3><span class="hint">Click a codon to highlight its synonyms. Rows are the first base, columns the second, and the third base varies inside each cell.</span></div>
+    <div class="bench-body">
+      <div class="chips" id="code-filter"><span class="small muted">Highlight:</span></div>
+      <div class="scroll-x" id="code-table"></div>
+      <div class="part-info" id="code-info" aria-live="polite">Click any codon.</div>
+    </div>
+  </div>
+  <div class="two">
+    <div class="panel">
+      <h3>Patterns to notice</h3>
+      <ul>
+        <li><b>1 start</b> codon (AUG, methionine) and <b>3 stops</b> (UAA, UAG, UGA).</li>
+        <li>Most redundancy is in the third position. Changing it is often <b>synonymous</b>: the amino acid stays the same. This third-position flexibility is called <b>wobble</b>.</li>
+        <li>Leucine, serine and arginine each have six codons. Methionine and tryptophan have only one.</li>
+        <li>Similar codons tend to code for chemically similar amino acids, so many point mutations are mild.</li>
+      </ul>
+    </div>
+    <div class="panel">
+      <h3>"Standard" is not universal</h3>
+      <ul>
+        <li>Vertebrate mitochondria read UGA as tryptophan and AGA/AGG as stop.</li>
+        <li>Some ciliates read UAA and UAG as glutamine.</li>
+        <li>NCBI numbers these variants as <b>translation tables</b>. Table 1 is standard, table 2 is vertebrate mitochondrial, table 11 is bacterial.</li>
+        <li>Selenocysteine (U) and pyrrolysine (O) are the 21st and 22nd amino acids, inserted at special stop codons.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="lens cs"><span class="tag">CS lens</span><p>The code is a map from 4³ = 64 keys to 21 values, so it is not invertible. Going from protein back to DNA ("back-translation") gives many possible answers. Which codons an organism prefers (codon usage bias) varies by species, and that bias is a feature gene-prediction tools use.</p></div>
+  <div class="quiz" data-quiz="code"></div>
+</section>
+
+<!-- ============ 6 PROTEINS ============ -->
+<section class="ch" id="proteins" data-title="Proteins" data-num="06">
+  <div class="ch-head"><span class="num">Chapter 06</span><h2>Proteins: sequence becomes shape</h2><p>A protein is a chain of amino acids that folds into a 3D shape. Its function depends on that shape, and the shape depends on the chemistry of each residue.</p></div>
+  <div class="bench">
+    <div class="bench-head"><h3>The 20 amino acids</h3><span class="hint">Grouped by side-chain chemistry. Click one for details.</span></div>
+    <div class="bench-body">
+      <div class="aa-grid" id="aa-grid"></div>
+      <div class="part-info" id="aa-info" aria-live="polite">Click an amino acid.</div>
+    </div>
+  </div>
+  <div class="levels">
+    <div class="lvl"><span class="k">Primary</span><svg viewBox="0 0 160 70" aria-hidden="true"><g fill="var(--primary)"><circle cx="14" cy="35" r="9"/><circle cx="36" cy="35" r="9"/><circle cx="58" cy="35" r="9"/><circle cx="80" cy="35" r="9"/><circle cx="102" cy="35" r="9"/><circle cx="124" cy="35" r="9"/><circle cx="146" cy="35" r="9"/></g></svg><p class="small">The amino acid sequence, written N-terminus to C-terminus. This is what bioinformatics mostly works with.</p></div>
+    <div class="lvl"><span class="k">Secondary</span><svg viewBox="0 0 160 70" aria-hidden="true"><path d="M8 35c8-26 18 26 26 0s18 26 26 0 18 26 26 0" fill="none" stroke="var(--accent)" stroke-width="4" stroke-linecap="round"/><path d="M100 20h48l-8-7M100 35h48M148 50h-48l8 7" fill="none" stroke="var(--primary)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg><p class="small">Local shapes held by backbone hydrogen bonds: α-helices and β-sheets.</p></div>
+    <div class="lvl"><span class="k">Tertiary</span><svg viewBox="0 0 160 70" aria-hidden="true"><path d="M20 50c-10-30 30-40 45-20s-5 35 20 30 40-40 20-50-50 10-40 25 45 15 65 0" fill="none" stroke="var(--primary)" stroke-width="4" stroke-linecap="round"/></svg><p class="small">The full 3D fold of one chain. Hydrophobic residues tend to be buried in the core.</p></div>
+    <div class="lvl"><span class="k">Quaternary</span><svg viewBox="0 0 160 70" aria-hidden="true"><circle cx="60" cy="24" r="17" fill="var(--primary)" opacity=".85"/><circle cx="96" cy="24" r="17" fill="var(--accent)" opacity=".85"/><circle cx="60" cy="50" r="17" fill="var(--accent)" opacity=".85"/><circle cx="96" cy="50" r="17" fill="var(--primary)" opacity=".85"/></svg><p class="small">Several chains assembled together. Haemoglobin is two α and two β subunits.</p></div>
+  </div>
+  <div class="bench">
+    <div class="bench-head"><h3>Hydropathy plot</h3><span class="hint">Kyte–Doolittle scale, sliding-window average. Peaks above ~1.6 over 19 residues suggest a membrane-spanning helix.</span></div>
+    <div class="bench-body">
+      <label class="fld" for="hp-in">Protein sequence (one-letter codes)
+        <textarea id="hp-in" class="seqin" rows="3" spellcheck="false">MALWMRLLPLLALLALWGPDPAAAFVNQHLCGSHLVEALYLVCGERGFFYTPKTRREAEDLQVGQVELGGGPGAGSLQPLALEGSLQKRGIVEQCCTSICSLYQLENYCN</textarea>
+      </label>
+      <div class="controls">
+        <label class="fld" for="hp-win"><span>Window: <span id="hp-win-v" class="mono">9</span> residues</span>
+          <input type="range" id="hp-win" min="3" max="21" step="2" value="9">
+        </label>
+        <div class="chips">
+          <button class="chip" type="button" data-hp="MALWMRLLPLLALLALWGPDPAAAFVNQHLCGSHLVEALYLVCGERGFFYTPKTRREAEDLQVGQVELGGGPGAGSLQPLALEGSLQKRGIVEQCCTSICSLYQLENYCN">Human preproinsulin</button>
+          <button class="chip" type="button" data-hp="MSDKQRPEENGKTSDEQKTPSLLVAIFGVLLAVLIGALLWAVRKKNSQDEPTGSEKRDNQEHK">Made-up membrane protein</button>
+        </div>
+      </div>
+      <p class="err" id="hp-err" hidden></p>
+      <div class="chart-wrap" id="hp-wrap"><div class="tip" id="hp-tip" hidden></div></div>
+      <p class="small muted">The insulin example opens with a hydrophobic <b>signal peptide</b> that sends the protein into the secretory pathway before it is cut off. The made-up example has one 21-residue hydrophobic stretch between two charged, water-soluble segments. That is the signature of a single membrane-spanning helix, and it shows up as one tall peak.</p>
+    </div>
+  </div>
+  <div class="lens cs"><span class="tag">CS lens</span><p>Protein sequences use a 20-letter alphabet (plus X for unknown), so a protein string carries more information per character than DNA. That is why protein-level searches detect more distant relatives than DNA searches. Predicting shape from sequence was a 50-year open problem until deep learning models such as AlphaFold 2 (2020) reached near-experimental accuracy for many proteins.</p></div>
+  <div class="quiz" data-quiz="proteins"></div>
+</section>
+
+<!-- ============ 7 VARIATION ============ -->
+<section class="ch" id="variation" data-title="Mutation and variation" data-num="07">
+  <div class="ch-head"><span class="num">Chapter 07</span><h2>Mutation and variation</h2><p>Two people's genomes differ at roughly 4–5 million sites. Most differences do nothing. A few change a protein, and some of those cause disease.</p></div>
+  <div class="bench">
+    <div class="bench-head"><h3>Mutation lab</h3><span class="hint">The start of the human β-globin gene (<i>HBB</i>). Click a base, then change, delete or insert.</span></div>
+    <div class="bench-body">
+      <div class="chips" id="mut-presets"><span class="small muted">Presets:</span></div>
+      <div class="mut-seq" id="mut-seq" aria-label="Coding sequence, grouped by codon"></div>
+      <div class="controls" id="mut-actions">
+        <span class="small muted" id="mut-sel">No base selected.</span>
+        <span class="small">Change to</span>
+        <button class="btn" type="button" data-sub="A">A</button><button class="btn" type="button" data-sub="C">C</button><button class="btn" type="button" data-sub="G">G</button><button class="btn" type="button" data-sub="T">T</button>
+        <button class="btn" type="button" id="mut-del">Delete</button>
+        <span class="small">Insert after</span>
+        <button class="btn" type="button" data-ins="A">+A</button><button class="btn" type="button" data-ins="C">+C</button><button class="btn" type="button" data-ins="G">+G</button><button class="btn" type="button" data-ins="T">+T</button>
+        <button class="btn" type="button" id="mut-reset">Reset</button>
+      </div>
+      <div class="verdict" id="mut-verdict" aria-live="polite"></div>
+      <div class="prot-cmp" id="mut-cmp"></div>
+    </div>
+  </div>
+  <div class="scroll-x">
+    <table class="data">
+      <thead><tr><th>Variant type</th><th>Size</th><th>Example</th><th>How it is usually detected</th></tr></thead>
+      <tbody>
+        <tr><td><b>SNV / SNP</b></td><td>1 bp</td><td><i>HBB</i> c.20A&gt;T (sickle-cell)</td><td>Short-read sequencing, SNP arrays</td></tr>
+        <tr><td><b>Indel</b></td><td>1–50 bp</td><td><i>CFTR</i> ΔF508, a 3 bp deletion in cystic fibrosis</td><td>Short-read sequencing with careful alignment</td></tr>
+        <tr><td><b>Copy-number variant</b></td><td>&gt;1 kb</td><td>Extra copies of <i>AMY1</i> (salivary amylase)</td><td>Read depth, arrays</td></tr>
+        <tr><td><b>Structural variant</b></td><td>&gt;50 bp</td><td>Inversions, translocations such as <i>BCR–ABL1</i> in leukaemia</td><td>Long reads, split and discordant read pairs</td></tr>
+        <tr><td><b>Repeat expansion</b></td><td>variable</td><td>CAG repeats in <i>HTT</i> (Huntington disease)</td><td>Long reads, targeted PCR</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="lens cs"><span class="tag">CS lens</span><p>Variant calling is a diff between a sample and the reference, done statistically because each read has errors. Results go into a <b>VCF</b> file: one row per site with chromosome, position, reference allele, alternate allele, quality and genotype. HGVS names like <code>c.20A&gt;T</code> and <code>p.Glu7Val</code> are the human-readable form. <code>c.</code> counts coding bases from the A of ATG, and <code>p.</code> counts amino acids.</p></div>
+  <div class="lens bio"><span class="tag">Bio depth</span><p>Sickle-cell is usually written <b>E6V</b> in older literature, which counts from after the initial methionine is removed. HGVS counts the methionine, so the same change is <b>p.Glu7Val</b>. Two numbering systems for one mutation is a common source of confusion when you cross-reference papers and databases.</p></div>
+  <div class="quiz" data-quiz="variation"></div>
+</section>
+
+<!-- ============ 8 HOMOLOGY ============ -->
+<section class="ch" id="homology" data-title="Evolution and alignment" data-num="08">
+  <div class="ch-head"><span class="num">Chapter 08</span><h2>Evolution, homology and alignment</h2><p>Sequences are similar because they share an ancestor. Alignment is how we measure that similarity, and it is the core algorithm of the field.</p></div>
+  <div class="two">
+    <div class="panel">
+      <h3>Words that are often misused</h3>
+      <ul>
+        <li><b>Homologous</b>: sharing a common ancestor. This is yes-or-no. "70% homologous" is wrong. Say "70% identical".</li>
+        <li><b>Orthologs</b>: homologs split by a <i>speciation</i> event, such as human and mouse haemoglobin β. They usually keep the same function.</li>
+        <li><b>Paralogs</b>: homologs split by a <i>gene duplication</i> in one genome, such as human haemoglobin α and β. They often take on new functions.</li>
+        <li><b>Identity</b> and <b>similarity</b> are measured from an alignment. Homology is inferred from them.</li>
+      </ul>
+    </div>
+    <div class="panel">
+      <h3>Why alignment works</h3>
+      <ul>
+        <li>Mutations build up over time, so sequences drift apart slowly.</li>
+        <li>Parts that matter for function change less because natural selection removes harmful changes. Similarity survives there longest.</li>
+        <li>An alignment places the sequences so that bases descended from the same ancestral base line up, with <b>gaps</b> for insertions and deletions.</li>
+        <li>Score matrices such as BLOSUM62 reward substitutions that are common in real protein families.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="bench">
+    <div class="bench-head"><h3>Dynamic-programming aligner</h3><span class="hint">Needleman–Wunsch (global) or Smith–Waterman (local). Up to 16 bases each.</span></div>
+    <div class="bench-body">
+      <div class="controls">
+        <label class="fld" for="al-a">Sequence 1<input type="text" id="al-a" class="seqin" value="GATTACA" maxlength="16" spellcheck="false" style="width:12em"></label>
+        <label class="fld" for="al-b">Sequence 2<input type="text" id="al-b" class="seqin" value="GCATGCT" maxlength="16" spellcheck="false" style="width:12em"></label>
+        <label class="fld" for="al-m">Match<input type="number" id="al-m" value="1" style="width:5em"></label>
+        <label class="fld" for="al-x">Mismatch<input type="number" id="al-x" value="-1" style="width:5em"></label>
+        <label class="fld" for="al-g">Gap<input type="number" id="al-g" value="-1" style="width:5em"></label>
+        <div class="seg" role="group" aria-label="Alignment mode"><button type="button" id="al-global" aria-pressed="true">Global</button><button type="button" id="al-local" aria-pressed="false">Local</button></div>
+      </div>
+      <p class="err" id="al-err" hidden></p>
+      <div class="scroll-x"><table class="dp" id="al-table"></table></div>
+      <div class="aln" id="al-out"></div>
+      <p class="small muted" id="al-note"></p>
+    </div>
+  </div>
+  <div class="lens cs"><span class="tag">CS lens</span><p>This is edit distance with weights. Each cell F(i,j) is the best score for aligning the first i characters of one string with the first j of the other. It takes the max of a diagonal step (match or mismatch), a step down, or a step right (gaps). That costs O(nm) time and memory. BLAST exists because O(nm) against a database of billions of residues is too slow: it finds short exact "seed" matches first and only extends around them.</p></div>
+  <div class="lens bio"><span class="tag">Bio depth</span><p>Choose <b>global</b> alignment for sequences you expect to be related end to end, such as two orthologous genes. Choose <b>local</b> alignment to find a shared domain or motif inside otherwise different sequences, or to place a read on a chromosome. BLAST reports local alignments with an <b>E-value</b>: the number of hits this good you would expect by chance in a database of that size.</p></div>
+  <div class="quiz" data-quiz="homology"></div>
+</section>
+
+<!-- ============ 9 DATA ============ -->
+<section class="ch" id="data" data-title="Sequencing and file formats" data-num="09">
+  <div class="ch-head"><span class="num">Chapter 09</span><h2>From molecules to files</h2><p>Sequencers do not read a genome from end to end. They produce millions of short, error-prone fragments, and software reassembles the picture.</p></div>
+  <div class="scroll-x">
+    <table class="data">
+      <thead><tr><th>Technology</th><th>Read length</th><th>Per-read accuracy</th><th>Good for</th></tr></thead>
+      <tbody>
+        <tr><td><b>Sanger</b> (1977)</td><td class="num">~800–1,000 bp</td><td class="num">~99.99%</td><td>Checking a single PCR product or plasmid</td></tr>
+        <tr><td><b>Illumina</b> short read</td><td class="num">50–300 bp, paired</td><td class="num">~99.9%</td><td>Variant calling, RNA-seq, large cohorts at low cost</td></tr>
+        <tr><td><b>PacBio HiFi</b></td><td class="num">~15–25 kb</td><td class="num">&gt;99.9%</td><td>Assembly, structural variants, phasing</td></tr>
+        <tr><td><b>Oxford Nanopore</b></td><td class="num">~10 kb to &gt;1 Mb</td><td class="num">~99% with recent chemistry</td><td>Very long repeats, portable field work, direct RNA and methylation</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="bench">
+    <div class="bench-head"><h3>Anatomy of FASTA and FASTQ</h3><span class="hint">Hover or tap a quality character to decode it.</span></div>
+    <div class="bench-body">
+      <div class="two">
+        <div style="display:grid;gap:6px;min-width:0"><p class="eyebrow">FASTA: sequence only</p>
+<div class="fq" id="fa-view"></div>
+          <p class="small muted">A header line starting with <code>&gt;</code>, then sequence lines. Used for references, genes and proteins.</p></div>
+        <div style="display:grid;gap:6px;min-width:0"><p class="eyebrow">FASTQ: sequence plus quality</p>
+<div class="fq" id="fq-view"></div>
+          <p class="small muted">Four lines per read: <code>@</code>header, bases, <code>+</code>, and one quality character per base.</p></div>
+      </div>
+      <div class="part-info" id="fq-info" aria-live="polite">Quality is stored as <b>Phred scores</b>: Q = −10·log₁₀(P<sub>error</sub>). Each character's ASCII code minus 33 gives Q. Hover a quality character.</div>
+      <div class="chart-wrap" id="fq-wrap"><div class="tip" id="fq-tip" hidden></div></div>
+    </div>
+  </div>
+  <div class="bench">
+    <div class="bench-head"><h3>Coverage calculator</h3><span class="hint">How much sequencing do you need? Based on the Lander–Waterman model.</span></div>
+    <div class="bench-body">
+      <div class="controls">
+        <label class="fld" for="cv-g">Genome size (Mb)<input type="number" id="cv-g" value="3100" min="0.001" step="any" style="width:8em"></label>
+        <label class="fld" for="cv-l">Read length (bp)<input type="number" id="cv-l" value="150" min="1" style="width:7em"></label>
+        <label class="fld" for="cv-c">Target mean depth (×)<input type="number" id="cv-c" value="30" min="0.1" step="any" style="width:7em"></label>
+      </div>
+      <div class="stats" id="cv-out"></div>
+      <p class="small muted">Reads land at random, so coverage varies from base to base. With mean depth <i>c</i>, the chance that a given base gets no reads at all is about e<sup>−c</sup>. Real data is less even than this because GC-rich and repetitive regions are harder to sequence and map.</p>
+    </div>
+  </div>
+  <div class="two">
+    <div class="panel">
+      <h3>The pipeline in one breath</h3>
+      <ol style="margin:0;padding-left:1.2em;display:grid;gap:3px;color:var(--ink-2)">
+        <li>Extract DNA or RNA, fragment it, add adapters: a <b>library</b>.</li>
+        <li>Sequence it: FASTQ files of reads.</li>
+        <li>Check quality and trim adapters and poor bases.</li>
+        <li>Align reads to a reference (BAM) or assemble them from scratch.</li>
+        <li>Call variants (VCF), count genes, or find peaks, depending on the question.</li>
+        <li>Interpret with annotations and databases.</li>
+      </ol>
+    </div>
+    <div class="panel">
+      <h3>Databases you will use</h3>
+      <ul>
+        <li><a href="https://www.ncbi.nlm.nih.gov/genbank/" target="_blank" rel="noopener">GenBank / NCBI</a>: nucleotide sequences, BLAST, PubMed.</li>
+        <li><a href="https://www.uniprot.org/" target="_blank" rel="noopener">UniProt</a>: curated protein sequences and functions.</li>
+        <li><a href="https://www.rcsb.org/" target="_blank" rel="noopener">RCSB PDB</a>: experimental 3D structures.</li>
+        <li><a href="https://www.ensembl.org/" target="_blank" rel="noopener">Ensembl</a> and the <a href="https://genome.ucsc.edu/" target="_blank" rel="noopener">UCSC Genome Browser</a>: annotated genomes.</li>
+        <li><a href="https://www.ncbi.nlm.nih.gov/clinvar/" target="_blank" rel="noopener">ClinVar</a> and <a href="https://gnomad.broadinstitute.org/" target="_blank" rel="noopener">gnomAD</a>: clinical and population variants.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="lens cs"><span class="tag">CS lens</span><p>Short-read alignment tools such as BWA and Bowtie2 index the reference with a Burrows–Wheeler transform and FM-index. That lets them find where a 150-character read occurs in a 3-billion-character string in time proportional to the read length, not the genome length. Assemblers build de Bruijn graphs from k-mers or overlap graphs from long reads.</p></div>
+  <div class="quiz" data-quiz="data"></div>
+</section>
+
+<!-- ============ 10 BENCH ============ -->
+<section class="ch" id="bench" data-title="Workbench: triplets.txt" data-num="10">
+  <div class="ch-head"><span class="num">Chapter 10</span><h2>Workbench: the course sequence</h2><p>This is the sequence from <code>triplets.txt</code> in the course repository. The file lists one human DNA sequence three times, split into triplets starting at base 1, 2 and 3. Those are its three forward reading frames. Here it is joined back into one string of 10,309 bases so you can analyse it.</p></div>
+  <div class="bench">
+    <div class="bench-head"><h3>Composition</h3><span class="hint" id="wb-src"></span></div>
+    <div class="bench-body">
+      <div class="controls">
+        <div class="seg" role="group" aria-label="Sequence source"><button type="button" id="wb-use-course" aria-pressed="true">Course sequence</button><button type="button" id="wb-use-own" aria-pressed="false">Paste your own</button></div>
+      </div>
+      <div id="wb-own" hidden style="display:grid;gap:8px">
+        <label class="fld" for="wb-own-in">Paste DNA (FASTA headers, spaces and numbers are ignored)
+          <textarea id="wb-own-in" class="seqin" rows="4" spellcheck="false"></textarea>
+        </label>
+        <div><button class="btn primary" type="button" id="wb-own-go">Analyse this sequence</button></div>
+      </div>
+      <p class="err" id="wb-err" hidden></p>
+      <div class="stats" id="wb-stats"></div>
+    </div>
+  </div>
+  <div class="bench">
+    <div class="bench-head"><h3>GC content along the sequence</h3><span class="hint">Sliding window. The dashed line is the human genome average, about 41%.</span></div>
+    <div class="bench-body">
+      <div class="controls"><label class="fld" for="gc-win"><span>Window: <span class="mono" id="gc-win-v">200</span> bp</span><input type="range" id="gc-win" min="20" max="1000" step="20" value="200"></label></div>
+      <div class="chart-wrap" id="gc-wrap"><div class="tip" id="gc-tip" hidden></div></div>
+    </div>
+  </div>
+  <div class="bench">
+    <div class="bench-head"><h3>Six-frame ORF map</h3><span class="hint">Each bar runs from an ATG to the next in-frame stop codon. Click a bar to see its protein.</span></div>
+    <div class="bench-body">
+      <div class="controls"><label class="fld" for="orf-min"><span>Minimum length: <span class="mono" id="orf-min-v">60</span> amino acids</span><input type="range" id="orf-min" min="20" max="200" step="10" value="60"></label><span class="small muted" id="orf-count"></span></div>
+      <div class="chart-wrap" id="orf-wrap"><div class="tip" id="orf-tip" hidden></div></div>
+      <div class="orf-out" id="orf-out">Click an ORF.</div>
+    </div>
+  </div>
+  <div class="bench">
+    <div class="bench-head"><h3>Motif search</h3><span class="hint">Searches both strands. IUPAC codes allowed, e.g. TATAWAWR.</span></div>
+    <div class="bench-body">
+      <div class="controls">
+        <label class="fld" for="mo-in" style="flex:1 1 220px">Motif<input type="text" id="mo-in" class="seqin" value="TGTAATCCCAGC" spellcheck="false"></label>
+      </div>
+      <div class="chips" id="mo-presets"><span class="small muted">Presets:</span></div>
+      <p class="err" id="mo-err" hidden></p>
+      <p class="small" id="mo-sum" aria-live="polite"></p>
+      <div class="chart-wrap" id="mo-wrap"><div class="tip" id="mo-tip" hidden></div></div>
+      <div class="hits" id="mo-hits"></div>
+      <p class="eyebrow">Sequence (matches highlighted on the forward strand)</p>
+      <div class="seqview" id="seqview" tabindex="0" aria-label="Sequence viewer"></div>
+    </div>
+  </div>
+  <div class="prose">
+    <h3>Things to find</h3>
+    <ol>
+      <li>Search the Alu preset. There are two hits around positions 880 and 1,190. Scroll the viewer there and you will see two Alu elements back to back, each ending in a long run of A's.</li>
+      <li>Try the <i>tandem repeat unit</i> preset and watch where the hits cluster. Why might this region be hard to sequence with short reads?</li>
+      <li>The overall GC content is much higher than the genome average. Look at the CpG observed/expected ratio. Values near 0.6 or higher over a stretch of DNA suggest a <b>CpG island</b>, which often marks a promoter.</li>
+      <li>Set the ORF minimum to 100 aa. Does a long ORF prove there is a gene? What other evidence would you want? (Think about introns, RNA-seq data and similarity to known proteins.)</li>
+    </ol>
+  </div>
+  <div class="lens cs"><span class="tag">CS lens</span><p>Every tool on this page is under 30 lines of JavaScript: counting, a sliding window, a regex, and the codon lookup from Chapter 4. Rewrite each one in Python as practice. Then compare your answers to Biopython's <code>gc_fraction</code>, <code>Seq.reverse_complement()</code> and <code>Seq.translate()</code>.</p></div>
+  <div class="quiz" data-quiz="bench"></div>
+</section>
+
+<!-- ============ GLOSSARY ============ -->
+<section class="ch" id="glossary" data-title="Glossary" data-num="11">
+  <div class="ch-head"><span class="num">Chapter 11</span><h2>Glossary and translation table</h2><p>Terms from both fields, and how they map onto each other.</p></div>
+  <div class="scroll-x">
+    <table class="data">
+      <thead><tr><th>Biology</th><th>Computing analogy</th><th>Where the analogy breaks</th></tr></thead>
+      <tbody>
+        <tr><td>Genome</td><td>A very long string; the full source code</td><td>No clear boundaries between "functions", and much of it has no known purpose</td></tr>
+        <tr><td>Gene</td><td>A function definition</td><td>Genes overlap, sit on both strands and are spliced in different ways</td></tr>
+        <tr><td>Codon table</td><td>A 64-entry lookup table</td><td>Varies between organisms and organelles</td></tr>
+        <tr><td>Mutation</td><td>A single-character edit</td><td>Its effect depends on context: frame, splicing, regulation</td></tr>
+        <tr><td>Alignment</td><td>Weighted edit distance / diff</td><td>Scores should reflect evolution, not just typing errors</td></tr>
+        <tr><td>Sequencing read</td><td>A noisy random substring</td><td>Errors depend on the platform and on the local sequence</td></tr>
+        <tr><td>Gene expression</td><td>Which code paths are running</td><td>It is continuous and noisy, not on/off</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <label class="fld" for="gl-q">Filter terms<input type="text" id="gl-q" placeholder="e.g. codon, exon, coverage" autocomplete="off"></label>
+  <dl class="gloss" id="gloss"></dl>
+</section>
+</main>
+</div>
+<footer><div class="in">Bio116 Biology Primer. Figures are rounded, approximate values for teaching; check primary sources before citing them. Workbench sequence from <code>triplets.txt</code> in the course repository.</div></footer>
+
+<script id="course-seq" type="text/plain">
+start 1
+CCA  CCC  CGA  GCC  TAG  AGA  AGG  CTC  CTA  GCT  TGG  CTG  GGC  CTC  ATG  GGG  CCC  TTG  TCT  GCT  
+
+TAG  TTC  CAG  CCT  GGA  GGG  CCT  CAC  GCT  CCC  CTC  CCC  CAG  CCT  TGG  CTC  GAC  CCC  CTC  TGC  
+
+TTC  GTA  GGA  CAC  CCT  CCC  TGT  GTT  TCT  GCC  CAT  CCT  CAG  GGT  CCA  TGC  AGG  GAG  TGC  TGG  
+
+CTT  CAG  GCC  TCC  CCA  CCT  GAG  GCC  CAC  AGG  GGC  TGT  GAG  CCT  GGG  GTG  CCG  GGC  CAG  CTG  
+
+CCG  GTG  GCT  GTG  GGG  CTC  CCG  GCA  CTG  CCT  CAA  GCT  GTG  GGC  TAT  GGG  TCC  TTC  TCC  ACC  
+
+TGA  TGG  TCT  CTG  AGC  CTG  GGG  TCC  AGG  ATC  AAG  TCC  CAG  GCC  TTC  CCC  TAC  CCC  AGC  CCT  
+
+GTG  CCA  GCC  GAG  CCC  CTT  CAC  CTG  CAG  GCA  GCT  GCC  CTC  TCC  TGC  TGT  GGG  TCA  AAC  ATC  
+
+CAG  GCA  AGG  AGG  TGG  CAT  GTA  CCC  TCA  GGC  AGT  ACC  TGC  AAG  AGT  CAG  AGT  GGC  TTC  CTG  
+
+GCC  AGG  TTA  CTG  TGC  CCA  TGG  GAG  CCT  GGA  ATG  GGC  CAG  GCT  GAG  GTC  ACA  GCA  CCT  AGA  
+
+GGT  GAG  CAG  ATC  AGC  CCA  GGA  CCT  GAC  TAT  CCA  CGG  ACC  CAG  CTG  GCG  AGG  AGG  AAG  AGA  
+
+GTC  AGG  TGT  GTG  ACC  GAT  GCT  GGG  GTA  CCT  CTG  GGT  CCC  CCA  ACA  CAA  TGC  CTG  CTG  CTC  
+
+ATC  CAA  ATC  CCA  CTT  CCC  TCC  TTC  TCC  ACA  GGG  GTC  CTC  TCT  TGC  ACC  CTG  TTC  TTC  CTG  
+
+AGC  CCC  TCC  CCA  GGC  CTC  TGA  GGG  TAT  TGG  CCC  AGT  GTG  TCC  CTC  TCT  TGC  ATC  CCA  TTC  
+
+TTC  CTA  AGC  CCA  GTG  TGT  CCC  TCG  ACT  ACG  TGC  ATC  AGG  CTT  ACC  TGG  TGT  TGC  CCC  TTA  
+
+AAG  ATG  CAG  ACG  TCT  GGC  GGG  GCG  CAG  TGG  CTC  ACG  CCT  GTA  ATC  CCA  GCA  CTT  TGG  GAG  
+
+GCC  GCG  GCG  GGC  AGA  TCA  CGA  GGT  CAG  GAG  ATT  GAG  ACC  ATC  CTG  GCT  AAC  ACG  GTG  AAA  
+
+CCC  TGT  CTC  TAC  TAA  AAA  TAC  AAA  AAA  AAA  AAA  AAA  AAA  ATT  AGC  TGG  CGT  GGT  GGC  AGG  
+
+TGC  CTG  TAG  TCC  CAG  CTA  CTT  GGG  AGG  CTG  AGG  CAG  GAG  AAT  GCC  ATG  AAC  CCG  CGA  GGC  
+
+GGA  GCT  TGC  AGT  GAG  ACA  AGA  TCG  CGC  CAC  TGT  CCT  CCA  GCC  TGG  GCA  ACA  GAG  CAA  GAC  
+
+TCT  GTC  TCA  AAA  AAA  AAA  AAA  AAA  AAG  GCT  GGG  TGC  GGT  GGC  TCA  CAC  CTG  TAA  TCC  CAG  
+
+CAC  TTT  GGG  AGG  CTG  AGG  CGG  GCA  GAT  CAC  AAG  ATC  AGG  AGA  TCA  AGA  CCA  TCC  TGG  CTA  
+
+ACG  AGG  TGA  AAC  CCC  ATC  TCT  ACT  AAA  GAT  ACA  AAA  AAC  ATA  GTT  AGC  CAG  GCG  TGG  TGG  
+
+CGG  ACG  CCT  GTA  GTC  CCA  GCT  ACT  TGG  GAG  GCT  GAG  GCT  GGG  GAA  TGG  CAT  GAA  CCC  AGG  
+
+AGG  TGG  AGC  TTG  CAG  TGA  GCC  AAG  ATG  GCA  CCA  CTG  CAC  TCC  AGC  CTG  GGC  GAC  AGA  GAG  
+
+AGA  CTC  CAT  CTC  AAA  AAA  CAA  ACA  AAC  AAA  CAA  AGA  TGC  AGA  CAT  CTG  CCT  CGG  CCC  CAG  
+
+GCC  CTG  GAA  TCA  TGA  GCT  CCA  GGC  GTG  GAG  TGA  CAA  GTG  TGC  TCG  GAG  CGT  CCA  GTG  TCC  
+
+TCC  TCC  CTG  ACC  ACC  TTC  ATG  TGT  CTT  CAG  TCT  GGA  CCT  GGA  CTG  ATC  CCC  TGA  CTG  CAC  
+
+TCC  CCA  CCC  AGC  CTT  CCC  AGA  TTT  ATC  TTC  CTG  ATG  AGA  CGA  GTT  CCC  TTC  GGA  GCC  CTG  
+
+TGT  GTC  TTA  CTA  CGT  GTT  CGG  TTG  AGG  GCC  TGC  CTC  GCC  CCA  GAG  CTG  TGG  GCT  GCA  CGT  
+
+GGC  CTG  CAC  GTG  GCC  TGC  GTG  CTC  CTC  TGC  TGT  CCA  CAG  TCG  CAG  GAG  GGG  ATG  CTC  AAA  
+
+TAT  TTG  TCG  AAG  GAA  TCC  GTG  AAC  AGG  CAG  ATG  CAC  ATG  TAG  CCA  CTT  AGA  ACG  TTC  TGG  
+
+CCA  TGG  CTT  TTA  TCT  GTT  GAC  CAC  GTG  TGG  ACA  CTG  AAG  ATG  CAT  CCT  CTC  CAT  CCC  GTC  
+
+TAG  AGC  TGC  CCC  TGT  GCC  AGG  CGA  GTT  GGC  CGG  CTG  TTG  ACA  GAG  GTG  GTG  GGT  GGG  AGT  
+
+GTT  GGA  GCG  GGG  CAG  TGG  CTC  AGG  CTC  TGG  GTG  CCT  CAC  TGG  CCT  GGT  CTG  GAA  GGT  GAC  
+
+CAT  GCA  CCA  AGG  ATC  AAA  GAA  GTG  AAG  CCC  AAA  GCA  GAA  TCT  CAT  GGA  GTT  TCC  AGC  CCA  
+
+AAT  CTC  CCC  CAC  TGC  CTG  CCT  TTC  TCC  AGC  CAG  TGC  AAG  GCC  CCA  GGC  CTC  ACA  GCA  GGA  
+
+CCC  CAA  CAC  TGC  ATC  CCC  CCA  AAG  ACT  CTG  GCC  ACC  TCC  ATC  CCA  GGC  CTG  CCA  GCC  TCG  
+
+AGC  CTC  ATG  GAG  GGC  GTG  AGC  TGG  CGG  GGT  CAC  GGG  CAG  CCC  CTG  GAC  ACC  TAT  GGG  TGA  
+
+CAC  TAA  GGG  CTG  AGT  CAG  CTA  CCC  TTG  TCT  CCT  CTG  TGC  CCA  AGA  GCC  CCA  AGC  ATC  AGA  
+
+CTG  GTC  TGA  GCC  CCA  AGG  CCT  GGG  GGT  GCA  AGG  GGT  TGG  AGG  CTG  TGG  GAT  CCA  AAG  ACC  
+
+CCA  TTG  AAC  TCC  CAC  CTC  AGA  CAC  TGC  ACC  TAG  TGT  TCT  CAC  CCA  GGC  CTG  AAC  CCA  TCC  
+
+ACA  CAC  TTC  ACG  GCC  CTG  CTC  CCA  CCC  TGT  GTC  CCC  TCT  GCA  AGC  CCC  CAT  GCT  CCC  CAA  
+
+ATT  GGT  AAC  TGG  GGG  GCC  TGT  CTC  CAC  ACC  CCT  GCT  AGT  GCC  ATT  CCC  TGG  TGG  GTA  GCC  
+
+ATC  ACC  TCT  GGG  TCC  CCT  GCT  GCC  CTC  GCC  CCT  TCA  CCA  TGG  GGG  CTC  GGA  AGG  CAG  AGC  
+
+CCG  CTC  CCC  TCC  TGA  GCC  CCA  CCC  TGG  AAC  CCT  GAG  CAC  CCT  GGG  TCA  TTG  CCT  CTG  AGT  
+
+CTC  CCT  CAG  GGG  CAG  GGC  TTG  GGG  CCC  CTC  CTG  TCT  CCT  GAC  AGG  GAG  CCC  TTT  CAG  TGC  
+
+AGG  GCC  AGG  GGG  TGG  TGG  AGG  CAA  GGG  TCC  TCA  GGG  GAC  CAG  ATC  TGA  CAT  GCG  GGG  CCA  
+
+TCA  CTG  GGT  CCC  CGA  TGG  CTG  TGC  TGC  TTC  GTC  CCC  GCG  CCC  ACG  CCT  CGG  CGC  AGG  TTC  
+
+CCT  CCT  GGC  ACC  GGT  CAT  AGG  GCG  AGG  CTT  GCG  GCT  CCC  ACC  CCA  AGG  GTG  CGC  TCG  GCT  
+
+CTC  ACC  TGA  GGG  CTC  AGC  CTA  GGT  GTC  CGG  CCC  TGG  CAG  CTC  GGC  CCT  GGG  CGC  CCT  CCA  
+
+CCT  CCA  GGC  GCT  GTC  TCC  TAC  TCC  AGG  CTG  TTC  TTC  CGG  CCG  CCG  CGG  GGT  TGC  GGC  CTG  
+
+GGC  GCC  ATA  GCA  ACG  GGA  GCC  AGG  CCT  CAT  TTG  AAT  ACG  CAA  ATA  TTT  ATA  AGT  CGC  CGG  
+
+GGG  CTC  GGG  TTC  CGT  GCG  GCT  GAG  CCA  CGC  CCC  TTA  GCA  ACG  GTC  GCT  AGG  GCG  GGG  CCA  
+
+CGT  GGA  CTG  GCA  CGT  GCG  TGG  GCG  CCC  CTG  CTG  CGG  GCG  ATC  CCA  GGG  GAA  GGT  GAC  GCG  
+
+CCA  CCA  ACT  CGA  GTT  GGG  TGG  GCG  CAG  GCG  CGT  CAG  GTG  CCA  GCT  TCC  TGC  GGC  TCC  GTG  
+
+CCT  GGG  CCG  TCG  CGA  TGC  ACG  TGT  CGC  GTT  TCC  TCG  CGA  TCC  TGG  CGC  TTC  CCA  CGC  GGG  
+
+GCG  GGT  AAA  GGC  GGT  CTC  TGC  TGG  AGG  CTC  GCG  CCC  ACC  TTT  CCC  AGG  TGG  AAG  GGT  CGC  
+
+CCC  TGG  GGC  CGA  GGC  CTG  CCG  TCC  TGA  CCT  TCG  GTT  GGA  AGT  GAG  GCC  GAC  GGC  AAA  AGG  
+
+AAG  CAC  CGG  GGG  AAG  CGC  CCC  CGA  GGA  CCA  GGA  AAC  ACA  CAC  CGG  ACG  CCG  GAG  CGC  ACC  
+
+CGA  GTG  CCC  GGC  CCG  CGG  GAC  ACG  CTG  CCG  CCC  GCC  GTC  CAG  TCG  CCG  CTT  CTC  ACT  CGC  
+
+GTT  CAT  GCG  TGT  CCG  CCC  CGA  GCC  GAG  CTC  TGA  CTG  CGA  CCG  CGC  GGT  GGA  CGG  ACG  GCA  
+
+GGC  GGG  ACC  CCC  GGG  ACC  GCA  CGT  GGG  TGG  AGC  CCC  GGG  TCA  GCA  GCG  ACC  GGC  GCA  GGA  
+
+GGG  CGA  GGC  GGG  CGC  TGG  ACT  GGG  CAG  AGG  CAG  GGT  TTG  CCT  GAC  TGT  AAA  ACG  CCT  TTT  
+
+TTG  TTT  TGA  GAC  GAA  GTA  GCG  CTC  TGT  TGC  CCA  GTG  CAG  TGG  CGC  GAT  TTC  GGC  TCA  CCG  
+
+CAA  CAT  CCG  CCT  CCC  GGG  TTC  CAG  CGA  TTC  TCC  TGC  CTC  AGC  CTC  CCG  AGT  AGC  TGG  GAC  
+
+TAC  AGG  CGC  GCG  CCA  CTG  CAG  CCG  ACT  AAT  TTT  TTG  TGT  TTT  TAG  TAG  AGA  CAG  GGT  TTC  
+
+ATC  ATG  TTG  GCC  AGG  CTG  GTC  TTG  AAC  TCC  TGA  CCT  CAA  GTA  ATC  CAC  CCG  CTT  AGG  CCT  
+
+CCC  GAA  GTG  CTG  GGA  TTA  TAG  GCG  TGA  GCC  ACC  GCG  CCC  GGC  CCT  TTT  TGT  TTT  TTA  ATG  
+
+AGG  ATG  TAT  TTC  TGA  TTC  CTT  TGC  AAT  TTT  AAA  AAA  TGT  TAA  AAA  CAT  GTC  TTT  TTG  GGT  
+
+TTG  AAA  GAG  CTA  GGA  TGT  GCG  TCT  ATG  TGC  TTG  GGG  TGA  GCC  CTG  GGC  ACT  TCG  CTC  CCC  
+
+TGT  GGC  AAC  TTG  TGG  GTA  CGG  TTT  AAC  TGG  ACC  ACG  CTG  AGC  TTC  TGC  AGC  GTT  GGA  ACC  
+
+TCA  AGT  TTG  GGG  GGA  CTG  GGC  GGG  CAG  GGT  CGC  CTG  CCA  CGC  AGG  CCC  GAG  AAA  GAG  GAG  
+
+AGT  GGT  GGA  GGG  GGC  GTT  CTC  ACG  CCT  GGC  CCC  AGG  GCA  CAC  GGC  TGC  GCC  CGC  CGC  CCG  
+
+GAA  CCC  CAC  CGG  GGC  TGC  AAG  CGT  CCT  CGG  GGT  GGG  TTG  CGG  TGG  GAG  TAG  GGG  AGC  TGG  
+
+GGT  GCG  TGG  TGG  TAG  GTG  GGG  TGC  GCG  GCC  GCT  CCA  CCT  GCG  CGG  AAG  GGC  AGC  CGG  GCA  
+
+ACC  GGA  CCC  CGC  GGC  CAC  CCG  GGG  GCC  CCC  AGC  TCC  GAG  CAT  CCC  GCC  TTG  GTC  CCG  GCG  
+
+GAT  CCC  AGC  CTT  TCC  CCA  GCC  CGT  AGC  CCC  GGG  ACC  TCC  GCG  GTG  GGC  GGC  GCC  GCG  CTG  
+
+CCG  GCG  CAG  GGA  GGG  CCT  CTG  GTG  CAC  CGG  CAC  CGC  TGA  GTC  GGG  TTC  TCT  CGC  CGG  CCT  
+
+GTT  CCC  GGG  AGA  GCC  CGG  GGC  CCT  GCT  CGG  AGA  TGC  CGC  CCC  GGG  CCC  CCA  GAC  ACC  GGC  
+
+TCC  CTG  GCC  TTC  CTC  GAG  CAA  CCC  CGA  GCT  CGG  CTC  CGG  TCT  CCA  GCC  AAG  CCC  AAC  CCC  
+
+GAG  AGG  CCG  CGG  CCC  TAC  TGG  CTC  CGC  CTC  CCG  CGT  TGC  TCC  CGG  AAG  CCC  CGC  CCG  ACC  
+
+GCG  GCT  CCT  GAC  AGA  CGG  GCC  GCT  CAG  CCA  ACC  GGG  GTG  GGG  CGG  GGC  CCG  ATG  GCG  CGC  
+
+AGC  CAA  TGG  TAG  GCC  GCG  CCT  GGC  AGA  CGG  ACG  GGC  GCG  GGG  CGG  GGC  GTG  CGC  AGG  CCC  
+
+GCC  CGA  GTC  TCC  GCC  GCC  CGT  GCC  CTG  CGC  CCG  CAA  CCC  GAG  CCG  CAC  CCG  CCG  CGG  ACG  
+
+GAG  CCC  ATG  CGC  GGG  GCG  AAC  CGC  GCG  CCC  CCG  CCC  CCG  CCC  CGC  CCC  GGC  CTC  GGC  CCC  
+
+GGC  CCT  GGC  CCC  GGG  GGC  AGT  CGC  GCC  TGT  GAA  CGG  TGA  GTG  CGG  GCA  GGG  ATC  GGC  CGG  
+
+GCC  GCG  CGC  CCT  CCT  CGC  CCC  CAG  GCG  GCA  GCA  ATA  CGC  GCG  GCG  CGG  GCC  GGG  GGC  GCG  
+
+GGG  CCG  GCG  GGC  GTA  AGC  GGC  GGC  GGC  GGC  GGC  GGC  GGC  GGG  TGG  GTG  GGG  CCG  GGC  GGG  
+
+GCC  CGC  GGG  CAC  AGG  TGA  GCG  GGC  GTC  GGG  GGC  TGC  GGC  GGG  CGG  GGG  CCC  CTT  CCT  CCC  
+
+TGG  GGC  CTG  CGG  GAA  TCC  GGG  CCC  CAC  CCG  TGG  CCT  CGC  GCT  GGG  CAC  GGT  CCC  CAC  GCC  
+
+GGC  GTA  CCC  GGG  AGC  CTC  GGG  CCC  GGC  GCC  CTC  ACA  CCC  GGG  GGC  GTC  TGG  GAG  GAG  GCG  
+
+GCC  GCG  GCC  ACG  GCA  CGC  CCG  GGC  ACC  CCC  GAT  TCA  GCA  TCA  CAG  GTC  GCG  GAC  CAG  GCC  
+
+GGG  GGC  CTC  AGC  CCC  AGT  GCC  TTT  TCC  CTC  TCC  GGG  TCT  CCC  GCG  CCG  CTT  CTC  GGC  CCC  
+
+TTC  CTG  TCG  CTC  AGT  CCC  TGC  TTC  CCA  GGA  GCT  CCT  CTG  TCT  TCT  CCA  GCT  TTC  TGT  GGC  
+
+TGA  AAG  ATG  CCC  CCG  GTT  CCC  CGC  CGG  GGG  TGC  GGG  GCG  CTG  CCC  GGG  TCT  GCC  CTC  CCC  
+
+TCG  GCG  GCG  CCT  AGT  ACG  CAG  TAG  GCG  CTC  AGC  AAA  TAC  TTG  TCG  GAG  GCA  CCA  GCG  CCG  
+
+CGG  GGC  CTG  CAG  GCT  GGC  ACT  AGC  CTG  CCC  GGG  CAC  GCC  GTG  GCG  CGC  TCC  GCC  GTG  GCC  
+
+AGA  CCT  GTT  CTG  GAG  GAC  GGT  AAC  CTC  AGC  CCT  CGG  GCG  CCT  CCC  TTT  AGC  CTT  TCT  GCC  
+
+GAC  CCA  GCA  GCT  TCT  AAT  TTG  GGT  GCG  TGG  TTG  AGA  GCG  CTC  AGC  TGT  CAG  CCC  TGC  CTT  
+
+TGA  GGG  CTG  GGT  CCC  TTT  TCC  CAT  CAC  TGG  GTC  ATT  AAG  AGC  AAG  TGG  GGG  CGA  GGC  GAC  
+
+AGC  CCT  CCC  GCA  CGC  TGG  GTT  GCA  GCT  GCA  CAG  GTA  GGC  ACG  CTG  CAG  TCC  TTG  CTG  CCT  
+
+GGC  GTT  GGG  GCC  CAG  GGA  CCG  CTG  TGG  GTT  TGC  CCT  TCA  GAT  GGC  CCT  GCC  AGC  AGC  TGC  
+
+CCT  GTG  GGG  CCT  GGG  GCT  GGG  CCT  GGG  CCT  GGC  TGA  GCA  GGG  CCC  TCC  TTG  GCA  GGT  GGG  
+
+GCA  GGA  GAC  CCT  GTA  GGA  GGA  CCC  CGG  GCC  GCA  GGC  CCC  TGA  GGA  GCG  ATG  ACG  GAA  TAT  
+
+AAG  CTG  GTG  GTG  GTG  GGC  GCC  GGC  GGT  GTG  GGC  AAG  AGT  GCG  CTG  ACC  ATC  CAG  CTG  ATC  
+
+CAG  AAC  CAT  TTT  GTG  GAC  GAA  TAC  GAC  CCC  ACT  ATA  GAG  GTG  AGC  CTG  GCG  CCG  CCG  TCC  
+
+AGG  TGC  CAG  CAG  CTG  CTG  CGG  GCG  AGC  CCA  GGA  CAC  AGC  CAG  GAT  AGG  GCT  GGC  TGC  AGC  
+
+CCC  TGG  TCC  CCT  GCA  TGG  TGC  TGT  GGC  CCT  GTC  TCC  TGC  TTC  CTC  TAG  AGG  AGG  GGA  GTC  
+
+CCT  CGT  CTC  AGC  ACC  CCA  GGA  GAG  GAG  GGG  GCA  TGA  GGG  GCA  TGA  GAG  GTA  CCA  GGG  AGA  
+
+GGC  TGG  CTG  TGT  GAA  CTC  CCC  CCA  CGG  AAG  GTC  CTG  AGG  GGG  TCC  CTG  AGC  CCT  GTC  CTC  
+
+CTG  CAG  GAT  TCC  TAC  CGG  AAG  CAG  GTG  GTC  ATT  GAT  GGG  GAG  ACG  TGC  CTG  TTG  GAC  ATC  
+
+CTG  GAT  ACC  GCC  GGC  CAG  GAG  GAG  TAC  AGC  GCC  ATG  CGG  GAC  CAG  TAC  ATG  CGC  ACC  GGG  
+
+GAG  GGC  TTC  CTG  TGT  GTG  TTT  GCC  ATC  AAC  AAC  ACC  AAG  TCT  TTT  GAG  GAC  ATC  CAC  CAG  
+
+TAC  AGG  TGA  ACC  CCG  TGA  GGC  TGG  CCC  GGG  AGC  CCA  CGC  CGC  ACA  GGT  GGG  GCC  AGG  CCG  
+
+GCT  GCG  TCC  AGG  CAG  GGG  CCT  CCT  GTC  CTC  TCT  GCG  CAT  GTC  CTG  GAT  GCC  GCT  GCG  CCT  
+
+GCA  GCC  CCC  GTA  GCC  AGC  TCT  CGC  TTT  CCA  CCT  CTC  AGG  GAG  CAG  ATC  AAA  CGG  GTG  AAG  
+
+GAC  TCG  GAT  GAC  GTG  CCC  ATG  GTG  CTG  GTG  GGG  AAC  AAG  TGT  GAC  CTG  GCT  GCA  CGC  ACT  
+
+GTG  GAA  TCT  CGG  CAG  GCT  CAG  GAC  CTC  GCC  CGA  AGC  TAC  GGC  ATC  CCC  TAC  ATC  GAG  ACC  
+
+TCG  GCC  AAG  ACC  CGG  CAG  GTG  AGG  CAG  CTC  TCC  ACC  CCA  CAG  CTA  GCC  AGG  GAC  CCG  CCC  
+
+CGC  CCC  GCC  CCA  GCC  AGG  GAG  CAG  CAC  TCA  CTG  ACC  CTC  TCC  CTT  GAC  ACA  GGG  CAG  CCG  
+
+CTC  TGG  CTC  TAG  CTC  CAG  CTC  CGG  GAC  CCT  CTG  GGA  CCC  CCC  GGG  ACC  CAT  GTG  ACC  CAG  
+
+CGG  CCC  CTC  GCG  CTG  TAA  GTC  TCC  CGG  GAC  GGC  AGG  GCA  GTG  AGG  GAG  GCG  AGG  GCC  GGG  
+
+GTC  TGG  GCT  CAC  GCC  CTG  CAG  TCC  TGG  GCC  GAC  ACA  GCT  CCG  GGG  AAG  GCG  GAG  GTC  CTT  
+
+GGG  GAG  AGC  TGC  CCT  GAG  CCA  GGC  CGG  AGC  GGT  GAC  CCT  GGG  GCC  CGG  CCC  CTC  TTG  TCC  
+
+CCA  GAG  TGT  CCC  ACG  GGC  ACC  TGT  TGG  TTC  TGA  GTC  TTA  GTG  GGG  CTA  CTG  GGG  ACA  CGG  
+
+GCC  GTA  GCT  GAG  TCG  AGA  GCT  GGG  TGC  AGG  GTG  GTC  AAA  CCC  TGG  CCA  GAC  CTG  GAG  TTC  
+
+AGG  AGG  GCC  CCG  GGC  CAC  CCT  GAC  CTT  TGA  GGG  GCT  GCT  GTA  GCA  TGA  TGC  GGG  TGG  CCC  
+
+TGG  GCA  CTT  CGA  GAT  GGC  CAG  AGT  CCA  GCT  TCC  CGT  GTG  TGT  GGT  GGG  CCT  GGG  GAA  GTG  
+
+GCT  GGT  GGA  GTC  GGG  AGC  TTC  GGG  CCA  GGC  AAG  GCT  TGA  TCC  CAC  AGC  AGG  GAG  CCC  CTC  
+
+ACC  CAG  GCA  GGC  GGC  CAC  AGG  CCG  GTC  CCT  CCT  GAT  CCC  ATC  CCT  CCT  TTC  CCA  GGG  AGT  
+
+GGA  GGA  TGC  CTT  CTA  CAC  GTT  GGT  GCG  TGA  GAT  CCG  GCA  GCA  CAA  GCT  GCG  GAA  GCT  GAA  
+
+CCC  TCC  TGA  TGA  GAG  TGG  CCC  CGG  CTG  CAT  GAG  CTG  CAA  GTG  TGT  GCT  CTC  CTG  ACG  CAG  
+
+GTG  AGG  GGG  ACT  CCC  AGG  GCG  GCC  GCC  ACG  CCC  ACC  GGA  TGA  CCC  CGG  CTC  CCC  GCC  CCT  
+
+GCC  GGT  CTC  CTG  GCC  TGC  GGT  CAG  CAG  CCT  CCC  TTG  TGC  CCC  GCC  CAG  CAC  AAG  CTC  AGG  
+
+ACA  TGG  AGG  TGC  CGG  ATG  CAG  GAA  GGA  GGT  GCA  GAC  GGA  AGG  AGG  AGG  AAG  GAA  GGA  CGG  
+
+AAG  CAA  GGA  AGG  AAG  GAA  GGG  CTG  CTG  GAG  CCC  AGT  CAC  CCC  GGG  ACC  GTG  GGC  CGA  GGT  
+
+GAC  TGC  AGA  CCC  TCC  CAG  GGA  GGC  TGT  GCA  CAG  ACT  GTC  TTG  AAC  ATC  CCA  AAT  GCC  ACC  
+
+GGA  ACC  CCA  GCC  CTT  AGC  TCC  CCT  CCC  AGG  CCT  CTG  TGG  GCC  CTT  GTC  GGG  CAC  AGA  TGG  
+
+GAT  CAC  AGT  AAA  TTA  TTG  GAT  GGT  CTT  GAT  CTT  GGT  TTT  CGG  CTG  AGG  GTG  GGA  CAC  GGT  
+
+GCG  CGT  GTG  GCC  TGG  CAT  GAG  GTA  TGT  CGG  AAC  CTC  AGG  CCT  GTC  CAG  CCC  TGG  GCT  CTC  
+
+CAT  AGC  CTT  TGG  GAG  GGG  GAG  GTT  GGG  AGA  GGC  CGG  TCA  GGG  GTC  TGG  GCT  GTG  GTG  CTC  
+
+TCT  CCT  CCC  GCC  TGC  CCC  AGT  GTC  CAC  GGC  TTC  TGG  CAG  AGA  GCT  CTG  GAC  AAG  CAG  GCA  
+
+GAT  CAT  AAG  GAC  AGA  GAG  CTT  ACT  GTG  CTT  CTA  CCA  ACT  AGG  AGG  GCG  TCC  TGG  TCC  TCC  
+
+AGA  GGG  AGG  TGG  TTT  CAG  GGG  TTG  GGG  ATC  TGT  GCC  GGT  GGC  TCT  GGT  CTC  TGC  TGG  GAG  
+
+CCT  TCT  TGG  CGG  TGA  GAG  GCA  TCA  CCT  TTC  CTG  ACT  TGC  TCC  CAG  CGT  GAA  ATG  CAC  CTG  
+
+CCA  AGA  ATG  GCA  GAC  ATA  GGG  ACC  CCG  CCT  CCT  GGG  CCT  TCA  CAT  GCC  CAG  TTT  TCT  TCG  
+
+GCT  CTG  TGG  CCT  GAA  GCG  GTC  TGT  GGA  CCT  TGG  AAG  TAG  GGC  TCC  AGC  ACC  GAC  TGG  CCT  
+
+CAG  GCC  TCT  GCC  TCA  TTG  GTG  GTC  GGG  TAG  CGG  CCA  GTA  GGG  CGT  GGG  AGC  CTG  GCC  ATC  
+
+CCT  GCC  TCC  TGG  AGT  GGA  CGA  GGT  TGG  CAG  CTG  GTC  CGT  CTG  CTC  CTG  CCC  CAC  TCT  CCC  
+
+CCG  CCC  CTG  CCC  TCA  CCC  TAC  CCT  TGC  CCC  ACG  CCT  GCC  TCA  TGG  CTG  GTT  GCT  CTT  GGA  
+
+GCC  TGG  TAG  TGT  CAC  TGG  CTC  AGC  CTT  GCT  GGG  TAT  ACA  CAG  GCT  CTG  CCA  CCC  ACT  CTG  
+
+CTC  CAA  GGG  GCT  TGC  CCT  GCC  TTG  GGC  CAA  GTT  CTA  GGT  CTG  GCC  ACA  GCC  ACA  GAC  AGC  
+
+TCA  GTC  CCC  TGT  GTG  GTC  ATC  CTG  GCT  TCT  GCT  GGG  GGC  CCA  CAG  CGC  CCC  TGG  TGC  CCC  
+
+TCC  CCT  CCC  AGG  GCC  CGG  GTT  GAG  GCT  GGG  CCA  GGC  CCC  TCT  GGG  ACG  GGG  ACT  TGT  GCC  
+
+CTG  TCA  GGG  TTC  CCT  ATC  CCT  GAG  GTT  GGG  GGA  GAG  CTA  GCA  GGG  CAT  GCC  GCT  GGC  TGG  
+
+CCA  GGG  CTG  CAG  GGA  CAC  TCC  CCC  TTT  TGT  CCA  GGG  AAT  ACC  ACA  CTC  GCC  CTT  CTC  TCC  
+
+AGC  GAA  CAC  CAC  ACT  CGC  CCT  TCT  CTC  CAG  GGG  ACG  CCA  CAC  TCC  CCC  TTC  TGT  CCA  GGG  
+
+GAC  GCC  ACA  CTC  CCC  CTT  CTC  TCC  AGG  GGA  CGC  CAC  ACT  CGC  CCT  TCT  CTC  CAG  GGG  ACG  
+
+CCA  CAC  TCG  CCC  TTC  TCT  CCA  GGG  GAC  GCC  ACA  CTC  CCC  CTT  CTG  TCC  AGG  GGA  CGC  CAC  
+
+ACT  CGC  CCT  TCT  CTC  CAG  GGG  ACG  CCA  CAC  TGG  CCC  TTC  TCT  CCA  GGG  GAC  GCC  ACA  CTC  
+
+CCC  CTT  CTG  TCC  AGG  GGA  CGC  CAC  ACT  CCC  CCT  TCT  CTC  CAG  GGG  ACG  CCA  CAC  TCC  CCC  
+
+TTC  TCT  CCA  GGG  GAC  GCC  ACA  CTG  GCC  CTT  CTC  TCC  AGG  GGA  CGC  CAC  ACT  CCC  CCT  TCT  
+
+GTC  CAG  GGG  ACG  CCA  CAC  TCG  CCC  TTC  TCT  CCA  GGG  GAC  GCC  ACA  CTC  GCC  CTT  CTC  TCC  
+
+AGG  GGA  CGC  CAC  ACT  CCC  CCT  TCT  CTC  CAG  GGG  ACG  CCA  CAC  TCC  CCC  TTC  TCT  CCA  GGG  
+
+GAC  GCC  ACA  CTC  CCC  CTT  CTC  TCC  AGG  GGA  CGC  CAC  ACT  CCC  CCT  TCT  GTC  CAG  GGG  ACG  
+
+CCA  CAC  TCG  CCC  TTC  TCT  CCA  GGG  GAC  GCC  ACA  CTC  CCC  CTT  CTC  TCC  AGG  GGA  CGC  CAC  
+
+ACT  CCC  CCT  TCT  CTC  CAG  GGG  ACG  CCA  CAC  TCC  CCC  TTC  TGT  CCA  GGG  GAC  GCC  ACA  CTC  
+
+GCC  CTT  CTC  TCC  AGG  GGA  CGC  CAC  ACT  CGC  CCT  TCT  CTC  CAG  GGG  ACG  CCA  CAC  TCG  CCC  
+
+TTC  TCT  CCA  GGG  GAC  GCC  ACA  CTT  GCC  CTT  CTG  TCC  AGG  GAA  TGC  CAC  ACT  CCC  CCT  TCT  
+
+CCC  CAG  CAG  CCT  CCG  AGT  GAC  CAG  CTT  CCC  CAT  CGA  TAG  ACT  TCC  CGA  GGC  CAG  GAG  CCC  
+
+TCT  AGG  GCT  GCC  GGG  TGC  CAC  CCT  GGC  TCC  TTC  CAC  ACC  GTG  CTG  GTC  ACT  GCC  TGC  TGG  
+
+GGG  CGT  CAG  ATG  CAG  GTG  ACC  CTG  TGC  AGG  AGG  TAT  CTC  TGG  ACC  TGC  C        
+
+</script>
+<script>
+(function(){
+'use strict';
+/* ---------- helpers ---------- */
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const store={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fmt=(n,d=0)=>Number(n).toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d});
+const SVGNS='http://www.w3.org/2000/svg';
+function tip(el,wrap,x,y,html){el.innerHTML=html;el.hidden=false;const w=wrap.clientWidth;el.style.left=Math.max(60,Math.min(w-60,x))+'px';el.style.top=y+'px'}
+function svgPoint(svg,evt,W){const r=svg.getBoundingClientRect();const cx=(evt.touches?evt.touches[0].clientX:evt.clientX);const cy=(evt.touches?evt.touches[0].clientY:evt.clientY);return{x:(cx-r.left)*W/r.width,px:cx-r.left,py:cy-r.top,scale:r.width/W}}
+
+/* ---------- biology core ---------- */
+const BASES='TCAG', AAS='FFLLSSSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG';
+const CODE={};{let k=0;for(const a of BASES)for(const b of BASES)for(const c of BASES)CODE[a+b+c]=AAS[k++];}
+const CMP={A:'T',T:'A',G:'C',C:'G',N:'N',R:'Y',Y:'R',S:'S',W:'W',K:'M',M:'K',B:'V',V:'B',D:'H',H:'D'};
+const comp=s=>s.replace(/./g,c=>CMP[c]||c);
+const rc=s=>comp(s).split('').reverse().join('');
+const cleanDNA=s=>s.toUpperCase().replace(/U/g,'T').replace(/[\s\d]/g,'');
+function translate(s,f=0){let p='';for(let i=f;i+3<=s.length;i+=3)p+=CODE[s.substr(i,3)]||'X';return p}
+const ntSpan=s=>s.replace(/[ACGTU]/g,c=>`<span class="n${c}">${c}</span>`);
+const AA={
+ A:['Ala','Alanine','hyd',1.8,'Small and non-reactive. Very common in α-helices.'],
+ R:['Arg','Arginine','pos',-4.5,'Long, positively charged side chain. Often binds phosphate groups on DNA and RNA.'],
+ N:['Asn','Asparagine','pol',-3.5,'Site of N-linked glycosylation (sugar attachment) in the motif N-x-S/T.'],
+ D:['Asp','Aspartate','neg',-3.5,'Negatively charged. Common in active sites and metal-binding sites.'],
+ C:['Cys','Cysteine','spe',2.5,'Its thiol group forms disulfide bonds that staple a fold together, especially in secreted proteins.'],
+ Q:['Gln','Glutamine','pol',-3.5,'Polar amide side chain. Long polyglutamine stretches (CAG repeats) cause Huntington disease.'],
+ E:['Glu','Glutamate','neg',-3.5,'Negatively charged. The residue replaced by valine in sickle-cell haemoglobin.'],
+ G:['Gly','Glycine','spe',-0.4,'No side chain beyond a hydrogen. Very flexible, common in tight turns and loops.'],
+ H:['His','Histidine','pos',-3.2,'Charge flips near neutral pH, which makes it a favourite in enzyme active sites.'],
+ I:['Ile','Isoleucine','hyd',4.5,'Strongly hydrophobic. Usually buried in the protein core or in membranes.'],
+ L:['Leu','Leucine','hyd',3.8,'The most common amino acid in proteins. Hydrophobic; six codons.'],
+ K:['Lys','Lysine','pos',-3.9,'Positively charged. Its modification (acetylation, methylation) on histones regulates genes.'],
+ M:['Met','Methionine','hyd',1.9,'Encoded by the start codon AUG, so almost every protein begins with it.'],
+ F:['Phe','Phenylalanine','hyd',2.8,'Aromatic ring, hydrophobic. Missing in the CFTR ΔF508 mutation.'],
+ P:['Pro','Proline','spe',-1.6,'Its ring locks the backbone, so it breaks α-helices and appears in turns.'],
+ S:['Ser','Serine','pol',-0.8,'Small hydroxyl group. A common site of phosphorylation, which switches proteins on and off.'],
+ T:['Thr','Threonine','pol',-0.7,'Hydroxyl group like serine; also phosphorylated.'],
+ W:['Trp','Tryptophan','hyd',-0.9,'Largest amino acid, with a double aromatic ring. Only one codon (UGG). Hydrophobic by most scales, though Kyte–Doolittle scores it slightly negative.'],
+ Y:['Tyr','Tyrosine','pol',-1.3,'Aromatic with a hydroxyl group. Tyrosine phosphorylation drives many growth signals.'],
+ V:['Val','Valine','hyd',4.2,'Branched and hydrophobic. Replaces glutamate in sickle-cell haemoglobin.']
+};
+const CLS={hyd:['Hydrophobic','--cls-hyd'],pol:['Polar, uncharged','--cls-pol'],pos:['Positive (basic)','--cls-pos'],neg:['Negative (acidic)','--cls-neg'],spe:['Special cases','--cls-spe']};
+const codonsFor=a=>Object.keys(CODE).filter(k=>CODE[k]===a);
+
+/* ---------- lens ---------- */
+function setLens(l){document.body.dataset.lens=l;$$('.lens-switch [data-lens]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.lens===l)));store.set('bio116.lens',l)}
+$$('.lens-switch [data-lens]').forEach(b=>b.addEventListener('click',()=>setLens(b.dataset.lens)));
+setLens(store.get('bio116.lens','both'));
+
+/* ---------- TOC ---------- */
+const sections=$$('main > section');
+$('#toc-list').innerHTML=sections.map(s=>`<li><a href="#${s.id}" data-sec="${s.id}"><span class="n">${s.dataset.num}</span><span>${esc(s.dataset.title)}</span><span class="dot" data-dot="${s.id}" aria-hidden="true"></span></a></li>`).join('');
+if('IntersectionObserver' in window){
+  const io=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){$$('.toc a').forEach(a=>a.classList.toggle('active',a.dataset.sec===e.target.id))}})},{rootMargin:'-30% 0px -60% 0px'});
+  sections.forEach(s=>io.observe(s));
+}
+
+/* ---------- copy buttons ---------- */
+document.addEventListener('click',e=>{const b=e.target.closest('[data-copy]');if(!b)return;const el=document.getElementById(b.dataset.copy);const t=el.textContent;
+  const done=()=>{const o=b.textContent;b.textContent='Copied';setTimeout(()=>b.textContent=o,1200)};
+  const fallback=()=>{const r=document.createRange();r.selectNodeContents(el);const s=getSelection();s.removeAllRanges();s.addRange(r);b.textContent='Selected, press Ctrl+C';setTimeout(()=>b.textContent='Copy',1800)};
+  try{navigator.clipboard.writeText(t).then(done,fallback)}catch(err){fallback()}});
+
+/* ---------- banner ---------- */
+(function(){const s='ATGGCGTACGATCGGCTAAGCTTAGCCGATCGTACGCCATTGAC';
+  $('#banner').innerHTML=`<span class="muted">5′ </span>${ntSpan(s)}<span class="muted"> 3′</span>\n   <span class="muted">${s.split('').map(c=>'GC'.includes(c)?'≡':'=').join('')}</span>\n<span class="muted">3′ </span>${ntSpan(comp(s))}<span class="muted"> 5′</span>`})();
+
+/* ---------- 1. ladder ---------- */
+const RUNGS=[
+ {nm:'Person',sz:'~1.7 m',bio:'About 37 trillion (3.7 × 10¹³) cells. Nearly all of them carry the same diploid genome of about 6.2 billion base pairs: one ~3.1 Gb copy from each parent.',cs:'One human genome as plain text (1 byte per base, two copies) is about 6.2 GB. A 30× sequencing run of it produces around 100 GB of compressed FASTQ.'},
+ {nm:'Cell',sz:'~10–100 µm',bio:'A typical human cell is 10–20 µm across. Mature red blood cells have no nucleus and therefore no nuclear DNA, so blood DNA comes from white cells.',cs:'Single-cell sequencing treats each cell as one sample. A single experiment can profile 10⁴–10⁶ cells, which turns biology into a high-dimensional clustering problem.'},
+ {nm:'Nucleus',sz:'~6 µm',bio:'Holds 46 chromosomes, 23 from each parent. About 2 m of DNA is packed into it. Scaled up, that is like roughly 20 km of fine thread packed into a tennis ball.',cs:'Packing is not random. Hi-C experiments measure which parts of the genome touch each other in 3D, producing a contact matrix you can analyse like a graph adjacency matrix.'},
+ {nm:'Chromosome',sz:'~45–250 Mb',bio:'Chromosome 1 is the largest human chromosome at ~248 Mb; chromosome 21 is the smallest at ~45 Mb. DNA wraps ~147 bp at a time around histone proteins, forming nucleosomes that coil further.',cs:'Coordinates are 1-based in most biology formats (VCF, GFF, SAM) but 0-based, half-open in BED and in most programming languages. Off-by-one errors here are a rite of passage.'},
+ {nm:'Gene',sz:'~1 kb–2 Mb',bio:'A human protein-coding gene spans tens of kilobases on average, most of it introns. The largest, DMD (dystrophin), covers about 2.2 Mb of genome but its mature mRNA is only ~14 kb.',cs:'Gene annotations come as GFF or GTF files: tab-separated rows of features (gene, transcript, exon, CDS) with start, end and strand. One gene can have many transcripts.'},
+ {nm:'Codon',sz:'3 bp · ~1 nm',bio:'Three bases that specify one amino acid, or a stop signal. 3 × 0.34 nm ≈ 1 nm of double helix.',cs:'A codon is a 3-mer. There are 4³ = 64 possible codons, so a lookup table of 64 entries is enough to translate any gene.'},
+ {nm:'Base pair',sz:'0.34 nm',bio:'One rung of the ladder: A·T or G·C. The human haploid genome has ~3.1 billion of them.',cs:'Four symbols fit in 2 bits. Tools such as the 2bit format and many k-mer counters pack DNA this way, four bases per byte.'}];
+(function(){const L=$('#ladder'),D=$('#rung-detail');
+  L.innerHTML=RUNGS.map((r,i)=>`<button type="button" class="rung" data-i="${i}" aria-pressed="${i===2}"><span class="nm">${r.nm}</span><span class="sz">${r.sz}</span></button>`).join('');
+  const show=i=>{const r=RUNGS[i];$$('.rung').forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.i===i)));
+    D.innerHTML=`<div class="lens bio" style="display:grid"><span class="tag">${esc(r.nm)} · ${esc(r.sz)}</span><p>${esc(r.bio)}</p></div><div class="lens cs" style="display:grid"><span class="tag">Data view</span><p>${esc(r.cs)}</p></div>`};
+  L.addEventListener('click',e=>{const b=e.target.closest('.rung');if(b)show(+b.dataset.i)});show(2)})();
+
+/* ---------- 2. duplex ---------- */
+function renderDuplex(){const raw=cleanDNA($('#dup-in').value);const err=$('#dup-err');
+  const bad=raw.replace(/[ACGTN]/g,'');
+  if(bad){err.textContent=`"${bad[0]}" is not a DNA base. Use A, C, G, T (or N for unknown).`;err.hidden=false;return}
+  err.hidden=true;const s=raw;
+  if(!s){$('#dup-out').textContent='Type a sequence above.';$('#dup-stats').innerHTML='';['dup-comp','dup-rc','dup-rna'].forEach(id=>$('#'+id).textContent='');return}
+  const chunks=[];for(let i=0;i<s.length;i+=50)chunks.push(s.slice(i,i+50));
+  $('#dup-out').innerHTML=chunks.map((c,k)=>`<span class="muted">${k===0?'5′ ':'   '}</span>${ntSpan(c)}<span class="muted">${k===chunks.length-1?' 3′':''}</span>\n   <span class="bond">${c.split('').map(x=>'GC'.includes(x)?'≡':'AT'.includes(x)?'=':' ').join('')}</span>\n<span class="muted">${k===0?'3′ ':'   '}</span>${ntSpan(comp(c))}<span class="muted">${k===chunks.length-1?' 5′':''}</span>`).join('\n\n');
+  const n=s.length,g=(s.match(/[GC]/g)||[]).length,a=(s.match(/[AT]/g)||[]).length;
+  const tm=n<14?(2*a+4*g):(64.9+41*(g-16.4)/n);const pal=rc(s)===s;
+  $('#dup-stats').innerHTML=[['Length',fmt(n)+' bp'],['GC content',(100*g/n).toFixed(1)+'%'],['H-bonds',fmt(2*a+3*g)],['Melting temp.',tm.toFixed(1)+' °C'],['Mass (dsDNA)','≈ '+fmt(n*0.65,1)+' kDa'],['Reverse palindrome',pal?'Yes':'No']].map(([k,v])=>`<div class="stat"><div class="k">${k}</div><div class="v">${v}</div></div>`).join('')+`<p class="small muted" style="grid-column:1/-1">Melting temperature uses ${n<14?'the Wallace rule, 2(A+T) + 4(G+C), for short oligos':'the basic formula 64.9 + 41(G+C−16.4)/N'}. Real values also depend on salt and DNA concentration.</p>`;
+  $('#dup-comp').textContent=comp(s);$('#dup-rc').textContent=rc(s);$('#dup-rna').textContent=s.replace(/T/g,'U');}
+$('#dup-in').addEventListener('input',renderDuplex);
+$$('[data-dup]').forEach(b=>b.addEventListener('click',()=>{$('#dup-in').value=b.dataset.dup;renderDuplex()}));
+renderDuplex();
+
+/* ---------- 3. genome sizes ---------- */
+const GEN=[
+ ['HIV-1 (virus)',9.7e3,'9 genes'],['E. coli (bacterium)',4.6e6,'~4,300 genes'],['Baker\'s yeast',1.21e7,'~6,000 genes'],['C. elegans (worm)',1.0e8,'~20,000 genes'],['Arabidopsis (cress)',1.35e8,'~27,000 genes'],['Fruit fly',1.43e8,'~14,000 genes'],['Maize',2.3e9,'~39,000 genes'],['Human',3.1e9,'~20,000 protein-coding genes'],['Onion',1.6e10,'gene count not well established'],['Axolotl',3.2e10,'~23,000 genes'],['Australian lungfish',4.3e10,'gene count similar to other vertebrates'],['Paris japonica (plant)',1.49e11,'largest genome measured; not sequenced']];
+function bpLabel(v){return v>=1e9?fmt(v/1e9,v<1e10?1:0)+' Gb':v>=1e6?fmt(v/1e6,v<1e7?1:0)+' Mb':fmt(v/1e3,1)+' kb'}
+(function(){const W=800,L=178,R=70,rowH=26,top=8,H=top+GEN.length*rowH+30;const lo=3,hi=12;const x=v=>L+(Math.log10(v)-lo)/(hi-lo)*(W-L-R);
+  let h=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Bar chart of genome sizes on a log scale"><g class="grid">`;
+  for(let e=lo;e<=hi;e++)h+=`<line x1="${x(10**e)}" x2="${x(10**e)}" y1="${top}" y2="${H-26}" ${e%3?'stroke-dasharray="2 4"':''}/>`;
+  h+='</g>';
+  [[3,'1 kb'],[6,'1 Mb'],[9,'1 Gb'],[12,'1 Tb']].forEach(([e,t])=>h+=`<text x="${x(10**e)}" y="${H-8}" text-anchor="middle">${t}</text>`);
+  GEN.forEach((g,i)=>{const y=top+i*rowH;const hum=g[0]==='Human';const w=x(g[1])-L;
+    h+=`<g class="gbar" data-i="${i}"><rect x="0" y="${y}" width="${W}" height="${rowH}" style="fill:transparent"/><text x="${L-10}" y="${y+rowH/2+4}" text-anchor="end" style="fill:var(--ink);${hum?'font-weight:700':''}">${esc(g[0])}</text><path d="M${L} ${y+5}h${w-4}a4 4 0 0 1 4 4v${rowH-18}a4 4 0 0 1 -4 4h${-(w-4)}z" style="fill:${hum?'var(--chart-2)':'var(--chart)'}"/><text x="${L+w+6}" y="${y+rowH/2+4}" style="fill:var(--ink-2);font-variant-numeric:tabular-nums">${bpLabel(g[1])}</text></g>`});
+  h+=`<line x1="${L}" x2="${L}" y1="${top}" y2="${H-26}" style="stroke:var(--ink-2)"/></svg>`;
+  const wrap=$('#gsize-wrap');wrap.insertAdjacentHTML('beforeend',h);const t=$('#gsize-tip');const svg=wrap.querySelector('svg');
+  svg.addEventListener('mousemove',e=>{const g=e.target.closest('.gbar');if(!g){t.hidden=true;return}const d=GEN[+g.dataset.i];const p=svgPoint(svg,e,W);tip(t,wrap,p.px,p.py,`<b>${esc(d[0])}</b><br>${bpLabel(d[1])} · ${esc(d[2])}`)});
+  svg.addEventListener('mouseleave',()=>t.hidden=true)})();
+
+/* ---------- 3b. gene anatomy ---------- */
+const GPARTS={
+ prom:['Promoter','DNA just upstream of the gene where RNA polymerase and transcription factors bind. Many human promoters contain a TATA box about 25–30 bp before the start, or sit in a CpG island. It is not part of the transcript.'],
+ utr5:['5′ UTR','Untranslated region at the start of the mRNA. It is transcribed but not translated. The ribosome scans through it to find the first AUG, helped by the surrounding Kozak sequence (gccRccAUGG).'],
+ ex:['Exon','Segments kept in the mature mRNA. Exons can contain coding sequence, UTR, or both. Alternative splicing can include or skip exons, so one gene can make several proteins.'],
+ intr:['Intron','Removed by the spliceosome before the mRNA leaves the nucleus. Almost all introns start with GT and end with AG (the GT–AG rule). Human introns average several kilobases, far longer than exons (~150 bp).'],
+ utr3:['3′ UTR','Untranslated region after the stop codon. Contains signals that control mRNA stability and location, including microRNA binding sites and the AAUAAA polyadenylation signal.'],
+ cap:['5′ cap','A modified guanine (7-methylguanosine) added to the front of the mRNA. It protects the RNA from degradation and helps the ribosome bind.'],
+ tail:['Poly-A tail','A string of ~100–250 adenines added after cleavage downstream of AAUAAA. It protects the mRNA. RNA-seq methods often use it to capture mRNA with oligo-dT.']};
+(function(){const svg=$('#gene-svg');let mode='dna',sel='prom';
+  const dnaParts=[['prom',70],['utr5',40],['ex',100,'Exon 1'],['intr',120,'Intron 1'],['ex',90,'Exon 2'],['intr',150,'Intron 2'],['ex',80,'Exon 3'],['utr3',60]];
+  const rnaParts=[['cap',24],['utr5',40],['ex',100,'Exon 1'],['ex',90,'Exon 2'],['ex',80,'Exon 3'],['utr3',60],['tail',90]];
+  function draw(){const parts=mode==='dna'?dnaParts:rnaParts;const total=parts.reduce((a,p)=>a+p[1],0);const x0=(820-total)/2;let x=x0,h='';const cy=62;
+    h+=`<line x1="${x0}" x2="${x0+total}" y1="${cy}" y2="${cy}" style="stroke:var(--muted);stroke-width:2"/>`;
+    parts.forEach(p=>{const [k,w,lab]=p;let shape='';const on=k===sel?' sel':'';
+      if(k==='prom')shape=`<rect x="${x}" y="${cy-8}" width="${w}" height="16" rx="3" style="fill:var(--accent-soft);stroke:var(--accent)"/><path d="M${x+w-6} ${cy-8}v-22h18" style="fill:none;stroke:var(--accent);stroke-width:2"/><path d="M${x+w+10} ${cy-36}l8 6-8 6z" style="fill:var(--accent)"/><text x="${x+w+22}" y="${cy-26}" style="font-size:11px">TSS</text>`;
+      else if(k==='utr5'||k==='utr3')shape=`<rect x="${x}" y="${cy-11}" width="${w}" height="22" rx="3" style="fill:var(--primary-soft);stroke:var(--primary)"/>`;
+      else if(k==='ex')shape=`<rect x="${x}" y="${cy-18}" width="${w}" height="36" rx="4" style="fill:var(--primary)"/>`;
+      else if(k==='intr')shape=`<rect x="${x}" y="${cy-18}" width="${w}" height="36" style="fill:transparent"/><path d="M${x} ${cy}l${w/2} -16l${w/2} 16" style="fill:none;stroke:var(--muted);stroke-width:1.5"/><text x="${x+4}" y="${cy+14}" style="font-size:10px;font-family:var(--f-mono)">GT</text><text x="${x+w-18}" y="${cy+14}" style="font-size:10px;font-family:var(--f-mono)">AG</text>`;
+      else if(k==='cap')shape=`<circle cx="${x+w/2}" cy="${cy}" r="10" style="fill:var(--accent)"/>`;
+      else if(k==='tail')shape=`<rect x="${x}" y="${cy-18}" width="${w}" height="36" style="fill:transparent"/><text x="${x+4}" y="${cy+5}" style="font-family:var(--f-mono);fill:var(--nA);font-size:13px">AAAAAA…</text>`;
+      const lbl=lab||GPARTS[k][0];
+      h+=`<g class="gpart${on}" data-k="${k}" tabindex="0" role="button" aria-label="${esc(lbl)}">${shape}<text x="${x+w/2}" y="${cy+42}" text-anchor="middle" style="fill:var(--ink-2);font-size:11.5px">${esc(lbl)}</text></g>`;x+=w});
+    if(mode==='dna'){const a=x0+70+40,b=x0+70+40+100+120+90+150+80-10;h+=`<text x="${a}" y="${cy-30}" style="font-size:11px;font-family:var(--f-mono);fill:var(--ok)">ATG</text><text x="${b}" y="${cy-30}" style="font-size:11px;font-family:var(--f-mono);fill:var(--bad)">TAA</text>`}
+    else{const a=x0+24+40,b=x0+24+40+270-10;h+=`<text x="${a}" y="${cy-26}" style="font-size:11px;font-family:var(--f-mono);fill:var(--ok)">AUG</text><text x="${b}" y="${cy-26}" style="font-size:11px;font-family:var(--f-mono);fill:var(--bad)">UAA</text>`}
+    h+=`<text x="${x0}" y="140" style="font-size:11px">${mode==='dna'?'5′ (coding strand shown)':'5′'}</text><text x="${x0+total}" y="140" text-anchor="end" style="font-size:11px">3′</text>`;
+    svg.innerHTML=h;}
+  function info(k){sel=k;const p=GPARTS[k];$('#gene-info').innerHTML=`<b>${p[0]}.</b> ${esc(p[1])}`;draw()}
+  svg.addEventListener('click',e=>{const g=e.target.closest('.gpart');if(g)info(g.dataset.k)});
+  svg.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){const g=e.target.closest('.gpart');if(g){e.preventDefault();info(g.dataset.k)}}});
+  $('#gene-dna').addEventListener('click',()=>{mode='dna';$('#gene-dna').setAttribute('aria-pressed','true');$('#gene-mrna').setAttribute('aria-pressed','false');if(!dnaParts.some(p=>p[0]===sel))sel='prom';info(sel)});
+  $('#gene-mrna').addEventListener('click',()=>{mode='mrna';$('#gene-mrna').setAttribute('aria-pressed','true');$('#gene-dna').setAttribute('aria-pressed','false');if(!rnaParts.some(p=>p[0]===sel))sel='cap';info(sel)});
+  info('prom')})();
+
+/* ---------- 4. central dogma ---------- */
+(function(){
+  const PROM='CTATAAAAGGCGTCAC', U5='GCCACC', E1='ATGGCTTCAAG', INT='GTAAGTACTAACTTTCCTTTTACAG', E2='GTGGTTCGAATAA', U3='GCAATAAAGC';
+  const tx=U5+E1+INT+E2+U3;
+  const seg=(s,cls)=>`<span class="${cls}">${s}</span>`;
+  const leg=`<p class="small muted"><span style="color:var(--accent);font-weight:600">promoter</span> · <span class="muted">UTR</span> · <b>coding exon</b> · <span class="intron">intron</span></p>`;
+  const toRNA=s=>s.replace(/T/g,'U');
+  const cds=E1+E2;const prot=translate(cds);
+  const steps=[
+   {t:'DNA',h:()=>{const top=seg(PROM,'cap')+seg(U5,'muted')+`<b>${E1}</b>`+seg(INT,'intron')+`<b>${E2}</b>`+seg(U3,'muted');
+      const bot=comp(PROM+tx);
+      return `<div class="molecule"><span class="muted">coding   5′ </span>${top}<span class="muted"> 3′</span>\n<span class="muted">template 3′ </span>${bot}<span class="muted"> 5′</span></div>${leg}<p>The gene sits in double-stranded DNA. Transcription factors recognise the promoter, including the <b>TATA box</b> (<code>TATAAA</code>), and recruit RNA polymerase II. The polymerase reads the <b>template</b> strand 3′→5′ and builds RNA 5′→3′.</p>`}},
+   {t:'Transcription',h:()=>`<div class="molecule"><span class="muted">pre-mRNA 5′ </span>${seg(toRNA(U5),'muted')}<b>${toRNA(E1)}</b>${seg(toRNA(INT),'intron')}<b>${toRNA(E2)}</b>${seg(toRNA(U3),'muted')}<span class="muted"> 3′</span></div>${leg}<p>The RNA copy starts at the transcription start site, after the promoter. It has the same sequence as the coding strand, with <b>U</b> in place of T. This first copy still contains the intron, so it is called <b>pre-mRNA</b>.</p>`},
+   {t:'Processing',h:()=>`<div class="molecule"><span class="muted">mRNA </span><span class="cap">m7G</span>-${seg(toRNA(U5),'muted')}<b>${toRNA(E1)}</b><span style="color:var(--accent)">|</span><b>${toRNA(E2)}</b>${seg(toRNA(U3),'muted')}-<span class="nA">AAAAAAAAAA…</span></div><p class="small muted">The pink bar marks the exon–exon junction.</p><p>Three things happen in the nucleus. A <b>5′ cap</b> is added. The <b>intron is spliced out</b>: it began with <code>GU</code> and ended with <code>AG</code>. The RNA is cut after the <code>AAUAAA</code> signal in the 3′ UTR and given a <b>poly-A tail</b>. Notice that the codon <code>AGG</code> is split across the junction. Codons do not have to respect exon boundaries.</p>`},
+   {t:'Translation',h:()=>{const cod=[];for(let i=0;i+3<=cds.length;i+=3)cod.push(cds.substr(i,3));
+      return `<div class="codon-row">${cod.map(c=>{const a=CODE[c];return `<div class="codon${c==='ATG'?' start':a==='*'?' stop':''}"><span class="b">${toRNA(c)}</span><span class="a">${a==='*'?'Stop':AA[a][0]}</span></div>`}).join('')}</div><p>In the cytoplasm the ribosome scans from the cap, starts at the first <code>AUG</code>, and reads one codon at a time. Transfer RNAs bring the matching amino acids. At <code>UAA</code> it stops and releases the chain.</p><p>Protein: <code style="font-size:1.1rem">N-${prot.replace('*','')}-C</code> (${prot.length-1} amino acids). The UTRs are never translated.</p>`}}];
+  let cur=0;const S=$('#dogma-steps');
+  S.innerHTML=steps.map((s,i)=>`<button type="button" class="btn step-btn" data-i="${i}"><span class="c">${i+1}</span>${s.t}</button>`).join('');
+  const show=i=>{cur=Math.max(0,Math.min(steps.length-1,i));$('#dogma-view').innerHTML=steps[cur].h();$$('#dogma-steps .btn').forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.i===cur)));$('#dogma-prev').disabled=cur===0;$('#dogma-next').disabled=cur===steps.length-1};
+  S.addEventListener('click',e=>{const b=e.target.closest('[data-i]');if(b)show(+b.dataset.i)});
+  $('#dogma-prev').addEventListener('click',()=>show(cur-1));$('#dogma-next').addEventListener('click',()=>show(cur+1));show(0)})();
+
+/* ---------- 4b. frame shifter ---------- */
+(function(){let fr='+1';const F=$('#rf-frames');
+  F.innerHTML=['+1','+2','+3','−1','−2','−3'].map(f=>`<button type="button" data-f="${f}" aria-pressed="${f===fr}">${f}</button>`).join('');
+  function render(){const s=cleanDNA($('#rf-in').value);const bad=s.replace(/[ACGTN]/g,'');const err=$('#rf-err');
+    if(bad){err.textContent=`"${bad[0]}" is not a DNA base.`;err.hidden=false;return}err.hidden=true;
+    const rev=fr[0]!=='+';const off=+fr.slice(1)-1;const src=rev?rc(s):s;
+    let h='',p='';if(off>0)h+=`<div class="codon part"><span class="b">${src.slice(0,off)}</span><span class="a">skip</span></div>`;
+    for(let i=off;i<src.length;i+=3){const c=src.substr(i,3);if(c.length<3){h+=`<div class="codon part"><span class="b">${c}</span><span class="a">—</span></div>`;break}
+      const a=CODE[c]||'X';p+=a;h+=`<div class="codon${a==='M'?' start':a==='*'?' stop':''}"><span class="b">${c}</span><span class="a">${a==='*'?'Stop':a==='X'?'?':AA[a][0]+' '+a}</span></div>`}
+    $('#rf-out').innerHTML=h;
+    const orf=/M[^*]*\*?/.exec(p);
+    $('#rf-prot').innerHTML=`Frame ${fr}${rev?' (read on the reverse complement)':''}: <code>${esc(p)||'—'}</code>`+(orf?`<br><span class="muted">First ORF in this frame:</span> <code>${esc(orf[0])}</code> (${orf[0].replace('*','').length} aa${orf[0].endsWith('*')?'':', no stop codon before the end'})`:'<br><span class="muted">No ATG in this frame.</span>')}
+  F.addEventListener('click',e=>{const b=e.target.closest('[data-f]');if(!b)return;fr=b.dataset.f;$$('#rf-frames button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));render()});
+  $('#rf-in').addEventListener('input',render);render()})();
+
+/* ---------- 5. codon table ---------- */
+(function(){const R='UCAG';let hl=null,filt=null;
+  let h='<table class="ctable"><thead><tr><th>1st ↓ · 2nd →</th>'+[...R].map(b=>`<th>${b}</th>`).join('')+'</tr></thead><tbody>';
+  for(const a of R){h+=`<tr><th>${a}</th>`;for(const b of R){h+='<td><div class="ccell">';for(const c of R){const cod=a+b+c;const dna=cod.replace(/U/g,'T');const aa=CODE[dna];
+        h+=`<button type="button" class="cc${aa==='*'?' stopc':''}${cod==='AUG'?' startc':''}" data-cod="${dna}" data-aa="${aa}"><span>${cod}</span><span class="aa3">${aa==='*'?'Stop':AA[aa][0]+' '+aa}</span></button>`}
+      h+='</div></td>'}h+='</tr>'}
+  $('#code-table').innerHTML=h+'</tbody></table>';
+  const fl=$('#code-filter');
+  fl.insertAdjacentHTML('beforeend',Object.entries(CLS).map(([k,v])=>`<button type="button" class="chip" data-cls="${k}"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(${v[1]});margin-right:5px"></span>${v[0]}</button>`).join('')+`<button type="button" class="chip" data-cls="stop">Stop codons</button><button type="button" class="chip" data-cls="">Clear</button>`);
+  function paint(){$$('.cc').forEach(b=>{const aa=b.dataset.aa;const inF=!filt||(filt==='stop'?aa==='*':aa!=='*'&&AA[aa][2]===filt);b.classList.toggle('dim',!inF);b.classList.toggle('hl',hl!==null&&aa===hl)})}
+  fl.addEventListener('click',e=>{const b=e.target.closest('[data-cls]');if(!b)return;filt=b.dataset.cls||null;if(!filt)hl=null;paint();
+    $('#code-info').innerHTML=filt?(filt==='stop'?'<b>Stop codons.</b> UAA ("ochre"), UAG ("amber") and UGA ("opal"). No tRNA matches them; release factors end translation.':`<b>${CLS[filt][0]}.</b> ${Object.keys(AA).filter(k=>AA[k][2]===filt).map(k=>AA[k][1]+' ('+k+')').join(', ')}.`):'Click any codon.'});
+  $('#code-table').addEventListener('click',e=>{const b=e.target.closest('.cc');if(!b)return;const aa=b.dataset.aa;hl=aa;paint();const cs=codonsFor(aa).map(c=>c.replace(/T/g,'U'));
+    $('#code-info').innerHTML=aa==='*'?`<b>${b.dataset.cod.replace(/T/g,'U')}: stop.</b> The three stop codons are ${cs.join(', ')}. A mutation that creates one inside a gene is a <b>nonsense</b> mutation.`:
+      `<b>${b.dataset.cod.replace(/T/g,'U')} → ${AA[aa][1]} (${AA[aa][0]}, ${aa}).</b> ${cs.length} codon${cs.length>1?'s':''}: ${cs.join(', ')}. ${CLS[AA[aa][2]][0]}. ${esc(AA[aa][4])}${aa==='M'?' AUG is also the start codon.':''}`});
+})();
+
+/* ---------- 6. amino acids ---------- */
+(function(){const order=['A','V','L','I','M','F','W','S','T','N','Q','Y','K','R','H','D','E','C','G','P'];
+  $('#aa-grid').innerHTML=order.map(k=>{const a=AA[k];return `<button type="button" class="aa-tile" data-aa="${k}" style="--c:var(${CLS[a[2]][1]})" aria-pressed="false"><span class="one">${k}</span><span class="nm">${a[1]} · ${a[0]}</span><span class="cl">${CLS[a[2]][0]}</span></button>`}).join('');
+  $('#aa-grid').addEventListener('click',e=>{const b=e.target.closest('.aa-tile');if(!b)return;const k=b.dataset.aa,a=AA[k];$$('.aa-tile').forEach(t=>t.setAttribute('aria-pressed',String(t===b)));
+    $('#aa-info').innerHTML=`<b>${a[1]}</b> (${a[0]}, ${k}) · ${CLS[a[2]][0]} · hydropathy ${a[3]>0?'+':''}${a[3]}<br>${esc(a[4])}<br><span class="muted">Codons:</span> <code>${codonsFor(k).map(c=>c.replace(/T/g,'U')).join(' ')}</code>`})})();
+
+/* ---------- line chart helper ---------- */
+function lineChart(wrap,tipEl,opt){ // opt: pts [{x,y}], xmin,xmax,ymin,ymax,yticks,xticks,ref:[{y,label}],fmtTip,H,ylab,xlab,shade
+  const W=800,H=opt.H||240,ml=46,mr=14,mt=14,mb=38;const X=v=>ml+(v-opt.xmin)/(opt.xmax-opt.xmin||1)*(W-ml-mr);const Y=v=>mt+(1-(v-opt.ymin)/(opt.ymax-opt.ymin))*(H-mt-mb);
+  let h=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(opt.label||'Line chart')}"><g class="grid">`;
+  opt.yticks.forEach(t=>h+=`<line x1="${ml}" x2="${W-mr}" y1="${Y(t)}" y2="${Y(t)}"/>`);h+='</g>';
+  opt.yticks.forEach(t=>h+=`<text x="${ml-6}" y="${Y(t)+4}" text-anchor="end">${opt.yfmt?opt.yfmt(t):t}</text>`);
+  opt.xticks.forEach(t=>h+=`<text x="${X(t)}" y="${H-mb+18}" text-anchor="middle">${fmt(t)}</text>`);
+  if(opt.xlab)h+=`<text x="${W-mr}" y="${H-4}" text-anchor="end">${esc(opt.xlab)}</text>`;
+  (opt.ref||[]).forEach(r=>h+=`<line x1="${ml}" x2="${W-mr}" y1="${Y(r.y)}" y2="${Y(r.y)}" style="stroke:var(--ink-2);stroke-dasharray:5 4;stroke-width:1.2"/><text x="${W-mr-4}" y="${Y(r.y)-5}" text-anchor="end" style="fill:var(--ink-2)">${esc(r.label)}</text>`);
+  if(opt.pts.length){const d=opt.pts.map((p,i)=>(i?'L':'M')+X(p.x).toFixed(1)+' '+Y(p.y).toFixed(1)).join('');
+    const base=Y(Math.max(opt.ymin,Math.min(opt.ymax,opt.base??opt.ymin)));
+    h+=`<path d="${d}L${X(opt.pts[opt.pts.length-1].x).toFixed(1)} ${base}L${X(opt.pts[0].x).toFixed(1)} ${base}Z" style="fill:var(--chart);opacity:.12"/><path d="${d}" style="fill:none;stroke:var(--chart);stroke-width:2;stroke-linejoin:round"/>`}
+  h+=`<line class="xh" x1="0" x2="0" y1="${mt}" y2="${H-mb}" style="stroke:var(--ink-2);stroke-width:1;visibility:hidden"/><circle class="xd" r="4.5" cx="0" cy="0" style="fill:var(--chart);stroke:var(--surface);stroke-width:2;visibility:hidden"/><rect x="${ml}" y="${mt}" width="${W-ml-mr}" height="${H-mt-mb}" style="fill:transparent" class="hit"/></svg>`;
+  wrap.querySelectorAll('svg').forEach(s=>s.remove());wrap.insertAdjacentHTML('beforeend',h);
+  const svg=wrap.querySelector('svg'),xh=svg.querySelector('.xh'),xd=svg.querySelector('.xd');
+  const move=e=>{if(!opt.pts.length)return;const p=svgPoint(svg,e,W);const xv=opt.xmin+(p.x-ml)/(W-ml-mr)*(opt.xmax-opt.xmin);
+    let lo=0,hi=opt.pts.length-1;while(hi-lo>1){const m=(lo+hi)>>1;if(opt.pts[m].x<xv)lo=m;else hi=m}const q=Math.abs(opt.pts[lo].x-xv)<Math.abs(opt.pts[hi].x-xv)?opt.pts[lo]:opt.pts[hi];
+    xh.setAttribute('x1',X(q.x));xh.setAttribute('x2',X(q.x));xh.style.visibility='visible';xd.setAttribute('cx',X(q.x));xd.setAttribute('cy',Y(q.y));xd.style.visibility='visible';
+    tip(tipEl,wrap,X(q.x)*p.scale,Y(q.y)*p.scale,opt.fmtTip(q))};
+  svg.addEventListener('mousemove',move);svg.addEventListener('touchstart',move,{passive:true});svg.addEventListener('touchmove',move,{passive:true});
+  svg.addEventListener('mouseleave',()=>{tipEl.hidden=true;xh.style.visibility='hidden';xd.style.visibility='hidden'});
+  return svg}
+
+/* ---------- 6b. hydropathy ---------- */
+(function(){function render(){const s=$('#hp-in').value.toUpperCase().replace(/[\s\d*]/g,'');const w=+$('#hp-win').value;$('#hp-win-v').textContent=w;const err=$('#hp-err');
+    const bad=s.replace(/[ACDEFGHIKLMNPQRSTVWY]/g,'');if(bad){err.textContent=`"${bad[0]}" is not one of the 20 amino acid codes.`;err.hidden=false;return}
+    if(s.length<w){err.textContent=`The sequence needs at least ${w} residues for this window.`;err.hidden=false;return}err.hidden=true;
+    const pts=[];let sum=0;for(let i=0;i<s.length;i++){sum+=AA[s[i]][3];if(i>=w)sum-=AA[s[i-w]][3];if(i>=w-1)pts.push({x:i-(w-1)/2+1,y:sum/w,i:i-w+2})}
+    const step=s.length>300?100:s.length>120?25:20;const xt=[];for(let t=step;t<s.length;t+=step)xt.push(t);
+    lineChart($('#hp-wrap'),$('#hp-tip'),{pts,xmin:1,xmax:s.length,ymin:-4.5,ymax:4.5,base:0,yticks:[-4,-2,0,2,4],xticks:xt,xlab:'residue',ref:[{y:1.6,label:'membrane threshold 1.6'}],label:'Hydropathy plot',
+      fmtTip:q=>`Residues ${q.i}–${q.i+w-1}<br><b>${q.y.toFixed(2)}</b> · ${esc(s.substr(q.i-1,w))}`})}
+  $('#hp-in').addEventListener('input',render);$('#hp-win').addEventListener('input',render);
+  $$('[data-hp]').forEach(b=>b.addEventListener('click',()=>{$('#hp-in').value=b.dataset.hp;$('#hp-win').value=b.dataset.hp.length>100?9:19;render()}));render()})();
+
+/* ---------- 7. mutation lab ---------- */
+(function(){const REF='ATGGTGCACCTGACTCCTGAGGAGAAGTCTGCCGTTACTGCCCTGTGG';const refP=translate(REF);
+  let cur=REF,changed=new Array(REF.length).fill(false),sel=null,log=[];
+  const PRE=[['Sickle-cell  c.20A>T',[['sub',19,'T']]],['HbC  c.19G>A',[['sub',18,'A']]],['Silent  c.12G>A',[['sub',11,'A']]],['Nonsense  c.22G>T',[['sub',21,'T']]],['Frameshift  c.20del',[['del',19]]],['In-frame deletion  c.19_21del',[['del',18],['del',18],['del',18]]]];
+  $('#mut-presets').insertAdjacentHTML('beforeend',PRE.map((p,i)=>`<button type="button" class="chip" data-p="${i}">${esc(p[0])}</button>`).join(''));
+  const A3=a=>a==='*'?'Ter':AA[a]?AA[a][0]:'?';
+  function apply(op){const [t,i,b]=op;const r=cur[i];
+    if(t==='sub'){if(r===b)return;log.push(`c.${i+1}${r}>${b}`);cur=cur.slice(0,i)+b+cur.slice(i+1);changed[i]=true}
+    else if(t==='del'){log.push(`c.${i+1}del${r}`);cur=cur.slice(0,i)+cur.slice(i+1);changed.splice(i,1);if(sel!==null&&sel>=cur.length)sel=cur.length-1}
+    else if(t==='ins'){log.push(`c.${i+1}_${i+2}ins${b}`);cur=cur.slice(0,i+1)+b+cur.slice(i+1);changed.splice(i+1,0,true)}}
+  function classify(){if(cur===REF&&!log.length)return['none','No change yet','Pick a base, then change, delete or insert one. Or try a preset.'];
+    const d=cur.length-REF.length;const mp=translate(cur);const st=mp.indexOf('*');
+    if(cur===REF)return['silent','Back to reference','Your edits cancelled out.'];
+    if(d%3!==0)return['frameshift','Frameshift',`The length changed by ${d>0?'+':''}${d}, which is not a multiple of 3. Every codon after the edit is read in a new frame, so the downstream protein is scrambled and usually hits an early stop.`];
+    if(st>=0)return['nonsense','Nonsense',`A stop codon now appears at codon ${st+1}. The protein would be cut short to ${st} amino acids. Cells often destroy such mRNAs by nonsense-mediated decay.`];
+    if(d!==0)return['inframe','In-frame indel',`${Math.abs(d/3)} codon${Math.abs(d)>3?'s':''} ${d<0?'removed':'added'}. The reading frame is kept, so the rest of the protein is unchanged, as in the CFTR ΔF508 deletion.`];
+    if(mp===refP)return['silent','Silent (synonymous)','The DNA changed but every codon still codes for the same amino acid, thanks to the redundancy of the genetic code.'];
+    const diffs=[];for(let i=0;i<refP.length;i++)if(refP[i]!==mp[i])diffs.push(`p.${A3(refP[i])}${i+1}${A3(mp[i])}`);
+    return['missense','Missense',`One amino acid is replaced: ${diffs.join(', ')}. The effect depends on how different the two amino acids are and where the change sits in the folded protein.`]}
+  function render(){let h='';for(let i=0;i<cur.length;i+=3){const c=cur.substr(i,3);const a=c.length===3?CODE[c]:'';const ra=refP[i/3];
+      h+=`<div class="mut-codon"><div class="bases">${[...c].map((b,j)=>`<button type="button" class="mb n${b}${sel===i+j?' sel':''}${changed[i+j]?' changed':''}" data-i="${i+j}" aria-label="Base ${i+j+1}, ${b}">${b}</button>`).join('')}</div><span class="aa${a&&a!==ra?' diff':''}">${a?(a==='*'?'Stop':AA[a][0]):'·'}</span></div>`}
+    $('#mut-seq').innerHTML=h;
+    $('#mut-sel').textContent=sel===null?'No base selected.':`Selected: base ${sel+1} (${cur[sel]}), codon ${Math.floor(sel/3)+1}.`;
+    $$('#mut-actions .btn[data-sub],#mut-actions .btn[data-ins],#mut-del').forEach(b=>b.disabled=sel===null);
+    const [k,t,d]=classify();$('#mut-verdict').innerHTML=`<span class="badge ${k}">${t}</span><span>${d}</span>${log.length?`<span class="small muted" style="width:100%">Edits: <code>${log.map(esc).join(', ')}</code></span>`:''}`;
+    const mp=translate(cur);let marks='';for(let i=0;i<Math.max(refP.length,mp.length);i++)marks+=refP[i]===mp[i]?' ':'^';
+    $('#mut-cmp').innerHTML=`<span class="muted">Reference </span>${esc(refP.split('').join(' '))}\n<span class="muted">Mutant    </span>${esc(mp.split('').join(' '))}\n<span class="muted">          </span><span style="color:var(--bad)">${marks.split('').join(' ')}</span>`}
+  $('#mut-seq').addEventListener('click',e=>{const b=e.target.closest('.mb');if(!b)return;sel=+b.dataset.i;render()});
+  $('#mut-actions').addEventListener('click',e=>{const b=e.target.closest('button');if(!b||sel===null&&b.id!=='mut-reset')return;
+    if(b.dataset.sub)apply(['sub',sel,b.dataset.sub]);else if(b.dataset.ins){apply(['ins',sel,b.dataset.ins]);sel++}else if(b.id==='mut-del')apply(['del',sel]);else if(b.id==='mut-reset'){cur=REF;changed=new Array(REF.length).fill(false);log=[];sel=null}render()});
+  $('#mut-presets').addEventListener('click',e=>{const b=e.target.closest('[data-p]');if(!b)return;cur=REF;changed=new Array(REF.length).fill(false);log=[];const ops=PRE[+b.dataset.p][1];ops.forEach(apply);sel=ops[0][1];render()});
+  render()})();
+
+/* ---------- 8. alignment ---------- */
+(function(){let mode='global';
+  function run(){const A=cleanDNA($('#al-a').value).slice(0,16),B=cleanDNA($('#al-b').value).slice(0,16);const err=$('#al-err');
+    if(!A||!B){err.textContent='Enter both sequences.';err.hidden=false;return}err.hidden=true;
+    const ms=+$('#al-m').value||0,mm=+$('#al-x').value||0,gp=+$('#al-g').value||0;const n=A.length,m=B.length;const loc=mode==='local';
+    const F=[...Array(n+1)].map(()=>new Array(m+1).fill(0));
+    for(let i=1;i<=n;i++)F[i][0]=loc?0:i*gp;for(let j=1;j<=m;j++)F[0][j]=loc?0:j*gp;
+    let best=[0,0],bv=0;
+    for(let i=1;i<=n;i++)for(let j=1;j<=m;j++){let v=Math.max(F[i-1][j-1]+(A[i-1]===B[j-1]?ms:mm),F[i-1][j]+gp,F[i][j-1]+gp);if(loc)v=Math.max(0,v);F[i][j]=v;if(loc&&v>bv){bv=v;best=[i,j]}}
+    let [i,j]=loc?best:[n,m];const path=new Set([i+','+j]);let a='',b='';
+    while(loc?(i>0&&j>0&&F[i][j]>0):(i>0||j>0)){
+      if(i>0&&j>0&&F[i][j]===F[i-1][j-1]+(A[i-1]===B[j-1]?ms:mm)){a=A[i-1]+a;b=B[j-1]+b;i--;j--}
+      else if(i>0&&F[i][j]===F[i-1][j]+gp){a=A[i-1]+a;b='-'+b;i--}
+      else{a='-'+a;b=B[j-1]+b;j--}path.add(i+','+j)}
+    let h='<tr><th></th><th>–</th>'+[...B].map(c=>`<th class="n${c}">${c}</th>`).join('')+'</tr>';
+    for(let r=0;r<=n;r++){h+=`<tr><th class="n${A[r-1]||''}">${r?A[r-1]:'–'}</th>`;for(let c=0;c<=m;c++){const k=r+','+c;h+=`<td class="${path.has(k)?'path':''}${loc&&r===best[0]&&c===best[1]?' best':''}">${F[r][c]}</td>`}h+='</tr>'}
+    $('#al-table').innerHTML=h;
+    const mid=[...a].map((x,k)=>x==='-'||b[k]==='-'?' ':x===b[k]?'|':'.').join('');const idn=[...a].filter((x,k)=>x===b[k]&&x!=='-').length;
+    $('#al-out').innerHTML=a.length?`${ntSpan(a)}\n${mid}\n${ntSpan(b)}`:'<span class="muted">No positive-scoring local alignment.</span>';
+    const sc=loc?bv:F[n][m];
+    $('#al-note').textContent=`Score ${sc}. ${a.length?`Identity ${idn}/${a.length} (${(100*idn/a.length).toFixed(0)}%) over the aligned region.`:''} ${loc?'Local alignment starts from the highest cell (outlined) and stops at the first zero.':'Global alignment traces back from the bottom-right cell to the top-left.'} Ties are broken in favour of the diagonal, so other equally good alignments may exist.`}
+  ['al-a','al-b','al-m','al-x','al-g'].forEach(id=>$('#'+id).addEventListener('input',run));
+  $('#al-global').addEventListener('click',()=>{mode='global';$('#al-global').setAttribute('aria-pressed','true');$('#al-local').setAttribute('aria-pressed','false');run()});
+  $('#al-local').addEventListener('click',()=>{mode='local';$('#al-local').setAttribute('aria-pressed','true');$('#al-global').setAttribute('aria-pressed','false');run()});
+  run()})();
+
+/* ---------- 9. FASTA / FASTQ ---------- */
+(function(){const fa='>HBB_partial Homo sapiens HBB coding sequence, first 93 nt\nATGGTGCACCTGACTCCTGAGGAGAAGTCTGCCGTTACTGCCCTGTGGGGCAAGGTGAAC\nGTGGATGAAGTTGGTGGTGAGGCCCTGGGCAGG\n>HBB_partial_protein translated from the same 93 nt\nMVHLTPEEKSAVTALWGKVNVDEVGGEALGR';
+  $('#fa-view').innerHTML=fa.split('\n').map(l=>l[0]==='>'?`<span style="color:var(--accent)">${esc(l)}</span>`:/^[ACGT]+$/.test(l)?ntSpan(l):esc(l)).join('\n');
+  const hd='@SEQ_ID',sq='GATTTGGGGTTCAAAGCAGTATCGATCAAATAGTAAATCCATTTGTTCAACTCACAGTTT',ql="!''*((((***+))%%%++)(%%%%).1***-+*''))**55CCF>>>>>>CCCCCCC65";
+  $('#fq-view').innerHTML=`<span style="color:var(--accent)">${hd}</span>\n${[...sq].map((c,i)=>`<span class="b n${c}" data-i="${i}">${c}</span>`).join('')}\n<span class="muted">+</span>\n${[...ql].map((c,i)=>`<span class="q" data-i="${i}" tabindex="0">${esc(c)}</span>`).join('')}`;
+  const Q=[...ql].map(c=>c.charCodeAt(0)-33);
+  function info(i){const q=Q[i],p=Math.pow(10,-q/10);$$('#fq-view .on').forEach(x=>x.classList.remove('on'));$$(`#fq-view [data-i="${i}"]`).forEach(x=>x.classList.add('on'));
+    $('#fq-info').innerHTML=`Position ${i+1}: base <b class="n${sq[i]}">${sq[i]}</b>, quality character <code>${esc(ql[i])}</code> → ASCII ${ql.charCodeAt(i)} − 33 = <b>Q${q}</b> → error probability 10<sup>−${q}/10</sup> = <b>${p>=0.01?p.toFixed(2):p.toExponential(1)}</b> (about 1 in ${fmt(Math.round(1/p))}).`}
+  $('#fq-view').addEventListener('mouseover',e=>{const t=e.target.closest('[data-i]');if(t)info(+t.dataset.i)});
+  $('#fq-view').addEventListener('focusin',e=>{const t=e.target.closest('[data-i]');if(t)info(+t.dataset.i)});
+  $('#fq-view').addEventListener('click',e=>{const t=e.target.closest('[data-i]');if(t)info(+t.dataset.i)});
+  // quality bar chart
+  const W=800,H=170,ml=40,mr=10,mt=10,mb=28,bw=(W-ml-mr)/Q.length,Y=v=>mt+(1-v/40)*(H-mt-mb);
+  let h=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Per-base quality scores for the example read"><g class="grid">${[0,10,20,30,40].map(t=>`<line x1="${ml}" x2="${W-mr}" y1="${Y(t)}" y2="${Y(t)}"/>`).join('')}</g>${[0,10,20,30,40].map(t=>`<text x="${ml-6}" y="${Y(t)+4}" text-anchor="end">Q${t}</text>`).join('')}`;
+  Q.forEach((q,i)=>{const x=ml+i*bw+1,hh=Math.max(1,Y(0)-Y(q));h+=`<rect class="qb" data-i="${i}" x="${x.toFixed(1)}" y="${Y(q).toFixed(1)}" width="${(bw-2).toFixed(1)}" height="${hh.toFixed(1)}" rx="2" style="fill:${q>=30?'var(--chart)':'var(--chart-2)'}"/><rect class="qh" data-i="${i}" x="${ml+i*bw}" y="${mt}" width="${bw}" height="${H-mt-mb}" style="fill:transparent"/>`});
+  h+=`<line x1="${ml}" x2="${W-mr}" y1="${Y(30)}" y2="${Y(30)}" style="stroke:var(--ink-2);stroke-dasharray:5 4"/><text x="${W-mr}" y="${Y(30)-5}" text-anchor="end" style="fill:var(--ink-2)">Q30 = 1 error in 1,000</text>`;
+  [1,10,20,30,40,50,60].forEach(p=>h+=`<text x="${ml+(p-.5)*bw}" y="${H-8}" text-anchor="middle">${p}</text>`);
+  const wrap=$('#fq-wrap');wrap.insertAdjacentHTML('beforeend',h+'</svg><p class="small muted">Bars at Q30 or above are teal; lower-quality bases are pink. Quality usually improves after the first few bases of a read, but this classic example is poor overall.</p>');
+  const svg=wrap.querySelector('svg');svg.addEventListener('mousemove',e=>{const r=e.target.closest('.qh');if(!r){$('#fq-tip').hidden=true;return}const i=+r.dataset.i;info(i);const p=svgPoint(svg,e,W);tip($('#fq-tip'),wrap,(ml+(i+.5)*bw)*p.scale,Y(Q[i])*p.scale,`Base ${i+1} · ${sq[i]} · Q${Q[i]}`)});
+  svg.addEventListener('mouseleave',()=>$('#fq-tip').hidden=true);info(0)})();
+
+/* ---------- 9b. coverage ---------- */
+(function(){function run(){const G=+$('#cv-g').value*1e6,L=+$('#cv-l').value,c=+$('#cv-c').value;if(!(G>0&&L>0&&c>0)){$('#cv-out').innerHTML='<p class="err">Enter positive numbers in all three fields.</p>';return}
+    const reads=c*G/L,bases=c*G,pz=Math.exp(-c),unc=G*pz;
+    $('#cv-out').innerHTML=[['Reads needed',reads>=1e6?fmt(reads/1e6,1)+' M':fmt(reads)],['Read pairs (2×)',reads/2>=1e6?fmt(reads/2e6,1)+' M':fmt(reads/2)],['Total bases',bases>=1e9?fmt(bases/1e9,1)+' Gb':fmt(bases/1e6,1)+' Mb'],['P(base missed)',pz<1e-4?pz.toExponential(1):(100*pz).toFixed(2)+'%'],['Expected missed bases',unc<1?'< 1':fmt(unc)]].map(([k,v])=>`<div class="stat"><div class="k">${k}</div><div class="v">${v}</div></div>`).join('')}
+  ['cv-g','cv-l','cv-c'].forEach(id=>$('#'+id).addEventListener('input',run));run()})();
+
+/* ---------- 10. workbench ---------- */
+const COURSE=(function(){const raw=$('#course-seq').textContent;const first=raw.split(/start \d+/)[1]||raw;return first.replace(/[^ACGT]/g,'')})();
+const IUPAC={A:'A',C:'C',G:'G',T:'T',U:'T',R:'[AG]',Y:'[CT]',S:'[GC]',W:'[AT]',K:'[GT]',M:'[AC]',B:'[CGT]',D:'[AGT]',H:'[ACT]',V:'[ACG]',N:'[ACGT]'};
+const WB={seq:COURSE,orfs:[],hits:[],orfSel:null};
+function findORFs(s,minAA){const L=s.length,out=[];const r=rc(s);
+  for(const [strand,src] of [['+',s],['−',r]])for(let f=0;f<3;f++){let st=-1;for(let i=f;i+3<=L;i+=3){const c=src.substr(i,3);if(st<0&&c==='ATG')st=i;else if(st>=0&&(c==='TAA'||c==='TAG'||c==='TGA')){const aa=(i-st)/3;if(aa>=minAA){const a=strand==='+'?st+1:L-(i+3)+1,b=strand==='+'?i+3:L-st;out.push({strand,frame:f+1,start:a,end:b,aa,prot:translate(src.slice(st,i))})}st=-1}}}
+  return out}
+function wbStats(){const s=WB.seq,L=s.length;const cnt={A:0,C:0,G:0,T:0};for(const c of s)cnt[c]++;let cg=0;for(let i=0;i<L-1;i++)if(s[i]==='C'&&s[i+1]==='G')cg++;
+  const oe=cnt.C&&cnt.G?cg*L/(cnt.C*cnt.G):0;let best={b:'',n:0,p:0};const re=/A+|C+|G+|T+/g;let m;while((m=re.exec(s)))if(m[0].length>best.n)best={b:m[0][0],n:m[0].length,p:m.index+1};
+  const cell=(k,v,c)=>`<div class="stat"${c?` style="border-left:4px solid var(--n${c})"`:''}><div class="k">${k}</div><div class="v">${v}</div></div>`;
+  $('#wb-stats').innerHTML=cell('Length',fmt(L)+' bp')+['A','C','G','T'].map(b=>cell(b,`${fmt(cnt[b])} <span class="small muted">${(100*cnt[b]/L).toFixed(1)}%</span>`,b)).join('')+cell('GC content',(100*(cnt.G+cnt.C)/L).toFixed(1)+'%')+cell('CpG obs/exp',oe.toFixed(2))+cell('Longest run',`${best.b}×${best.n} <span class="small muted">@${fmt(best.p)}</span>`);
+  $('#wb-src').textContent=s===COURSE?'Source: triplets.txt (frame 1 block, joined)':'Source: your pasted sequence'}
+function wbGC(){const s=WB.seq,L=s.length,w=Math.min(+$('#gc-win').value,L);$('#gc-win-v').textContent=w;const step=Math.max(1,Math.round(w/8));const pts=[];
+  const pre=new Uint32Array(L+1);for(let i=0;i<L;i++)pre[i+1]=pre[i]+(s[i]==='G'||s[i]==='C'?1:0);
+  for(let i=0;i+w<=L;i+=step)pts.push({x:i+w/2,y:100*(pre[i+w]-pre[i])/w,a:i+1,b:i+w});
+  const xt=[];const st=L>20000?5000:L>4000?1000:L>800?200:50;for(let t=st;t<L;t+=st)xt.push(t);
+  lineChart($('#gc-wrap'),$('#gc-tip'),{pts,xmin:1,xmax:L,ymin:0,ymax:100,yticks:[0,25,50,75,100],yfmt:t=>t+'%',xticks:xt,xlab:'position (bp)',ref:[{y:41,label:'human genome average ≈ 41%'}],label:'GC content along the sequence',
+    fmtTip:q=>`${fmt(q.a)}–${fmt(q.b)}<br><b>${q.y.toFixed(1)}% GC</b>`})}
+function wbORF(){const s=WB.seq,L=s.length,min=+$('#orf-min').value;$('#orf-min-v').textContent=min;WB.orfs=findORFs(s,min);
+  $('#orf-count').textContent=`${WB.orfs.length} ORF${WB.orfs.length===1?'':'s'} found`;
+  const W=800,ml=40,mr=12,tr=24,mt=6,H=mt+6*tr+30,X=v=>ml+(v-1)/(L-1||1)*(W-ml-mr);const frames=[['+',1],['+',2],['+',3],['−',1],['−',2],['−',3]];
+  let h=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Open reading frames in six frames">`;
+  frames.forEach(([st,f],k)=>{const y=mt+k*tr;h+=`<line x1="${ml}" x2="${W-mr}" y1="${y+tr/2}" y2="${y+tr/2}" style="stroke:var(--grid)"/><text x="${ml-8}" y="${y+tr/2+4}" text-anchor="end" style="font-family:var(--f-mono)">${st}${f}</text>`});
+  WB.orfs.forEach((o,i)=>{const k=frames.findIndex(([s,f])=>s===o.strand&&f===o.frame);const y=mt+k*tr+5;const x1=X(o.start),x2=Math.max(X(o.end),x1+3);const on=WB.orfSel===i;
+    h+=`<rect class="orfb" data-i="${i}" x="${x1.toFixed(1)}" y="${y}" width="${(x2-x1).toFixed(1)}" height="${tr-10}" rx="3" style="fill:${o.strand==='+'?'var(--chart)':'var(--chart-2)'};cursor:pointer;${on?'stroke:var(--ink);stroke-width:2':''}"/>`});
+  const st=L>20000?5000:L>4000?1000:L>800?200:50;for(let t=st;t<L;t+=st)h+=`<text x="${X(t)}" y="${H-8}" text-anchor="middle">${fmt(t)}</text>`;
+  h+=`<text x="${ml}" y="${H-8}" style="fill:var(--ink-2)">forward = teal, reverse = pink</text></svg>`;
+  const wrap=$('#orf-wrap');wrap.querySelectorAll('svg').forEach(x=>x.remove());wrap.insertAdjacentHTML('beforeend',h);const svg=wrap.querySelector('svg');
+  svg.addEventListener('mousemove',e=>{const r=e.target.closest('.orfb');if(!r){$('#orf-tip').hidden=true;return}const o=WB.orfs[+r.dataset.i];const p=svgPoint(svg,e,W);tip($('#orf-tip'),wrap,p.px,p.py,`Frame ${o.strand}${o.frame} · ${fmt(o.start)}–${fmt(o.end)}<br><b>${o.aa} aa</b>`)});
+  svg.addEventListener('mouseleave',()=>$('#orf-tip').hidden=true);
+  svg.addEventListener('click',e=>{const r=e.target.closest('.orfb');if(!r)return;WB.orfSel=+r.dataset.i;const o=WB.orfs[WB.orfSel];
+    $('#orf-out').innerHTML=`<b>Frame ${o.strand}${o.frame}</b>, bases ${fmt(o.start)}–${fmt(o.end)} (${o.strand==='+'?'forward':'reverse'} strand), ${o.aa} amino acids:<br>${esc(o.prot)}`;wbORF();wbView(o.start)});
+  if(WB.orfSel!==null&&!WB.orfs[WB.orfSel]){WB.orfSel=null}}
+function iupacRe(p){return p.split('').map(c=>IUPAC[c]).join('')}
+const MOTIFS=[['Alu core','TGTAATCCCAGC'],['EcoRI site','GAATTC'],['TATA box','TATAWAWR'],['Poly-A (12)','AAAAAAAAAAAA'],['Tandem repeat unit','CCAGGGGACGCCACAC'],['Kozak','GCCRCCATGG'],['CpG','CG']];
+$('#mo-presets').insertAdjacentHTML('beforeend',MOTIFS.map(([n,m])=>`<button type="button" class="chip" data-m="${m}">${n} <code>${m}</code></button>`).join(''));
+function wbMotif(){const s=WB.seq,L=s.length,p=$('#mo-in').value.toUpperCase().replace(/\s/g,'');const err=$('#mo-err');WB.hits=[];
+  if(p){const bad=p.replace(/[ACGTURYSWKMBDHVN]/g,'');if(bad){err.textContent=`"${bad[0]}" is not a DNA or IUPAC code.`;err.hidden=false;return}}
+  err.hidden=true;
+  if(p){const f=new RegExp('(?=('+iupacRe(p)+'))','g');const pr=rc(p.replace(/U/g,'T'));let m;
+    while((m=f.exec(s))){WB.hits.push({pos:m.index+1,strand:'+',seq:m[1]});f.lastIndex++}
+    if(pr!==p.replace(/U/g,'T')){const r=new RegExp('(?=('+iupacRe(pr)+'))','g');while((m=r.exec(s))){WB.hits.push({pos:m.index+1,strand:'−',seq:rc(m[1])});r.lastIndex++}}
+    WB.hits.sort((a,b)=>a.pos-b.pos)}
+  const nf=WB.hits.filter(h=>h.strand==='+').length;
+  $('#mo-sum').innerHTML=p?`<b>${fmt(WB.hits.length)}</b> match${WB.hits.length===1?'':'es'}: ${fmt(nf)} on the forward strand, ${fmt(WB.hits.length-nf)} on the reverse strand.${rc(p)===p?' This motif is its own reverse complement, so each site is counted once.':''}`:'Type a motif.';
+  const W=800,H=64,ml=40,mr=12,X=v=>ml+(v-1)/(L-1||1)*(W-ml-mr);
+  let h=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Positions of motif matches"><line x1="${ml}" x2="${W-mr}" y1="26" y2="26" style="stroke:var(--line);stroke-width:2"/><text x="${ml-8}" y="16" text-anchor="end" style="font-family:var(--f-mono)">+</text><text x="${ml-8}" y="44" text-anchor="end" style="font-family:var(--f-mono)">−</text>`;
+  WB.hits.forEach((m,i)=>{const x=X(m.pos);h+=`<rect class="mh" data-i="${i}" x="${(x-1.5).toFixed(1)}" y="${m.strand==='+'?6:28}" width="3" height="18" rx="1" style="fill:${m.strand==='+'?'var(--chart)':'var(--chart-2)'};cursor:pointer"/>`});
+  h+=`<text x="${ml}" y="${H-4}">1</text><text x="${W-mr}" y="${H-4}" text-anchor="end">${fmt(L)}</text></svg>`;
+  const wrap=$('#mo-wrap');wrap.querySelectorAll('svg').forEach(x=>x.remove());wrap.insertAdjacentHTML('beforeend',h);const svg=wrap.querySelector('svg');
+  svg.addEventListener('mousemove',e=>{const r=e.target.closest('.mh');if(!r){$('#mo-tip').hidden=true;return}const m=WB.hits[+r.dataset.i];const p2=svgPoint(svg,e,W);tip($('#mo-tip'),wrap,p2.px,p2.py,`${fmt(m.pos)} (${m.strand})<br>${esc(m.seq)}`)});
+  svg.addEventListener('mouseleave',()=>$('#mo-tip').hidden=true);svg.addEventListener('click',e=>{const r=e.target.closest('.mh');if(r)wbView(WB.hits[+r.dataset.i].pos)});
+  $('#mo-hits').innerHTML=WB.hits.length?`<table class="data"><thead><tr><th>Position</th><th>Strand</th><th>Match (5′→3′ on its strand)</th><th></th></tr></thead><tbody>${WB.hits.slice(0,200).map(m=>`<tr><td class="num">${fmt(m.pos)}</td><td>${m.strand}</td><td class="num">${esc(m.seq.length>40?m.seq.slice(0,40)+'…':m.seq)}</td><td><button class="btn" type="button" data-go="${m.pos}">Show</button></td></tr>`).join('')}</tbody></table>${WB.hits.length>200?`<p class="small muted">Showing the first 200 of ${fmt(WB.hits.length)}.</p>`:''}`:'';
+  wbView()}
+$('#mo-hits').addEventListener('click',e=>{const b=e.target.closest('[data-go]');if(b)wbView(+b.dataset.go)});
+function wbView(scrollTo){const s=WB.seq,L=s.length;const mask=new Uint8Array(L);const plen=$('#mo-in').value.replace(/\s/g,'').length;
+  WB.hits.forEach(h=>{for(let k=h.pos-1;k<h.pos-1+plen&&k<L;k++)mask[k]=1});
+  if(WB.orfSel!==null&&WB.orfs[WB.orfSel]){const o=WB.orfs[WB.orfSel];for(let k=o.start-1;k<o.end;k++)if(!mask[k])mask[k]=2}
+  const out=[];for(let l=0;l<L;l+=60){let line=`<div data-l="${l}"><span class="pos">${String(l+1).padStart(6,' ')}  </span>`;let open=0;
+    for(let k=l;k<Math.min(l+60,L);k++){if((k-l)%10===0&&k>l){if(open){line+='</mark>';}line+=' ';if(open)line+=open===1?'<mark>':'<mark class="orf">'}
+      const mk=mask[k];if(mk!==open){if(open)line+='</mark>';if(mk)line+=mk===1?'<mark>':'<mark class="orf">';open=mk}line+=s[k]}
+    if(open)line+='</mark>';out.push(line+'</div>')}
+  const v=$('#seqview');v.innerHTML=out.join('');
+  if(scrollTo){const ln=v.querySelector(`[data-l="${Math.floor((scrollTo-1)/60)*60}"]`);if(ln)v.scrollTop=ln.offsetTop-v.offsetTop-40}}
+function wbAll(){WB.orfSel=null;wbStats();wbGC();wbORF();wbMotif();$('#orf-out').textContent='Click an ORF.'}
+$('#gc-win').addEventListener('input',wbGC);$('#orf-min').addEventListener('input',()=>{WB.orfSel=null;wbORF();wbView();$('#orf-out').textContent='Click an ORF.'});
+$('#mo-in').addEventListener('input',wbMotif);$('#mo-presets').addEventListener('click',e=>{const b=e.target.closest('[data-m]');if(!b)return;$('#mo-in').value=b.dataset.m;wbMotif();if(WB.hits[0])wbView(WB.hits[0].pos)});
+$('#wb-use-course').addEventListener('click',()=>{$('#wb-use-course').setAttribute('aria-pressed','true');$('#wb-use-own').setAttribute('aria-pressed','false');$('#wb-own').hidden=true;$('#wb-err').hidden=true;WB.seq=COURSE;wbAll()});
+$('#wb-use-own').addEventListener('click',()=>{$('#wb-use-own').setAttribute('aria-pressed','true');$('#wb-use-course').setAttribute('aria-pressed','false');$('#wb-own').hidden=false;$('#wb-own-in').focus()});
+$('#wb-own-go').addEventListener('click',()=>{const t=$('#wb-own-in').value.split('\n').filter(l=>!l.startsWith('>')).join('');const s=cleanDNA(t);const bad=s.replace(/[ACGT]/g,'');const err=$('#wb-err');
+  if(!s||s.length<30){err.textContent='Paste at least 30 bases of DNA.';err.hidden=false;return}if(bad){err.textContent=`Only A, C, G and T are supported here. Found "${bad[0]}".`;err.hidden=false;return}if(s.length>2e6){err.textContent='Keep it under 2 million bases so the page stays responsive.';err.hidden=false;return}
+  err.hidden=true;WB.seq=s;wbAll()});
+wbAll();
+
+/* ---------- quizzes ---------- */
+const QUIZ={
+ cells:[['Which statement about prokaryotic genes is most accurate?',['They are usually interrupted by many introns','They are densely packed and often grouped in operons','They are enclosed in a nucleus','They sit on several linear chromosomes'],1,'Bacterial genomes are compact, mostly coding, and often group related genes into operons that are transcribed together.'],
+  ['A neuron and a liver cell from the same person differ mainly because…',['they carry different genomes','they express different genes from the same genome','neurons have no DNA','liver cells have extra chromosomes'],1,'Almost all cells share one genome. Cell identity comes from which genes are switched on.'],
+  ['Which experiment measures how strongly each gene is being transcribed?',['Whole-genome sequencing','RNA-seq','X-ray crystallography','Bisulfite sequencing'],1,'RNA-seq sequences the RNA in a sample, so read counts per gene reflect transcription levels.']],
+ dna:[['What is the reverse complement of 5′-ATGCC-3′?',['TACGG','GGCAT','CCGTA','ATGCC'],1,'Complement: TACGG. Reverse it to read 5′→3′: GGCAT.'],
+  ['Why does a GC-rich duplex melt at a higher temperature?',['G and C are heavier atoms','G·C pairs have three hydrogen bonds and stack more strongly','GC-rich DNA is single-stranded','Thymine destabilises the helix'],1,'Three hydrogen bonds plus stronger base stacking make G·C pairs harder to separate.'],
+  ['A read only matches the reference after you reverse-complement it. What does that tell you?',['The read is an error','The read came from the opposite strand to the reference','The read is RNA','The sequencer read it 3′→5′'],1,'DNA fragments are sequenced from either strand, so about half of all reads map as reverse complements.']],
+ genomes:[['Roughly what share of the human genome codes for protein?',['~1–2%','~25%','~50%','~98%'],0,'Protein-coding exons are a tiny fraction. About half of the genome is repeats.'],
+  ['Which parts of a gene are removed from the mature mRNA?',['The 5′ UTR','Exons','Introns','The poly-A tail'],2,'Introns are spliced out. UTRs stay in the mRNA even though they are not translated.'],
+  ['Why do repeats make genome assembly difficult?',['They contain no information','A read shorter than a repeat cannot be placed uniquely','Sequencers cannot read adenine','They occur only in mitochondria'],1,'If a read fits equally well in several copies of a repeat, the assembler cannot tell which copy it came from.']],
+ dogma:[['The mRNA has the same sequence (with U for T) as which DNA strand?',['The template strand','The coding strand','Both strands','Neither strand'],1,'RNA is built complementary to the template, which makes it match the coding strand.'],
+  ['How many reading frames does a double-stranded DNA sequence have?',['1','3','6','64'],2,'Three offsets on each of two strands.'],
+  ['What peptide does ATG AAA TGG TAA encode?',['MKW','MNW','MKWL','KWM'],0,'ATG = Met (M), AAA = Lys (K), TGG = Trp (W), TAA = stop.']],
+ code:[['How many of the 64 codons code for an amino acid?',['20','61','64','3'],1,'64 codons minus 3 stop codons leaves 61 sense codons.'],
+  ['A change at which codon position is most often synonymous?',['First','Second','Third','All positions equally'],2,'Most of the redundancy in the code is at the third position (wobble).'],
+  ['Which amino acids have only one codon in the standard code?',['Leu and Ser','Met and Trp','Gly and Ala','Cys and His'],1,'Methionine (AUG) and tryptophan (UGG) each have a single codon.']],
+ proteins:[['Which residues are most likely to be buried in a protein\'s core?',['Charged ones like K and E','Hydrophobic ones like L, I and V','Only glycine','Polar ones like S and T'],1,'Hydrophobic side chains avoid water and pack into the core.'],
+  ['Which amino acid forms disulfide bonds?',['Cysteine','Methionine','Serine','Proline'],0,'Two cysteine thiol groups can oxidise to form an S–S bond.'],
+  ['Why can protein searches find more distant relatives than DNA searches?',['Proteins are longer than genes','Protein sequence changes more slowly, because many DNA changes are synonymous, and 20 letters carry more signal','DNA cannot be aligned','Proteins never mutate'],1,'Synonymous changes erase similarity at the DNA level while the protein stays the same, and a 20-letter alphabet makes chance matches rarer.']],
+ variation:[['A substitution changes GAG (Glu) to GAA (Glu). What type is it?',['Missense','Nonsense','Silent (synonymous)','Frameshift'],2,'Both codons code for glutamate, so the protein is unchanged.'],
+  ['Deleting a single base from a coding sequence usually causes…',['a silent change','a frameshift','an in-frame deletion','no change to the protein'],1,'One base is not a multiple of 3, so every downstream codon shifts.'],
+  ['Which file format stores variant calls?',['FASTA','FASTQ','VCF','PDB'],2,'VCF (Variant Call Format) holds one row per variant site.']],
+ homology:[['Human and mouse haemoglobin β are…',['paralogs','orthologs','analogs','not homologous'],1,'They diverged when the human and mouse lineages split, a speciation event.'],
+  ['Two proteins are 35% identical over their full length. Which statement is correct?',['They are 35% homologous','They are 35% identical, and homology is an inference from that','They cannot be related','They must be paralogs'],1,'Identity is measured. Homology is yes-or-no and inferred.'],
+  ['You want to find a shared domain in two otherwise unrelated proteins. Which method fits?',['Global alignment','Local alignment','Reverse complement','Six-frame translation'],1,'Local alignment finds the best-matching sub-region without forcing the ends to align.']],
+ data:[['A base has Phred quality 30. What is the chance it is wrong?',['1 in 30','1 in 100','1 in 1,000','1 in 30,000'],2,'Q = −10·log₁₀(P), so Q30 means P = 10⁻³.'],
+  ['Which technology produces the longest reads?',['Sanger','Illumina','Oxford Nanopore','SNP arrays'],2,'Nanopore reads can exceed a megabase.'],
+  ['At 30× mean coverage with random reads, about what fraction of bases get no reads?',['~3%','~0.3%','Essentially none (e⁻³⁰)','~30%'],2,'e⁻³⁰ ≈ 10⁻¹³. In practice some regions are still missed because real coverage is uneven.']],
+ bench:[['triplets.txt lists the sequence three times, starting at bases 1, 2 and 3. What are the three blocks?',['Three different genes','The three forward reading frames','Three chromosomes','The reverse complement'],1,'Shifting the start by one base changes how the string is cut into codons.'],
+  ['How does the ORF map find ORFs on the reverse strand?',['It does not','It scans the reverse complement and maps positions back to forward coordinates','It reads the RNA','It reads the protein'],1,'The reverse strand is the reverse complement, read 5′→3′.'],
+  ['What do Alu elements end with?',['A poly-A tract','A TATA box','A start codon','A telomere'],0,'Alus spread through an RNA intermediate and carry an A-rich tail, which you can see in the course sequence.']]};
+let QS=store.get('bio116.quiz',{});
+function quizDone(id){const q=QUIZ[id],s=QS[id]||{};return q.every((x,i)=>s[i]===x[2])}
+function updateProgress(){const ids=Object.keys(QUIZ);let tq=0,ok=0;ids.forEach(id=>{const s=QS[id]||{};QUIZ[id].forEach((x,i)=>{tq++;if(s[i]===x[2])ok++})});
+  $('#progress-pill').innerHTML=`Checks passed: <b>${ok}</b> / ${tq}`;ids.forEach(id=>{const d=document.querySelector(`[data-dot="${id}"]`);if(d)d.classList.toggle('done',quizDone(id))})}
+function renderQuiz(el){const id=el.dataset.quiz,q=QUIZ[id],s=QS[id]||{};const answered=Object.keys(s).length,right=q.filter((x,i)=>s[i]===x[2]).length;
+  el.innerHTML=`<div class="quiz-head"><h3>Check yourself</h3><span class="score">${answered?`${right} of ${q.length} correct`:`${q.length} questions`}${answered?` · <button class="btn" type="button" data-reset="${id}">Try again</button>`:''}</span></div>`+q.map((x,i)=>{const a=s[i];const done=a!==undefined;
+    return `<div class="q"><p class="qt">${i+1}. ${esc(x[0])}</p><div class="opts">${x[1].map((o,j)=>`<button type="button" class="opt${done&&j===x[2]?' right':''}${done&&j===a&&a!==x[2]?' wrong':''}" data-q="${i}" data-o="${j}" ${done?'disabled':''}>${esc(o)}</button>`).join('')}</div>${done?`<p class="why"><b>${a===x[2]?'Correct.':'Not quite.'}</b> ${esc(x[3])}</p>`:''}</div>`}).join('')}
+$$('.quiz').forEach(el=>{renderQuiz(el);el.addEventListener('click',e=>{const id=el.dataset.quiz;const r=e.target.closest('[data-reset]');if(r){delete QS[id];store.set('bio116.quiz',QS);renderQuiz(el);updateProgress();return}
+  const b=e.target.closest('.opt');if(!b||b.disabled)return;QS[id]=QS[id]||{};QS[id][b.dataset.q]=+b.dataset.o;store.set('bio116.quiz',QS);renderQuiz(el);updateProgress()})});
+$$('[data-dot]').forEach(d=>{if(!QUIZ[d.dataset.dot])d.style.visibility='hidden'});
+updateProgress();
+
+/* ---------- glossary ---------- */
+const GL=[['Allele','One version of a gene or site. You inherit one allele from each parent at most positions.'],['Alignment','An arrangement of two or more sequences that lines up positions thought to share an ancestor, with gaps for insertions and deletions.'],['Alu element','A ~300 bp primate-specific repeat with over a million copies in the human genome, ending in an A-rich tail.'],['Amino acid','One of the 20 building blocks of proteins, each with a one-letter code.'],['Antiparallel','The two DNA strands run in opposite 5′→3′ directions.'],['Assembly','Reconstructing a genome sequence from many overlapping reads.'],['BAM / SAM','Formats for reads aligned to a reference. SAM is text; BAM is its compressed binary form.'],['BLAST','A fast heuristic search that finds local alignments between a query and a database.'],['Codon','Three consecutive bases in a coding sequence that specify one amino acid or a stop.'],['Coding strand','The DNA strand with the same sequence as the mRNA (T instead of U). Also called the sense strand.'],['Contig','A continuous stretch of sequence produced by assembly.'],['Coverage (depth)','How many reads overlap a given base, on average or at one position.'],['CpG island','A stretch of DNA richer in CG dinucleotides than expected. Often marks promoters.'],['E-value','In BLAST, the number of hits this good expected by chance. Smaller is more significant.'],['Exon','A segment of a gene kept in the mature RNA after splicing.'],['FASTA','A text format: a ">" header line followed by sequence lines.'],['FASTQ','A four-line-per-read format with sequence and per-base quality scores.'],['Frameshift','An insertion or deletion whose length is not a multiple of 3, shifting all downstream codons.'],['Gene','A region of DNA transcribed into a functional RNA, which may be translated into protein.'],['Genome','All the DNA of an organism (or organelle).'],['Haploid / diploid','One copy of each chromosome (sperm, egg) versus two copies (most human cells).'],['Homolog','A sequence that shares common ancestry with another. Includes orthologs and paralogs.'],['Indel','An insertion or deletion of bases.'],['Intron','A segment removed from RNA by splicing. Usually starts with GT and ends with AG.'],['k-mer','A substring of length k. Used in assembly, read counting and fast search.'],['Missense','A substitution that changes one amino acid to another.'],['Motif','A short sequence pattern with biological meaning, such as a binding site.'],['Nonsense','A substitution that creates a premature stop codon.'],['Nucleotide','A sugar, a phosphate and a base: the unit of DNA or RNA.'],['Open reading frame (ORF)','A stretch from a start codon to the next in-frame stop codon.'],['Ortholog','Homologs in different species that diverged by speciation.'],['Paralog','Homologs in the same genome that diverged by gene duplication.'],['Phred score','Base quality: Q = −10·log₁₀(error probability). Q30 means 1 error in 1,000.'],['Promoter','DNA upstream of a gene where transcription machinery binds.'],['Read','One sequenced fragment reported by a sequencer.'],['Reference genome','A standard assembled genome (such as GRCh38) that reads are compared against.'],['Reverse complement','The sequence of the opposite strand, read 5′→3′.'],['RNA-seq','Sequencing a sample\'s RNA to measure gene expression.'],['SNP / SNV','A single-nucleotide variant. "SNP" usually means one common in the population.'],['Splicing','Removing introns from pre-mRNA and joining exons together.'],['Template strand','The DNA strand RNA polymerase reads. It is complementary to the RNA.'],['Transcription','Making RNA from a DNA template.'],['Translation','Making protein from an mRNA template at the ribosome.'],['UTR','Untranslated region at the 5′ or 3′ end of an mRNA.'],['VCF','Variant Call Format: one row per variant site with position, alleles, quality and genotypes.']];
+function renderGloss(){const q=$('#gl-q').value.trim().toLowerCase();const items=GL.filter(([t,d])=>!q||t.toLowerCase().includes(q)||d.toLowerCase().includes(q));
+  $('#gloss').innerHTML=items.length?items.map(([t,d])=>`<div class="term"><dt>${esc(t)}</dt><dd>${esc(d)}</dd></div>`).join(''):'<p class="muted">No terms match. Try a shorter word.</p>'}
+$('#gl-q').addEventListener('input',renderGloss);renderGloss();
+})();
+</script>
+
+</body>
+</html>
