@@ -1,0 +1,861 @@
+<title>Who Lives Here</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#f6f5f8; --surface:#ffffff; --surface-2:#f0edf3; --ink:#1d1a22; --muted:#625c6b; --line:#e0dce6;
+  --brand:#5b2a6e; --brand-ink:#ffffff; --brand-soft:#efe6f2; --brand-line:#d7c3de;
+  --good:#1f7a4a; --good-soft:#e3f3ea; --warn:#9a5b00; --warn-soft:#fbf0dc; --bad:#b42f2f; --bad-soft:#fae4e4;
+  --A:#1f9d55; --C:#2563c9; --G:#c98200; --T:#d43d3d;
+  --scope:#0d0a12; --scope-line:#2a2433; --scope-ink:#cfc6da;
+  --display:"Bricolage Grotesque", "Arial Black", system-ui, sans-serif;
+  --body:"IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+  --mono:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --r:10px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --paper:#141218; --surface:#1d1a23; --surface-2:#25212c; --ink:#ece8f1; --muted:#a49cae; --line:#342f3c;
+    --brand:#c79ad6; --brand-ink:#1d1a22; --brand-soft:#2d2236; --brand-line:#4d3a58;
+    --good:#5fd394; --good-soft:#173325; --warn:#f0b54a; --warn-soft:#3a2c12; --bad:#ff8080; --bad-soft:#3d1c1f;
+    --A:#3fcf7f; --C:#6f9dff; --G:#f2b233; --T:#ff6b6b;
+    --scope:#08060b; --scope-line:#2a2433;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --paper:#141218; --surface:#1d1a23; --surface-2:#25212c; --ink:#ece8f1; --muted:#a49cae; --line:#342f3c;
+  --brand:#c79ad6; --brand-ink:#1d1a22; --brand-soft:#2d2236; --brand-line:#4d3a58;
+  --good:#5fd394; --good-soft:#173325; --warn:#f0b54a; --warn-soft:#3a2c12; --bad:#ff8080; --bad-soft:#3d1c1f;
+  --A:#3fcf7f; --C:#6f9dff; --G:#f2b233; --T:#ff6b6b;
+  --scope:#08060b; --scope-line:#2a2433;
+}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.6;padding:0 16px}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;line-height:1.15;margin:0}
+h1{font-size:clamp(2.1rem,5vw,3.3rem);font-weight:800;letter-spacing:-.02em}
+h2{font-size:clamp(1.55rem,3.2vw,2.1rem);font-weight:700;letter-spacing:-.01em}
+h3{font-size:1.15rem;font-weight:700}
+p{margin:0}
+code,.mono{font-family:var(--mono)}
+a{color:var(--brand)}
+button,input,select{font:inherit}
+:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+
+.layout{max-width:1160px;margin:0 auto;display:grid;grid-template-columns:210px minmax(0,1fr);gap:48px;padding-block:40px 80px}
+@media (max-width:920px){.layout{grid-template-columns:minmax(0,1fr)}.rail{display:none}}
+
+/* rail */
+.rail{position:sticky;top:calc(env(safe-area-inset-top,0px) + 24px);align-self:start;display:flex;flex-direction:column;gap:18px;font-size:.9rem}
+.rail .eyebrow{margin-bottom:-6px}
+.rail ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.rail a{display:grid;grid-template-columns:26px 1fr;gap:10px;align-items:center;padding:7px 8px;border-radius:8px;color:var(--muted);text-decoration:none}
+.rail a:hover{background:var(--surface-2);color:var(--ink)}
+.rail a.active{color:var(--ink);background:var(--brand-soft)}
+.rail .n{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;border:1.5px solid var(--line);font-family:var(--mono);font-size:.75rem;background:var(--surface)}
+.rail a.active .n{border-color:var(--brand);color:var(--brand)}
+.rail a.done .n{background:var(--brand);border-color:var(--brand);color:var(--brand-ink)}
+.score{border-top:1px solid var(--line);padding-top:14px;display:flex;flex-direction:column;gap:6px;color:var(--muted)}
+.score b{font-family:var(--display);font-size:1.6rem;color:var(--ink);font-variant-numeric:tabular-nums}
+.meter{height:6px;border-radius:3px;background:var(--line);overflow:hidden}
+.meter i{display:block;height:100%;background:var(--brand);width:0;transition:width .3s}
+
+main{display:flex;flex-direction:column;gap:72px;min-width:0}
+.eyebrow{font-size:.74rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.lede{font-size:1.14rem;color:var(--muted);max-width:62ch}
+.prose{display:flex;flex-direction:column;gap:14px;max-width:66ch}
+.prose p{color:var(--ink)}
+.term{font-weight:600;color:var(--brand)}
+.dot{display:inline-block;width:.55em;height:.55em;border-radius:50%;background:var(--brand);margin-right:.45em;vertical-align:.12em}
+
+/* hero */
+.hero{display:flex;flex-direction:column;gap:22px}
+.meta{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font-size:.8rem;padding:4px 10px;border-radius:999px;background:var(--surface);border:1px solid var(--line);color:var(--muted)}
+.flow{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:0;margin-top:8px;position:relative}
+.flow .phase{grid-column:span 3;font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);border-bottom:1.5px dashed var(--brand-line);padding-bottom:6px;margin-bottom:14px;font-weight:600}
+.flow .phase.dry{grid-column:span 2;margin-left:12px}
+.flow a{display:flex;flex-direction:column;gap:8px;align-items:flex-start;text-decoration:none;color:var(--ink);padding-right:12px;position:relative}
+.flow a .c{width:40px;height:40px;border-radius:50%;background:var(--brand);color:var(--brand-ink);display:grid;place-items:center;font-family:var(--display);font-weight:800;font-size:1.1rem;position:relative;z-index:1}
+.flow a:not(:last-child)::after{content:"";position:absolute;top:20px;left:40px;right:0;height:2px;background:var(--brand-line)}
+.flow a b{font-family:var(--display);font-size:1rem;line-height:1.2}
+.flow a span{font-size:.84rem;color:var(--muted);line-height:1.4}
+.flow a:hover b{color:var(--brand)}
+@media (max-width:640px){
+  .flow{grid-template-columns:minmax(0,1fr);gap:14px}
+  .flow .phase,.flow .phase.dry{grid-column:auto;margin-left:0;margin-bottom:0}
+  .flow a{display:grid;grid-template-columns:40px 1fr;column-gap:12px;row-gap:2px}
+  .flow a .c{grid-row:span 2}
+  .flow a:not(:last-child)::after{display:none}
+}
+
+/* sections */
+section.stage{display:flex;flex-direction:column;gap:22px;scroll-margin-top:24px}
+.stage-head{display:flex;flex-direction:column;gap:6px}
+.stage-head .sub{font-style:italic;color:var(--muted)}
+.lab{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:22px;display:flex;flex-direction:column;gap:16px}
+.lab-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+.lab-head .tag{font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;font-weight:600;color:var(--brand);background:var(--brand-soft);padding:3px 9px;border-radius:999px}
+.lab .hint{font-size:.9rem;color:var(--muted)}
+@media (max-width:520px){.lab{padding:16px}}
+
+.controls{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center}
+.ctl{display:flex;flex-direction:column;gap:4px;font-size:.86rem;color:var(--muted);min-width:0}
+.ctl output{font-family:var(--mono);color:var(--ink);font-weight:500}
+input[type=range]{accent-color:var(--brand);width:min(260px,70vw)}
+.btn{border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:8px 14px;border-radius:8px;cursor:pointer;font-weight:500;font-size:.9rem}
+.btn:hover{border-color:var(--brand);color:var(--brand)}
+.btn.primary{background:var(--brand);border-color:var(--brand);color:var(--brand-ink)}
+.btn.primary:hover{filter:brightness(1.08);color:var(--brand-ink)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.toggle{display:flex;align-items:center;gap:8px;font-size:.9rem;cursor:pointer}
+.toggle input{accent-color:var(--brand);width:16px;height:16px}
+
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.stat{background:var(--surface-2);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:2px}
+.stat span{font-size:.76rem;color:var(--muted)}
+.stat b{font-family:var(--mono);font-size:1.12rem;font-weight:600;font-variant-numeric:tabular-nums}
+.callout{border-radius:8px;padding:10px 14px;font-size:.92rem;background:var(--surface-2)}
+.callout.good{background:var(--good-soft);color:var(--good)}
+.callout.warn{background:var(--warn-soft);color:var(--warn)}
+.callout.bad{background:var(--bad-soft);color:var(--bad)}
+
+svg text{fill:var(--muted);font-family:var(--mono);font-size:11px}
+.chart{width:100%;height:auto;display:block}
+
+/* process steps */
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;counter-reset:s}
+.step{display:flex;gap:10px;align-items:flex-start;font-size:.9rem}
+.step .c{flex:none;width:28px;height:28px;border-radius:50%;border:1.5px solid var(--brand);color:var(--brand);display:grid;place-items:center;font-family:var(--mono);font-size:.8rem;font-weight:600}
+.step b{display:block;font-size:.95rem}
+.step span{color:var(--muted);line-height:1.45}
+
+/* library assembly */
+.parts,.slots{display:flex;flex-wrap:wrap;gap:8px}
+.part{font-family:var(--mono);font-size:.84rem;padding:8px 12px;border-radius:6px;border:1.5px solid var(--brand-line);background:var(--brand-soft);color:var(--ink);cursor:pointer}
+.part:hover{border-color:var(--brand)}
+.part.used{visibility:hidden}
+.slots{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px;gap:0}
+.slot{flex:1 0 92px;min-height:54px;border:1.5px dashed var(--line);display:grid;place-items:center;font-family:var(--mono);font-size:.8rem;text-align:center;padding:6px;cursor:pointer;background:var(--surface);color:var(--muted);position:relative}
+.slot+.slot{border-left:none}
+.slot:first-child{border-radius:8px 0 0 8px}.slot:last-child{border-radius:0 8px 8px 0}
+.slot.filled{border-style:solid;color:var(--ink);background:var(--brand-soft)}
+.slot.insert.filled{background:var(--surface-2)}
+.slot.right{background:var(--good-soft);border-color:var(--good);color:var(--good)}
+.slot.wrong{background:var(--bad-soft);border-color:var(--bad);color:var(--bad)}
+.strand-labels{display:flex;justify-content:space-between;font-family:var(--mono);font-size:.76rem;color:var(--muted)}
+
+/* canvas */
+.scopebox{background:var(--scope);border-radius:10px;overflow:hidden;position:relative}
+.scopebox canvas{display:block;width:100%}
+.scope-legend{display:flex;flex-wrap:wrap;gap:14px;font-size:.82rem;color:var(--muted)}
+.scope-legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:-1px}
+
+/* SBS */
+.sbs{display:grid;grid-template-columns:minmax(0,260px) minmax(0,1fr);gap:22px}
+@media (max-width:700px){.sbs{grid-template-columns:minmax(0,1fr)}}
+.tile{background:var(--scope);border-radius:10px;padding:14px;display:grid;grid-template-columns:repeat(4,1fr);gap:10px;aspect-ratio:1;max-width:100%}
+.clu{border-radius:50%;background:#1a1522;transition:background .25s, box-shadow .25s;position:relative}
+.clu.tracked::after{content:"";position:absolute;inset:-5px;border:1.5px dashed #e8dcf0;border-radius:50%}
+.tile-cap{font-size:.8rem;color:var(--muted);margin-top:8px}
+.seqwrap{overflow-x:auto;padding-bottom:4px}
+.seqrow{display:grid;grid-template-columns:120px repeat(36,22px);gap:2px;align-items:center;font-family:var(--mono);font-size:.82rem;min-width:max-content}
+.seqrow+.seqrow{margin-top:4px}
+.seqrow>span:first-child{font-size:.74rem;color:var(--muted);font-family:var(--body);position:sticky;left:0;background:var(--surface);padding-right:6px}
+.cell{height:24px;display:grid;place-items:center;border-radius:4px;background:var(--surface-2);color:var(--muted)}
+.cell.lit{color:#fff;font-weight:600}
+.cell.now{outline:2px solid var(--ink);outline-offset:1px}
+.cell.err{box-shadow:inset 0 -3px 0 var(--ink)}
+.cell.tmpl.done{background:transparent;color:var(--ink)}
+.bA{background:var(--A)!important}.bC{background:var(--C)!important}.bG{background:var(--G)!important}.bT{background:var(--T)!important}
+.tA{color:var(--A)}.tC{color:var(--C)}.tG{color:var(--G)}.tT{color:var(--T)}
+.channels{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;align-items:end;height:92px}
+.ch{display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end;font-family:var(--mono);font-size:.8rem}
+.ch i{display:block;width:100%;border-radius:4px 4px 0 0;transition:height .25s;min-height:2px}
+.guess{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.guess .btn{font-family:var(--mono);font-weight:600;min-width:44px}
+.guess .btn[data-b="A"]{color:var(--A)}.guess .btn[data-b="C"]{color:var(--C)}.guess .btn[data-b="G"]{color:var(--G)}.guess .btn[data-b="T"]{color:var(--T)}
+.shake{animation:shake .3s}
+@keyframes shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+/* FASTQ */
+.fastq{font-family:var(--mono);font-size:.9rem;background:var(--surface-2);border-radius:8px;padding:14px 16px;overflow-x:auto;line-height:1.9;white-space:pre}
+.fastq .ln{color:var(--muted);user-select:none;display:inline-block;width:2.2em}
+.fastq .q{cursor:pointer;border-radius:3px;padding:1px 0}
+.fastq .q:hover,.fastq .q.sel{background:var(--brand);color:var(--brand-ink)}
+.fastq .trim{opacity:.35;text-decoration:line-through}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+@media (max-width:700px){.two{grid-template-columns:minmax(0,1fr)}}
+.panel{border:1px solid var(--line);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.panel h3{font-size:1rem}
+.bigq{font-family:var(--display);font-size:2.4rem;font-weight:800;line-height:1;color:var(--brand);font-variant-numeric:tabular-nums}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:.9rem}
+.kv dt{color:var(--muted)}.kv dd{margin:0;font-family:var(--mono)}
+
+/* pileup */
+.pile-wrap{overflow-x:auto;padding-bottom:6px}
+.pile{display:grid;gap:2px;font-family:var(--mono);font-size:.78rem;min-width:max-content}
+.prow{display:grid;grid-auto-flow:column;grid-auto-columns:16px;gap:1px}
+.pc{height:17px;display:grid;place-items:center;border-radius:2px;color:var(--muted)}
+.pc.m{color:var(--muted);background:var(--surface-2)}
+.pc.x{color:#fff;font-weight:600}
+.pc.col-sel{outline:1.5px solid var(--brand)}
+.pc.ref{font-weight:600;cursor:pointer;background:transparent}
+.pc.ref:hover{background:var(--brand-soft)}
+.covrow{display:grid;grid-auto-flow:column;grid-auto-columns:16px;gap:1px;align-items:end;height:44px}
+.covrow i{display:block;background:var(--brand-line);border-radius:2px 2px 0 0;cursor:pointer}
+.covrow i.sel{background:var(--brand)}
+.gt{display:flex;flex-direction:column;gap:6px}
+.gtbar{display:grid;grid-template-columns:44px 1fr 56px;gap:10px;align-items:center;font-family:var(--mono);font-size:.84rem}
+.gtbar .track{height:12px;border-radius:6px;background:var(--surface-2);overflow:hidden}
+.gtbar .track i{display:block;height:100%;background:var(--brand);transition:width .25s}
+.gtbar.win{font-weight:600}
+
+/* quiz */
+.quiz{display:flex;flex-direction:column;gap:14px}
+.q{border-left:3px solid var(--brand-line);padding-left:16px;display:flex;flex-direction:column;gap:10px}
+.q p{font-weight:500}
+.opts{display:flex;flex-direction:column;gap:6px}
+.opt{text-align:left;border:1px solid var(--line);background:var(--surface);padding:9px 12px;border-radius:8px;cursor:pointer;color:var(--ink);font-size:.93rem}
+.opt:hover:not(:disabled){border-color:var(--brand)}
+.opt.right{background:var(--good-soft);border-color:var(--good);color:var(--good)}
+.opt.wrong{background:var(--bad-soft);border-color:var(--bad);color:var(--bad)}
+.opt:disabled{cursor:default}
+.why{font-size:.9rem;color:var(--muted)}
+
+/* compare */
+.compare{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+@media (max-width:700px){.compare{grid-template-columns:minmax(0,1fr)}}
+.compare .panel ul{margin:0;padding-left:1.1em;display:flex;flex-direction:column;gap:6px;font-size:.93rem}
+.foot{border-top:1px solid var(--line);padding-top:18px;font-size:.84rem;color:var(--muted)}
+
+/* assembly additions */
+a.chip{text-decoration:none;color:var(--brand);border-color:var(--brand-line)}
+a.chip:hover{background:var(--brand-soft)}
+.sel{font:inherit;font-size:.9rem;padding:7px 10px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink);max-width:100%}
+.olc{display:flex;flex-direction:column;gap:3px;font-family:var(--mono);font-size:.9rem;min-width:max-content}
+.olcrow{display:flex;align-items:center;white-space:pre;background:none;border:0;padding:2px 0;color:var(--ink);font:inherit;cursor:pointer;text-align:left;border-radius:4px}
+.olcrow:hover{background:var(--surface-2)}
+.olcrow span{display:inline-block;width:1.2ch;text-align:center}
+.olcrow .lbl{width:92px;text-align:left;font-family:var(--body);font-size:.78rem;color:var(--muted)}
+.olcrow .pad{width:auto}
+.olcrow .ov{background:var(--warn-soft);font-weight:600}
+.olcrow.cons{cursor:default;border-top:1px solid var(--line);padding-top:6px;margin-top:4px;font-weight:600}
+.olcrow.cons:hover{background:none}
+.graphbox{background:var(--surface-2);border-radius:10px;overflow:hidden}
+.graphbox svg{display:block;width:100%;height:auto}
+.contigs{display:flex;flex-direction:column;gap:6px}
+.tig{display:flex;flex-direction:column;gap:2px;font-size:.82rem;color:var(--muted)}
+.tig code{font-size:.9rem;overflow-wrap:anywhere;letter-spacing:.04em}
+.tig code b{font-weight:600}
+ul.plain{margin:0;padding-left:1.1em;display:flex;flex-direction:column;gap:8px;font-size:.93rem}
+
+/* rna-seq additions */
+.batches{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.batch{border:1.5px dashed var(--line);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:10px;min-height:120px}
+.batch h3{font-size:.95rem}
+.batch-list{display:flex;flex-wrap:wrap;gap:8px}
+.sample{border-radius:999px;padding:6px 14px;font-size:.88rem;cursor:pointer;border:1.5px solid;font-weight:500}
+.sample.ctrl{background:var(--brand-soft);border-color:var(--brand);color:var(--brand)}
+.sample.trt{background:var(--warn-soft);border-color:var(--warn);color:var(--warn)}
+.stack{display:flex;height:34px;border-radius:8px;overflow:hidden}
+.stack div{display:grid;place-items:center;color:#fff;font-family:var(--mono);font-size:.78rem;font-weight:600;transition:width .3s}
+.tablewrap{overflow-x:auto}
+.mtx{border-collapse:collapse;width:100%;font-size:.88rem;font-variant-numeric:tabular-nums;min-width:520px}
+.mtx th,.mtx td{padding:7px 10px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+.mtx th:first-child,.mtx td:first-child{text-align:left}
+.mtx th{font-weight:600;font-size:.8rem;color:var(--muted);vertical-align:bottom}
+.mtx th span{font-weight:400;font-family:var(--mono);font-size:.74rem}
+.mtx td{font-family:var(--mono)}
+.mtx td:first-child{font-family:var(--body);font-weight:500}
+.mtx tbody tr[data-i]{cursor:pointer}
+.mtx tbody tr[data-i]:hover{background:var(--surface-2)}
+.mtx tr.sel{background:var(--brand-soft)!important}
+.mtx tr.sf td{color:var(--muted);font-style:italic}
+.volc{display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:16px;align-items:start}
+@media (max-width:760px){.volc{grid-template-columns:minmax(0,1fr)}}
+#volcano{cursor:crosshair}
+
+/* single-cell additions */
+:root{--k1:#3b6fd4;--k2:#159a9a;--k3:#d4822a;--k4:#c4389a;--k5:#3f9a3f;--k6:#8a63d2;--k7:#a8961c;--k8:#2a8fb0;--k9:#e0607e;--k10:#6b8f3a;--k11:#b5651d;--k12:#5a6fa8;--kD:#1d1a22;--kL:#d43d3d;--kE:#a49cae}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--k1:#6f9dff;--k2:#3fcfcf;--k3:#f2a95a;--k4:#f06cc4;--k5:#6fd36f;--k6:#b79aff;--k7:#d9c64a;--k8:#5cc0e0;--k9:#ff8fa8;--k10:#9fc46a;--k11:#e89a5a;--k12:#9aaee8;--kD:#f4f0f8;--kL:#ff6b6b;--kE:#6a6275}}
+:root[data-theme="dark"]{--k1:#6f9dff;--k2:#3fcfcf;--k3:#f2a95a;--k4:#f06cc4;--k5:#6fd36f;--k6:#b79aff;--k7:#d9c64a;--k8:#5cc0e0;--k9:#ff8fa8;--k10:#9fc46a;--k11:#e89a5a;--k12:#9aaee8;--kD:#f4f0f8;--kL:#ff6b6b;--kE:#6a6275}
+.droplets{display:grid;grid-template-columns:repeat(24,minmax(0,1fr));gap:4px}
+@media (max-width:600px){.droplets{grid-template-columns:repeat(16,minmax(0,1fr))}}
+.drop{aspect-ratio:1;border-radius:50%;border:1.5px solid var(--line);background:var(--surface-2);display:flex;align-items:center;justify-content:center;gap:1px;flex-wrap:wrap;max-width:100%}
+.drop i{width:32%;height:32%;border-radius:50%;background:currentColor}
+.drop.one{border-color:var(--good);color:var(--good)}
+.drop.multi{border-color:var(--bad);color:var(--bad);background:var(--bad-soft)}
+.readmap{display:flex;flex-wrap:wrap;border-radius:8px;overflow:hidden;font-family:var(--mono);font-size:.78rem;font-weight:600;color:#fff}
+.readmap span{padding:8px 10px}
+.rm-bc{background:var(--k1)}.rm-umi{background:var(--k3)}.rm-t{background:var(--muted)}.rm-cdna{background:var(--brand);flex:1;color:var(--brand-ink)}
+.mtx.reads{min-width:460px}
+.bc{padding:2px 6px;border-radius:4px;font-family:var(--mono);font-size:.8rem;color:#fff}
+.bc0{background:var(--k1)}.bc1{background:var(--k4)}
+.mtx tr.dupe td{opacity:.4;text-decoration:line-through}
+.embwrap{position:relative}
+.embstatus{position:absolute;right:12px;top:10px;font-size:.78rem;color:var(--muted);font-family:var(--mono)}
+.clab{font-family:var(--display);font-size:15px;font-weight:800;fill:var(--ink);paint-order:stroke;stroke:var(--surface-2);stroke-width:4px}
+.dotplot{display:flex;flex-direction:column;gap:2px;min-width:max-content;font-size:.84rem}
+.dp-row{display:grid;grid-template-columns:70px 160px repeat(13,40px);align-items:center;gap:2px}
+.dp-head{align-items:end;height:74px}
+.dp-g{writing-mode:vertical-rl;transform:rotate(180deg);font-family:var(--mono);font-size:.74rem;color:var(--muted);justify-self:center}
+.dp-cl{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-weight:600}
+.dp-cl i{width:10px;height:10px;border-radius:50%}
+.dp-cl em{font-style:normal;font-weight:400;color:var(--muted);font-size:.74rem}
+.dp-cell{display:grid;place-items:center;height:30px}
+.dp-cell i{border-radius:50%;display:block}
+.dp-sel{padding:4px 6px;font-size:.84rem;width:150px}
+.sel.right{border-color:var(--good);background:var(--good-soft);color:var(--good)}
+.sel.wrong{border-color:var(--bad);background:var(--bad-soft);color:var(--bad)}
+
+/* metagenomics additions */
+.uniq{display:flex;flex-direction:column;gap:3px;min-width:max-content}
+.urow{display:grid;grid-template-columns:70px 40px auto 90px;gap:10px;align-items:center;font-size:.84rem}
+.urow code{font-size:.84rem;letter-spacing:.03em;color:var(--muted)}
+.urow code b{font-weight:700;background:var(--warn-soft);border-radius:2px}
+.ug{color:#fff;font-weight:600;font-size:.74rem;padding:2px 8px;border-radius:999px;text-align:center}
+.un{font-family:var(--mono);font-variant-numeric:tabular-nums;color:var(--ink)}
+.usrc{font-size:.76rem;color:var(--muted)}
+.kmers{display:grid;grid-template-columns:repeat(30,minmax(0,1fr));gap:2px}
+.kmers span{height:22px;border-radius:3px;border:1px solid var(--line)}
+.heat{display:flex;flex-direction:column;gap:1px;overflow-x:auto}
+.hrow{display:grid;grid-template-columns:78px repeat(12,minmax(10px,1fr));gap:1px;align-items:center}
+.hl{font-size:.66rem;font-family:var(--mono);white-space:nowrap;overflow:hidden;text-align:center;font-weight:600}
+.hrow .hl:first-child{text-align:left}
+.hc{aspect-ratio:1;border-radius:2px;min-width:10px}
+.bdot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:-1px}
+.qb{padding:2px 8px;border-radius:999px;font-family:var(--body);font-size:.76rem;font-weight:600}
+.qHigh{background:var(--good-soft);color:var(--good)}.qMedium{background:var(--warn-soft);color:var(--warn)}.qLow{background:var(--bad-soft);color:var(--bad)}
+</style>
+
+<div class="layout">
+  <nav class="rail" aria-label="Tutorial stages">
+    <div class="eyebrow">Metagenomics</div>
+    <ol id="railList">
+      <li><a href="#design" data-sec="design"><span class="n">1</span>Amplicon or shotgun</a></li>
+      <li><a href="#asv" data-sec="asv"><span class="n">2</span>OTUs &amp; ASVs</a></li>
+      <li><a href="#classify" data-sec="classify"><span class="n">3</span>Classifying reads</a></li>
+      <li><a href="#diversity" data-sec="diversity"><span class="n">4</span>Diversity</a></li>
+      <li><a href="#mags" data-sec="mags"><span class="n">5</span>Genomes from mixtures</a></li>
+    </ol>
+    <div class="score">
+      <span>Checkpoint questions</span>
+      <b id="scoreNum">0 / 10</b>
+      <div class="meter"><i id="scoreBar"></i></div>
+      <button class="btn" id="resetQuiz" type="button">Reset answers</button>
+    </div>
+  </nav>
+
+  <main>
+    <header class="hero">
+      <div class="eyebrow">BIO 116 · Bioinformatics · Interactive tutorial</div>
+      <h1><span class="dot"></span>Who lives here?</h1>
+      <p class="lede">A gram of stool or soil holds billions of microbes from hundreds to thousands of species, most of which have never been grown in a lab. Metagenomics sequences them all at once. Follow a gut microbiome study from choosing an assay to recovering whole genomes out of the mixture. Each stage has a model to play with and two checkpoint questions.</p>
+      <div class="meta">
+        <span class="chip">Audience: undergraduate bioinformatics</span>
+        <span class="chip">About 50 minutes</span>
+        <span class="chip">5 stages · 7 simulations · 10 questions</span>
+        <a class="chip" href="https://claude.ai/artifact/TC9CSb15fd16UWGKytCgwU">Part 1: Sequencing</a>
+        <a class="chip" href="https://claude.ai/artifact/9kstF4xeY7CLFHXWeZqZMC">Part 2: Assembly</a>
+        <a class="chip" href="https://claude.ai/artifact/2TG4o5nZdGL9oviNivC7rA">Part 3: RNA-seq</a>
+        <a class="chip" href="https://claude.ai/artifact/DBJZpbgM1Gpxsi7fEU1htm">Part 4: Single-cell</a>
+        <a class="chip" href="https://claude.ai/artifact/GfFARhmvW1SdSxcFccjR4p">Part 5: ChIP-seq</a>
+      </div>
+      <div class="flow" aria-label="Metagenomics workflow overview">
+        <div class="phase">Who is there</div>
+        <div class="phase dry">How many, and what can they do</div>
+        <a href="#design"><span class="c">1</span><b>Amplicon or shotgun</b><span>Pick the assay and the 16S region</span></a>
+        <a href="#asv"><span class="c">2</span><b>OTUs &amp; ASVs</b><span>Separate real variants from errors</span></a>
+        <a href="#classify"><span class="c">3</span><b>Classifying reads</b><span>k-mers and the lowest common ancestor</span></a>
+        <a href="#diversity"><span class="c">4</span><b>Diversity</b><span>Richness, rarefaction, sample distances</span></a>
+        <a href="#mags"><span class="c">5</span><b>Genomes from mixtures</b><span>Binning contigs into MAGs</span></a>
+      </div>
+    </header>
+
+    <!-- 1 DESIGN -->
+    <section class="stage" id="design">
+      <div class="stage-head">
+        <div class="eyebrow">Stage 1 of 5</div>
+        <h2><span class="dot"></span>Amplicon or shotgun</h2>
+        <p class="sub">Barcode one gene, or sequence everything</p>
+      </div>
+      <div class="two">
+        <div class="panel"><h3>16S rRNA amplicon sequencing</h3><p class="hint">PCR-amplify part of the 16S ribosomal RNA gene, which every bacterium and archaeon carries. Cheap (a few thousand reads per sample is enough), works on low-biomass samples, and has large reference databases (SILVA, GTDB). Tells you who is there, usually to genus level, but not what genes they carry. PCR primers favour some groups over others.</p></div>
+        <div class="panel"><h3>Shotgun metagenomics</h3><p class="hint">Fragment and sequence all DNA in the sample. Detects bacteria, archaea, viruses, fungi and host DNA; gives species or strain resolution; and reveals genes and pathways such as antibiotic resistance. Needs millions of reads per sample, costs more, and host DNA can swamp microbial reads in tissue samples.</p></div>
+      </div>
+      <div class="prose">
+        <p>The 16S gene is about 1,540 bp. Nine <span class="term">hypervariable regions</span> (V1–V9) differ between taxa and are what let you tell groups apart. The conserved stretches between them are where universal PCR primers can bind.</p>
+      </div>
+      <div class="lab">
+        <div class="lab-head"><h3>Choose a 16S region</h3><span class="tag">Explorer</span></div>
+        <div class="controls" id="regionBtns">
+          <button class="btn primary" type="button" data-r="v4">V4 (515F–806R)</button>
+          <button class="btn" type="button" data-r="v34">V3–V4 (341F–805R)</button>
+          <button class="btn" type="button" data-r="v13">V1–V3 (27F–534R)</button>
+          <button class="btn" type="button" data-r="full">Full length (27F–1492R)</button>
+        </div>
+        <svg class="chart" id="s16" viewBox="0 0 640 190" role="img" aria-label="16S rRNA gene with variable regions and amplicon"></svg>
+        <div class="stats">
+          <div class="stat"><span>Amplicon length</span><b id="ampLen">–</b></div>
+          <div class="stat"><span>Platform</span><b id="ampPlat" style="font-size:.9rem">–</b></div>
+          <div class="stat"><span>Read-pair overlap</span><b id="ampOv">–</b></div>
+          <div class="stat"><span>Reads to genus / species</span><b id="ampRes">–</b></div>
+        </div>
+        <div class="callout" id="ampMsg"></div>
+        <p class="hint">Classification rates are illustrative for a gut sample.</p>
+      </div>
+      <div class="quiz" data-quiz="design"></div>
+    </section>
+
+    <!-- 2 ASV -->
+    <section class="stage" id="asv">
+      <div class="stage-head">
+        <div class="eyebrow">Stage 2 of 5</div>
+        <h2><span class="dot"></span>OTUs and ASVs</h2>
+        <p class="sub">Is that a new species, or a sequencing error?</p>
+      </div>
+      <div class="prose">
+        <p>Every amplicon read carries a few errors, so a sample with 100 real sequence variants can yield tens of thousands of distinct reads. The older fix was to cluster reads into <span class="term">operational taxonomic units</span> (OTUs) at 97% identity, a rough stand-in for species. It absorbs errors but also merges genuinely different organisms.</p>
+        <p>Modern tools (DADA2, Deblur, UNOISE) <span class="term">denoise</span> instead. They learn the run's error rates and ask whether a rare sequence close to an abundant one is better explained as an error of it. What remains are <span class="term">amplicon sequence variants</span> (ASVs), exact sequences that differ by as little as one base and can be compared directly between studies.</p>
+      </div>
+      <div class="lab">
+        <div class="lab-head"><h3>Cluster or denoise 40 reads</h3><span class="tag">Simulation</span></div>
+        <p class="hint">Three true variants: <b>A</b> and <b>B</b> differ at one position (two closely related species), <b>C</b> is a different genus. Every read has a 1.5% chance of error at each base. Letters that differ from variant A are highlighted.</p>
+        <div class="controls">
+          <label class="ctl" for="otuT">OTU identity threshold <output id="otuTOut">97%</output>
+            <input type="range" id="otuT" min="90" max="100" step="0.5" value="97"></label>
+          <label class="toggle"><input type="checkbox" id="denoise"> Denoise into ASVs instead</label>
+        </div>
+        <div class="seqwrap"><div class="uniq" id="uniq"></div></div>
+        <div class="stats">
+          <div class="stat"><span>Distinct sequences</span><b id="uqN">–</b></div>
+          <div class="stat"><span>Groups formed</span><b id="grpN">–</b></div>
+          <div class="stat"><span>True variants</span><b>3</b></div>
+        </div>
+        <div class="callout" id="asvMsg"></div>
+      </div>
+      <div class="quiz" data-quiz="asv"></div>
+    </section>
+
+    <!-- 3 CLASSIFY -->
+    <section class="stage" id="classify">
+      <div class="stage-head">
+        <div class="eyebrow">Stage 3 of 5</div>
+        <h2><span class="dot"></span>Classifying shotgun reads</h2>
+        <p class="sub">k-mers, a taxonomy tree and the lowest common ancestor</p>
+      </div>
+      <div class="prose">
+        <p>A shotgun run gives tens of millions of short reads from thousands of genomes, and aligning each one to every reference is too slow. <span class="term">Kraken2</span> instead cuts each read into k-mers (35 bp by default) and looks each up in a database. Each k-mer is stored under the <span class="term">lowest common ancestor</span> (LCA) of all genomes that contain it: a k-mer found only in <i>E. coli</i> points to that species, while one shared by all <i>Bacteroides</i> points to the genus.</p>
+        <p>The read goes to the deepest node on the root-to-leaf path with the most k-mer hits. A <span class="term">confidence threshold</span> then demands that a minimum share of the read's k-mers support that node or its descendants. If they don't, the call moves up the tree. Bracken then turns read counts into species abundance estimates.</p>
+      </div>
+      <div class="lab">
+        <div class="lab-head"><h3>Classify a read</h3><span class="tag">Simulation</span></div>
+        <div class="controls" id="readBtns">
+          <button class="btn primary" type="button" data-q="0">Read 1</button>
+          <button class="btn" type="button" data-q="1">Read 2</button>
+          <button class="btn" type="button" data-q="2">Read 3</button>
+          <label class="ctl" for="conf">Confidence threshold <output id="confOut">0.00</output>
+            <input type="range" id="conf" min="0" max="1" step="0.05" value="0"></label>
+        </div>
+        <div class="kmers" id="kmers" aria-label="k-mer hits along the read"></div>
+        <div class="seqwrap"><svg class="chart" id="tree" viewBox="0 0 640 300" role="img" aria-label="Taxonomy tree with k-mer hits" style="min-width:560px"></svg></div>
+        <div class="stats">
+          <div class="stat"><span>k-mers in read</span><b id="kmN">–</b></div>
+          <div class="stat"><span>Unclassified k-mers</span><b id="kmU">–</b></div>
+          <div class="stat"><span>Best path leaf</span><b id="kmLeaf" style="font-size:.95rem">–</b></div>
+          <div class="stat"><span>Final call</span><b id="kmCall" style="font-size:.95rem">–</b></div>
+        </div>
+        <div class="callout" id="kmMsg"></div>
+      </div>
+      <div class="quiz" data-quiz="classify"></div>
+    </section>
+
+    <!-- 4 DIVERSITY -->
+    <section class="stage" id="diversity">
+      <div class="stage-head">
+        <div class="eyebrow">Stage 4 of 5</div>
+        <h2><span class="dot"></span>Diversity and composition</h2>
+        <p class="sub">How many kinds, and how do samples differ?</p>
+      </div>
+      <div class="prose">
+        <p><span class="term">Alpha diversity</span> describes one sample: richness (how many taxa), and indices such as Shannon and Simpson that also weigh evenness. Observed richness depends on sequencing depth, since rare taxa only appear once you read deeply enough. A <span class="term">rarefaction curve</span> shows that dependence.</p>
+      </div>
+      <div class="lab">
+        <div class="lab-head"><h3>Rarefaction curves</h3><span class="tag">Simulation</span></div>
+        <label class="ctl" for="rarD">Compare samples at a depth of <output id="rarDOut">5,000 reads</output>
+          <input type="range" id="rarD" min="100" max="20000" step="100" value="5000"></label>
+        <svg class="chart" id="rarChart" viewBox="0 0 640 240" role="img" aria-label="Rarefaction curves"></svg>
+        <div class="tablewrap"><table class="mtx" id="alphaTbl"></table></div>
+        <div class="callout" id="rarMsg"></div>
+      </div>
+      <div class="prose">
+        <p><span class="term">Beta diversity</span> compares samples. Bray–Curtis dissimilarity uses abundances; Jaccard uses presence and absence only. Principal coordinates analysis (<span class="term">PCoA</span>) lays out the distance matrix in two dimensions, and PERMANOVA tests whether groups differ.</p>
+      </div>
+      <div class="lab">
+        <div class="lab-head"><h3>Antibiotics and recovery</h3><span class="tag">Simulation</span></div>
+        <p class="hint">Twelve stool samples from four people: before a course of antibiotics, during it, and one month after.</p>
+        <div class="controls" id="metricBtns">
+          <button class="btn primary" type="button" data-m="bc">Bray–Curtis</button>
+          <button class="btn" type="button" data-m="jac">Jaccard</button>
+        </div>
+        <div class="two">
+          <div class="panel"><h3>PCoA</h3><svg class="chart" id="pcoa" viewBox="0 0 300 260" role="img" aria-label="PCoA plot"></svg></div>
+          <div class="panel"><h3>Distance matrix</h3><div class="heat" id="heat"></div></div>
+        </div>
+        <div class="callout" id="betaMsg"></div>
+      </div>
+      <div class="prose">
+        <p>Sequencing gives <span class="term">relative</span> abundances: every sample adds up to 100%. That makes the data <span class="term">compositional</span>. If one taxon blooms, every other taxon's share falls even if its absolute numbers haven't changed. Methods such as ANCOM-BC and ALDEx2 account for this, and spike-ins or qPCR of total bacterial load can recover absolute abundance.</p>
+      </div>
+      <div class="lab">
+        <div class="lab-head"><h3>The compositional trap</h3><span class="tag">Simulation</span></div>
+        <label class="ctl" for="bloom">Absolute growth of <i>Enterobacteriaceae</i> <output id="bloomOut">1×</output>
+          <input type="range" id="bloom" min="1" max="40" step="1" value="1"></label>
+        <svg class="chart" id="compChart" viewBox="0 0 640 230" role="img" aria-label="Absolute versus relative abundance"></svg>
+        <div class="callout" id="compMsg"></div>
+      </div>
+      <div class="quiz" data-quiz="diversity"></div>
+    </section>
+
+    <!-- 5 MAGs -->
+    <section class="stage" id="mags">
+      <div class="stage-head">
+        <div class="eyebrow">Stage 5 of 5</div>
+        <h2><span class="dot"></span>Genomes from mixtures</h2>
+        <p class="sub">Binning contigs into metagenome-assembled genomes</p>
+      </div>
+      <div class="prose">
+        <p>Assembling a metagenome (MEGAHIT, metaSPAdes, or metaFlye for long reads) gives contigs from many genomes jumbled together. <span class="term">Binning</span> groups contigs that came from the same genome using two signals. Sequence composition (GC content, tetranucleotide frequencies) is similar across one genome. <span class="term">Coverage</span> is similar too, because every part of a genome is present in the same number of copies. Coverage across several samples, called <span class="term">differential coverage</span>, is especially powerful.</p>
+        <p>Each bin is a <span class="term">metagenome-assembled genome</span> (MAG). CheckM2 estimates its quality from ~100 single-copy marker genes that each genome should carry once. <span class="term">Completeness</span> is the share of markers found; <span class="term">contamination</span> is how many appear more than once. MIMAG calls a MAG high quality at &gt;90% completeness and &lt;5% contamination.</p>
+      </div>
+      <div class="lab">
+        <div class="lab-head"><h3>Bin 200 contigs</h3><span class="tag">Simulation</span></div>
+        <p class="hint">Four genomes are hidden in these contigs. Two of them have almost the same GC content and the same coverage in sample 1. Dot size is contig length.</p>
+        <div class="controls">
+          <label class="ctl" for="nBins">Number of bins <output id="nBinsOut">3</output>
+            <input type="range" id="nBins" min="2" max="6" step="1" value="3"></label>
+          <label class="toggle"><input type="checkbox" id="useCov2"> Add coverage from a second sample</label>
+          <label class="ctl" for="binColor">Colour by
+            <select id="binColor" class="sel"><option value="bin">Bin</option><option value="truth">True genome</option></select></label>
+        </div>
+        <div class="two">
+          <div class="panel"><h3>GC vs coverage (sample 1)</h3><svg class="chart" id="gcCov" viewBox="0 0 300 260" role="img" aria-label="GC versus coverage"></svg></div>
+          <div class="panel"><h3>Coverage, sample 1 vs sample 2</h3><svg class="chart" id="covCov" viewBox="0 0 300 260" role="img" aria-label="Differential coverage"></svg></div>
+        </div>
+        <div class="tablewrap"><table class="mtx" id="binTbl"></table></div>
+        <div class="callout" id="binMsg"></div>
+      </div>
+      <div class="quiz" data-quiz="mags"></div>
+    </section>
+
+    <section class="stage" id="beyond">
+      <div class="stage-head">
+        <div class="eyebrow">Wrap-up</div>
+        <h2><span class="dot"></span>From who is there to what they do</h2>
+        <p class="sub">DNA shows potential; RNA and metabolites show activity</p>
+      </div>
+      <div class="compare">
+        <div class="panel">
+          <h3>Metagenomics (DNA)</h3>
+          <ul>
+            <li>Which organisms and genes are present</li>
+            <li>Includes dead cells and dormant organisms</li>
+            <li>Functional potential: pathways via HUMAnN, resistance genes via CARD</li>
+            <li>DNA is stable, so sampling is simple</li>
+            <li>Recovers genomes (MAGs) of uncultured species</li>
+          </ul>
+        </div>
+        <div class="panel">
+          <h3>Metatranscriptomics (RNA)</h3>
+          <ul>
+            <li>Which genes are being expressed right now</li>
+            <li>Separates active from merely present organisms</li>
+            <li>RNA degrades fast; samples need immediate preservation</li>
+            <li>rRNA must be depleted, as in Part 3</li>
+            <li>Often paired with metabolomics to measure outputs</li>
+          </ul>
+        </div>
+      </div>
+      <div class="panel">
+        <h3>Modern frontiers</h3>
+        <ul class="plain">
+          <li><b>Complete genomes from mixtures.</b> PacBio HiFi and nanopore reads now assemble many microbes into circular, closed chromosomes directly from stool or soil.</li>
+          <li><b>Global genome catalogues.</b> Collections such as the Unified Human Gastrointestinal Genome (UHGG) and GTDB hold hundreds of thousands of MAGs, most from species never cultured.</li>
+          <li><b>Clinical metagenomics.</b> Untargeted sequencing of blood, spinal fluid or respiratory samples identifies pathogens, including unexpected ones, within a day.</li>
+          <li><b>Environmental DNA.</b> eDNA in water or air is used to monitor biodiversity, invasive species and wastewater for disease surveillance.</li>
+        </ul>
+      </div>
+      <p class="foot">Simulations use simplified models for teaching: 16S region coordinates follow E. coli numbering, communities are log-normal, rarefaction uses the exact hypergeometric expectation, the denoiser is an abundance-ratio rule in the spirit of UNOISE, and binning uses k-means on GC and log coverage.</p>
+    </section>
+  </main>
+</div>
+
+<script>
+(function(){
+const $=s=>document.querySelector(s);
+const BASES="ACGT";
+function rng(seed){return function(){seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function gauss(r){let u=0;while(!u)u=r();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*r());}
+const fmt=n=>Math.round(n).toLocaleString("en-US");
+const store={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d;}catch(e){return d;}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}};
+const svgNS="http://www.w3.org/2000/svg";
+function el(tag,attrs,parent){const e=document.createElementNS(svgNS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);if(parent)parent.appendChild(e);return e;}
+const kcol=i=>"var(--k"+(i%12+1)+")";
+
+/* ---------- 1 16S regions ---------- */
+const VR=[[69,99],[137,242],[433,497],[576,682],[822,879],[986,1043],[1117,1173],[1243,1294],[1435,1465]],GL=1542;
+const REG={v4:{a:515,b:806,plat:"Illumina 2×250",read:250,g:88,s:28},v34:{a:341,b:805,plat:"Illumina 2×300",read:300,g:91,s:34},v13:{a:27,b:534,plat:"Illumina 2×300",read:300,g:90,s:45},full:{a:27,b:1492,plat:"PacBio HiFi / ONT",read:0,g:97,s:78}};
+let reg="v4";
+function render16(){
+  const R=REG[reg],s=$("#s16");s.innerHTML="";const x0=20,x1=620,xs=v=>x0+v/GL*(x1-x0);
+  // conservation track
+  let d="M"+x0+" 70";for(let p=0;p<=GL;p+=6){let c=.92;VR.forEach(([a,b])=>{const m=(a+b)/2,w=(b-a)/2+10;if(Math.abs(p-m)<w)c=Math.min(c,.3+.62*Math.abs(p-m)/w);});c+=.04*Math.sin(p/7);d+=" L"+xs(p).toFixed(1)+" "+(70-c*50).toFixed(1);}
+  el("path",{d:d+" L"+x1+" 70Z",fill:"var(--brand-soft)",stroke:"var(--brand)","stroke-width":1},s);
+  el("text",{x:x0,y:12},s).textContent="sequence conservation across bacteria";
+  el("rect",{x:x0,y:80,width:x1-x0,height:18,rx:3,fill:"var(--surface-2)",stroke:"var(--line)"},s);
+  VR.forEach(([a,b],i)=>{el("rect",{x:xs(a),y:80,width:xs(b)-xs(a),height:18,fill:"var(--warn)"},s);el("text",{x:(xs(a)+xs(b))/2,y:93,"text-anchor":"middle",style:"fill:var(--ink);font-weight:600;font-size:10px"},s).textContent="V"+(i+1);});
+  // amplicon
+  el("rect",{x:xs(R.a),y:112,width:xs(R.b)-xs(R.a),height:10,rx:3,fill:"var(--brand)"},s);
+  el("path",{d:"M"+xs(R.a)+" 130 l14 0 l-4 -4 M"+(xs(R.a)+14)+" 130 l-4 4",stroke:"var(--ink)",fill:"none","stroke-width":1.5},s);
+  el("path",{d:"M"+xs(R.b)+" 130 l-14 0 l4 -4 M"+(xs(R.b)-14)+" 130 l4 4",stroke:"var(--ink)",fill:"none","stroke-width":1.5},s);
+  el("text",{x:xs(R.a),y:146},s).textContent="forward primer";el("text",{x:xs(R.b),y:146,"text-anchor":"end"},s).textContent="reverse primer";
+  if(R.read){el("rect",{x:xs(R.a),y:156,width:xs(Math.min(R.b,R.a+R.read))-xs(R.a),height:6,fill:"var(--C)"},s);el("rect",{x:xs(Math.max(R.a,R.b-R.read)),y:166,width:xs(R.b)-xs(Math.max(R.a,R.b-R.read)),height:6,fill:"var(--T)"},s);el("text",{x:xs(R.b)+6,y:172},s).textContent="read 1 / read 2";}
+  [0,500,1000,1500].forEach(v=>el("text",{x:xs(v),y:186,"text-anchor":"middle"},s).textContent=v+" bp");
+  const len=R.b-R.a,ov=R.read?2*R.read-len:null;
+  $("#ampLen").textContent=len+" bp";$("#ampPlat").textContent=R.plat;$("#ampOv").textContent=ov==null?"single read":ov+" bp";$("#ampRes").textContent=R.g+"% / "+R.s+"%";
+  document.querySelectorAll("#regionBtns [data-r]").forEach(b=>b.classList.toggle("primary",b.dataset.r===reg));
+  const m=$("#ampMsg");
+  if(reg==="v4"){m.className="callout";m.textContent="V4 is the Earth Microbiome Project standard. Read pairs overlap by "+ov+" bp and merge into one high-quality sequence. But a single short region can't separate many close relatives, so species-level calls are rare.";}
+  else if(reg==="v34"){m.className="callout warn";m.textContent="V3–V4 adds a second variable region, but with 2×300 reads the pair overlaps by only "+ov+" bp. Illumina quality drops at the ends of 300 bp reads, so merging can fail for longer amplicons.";}
+  else if(reg==="v13"){m.className="callout warn";m.textContent="V1–V3 separates some groups better, such as Staphylococcus on skin, but the read pairs overlap by only "+ov+" bp, and the 27F primer misses some important lineages such as Bifidobacterium.";}
+  else{m.className="callout good";m.textContent="Sequencing the whole gene with long reads covers all nine regions and resolves most reads to species. HiFi accuracy (>99.9%) makes this practical.";}
+}
+document.querySelectorAll("#regionBtns [data-r]").forEach(b=>b.addEventListener("click",()=>{reg=b.dataset.r;render16();}));
+
+/* ---------- 2 OTU / ASV ---------- */
+const VA="TACGGAGGATCCGAGCGTTATCCGGATTTATTGGGTTTAA";
+const VB=VA.slice(0,17)+"C"+VA.slice(18);
+const VC=(()=>{const r=rng(5);let s=VA.split("");[2,6,9,13,20,24,27,31,35,38].forEach(i=>{s[i]=BASES.replace(s[i],"")[Math.floor(r()*3)];});return s.join("");})();
+const TRUEV=[["A",VA],["B",VB],["C",VC]];
+const READS=(()=>{const r=rng(17),out=[];[[0,20],[1,12],[2,8]].forEach(([v,n])=>{for(let i=0;i<n;i++){let s=TRUEV[v][1].split("");for(let j=0;j<s.length;j++)if(r()<.015)s[j]=BASES.replace(s[j],"")[Math.floor(r()*3)];out.push({v,s:s.join("")});}});return out;})();
+const UNIQ=(()=>{const m=new Map();READS.forEach(x=>{if(!m.has(x.s))m.set(x.s,{s:x.s,n:0,src:{}});const u=m.get(x.s);u.n++;u.src[x.v]=(u.src[x.v]||0)+1;});return [...m.values()].sort((a,b)=>b.n-a.n);})();
+const mism=(a,b)=>{let d=0;for(let i=0;i<a.length;i++)if(a[i]!==b[i])d++;return d;};
+function renderAsv(){
+  const th=+$("#otuT").value,den=$("#denoise").checked;$("#otuTOut").textContent=th+"%";
+  const L=VA.length,cent=[],grp=new Array(UNIQ.length);
+  if(den){UNIQ.forEach((u,i)=>{let j=-1,bd=9;cent.forEach((c,ci)=>{const d=mism(UNIQ[c].s,u.s);if(d<=2&&d<bd&&UNIQ[c].n>=4*u.n*d&&UNIQ[c].n>=3){bd=d;j=ci;}});if(j<0){cent.push(i);j=cent.length-1;}grp[i]=j;});}
+  else{UNIQ.forEach((u,i)=>{let j=cent.findIndex(c=>100*(1-mism(UNIQ[c].s,u.s)/L)>=th);if(j<0){cent.push(i);j=cent.length-1;}grp[i]=j;});}
+  const box=$("#uniq");box.innerHTML="";
+  UNIQ.forEach((u,i)=>{const src=Object.keys(u.src).map(k=>TRUEV[k][0]).join("+"),row=document.createElement("div");row.className="urow";
+    row.innerHTML='<span class="ug" style="background:'+kcol(grp[i])+'">'+(den?"ASV ":"OTU ")+(grp[i]+1)+'</span><span class="un">×'+u.n+'</span><code>'+[...u.s].map((c,j)=>c!==VA[j]?'<b class="t'+c+'">'+c+"</b>":c).join("")+'</code><span class="usrc">from '+src+"</span>";box.appendChild(row);});
+  $("#uqN").textContent=UNIQ.length;$("#grpN").textContent=cent.length;
+  // assess: are A and B separate? any group mixing C?
+  const gOf=v=>{const i=UNIQ.findIndex(u=>u.s===TRUEV[v][1]);return i<0?null:grp[i];};
+  const gA=gOf(0),gB=gOf(1),gC=gOf(2),m=$("#asvMsg");
+  if(den){m.className=cent.length===3&&gA!==gB?"callout good":"callout warn";m.textContent=cent.length===3&&gA!==gB?"Denoising recovers exactly the three true variants, including A and B, which differ at a single base. Rare error sequences are folded into the abundant variant they most likely came from.":"Denoising gives "+cent.length+" ASVs. Some errors or variants weren't resolved in this small example; real denoisers use learned error models and far more reads.";}
+  else if(gA===gB&&gA!=null){m.className="callout warn";m.textContent="At "+th+"%, A and B fall into the same OTU, so two species are counted as one. The 97% convention merges close relatives."+(cent.length>3?" Error sequences still create "+(cent.length-3)+" extra OTUs.":"");}
+  else if(cent.length>3){m.className="callout bad";m.textContent="At "+th+"%, A and B stay separate, but sequencing errors spawn "+(cent.length-3)+" spurious OTUs. Richness is inflated, and many OTUs are artefacts.";}
+  else{m.className="callout good";m.textContent="Three OTUs matching the three variants.";}
+}
+$("#otuT").addEventListener("input",renderAsv);$("#denoise").addEventListener("change",renderAsv);
+
+/* ---------- 3 Kraken ---------- */
+const TAX=[{id:1,n:"Bacteria",p:0,x:320,y:24},{id:2,n:"Pseudomonadota",p:1,x:110,y:94},{id:3,n:"Bacteroidota",p:1,x:320,y:94},{id:4,n:"Bacillota",p:1,x:530,y:94},
+ {id:5,n:"Escherichia",p:2,x:110,y:164},{id:6,n:"Bacteroides",p:3,x:320,y:164},{id:7,n:"Lactobacillus",p:4,x:530,y:164},
+ {id:8,n:"E. coli",p:5,x:60,y:234},{id:9,n:"E. fergusonii",p:5,x:160,y:234},{id:10,n:"B. fragilis",p:6,x:270,y:234},{id:11,n:"B. thetaiotaomicron",p:6,x:380,y:234},{id:12,n:"L. acidophilus",p:7,x:480,y:234},{id:13,n:"L. gasseri",p:7,x:585,y:234}];
+const T=Object.fromEntries(TAX.map(t=>[t.id,t]));
+const mkRead=spec=>{const r=rng(spec.length*7+spec[0][1]),arr=[];spec.forEach(([id,n])=>{for(let i=0;i<n;i++)arr.push(id);});for(let i=arr.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}return arr;};
+const KREADS=[mkRead([[8,19],[5,6],[1,2],[0,3]]),mkRead([[6,10],[10,7],[11,6],[3,3],[0,4]]),mkRead([[4,2],[7,1],[1,2],[0,25]])];
+let kr=0;
+const anc=id=>{const a=[];while(id){a.push(id);id=T[id].p;}return a;};
+function renderKraken(){
+  const conf=+$("#conf").value;$("#confOut").textContent=conf.toFixed(2);
+  const ks=KREADS[kr],N=ks.length,hits={};ks.forEach(id=>{if(id)hits[id]=(hits[id]||0)+1;});
+  // best leaf path
+  const leaves=TAX.filter(t=>!TAX.some(u=>u.p===t.id));let best=null,bs=-1;
+  TAX.forEach(t=>{if(!hits[t.id])return;const sc=anc(t.id).reduce((a,id)=>a+(hits[id]||0),0);if(sc>bs||(sc===bs&&anc(t.id).length>anc(best).length)){bs=sc;best=t.id;}});
+  const clade=id=>TAX.filter(t=>anc(t.id).includes(id)).reduce((a,t)=>a+(hits[t.id]||0),0);
+  let call=best;while(call&&clade(call)/N<conf)call=T[call].p;
+  // kmers strip
+  const kb=$("#kmers");kb.innerHTML=ks.map(id=>'<span title="'+(id?T[id].n:"not in database")+'" style="background:'+(id?taxCol(id):"var(--surface-2)")+'"></span>').join("");
+  // tree
+  const s=$("#tree");s.innerHTML="";const path=best?anc(best):[],callPath=call?anc(call):[];
+  TAX.forEach(t=>{if(t.p){const p=T[t.p];el("path",{d:"M"+p.x+" "+(p.y+12)+" C"+p.x+" "+(p.y+40)+" "+t.x+" "+(t.y-40)+" "+t.x+" "+(t.y-12),fill:"none",stroke:path.includes(t.id)?"var(--brand)":"var(--line)","stroke-width":path.includes(t.id)?2.5:1.2},s);}});
+  TAX.forEach(t=>{const h=hits[t.id]||0,isCall=t.id===call;
+    el("rect",{x:t.x-54,y:t.y-12,width:108,height:24,rx:12,fill:isCall?"var(--brand)":h?"var(--brand-soft)":"var(--surface)",stroke:isCall?"var(--brand)":path.includes(t.id)?"var(--brand)":"var(--line)"},s);
+    el("text",{x:t.x,y:t.y+4,"text-anchor":"middle",style:"font-size:10px;font-style:"+(t.y>=164?"italic":"normal")+";fill:"+(isCall?"var(--brand-ink)":"var(--ink)")},s).textContent=t.n;
+    if(h){el("circle",{cx:t.x+50,cy:t.y-10,r:9,fill:taxCol(t.id)},s);el("text",{x:t.x+50,y:t.y-6,"text-anchor":"middle",style:"font-size:10px;fill:#fff;font-weight:600"},s).textContent=h;}});
+  el("text",{x:10,y:290},s).textContent="Badges: k-mers assigned to that node. Bold path: highest-scoring root-to-leaf path. Filled node: final call.";
+  $("#kmN").textContent=N;$("#kmU").textContent=ks.filter(x=>!x).length;$("#kmLeaf").textContent=best?T[best].n:"none";$("#kmCall").textContent=call?T[call].n:"unclassified";
+  const m=$("#kmMsg"),frac=call?clade(call)/N:0;
+  if(!call){m.className="callout warn";m.textContent="Unclassified: even the root has only "+Math.round(100*clade(1)/N)+"% of k-mers supporting it. Most of this read is from an organism not in the database, which is common for soil and ocean samples.";}
+  else if(call===best&&kr===2){m.className="callout warn";m.textContent="Called "+T[call].n+" from just "+clade(call)+" of "+N+" k-mers, while "+ks.filter(x=>!x).length+" match nothing in the database. With no confidence threshold, a novel organism gets forced onto its nearest known relative. Raise the threshold to 0.2 and the read is honestly left unclassified.";}
+  else if(call===best){m.className=kr===1?"callout warn":"callout good";m.textContent=kr===1?"Called "+T[call].n+", but only "+clade(call)+" of "+N+" k-mers are specific to it and "+hits[11]+" point to its sister species. At zero confidence Kraken2 takes the best path anyway. Raise the threshold to see the call retreat to the genus.":"Called "+T[call].n+": "+clade(call)+" of "+N+" k-mers ("+Math.round(100*frac)+"%) fall in its clade. Genus-level k-mers are shared with E. fergusonii but still support this path.";}
+  else{m.className="callout";m.textContent="At confidence "+conf.toFixed(2)+", the species call isn't supported by enough k-mers, so the read moves up to "+T[call].n+" ("+Math.round(100*frac)+"% of k-mers in its clade). Higher thresholds trade sensitivity for precision.";}
+  document.querySelectorAll("#readBtns [data-q]").forEach(b=>b.classList.toggle("primary",+b.dataset.q===kr));
+}
+function taxCol(id){const top=anc(id).slice(-2)[0];return top===2?"var(--k1)":top===3?"var(--k5)":top===4?"var(--k3)":"var(--muted)";}
+document.querySelectorAll("#readBtns [data-q]").forEach(b=>b.addEventListener("click",()=>{kr=+b.dataset.q;renderKraken();}));
+$("#conf").addEventListener("input",renderKraken);
+
+/* ---------- 4a Rarefaction ---------- */
+const LGF=new Float64Array(60001);for(let i=1;i<=60000;i++)LGF[i]=LGF[i-1]+Math.log(i);
+const lnC=(n,k)=>k<0||k>n?-Infinity:LGF[n]-LGF[k]-LGF[n-k];
+const COMM=(()=>{const mk=(n,sd,seed,N)=>{const r=rng(seed),w=[];for(let i=0;i<n;i++)w.push(Math.exp(sd*gauss(r)));const s=w.reduce((a,b)=>a+b);return w.map(v=>Math.max(1,Math.round(v/s*N)));};
+  return[{n:"Healthy gut",c:mk(180,1.6,3,50000),col:"var(--k5)"},{n:"Gut on antibiotics",c:mk(45,2.3,4,50000),col:"var(--k9)"},{n:"Agricultural soil",c:mk(1200,1.3,5,50000),col:"var(--k3)"}];})();
+COMM.forEach(C=>{C.N=C.c.reduce((a,b)=>a+b);const p=C.c.map(v=>v/C.N);C.S=C.c.length;C.H=-p.reduce((a,v)=>a+v*Math.log(v),0);C.D=1-p.reduce((a,v)=>a+v*v,0);
+  C.curve=[];for(let k=0;k<=40;k++){const n=Math.round(20000*k/40);C.curve.push([n,rare(C,n)]);}});
+function rare(C,n){if(n<=0)return 0;const t=lnC(C.N,n);let s=0;C.c.forEach(ni=>{s+=1-Math.exp(lnC(C.N-ni,n)-t);});return s;}
+function renderRare(){
+  const D=+$("#rarD").value;$("#rarDOut").textContent=fmt(D)+" reads";
+  const s=$("#rarChart");s.innerHTML="";const x0=50,x1=620,y0=10,y1=200,mx=Math.max(...COMM.map(C=>C.curve[40][1]))*1.08,xs=v=>x0+v/20000*(x1-x0),ys=v=>y1-v/mx*(y1-y0);
+  const st=mx>600?200:100;for(let v=0;v<=mx;v+=st){el("line",{x1:x0,x2:x1,y1:ys(v),y2:ys(v),stroke:"var(--line)","stroke-width":v?.6:1},s);el("text",{x:x0-6,y:ys(v)+4,"text-anchor":"end"},s).textContent=v;}
+  [0,5000,10000,15000,20000].forEach(v=>el("text",{x:xs(v),y:y1+16,"text-anchor":"middle"},s).textContent=v/1000+"k");
+  el("text",{x:(x0+x1)/2,y:y1+32,"text-anchor":"middle"},s).textContent="reads sampled";
+  el("text",{x:12,y:(y0+y1)/2,"text-anchor":"middle",transform:"rotate(-90 12 "+(y0+y1)/2+")"},s).textContent="taxa observed";
+  COMM.forEach(C=>{el("path",{d:C.curve.map((p,i)=>(i?"L":"M")+xs(p[0]).toFixed(1)+" "+ys(p[1]).toFixed(1)).join(" "),fill:"none",stroke:C.col,"stroke-width":2.2},s);
+    const v=rare(C,D);el("circle",{cx:xs(D),cy:ys(v),r:4.5,fill:C.col,stroke:"var(--surface)","stroke-width":1.5},s);
+    el("text",{x:x1-4,y:ys(C.curve[40][1])-6,"text-anchor":"end",style:"fill:"+C.col+";font-weight:600"},s).textContent=C.n;});
+  el("line",{x1:xs(D),x2:xs(D),y1:y0,y2:y1,stroke:"var(--ink)","stroke-dasharray":"3 3"},s);
+  $("#alphaTbl").innerHTML="<thead><tr><th>Sample</th><th>True richness</th><th>Observed at "+fmt(D)+"</th><th>Shannon H′</th><th>Simpson 1−D</th></tr></thead><tbody>"+COMM.map(C=>"<tr><td>"+C.n+"</td><td>"+C.S+"</td><td>"+Math.round(rare(C,D))+" ("+Math.round(100*rare(C,D)/C.S)+"%)</td><td>"+C.H.toFixed(2)+"</td><td>"+C.D.toFixed(3)+"</td></tr>").join("")+"</tbody>";
+  const soil=COMM[2],m=$("#rarMsg"),fr=rare(soil,D)/soil.S;
+  if(D<1500){m.className="callout warn";m.textContent="At "+fmt(D)+" reads, every curve is still climbing steeply, so observed richness mostly reflects depth. Comparing samples sequenced to different depths without rarefying or modelling depth would be misleading.";}
+  else{m.className="callout";m.textContent="The healthy gut curve is flattening, meaning most taxa have been seen. The soil curve still climbs: at "+fmt(D)+" reads only "+Math.round(100*fr)+"% of its taxa appear. The antibiotic-treated gut has both fewer taxa and lower evenness, so its Shannon index drops sharply.";}
+}
+$("#rarD").addEventListener("input",renderRare);
+
+/* ---------- 4b Beta ---------- */
+const NT=60,SMPS=(()=>{const r=rng(61),base=[],abx=[];for(let i=0;i<NT;i++){base.push(Math.exp(1.4*gauss(r)));abx.push(i<12?Math.exp(1.2*gauss(r))*(i<3?15:1):(r()<.7?0:Math.exp(gauss(r))*.2));}
+  const out=[];for(let p=0;p<4;p++){const ind=base.map(v=>v*Math.exp(.6*gauss(r))*(r()<.12?0:1));
+    [["Before",ind],["On antibiotics",abx.map((v,i)=>v*Math.exp(.5*gauss(r))+(r()<.1?ind[i]*.05:0))],["1 month after",ind.map((v,i)=>(r()<.25?0:v*.8)+abx[i]*.15)]].forEach(([g,v],gi)=>{const s=v.reduce((a,b)=>a+b)||1;out.push({g,gi,p,v:v.map(x=>x/s)});});}
+  return out;})();
+let metric="bc";
+function dist(a,b){if(metric==="bc"){let n=0,d=0;for(let i=0;i<NT;i++){n+=Math.abs(a[i]-b[i]);d+=a[i]+b[i];}return n/d;}let inter=0,uni=0;for(let i=0;i<NT;i++){const x=a[i]>.001,y=b[i]>.001;if(x&&y)inter++;if(x||y)uni++;}return 1-inter/uni;}
+function pcoa(D){const n=D.length,A=D.map(r=>r.map(v=>-.5*v*v)),rm=A.map(r=>r.reduce((a,b)=>a+b)/n),gm=rm.reduce((a,b)=>a+b)/n,B=A.map((r,i)=>r.map((v,j)=>v-rm[i]-rm[j]+gm));
+  const vecs=[],vals=[],rr=rng(9);for(let k=0;k<2;k++){let v=new Array(n).fill(0).map(()=>rr()-.5),lam=0;for(let it=0;it<200;it++){let w=B.map(r=>r.reduce((a,x,j)=>a+x*v[j],0));vecs.forEach(u=>{const dt=w.reduce((a,x,j)=>a+x*u[j],0);w=w.map((x,j)=>x-dt*u[j]);});lam=Math.hypot(...w);v=w.map(x=>x/lam);}vecs.push(v);vals.push(lam);}
+  const tot=B.reduce((a,r,i)=>a+Math.max(0,r[i]),0);return{pts:vecs[0].map((_,i)=>[vecs[0][i]*Math.sqrt(vals[0]),vecs[1][i]*Math.sqrt(vals[1])]),ve:vals.map(v=>v/tot)};}
+const GCOL=["var(--k5)","var(--k9)","var(--k1)"];
+function renderBeta(){
+  const D=SMPS.map(a=>SMPS.map(b=>dist(a.v,b.v))),P=pcoa(D);
+  const s=$("#pcoa");s.innerHTML="";const x0=40,x1=290,y0=10,y1=220,xsA=P.pts.map(p=>p[0]),ysA=P.pts.map(p=>p[1]);
+  const pad=v=>[Math.min(...v),Math.max(...v)],[a,b]=pad(xsA),[c,d]=pad(ysA),xs=v=>x0+10+(v-a)/(b-a||1)*(x1-x0-20),ys=v=>y1-10-(v-c)/(d-c||1)*(y1-y0-20);
+  el("rect",{x:x0,y:y0,width:x1-x0,height:y1-y0,fill:"none",stroke:"var(--line)"},s);
+  for(let p=0;p<4;p++){const idx=SMPS.map((x,i)=>x.p===p?i:-1).filter(i=>i>=0);el("path",{d:idx.map((i,k)=>(k?"L":"M")+xs(P.pts[i][0]).toFixed(1)+" "+ys(P.pts[i][1]).toFixed(1)).join(" "),fill:"none",stroke:"var(--muted)","stroke-dasharray":"2 3"},s);}
+  SMPS.forEach((x,i)=>{el("circle",{cx:xs(P.pts[i][0]),cy:ys(P.pts[i][1]),r:6,fill:GCOL[x.gi],stroke:"var(--surface)","stroke-width":1.5},s);el("text",{x:xs(P.pts[i][0])+8,y:ys(P.pts[i][1])+4,style:"font-size:9px"},s).textContent="P"+(x.p+1);});
+  el("text",{x:(x0+x1)/2,y:y1+18,"text-anchor":"middle"},s).textContent="PCo1 ("+Math.round(100*P.ve[0])+"%)";
+  el("text",{x:12,y:(y0+y1)/2,"text-anchor":"middle",transform:"rotate(-90 12 "+(y0+y1)/2+")"},s).textContent="PCo2 ("+Math.round(100*P.ve[1])+"%)";
+  el("text",{x:x0,y:y1+34},s).textContent="dashed lines join each person's samples";
+  const order=SMPS.map((x,i)=>i).sort((i,j)=>SMPS[i].gi-SMPS[j].gi||SMPS[i].p-SMPS[j].p);
+  $("#heat").innerHTML='<div class="hrow"><span></span>'+order.map(i=>'<span class="hl" style="color:'+GCOL[SMPS[i].gi]+'">P'+(SMPS[i].p+1)+"</span>").join("")+"</div>"+order.map(i=>'<div class="hrow"><span class="hl" style="color:'+GCOL[SMPS[i].gi]+'">'+SMPS[i].g.split(" ")[0]+" P"+(SMPS[i].p+1)+"</span>"+order.map(j=>'<span class="hc" title="'+D[i][j].toFixed(2)+'" style="background:color-mix(in srgb, var(--brand) '+Math.round(100*(1-D[i][j]))+'%, var(--surface-2))"></span>').join("")+"</div>").join("")+'<p class="hint">Darker = more similar. Rows grouped by timepoint.</p>';
+  document.querySelectorAll("#metricBtns [data-m]").forEach(b=>b.classList.toggle("primary",b.dataset.m===metric));
+  const m=$("#betaMsg");m.className="callout";
+  m.innerHTML=(metric==="bc"?"With Bray–Curtis, antibiotic samples separate strongly along PCo1: the few survivors dominate. After a month, samples move most of the way back but don't fully return to baseline.":"Jaccard ignores abundance and counts shared taxa. Recovery samples still sit away from baseline because about a quarter of taxa were lost for good, a common finding after antibiotics.")+' Legend: <b style="color:var(--k5)">before</b>, <b style="color:var(--k9)">on antibiotics</b>, <b style="color:var(--k1)">1 month after</b>.';
+}
+document.querySelectorAll("#metricBtns [data-m]").forEach(b=>b.addEventListener("click",()=>{metric=b.dataset.m;renderBeta();}));
+
+/* ---------- 4c Compositional ---------- */
+const CT=[{n:"Bacteroides",a:40},{n:"Faecalibacterium",a:25},{n:"Prevotella",a:15},{n:"Ruminococcus",a:12},{n:"Enterobacteriaceae",a:8}];
+function renderComp(){
+  const b=+$("#bloom").value;$("#bloomOut").textContent=b+"×";
+  const after=CT.map((t,i)=>i===4?t.a*b:t.a),tb=CT.reduce((a,t)=>a+t.a,0),ta=after.reduce((a,v)=>a+v,0);
+  const s=$("#compChart");s.innerHTML="";const cols=[["Before · absolute",CT.map(t=>t.a),Math.max(tb,ta)],["After · absolute",after,Math.max(tb,ta)],["Before · relative",CT.map(t=>t.a/tb*100),100],["After · relative",after.map(v=>v/ta*100),100]];
+  const y0=16,y1=190,bw=90,gap=(640-60-4*bw)/3;
+  cols.forEach(([lab,vals,mx],k)=>{const x=40+k*(bw+gap);let y=y1;vals.forEach((v,i)=>{const h=v/mx*(y1-y0);el("rect",{x,y:y-h,width:bw,height:h,fill:kcol([4,0,6,2,8][i])},s);if(h>14)el("text",{x:x+bw/2,y:y-h/2+4,"text-anchor":"middle",style:"fill:#fff;font-size:10px;font-weight:600"},s).textContent=k>1?Math.round(v)+"%":Math.round(v);y-=h;});
+    el("text",{x:x+bw/2,y:y1+16,"text-anchor":"middle",style:"fill:var(--ink)"},s).textContent=lab;});
+  el("text",{x:40,y:y1+34},s).textContent="Colours: "+CT.map(t=>t.n).join(", ")+" (bottom to top). Absolute units: 10⁹ cells per gram.";
+  const bac=CT[0].a/tb*100,bacA=CT[0].a/ta*100,m=$("#compMsg");
+  if(b===1){m.className="callout";m.textContent="Nothing has changed yet. Increase the growth of Enterobacteriaceae, a family that blooms during gut inflammation.";}
+  else{m.className="callout warn";m.textContent="Only Enterobacteriaceae changed, yet in relative terms Bacteroides drops from "+bac.toFixed(0)+"% to "+bacA.toFixed(0)+"% and every other taxon seems to decline. A naive test on proportions would report them all as depleted.";}
+}
+$("#bloom").addEventListener("input",renderComp);
+
+/* ---------- 5 Binning ---------- */
+const GEN=[{n:"Genome 1 (Bacteroides)",gc:.43,c1:42,c2:9},{n:"Genome 2 (Parabacteroides)",gc:.44,c1:38,c2:46},{n:"Genome 3 (Faecalibacterium)",gc:.56,c1:14,c2:16},{n:"Genome 4 (Bifidobacterium)",gc:.62,c1:70,c2:24}];
+const CONT=(()=>{const r=rng(303),out=[];GEN.forEach((G,g)=>{const cs=[];for(let i=0;i<50;i++){const len=Math.round(20000*Math.exp(.8*gauss(r)));const nz=Math.min(1,3000/len)*.35+.08;cs.push({g,len,gc:G.gc+.012*gauss(r),c1:G.c1*Math.exp(nz*gauss(r)),c2:G.c2*Math.exp(nz*gauss(r)),mk:[]});}
+  const tot=cs.reduce((a,c)=>a+c.len,0);for(let m=0;m<100;m++){let u=r()*tot,i=0;while(u>cs[i].len&&i<cs.length-1){u-=cs[i].len;i++;}cs[i].mk.push(m);}
+  out.push(...cs);});return out;})();
+function kmeans(data,k,seed){const n=data.length,d=data[0].length,r=rng(seed);let best=null;
+  for(let rep=0;rep<8;rep++){const cent=[data[Math.floor(r()*n)].slice()];while(cent.length<k){const dd=data.map(p=>Math.min(...cent.map(c=>c.reduce((s,v,j)=>s+(v-p[j])**2,0))));const tot=dd.reduce((a,b)=>a+b,0);let u=r()*tot,i=0;while(u>dd[i]&&i<n-1){u-=dd[i];i++;}cent.push(data[i].slice());}
+    const lab=new Int32Array(n);for(let it=0;it<50;it++){for(let i=0;i<n;i++){let bi=0,bd=Infinity;for(let c=0;c<k;c++){let s=0;for(let j=0;j<d;j++)s+=(data[i][j]-cent[c][j])**2;if(s<bd){bd=s;bi=c;}}lab[i]=bi;}
+      for(let c=0;c<k;c++){const m=new Array(d).fill(0);let cnt=0;for(let i=0;i<n;i++)if(lab[i]===c){cnt++;for(let j=0;j<d;j++)m[j]+=data[i][j];}if(cnt)cent[c]=m.map(v=>v/cnt);}}
+    let sse=0;for(let i=0;i<n;i++)for(let j=0;j<d;j++)sse+=(data[i][j]-cent[lab[i]][j])**2;if(!best||sse<best.sse)best={lab:Array.from(lab),sse};}
+  return best.lab;}
+function renderBins(){
+  const k=+$("#nBins").value,c2=$("#useCov2").checked,by=$("#binColor").value;$("#nBinsOut").textContent=k;
+  const feat=CONT.map(c=>{const f=[c.gc*20,Math.log(c.c1)*1.5];if(c2)f.push(Math.log(c.c2)*1.5);return f;});
+  const lab=kmeans(feat,k,11);
+  const col=i=>by==="truth"?kcol([0,4,2,8][CONT[i].g]):kcol(lab[i]+5);
+  const scat=(id,fx,fy,xl,yl,logx)=>{const s=$(id);s.innerHTML="";const x0=44,x1=290,y0=10,y1=214,xv=CONT.map(fx),yv=CONT.map(fy),ax=[Math.min(...xv),Math.max(...xv)],ay=[Math.min(...yv),Math.max(...yv)];
+    const xs=v=>x0+8+(v-ax[0])/(ax[1]-ax[0])*(x1-x0-16),ys=v=>y1-8-(v-ay[0])/(ay[1]-ay[0])*(y1-y0-16);
+    el("rect",{x:x0,y:y0,width:x1-x0,height:y1-y0,fill:"none",stroke:"var(--line)"},s);
+    CONT.forEach((c,i)=>el("circle",{cx:xs(xv[i]).toFixed(1),cy:ys(yv[i]).toFixed(1),r:Math.min(7,1.5+Math.sqrt(c.len/4000)),fill:col(i),"fill-opacity":.75},s));
+    el("text",{x:(x0+x1)/2,y:y1+18,"text-anchor":"middle"},s).textContent=xl;el("text",{x:12,y:(y0+y1)/2,"text-anchor":"middle",transform:"rotate(-90 12 "+(y0+y1)/2+")"},s).textContent=yl;
+    [ax[0],ax[1]].forEach((v,j)=>el("text",{x:j?x1:x0,y:y1+32,"text-anchor":j?"end":"start"},s).textContent=logx?Math.round(Math.exp(v))+"×":(100*v).toFixed(0)+"%");
+    [ay[0],ay[1]].forEach(v=>el("text",{x:x0-4,y:ys(v)+4,"text-anchor":"end"},s).textContent=Math.round(Math.exp(v))+"×");};
+  scat("#gcCov",c=>c.gc,c=>Math.log(c.c1),"GC content","coverage, sample 1 (log)",false);
+  scat("#covCov",c=>Math.log(c.c1),c=>Math.log(c.c2),"coverage, sample 1 (log)","coverage, sample 2 (log)",true);
+  $("#covCov").style.opacity=c2?1:.4;
+  const bins=[...Array(k).keys()].map(b=>{const cs=CONT.filter((c,i)=>lab[i]===b),mk={};cs.forEach(c=>c.mk.forEach(m=>mk[m]=(mk[m]||0)+1));
+    const comp=Object.keys(mk).length,dup=Object.values(mk).reduce((a,v)=>a+Math.max(0,v-1),0),size=cs.reduce((a,c)=>a+c.len,0),gs={};cs.forEach(c=>gs[c.g]=(gs[c.g]||0)+c.len);
+    const q=comp>90&&dup<5?"High":comp>=50&&dup<10?"Medium":"Low";return{b,n:cs.length,size,comp,dup,q,src:Object.entries(gs).sort((a,b)=>b[1]-a[1]).map(([g,l])=>"G"+(+g+1)+" "+Math.round(100*l/size)+"%").join(", ")};});
+  $("#binTbl").innerHTML="<thead><tr><th>Bin</th><th>Contigs</th><th>Size</th><th>Completeness</th><th>Contamination</th><th>MIMAG quality</th><th>Truth</th></tr></thead><tbody>"+bins.map(B=>'<tr><td><span class="bdot" style="background:'+kcol(B.b+5)+'"></span>'+(B.b+1)+"</td><td>"+B.n+"</td><td>"+(B.size/1e6).toFixed(2)+" Mb</td><td>"+B.comp+"%</td><td>"+B.dup+'%</td><td><span class="qb q'+B.q+'">'+B.q+"</span></td><td>"+B.src+"</td></tr>").join("")+"</tbody>";
+  const hq=bins.filter(B=>B.q==="High").length,cont=bins.some(B=>B.dup>=10),m=$("#binMsg");
+  if(hq===4){m.className="callout good";m.textContent="Four high-quality MAGs, one per genome. Genomes 1 and 2 look identical in GC and in sample 1, but their coverage differs in sample 2. That's why metagenomic studies co-assemble and bin across many samples.";}
+  else if(cont){m.className="callout bad";m.textContent="A bin has high contamination: two genomes are merged, so their marker genes appear twice. "+(c2?"Try more bins.":"Genomes 1 and 2 overlap completely in GC and sample 1 coverage. Add the second sample.");}
+  else{m.className="callout warn";m.textContent=hq+" high-quality MAG"+(hq===1?"":"s")+". Too many bins split a genome into incomplete pieces; too few merge genomes. Aim for bins that are complete and uncontaminated.";}
+}
+$("#nBins").addEventListener("input",renderBins);$("#useCov2").addEventListener("change",renderBins);$("#binColor").addEventListener("change",renderBins);
+
+/* ---------- Quiz ---------- */
+const QUIZ={
+ design:[
+  {q:"Why is the 16S rRNA gene useful for identifying bacteria?",o:["It is the longest bacterial gene","It has conserved regions for universal primers and variable regions that differ between taxa","It is only found in pathogens","It encodes antibiotic resistance"],a:1,w:"Conserved stretches let one primer pair amplify nearly all bacteria; variable regions tell them apart."},
+  {q:"You need to know whether a gut sample carries antibiotic resistance genes. Which assay?",o:["16S V4 amplicon sequencing","Shotgun metagenomics","16S full-length amplicon","Gram staining"],a:1,w:"Amplicons only read the 16S gene. Resistance genes need shotgun sequencing of all DNA."}],
+ asv:[
+  {q:"What is the main advantage of ASVs over 97% OTUs?",o:["They are faster to compute","They resolve single-base differences and are directly comparable across studies","They need no quality filtering","They include functional information"],a:1,w:"ASVs are exact sequences, so the same ASV means the same sequence in any study."},
+  {q:"Clustering at 100% identity without denoising gives far more OTUs than real species. Why?",o:["The database is too small","Sequencing errors make each error-containing read a new unique sequence","Primers are biased","Chimeras are removed"],a:1,w:"At 100%, any single error creates a new OTU, inflating richness."}],
+ classify:[
+  {q:"A k-mer occurs in every Bacteroides genome in the database. Where does Kraken2 store it?",o:["Under B. fragilis","Under the genus Bacteroides (their lowest common ancestor)","Under Bacteria","It is discarded"],a:1,w:"Each k-mer maps to the LCA of all genomes that contain it."},
+  {q:"70% of reads from a soil sample are unclassified. What is the most likely reason?",o:["The sequencer failed","Most soil microbes have no close relative in the reference database","Soil has no bacteria","The k-mer size was too small"],a:1,w:"Reference databases are dominated by cultured, human-associated organisms; much environmental diversity is unrepresented."}],
+ diversity:[
+  {q:"Sample A has 40,000 reads and 300 observed taxa; sample B has 4,000 reads and 150. Can you say A is richer?",o:["Yes, 300 > 150","Not directly; observed richness depends on depth, so compare at equal depth or model it","Yes, because A has more reads","No, B is richer"],a:1,w:"Rarefaction curves show richness rising with depth. Compare at the same depth or use depth-aware estimators."},
+  {q:"A taxon's relative abundance falls from 20% to 10% after treatment. What can you conclude?",o:["Its absolute numbers halved","Only its share fell; other taxa may have grown instead","It is extinct","Nothing changed"],a:1,w:"Compositional data can't separate a decrease in one taxon from an increase in others without absolute measurements."}],
+ mags:[
+  {q:"Two genomes have the same GC content and coverage in one sample. How can binning separate them?",o:["It can't","Use coverage across multiple samples, where their abundances differ","Lower the k-mer size","Use only long contigs"],a:1,w:"Differential coverage across samples separates genomes that look identical in any single sample."},
+  {q:"A MAG is 98% complete with 45% contamination. What does that suggest?",o:["An excellent genome","It probably contains contigs from more than one genome","The genome is very small","It needs deeper sequencing"],a:1,w:"Contamination means single-copy markers appear more than once, which is a sign of merged genomes."}]
+};
+let answers=store.get("meta-quiz",{});
+function renderQuiz(){
+  document.querySelectorAll("[data-quiz]").forEach(box=>{
+    const sec=box.dataset.quiz;box.innerHTML='<div class="eyebrow">Checkpoint</div>';
+    QUIZ[sec].forEach((item,qi)=>{
+      const key=sec+qi, ans=answers[key], d=document.createElement("div");d.className="q";
+      d.innerHTML="<p>"+(qi+1)+". "+item.q+"</p>";
+      const opts=document.createElement("div");opts.className="opts";
+      item.o.forEach((o,oi)=>{const b=document.createElement("button");b.type="button";b.className="opt";b.textContent=o;
+        if(ans!=null){b.disabled=true;if(oi===item.a)b.classList.add("right");else if(oi===ans)b.classList.add("wrong");}
+        b.addEventListener("click",()=>{answers[key]=oi;store.set("meta-quiz",answers);renderQuiz();});opts.appendChild(b);});
+      d.appendChild(opts);
+      if(ans!=null){const w=document.createElement("p");w.className="why";w.textContent=(ans===item.a?"Correct. ":"Not quite. ")+item.w;d.appendChild(w);}
+      box.appendChild(d);
+    });
+  });
+  let right=0;for(const sec in QUIZ){let sr=0;QUIZ[sec].forEach((it,qi)=>{if(answers[sec+qi]===it.a){right++;sr++;}});
+    const a=document.querySelector('.rail a[data-sec="'+sec+'"]');if(a)a.classList.toggle("done",sr===QUIZ[sec].length);}
+  $("#scoreNum").textContent=right+" / 10";$("#scoreBar").style.width=(right*10)+"%";
+}
+$("#resetQuiz").addEventListener("click",()=>{answers={};store.set("meta-quiz",answers);renderQuiz();});
+
+if("IntersectionObserver" in window){
+  const links=[...document.querySelectorAll(".rail a")];
+  const io=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting)links.forEach(l=>l.classList.toggle("active",l.dataset.sec===e.target.id));});},{rootMargin:"-40% 0px -55% 0px"});
+  document.querySelectorAll("section.stage[id]").forEach(s=>io.observe(s));
+}
+
+render16(); renderAsv(); renderKraken(); renderRare(); renderBeta(); renderComp(); renderBins(); renderQuiz();
+})();
+</script>
