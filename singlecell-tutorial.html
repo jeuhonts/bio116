@@ -1,0 +1,899 @@
+<title>One Cell at a Time</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#f6f5f8; --surface:#ffffff; --surface-2:#f0edf3; --ink:#1d1a22; --muted:#625c6b; --line:#e0dce6;
+  --brand:#5b2a6e; --brand-ink:#ffffff; --brand-soft:#efe6f2; --brand-line:#d7c3de;
+  --good:#1f7a4a; --good-soft:#e3f3ea; --warn:#9a5b00; --warn-soft:#fbf0dc; --bad:#b42f2f; --bad-soft:#fae4e4;
+  --A:#1f9d55; --C:#2563c9; --G:#c98200; --T:#d43d3d;
+  --scope:#0d0a12; --scope-line:#2a2433; --scope-ink:#cfc6da;
+  --display:"Bricolage Grotesque", "Arial Black", system-ui, sans-serif;
+  --body:"IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+  --mono:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --r:10px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --paper:#141218; --surface:#1d1a23; --surface-2:#25212c; --ink:#ece8f1; --muted:#a49cae; --line:#342f3c;
+    --brand:#c79ad6; --brand-ink:#1d1a22; --brand-soft:#2d2236; --brand-line:#4d3a58;
+    --good:#5fd394; --good-soft:#173325; --warn:#f0b54a; --warn-soft:#3a2c12; --bad:#ff8080; --bad-soft:#3d1c1f;
+    --A:#3fcf7f; --C:#6f9dff; --G:#f2b233; --T:#ff6b6b;
+    --scope:#08060b; --scope-line:#2a2433;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --paper:#141218; --surface:#1d1a23; --surface-2:#25212c; --ink:#ece8f1; --muted:#a49cae; --line:#342f3c;
+  --brand:#c79ad6; --brand-ink:#1d1a22; --brand-soft:#2d2236; --brand-line:#4d3a58;
+  --good:#5fd394; --good-soft:#173325; --warn:#f0b54a; --warn-soft:#3a2c12; --bad:#ff8080; --bad-soft:#3d1c1f;
+  --A:#3fcf7f; --C:#6f9dff; --G:#f2b233; --T:#ff6b6b;
+  --scope:#08060b; --scope-line:#2a2433;
+}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.6;padding:0 16px}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;line-height:1.15;margin:0}
+h1{font-size:clamp(2.1rem,5vw,3.3rem);font-weight:800;letter-spacing:-.02em}
+h2{font-size:clamp(1.55rem,3.2vw,2.1rem);font-weight:700;letter-spacing:-.01em}
+h3{font-size:1.15rem;font-weight:700}
+p{margin:0}
+code,.mono{font-family:var(--mono)}
+a{color:var(--brand)}
+button,input,select{font:inherit}
+:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+
+.layout{max-width:1160px;margin:0 auto;display:grid;grid-template-columns:210px minmax(0,1fr);gap:48px;padding-block:40px 80px}
+@media (max-width:920px){.layout{grid-template-columns:minmax(0,1fr)}.rail{display:none}}
+
+/* rail */
+.rail{position:sticky;top:calc(env(safe-area-inset-top,0px) + 24px);align-self:start;display:flex;flex-direction:column;gap:18px;font-size:.9rem}
+.rail .eyebrow{margin-bottom:-6px}
+.rail ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.rail a{display:grid;grid-template-columns:26px 1fr;gap:10px;align-items:center;padding:7px 8px;border-radius:8px;color:var(--muted);text-decoration:none}
+.rail a:hover{background:var(--surface-2);color:var(--ink)}
+.rail a.active{color:var(--ink);background:var(--brand-soft)}
+.rail .n{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;border:1.5px solid var(--line);font-family:var(--mono);font-size:.75rem;background:var(--surface)}
+.rail a.active .n{border-color:var(--brand);color:var(--brand)}
+.rail a.done .n{background:var(--brand);border-color:var(--brand);color:var(--brand-ink)}
+.score{border-top:1px solid var(--line);padding-top:14px;display:flex;flex-direction:column;gap:6px;color:var(--muted)}
+.score b{font-family:var(--display);font-size:1.6rem;color:var(--ink);font-variant-numeric:tabular-nums}
+.meter{height:6px;border-radius:3px;background:var(--line);overflow:hidden}
+.meter i{display:block;height:100%;background:var(--brand);width:0;transition:width .3s}
+
+main{display:flex;flex-direction:column;gap:72px;min-width:0}
+.eyebrow{font-size:.74rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.lede{font-size:1.14rem;color:var(--muted);max-width:62ch}
+.prose{display:flex;flex-direction:column;gap:14px;max-width:66ch}
+.prose p{color:var(--ink)}
+.term{font-weight:600;color:var(--brand)}
+.dot{display:inline-block;width:.55em;height:.55em;border-radius:50%;background:var(--brand);margin-right:.45em;vertical-align:.12em}
+
+/* hero */
+.hero{display:flex;flex-direction:column;gap:22px}
+.meta{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font-size:.8rem;padding:4px 10px;border-radius:999px;background:var(--surface);border:1px solid var(--line);color:var(--muted)}
+.flow{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:0;margin-top:8px;position:relative}
+.flow .phase{grid-column:span 3;font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);border-bottom:1.5px dashed var(--brand-line);padding-bottom:6px;margin-bottom:14px;font-weight:600}
+.flow .phase.dry{grid-column:span 2;margin-left:12px}
+.flow a{display:flex;flex-direction:column;gap:8px;align-items:flex-start;text-decoration:none;color:var(--ink);padding-right:12px;position:relative}
+.flow a .c{width:40px;height:40px;border-radius:50%;background:var(--brand);color:var(--brand-ink);display:grid;place-items:center;font-family:var(--display);font-weight:800;font-size:1.1rem;position:relative;z-index:1}
+.flow a:not(:last-child)::after{content:"";position:absolute;top:20px;left:40px;right:0;height:2px;background:var(--brand-line)}
+.flow a b{font-family:var(--display);font-size:1rem;line-height:1.2}
+.flow a span{font-size:.84rem;color:var(--muted);line-height:1.4}
+.flow a:hover b{color:var(--brand)}
+@media (max-width:640px){
+  .flow{grid-template-columns:minmax(0,1fr);gap:14px}
+  .flow .phase,.flow .phase.dry{grid-column:auto;margin-left:0;margin-bottom:0}
+  .flow a{display:grid;grid-template-columns:40px 1fr;column-gap:12px;row-gap:2px}
+  .flow a .c{grid-row:span 2}
+  .flow a:not(:last-child)::after{display:none}
+}
+
+/* sections */
+section.stage{display:flex;flex-direction:column;gap:22px;scroll-margin-top:24px}
+.stage-head{display:flex;flex-direction:column;gap:6px}
+.stage-head .sub{font-style:italic;color:var(--muted)}
+.lab{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:22px;display:flex;flex-direction:column;gap:16px}
+.lab-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+.lab-head .tag{font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;font-weight:600;color:var(--brand);background:var(--brand-soft);padding:3px 9px;border-radius:999px}
+.lab .hint{font-size:.9rem;color:var(--muted)}
+@media (max-width:520px){.lab{padding:16px}}
+
+.controls{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center}
+.ctl{display:flex;flex-direction:column;gap:4px;font-size:.86rem;color:var(--muted);min-width:0}
+.ctl output{font-family:var(--mono);color:var(--ink);font-weight:500}
+input[type=range]{accent-color:var(--brand);width:min(260px,70vw)}
+.btn{border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:8px 14px;border-radius:8px;cursor:pointer;font-weight:500;font-size:.9rem}
+.btn:hover{border-color:var(--brand);color:var(--brand)}
+.btn.primary{background:var(--brand);border-color:var(--brand);color:var(--brand-ink)}
+.btn.primary:hover{filter:brightness(1.08);color:var(--brand-ink)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.toggle{display:flex;align-items:center;gap:8px;font-size:.9rem;cursor:pointer}
+.toggle input{accent-color:var(--brand);width:16px;height:16px}
+
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.stat{background:var(--surface-2);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:2px}
+.stat span{font-size:.76rem;color:var(--muted)}
+.stat b{font-family:var(--mono);font-size:1.12rem;font-weight:600;font-variant-numeric:tabular-nums}
+.callout{border-radius:8px;padding:10px 14px;font-size:.92rem;background:var(--surface-2)}
+.callout.good{background:var(--good-soft);color:var(--good)}
+.callout.warn{background:var(--warn-soft);color:var(--warn)}
+.callout.bad{background:var(--bad-soft);color:var(--bad)}
+
+svg text{fill:var(--muted);font-family:var(--mono);font-size:11px}
+.chart{width:100%;height:auto;display:block}
+
+/* process steps */
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;counter-reset:s}
+.step{display:flex;gap:10px;align-items:flex-start;font-size:.9rem}
+.step .c{flex:none;width:28px;height:28px;border-radius:50%;border:1.5px solid var(--brand);color:var(--brand);display:grid;place-items:center;font-family:var(--mono);font-size:.8rem;font-weight:600}
+.step b{display:block;font-size:.95rem}
+.step span{color:var(--muted);line-height:1.45}
+
+/* library assembly */
+.parts,.slots{display:flex;flex-wrap:wrap;gap:8px}
+.part{font-family:var(--mono);font-size:.84rem;padding:8px 12px;border-radius:6px;border:1.5px solid var(--brand-line);background:var(--brand-soft);color:var(--ink);cursor:pointer}
+.part:hover{border-color:var(--brand)}
+.part.used{visibility:hidden}
+.slots{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px;gap:0}
+.slot{flex:1 0 92px;min-height:54px;border:1.5px dashed var(--line);display:grid;place-items:center;font-family:var(--mono);font-size:.8rem;text-align:center;padding:6px;cursor:pointer;background:var(--surface);color:var(--muted);position:relative}
+.slot+.slot{border-left:none}
+.slot:first-child{border-radius:8px 0 0 8px}.slot:last-child{border-radius:0 8px 8px 0}
+.slot.filled{border-style:solid;color:var(--ink);background:var(--brand-soft)}
+.slot.insert.filled{background:var(--surface-2)}
+.slot.right{background:var(--good-soft);border-color:var(--good);color:var(--good)}
+.slot.wrong{background:var(--bad-soft);border-color:var(--bad);color:var(--bad)}
+.strand-labels{display:flex;justify-content:space-between;font-family:var(--mono);font-size:.76rem;color:var(--muted)}
+
+/* canvas */
+.scopebox{background:var(--scope);border-radius:10px;overflow:hidden;position:relative}
+.scopebox canvas{display:block;width:100%}
+.scope-legend{display:flex;flex-wrap:wrap;gap:14px;font-size:.82rem;color:var(--muted)}
+.scope-legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:-1px}
+
+/* SBS */
+.sbs{display:grid;grid-template-columns:minmax(0,260px) minmax(0,1fr);gap:22px}
+@media (max-width:700px){.sbs{grid-template-columns:minmax(0,1fr)}}
+.tile{background:var(--scope);border-radius:10px;padding:14px;display:grid;grid-template-columns:repeat(4,1fr);gap:10px;aspect-ratio:1;max-width:100%}
+.clu{border-radius:50%;background:#1a1522;transition:background .25s, box-shadow .25s;position:relative}
+.clu.tracked::after{content:"";position:absolute;inset:-5px;border:1.5px dashed #e8dcf0;border-radius:50%}
+.tile-cap{font-size:.8rem;color:var(--muted);margin-top:8px}
+.seqwrap{overflow-x:auto;padding-bottom:4px}
+.seqrow{display:grid;grid-template-columns:120px repeat(36,22px);gap:2px;align-items:center;font-family:var(--mono);font-size:.82rem;min-width:max-content}
+.seqrow+.seqrow{margin-top:4px}
+.seqrow>span:first-child{font-size:.74rem;color:var(--muted);font-family:var(--body);position:sticky;left:0;background:var(--surface);padding-right:6px}
+.cell{height:24px;display:grid;place-items:center;border-radius:4px;background:var(--surface-2);color:var(--muted)}
+.cell.lit{color:#fff;font-weight:600}
+.cell.now{outline:2px solid var(--ink);outline-offset:1px}
+.cell.err{box-shadow:inset 0 -3px 0 var(--ink)}
+.cell.tmpl.done{background:transparent;color:var(--ink)}
+.bA{background:var(--A)!important}.bC{background:var(--C)!important}.bG{background:var(--G)!important}.bT{background:var(--T)!important}
+.tA{color:var(--A)}.tC{color:var(--C)}.tG{color:var(--G)}.tT{color:var(--T)}
+.channels{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;align-items:end;height:92px}
+.ch{display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end;font-family:var(--mono);font-size:.8rem}
+.ch i{display:block;width:100%;border-radius:4px 4px 0 0;transition:height .25s;min-height:2px}
+.guess{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.guess .btn{font-family:var(--mono);font-weight:600;min-width:44px}
+.guess .btn[data-b="A"]{color:var(--A)}.guess .btn[data-b="C"]{color:var(--C)}.guess .btn[data-b="G"]{color:var(--G)}.guess .btn[data-b="T"]{color:var(--T)}
+.shake{animation:shake .3s}
+@keyframes shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+/* FASTQ */
+.fastq{font-family:var(--mono);font-size:.9rem;background:var(--surface-2);border-radius:8px;padding:14px 16px;overflow-x:auto;line-height:1.9;white-space:pre}
+.fastq .ln{color:var(--muted);user-select:none;display:inline-block;width:2.2em}
+.fastq .q{cursor:pointer;border-radius:3px;padding:1px 0}
+.fastq .q:hover,.fastq .q.sel{background:var(--brand);color:var(--brand-ink)}
+.fastq .trim{opacity:.35;text-decoration:line-through}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+@media (max-width:700px){.two{grid-template-columns:minmax(0,1fr)}}
+.panel{border:1px solid var(--line);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.panel h3{font-size:1rem}
+.bigq{font-family:var(--display);font-size:2.4rem;font-weight:800;line-height:1;color:var(--brand);font-variant-numeric:tabular-nums}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:.9rem}
+.kv dt{color:var(--muted)}.kv dd{margin:0;font-family:var(--mono)}
+
+/* pileup */
+.pile-wrap{overflow-x:auto;padding-bottom:6px}
+.pile{display:grid;gap:2px;font-family:var(--mono);font-size:.78rem;min-width:max-content}
+.prow{display:grid;grid-auto-flow:column;grid-auto-columns:16px;gap:1px}
+.pc{height:17px;display:grid;place-items:center;border-radius:2px;color:var(--muted)}
+.pc.m{color:var(--muted);background:var(--surface-2)}
+.pc.x{color:#fff;font-weight:600}
+.pc.col-sel{outline:1.5px solid var(--brand)}
+.pc.ref{font-weight:600;cursor:pointer;background:transparent}
+.pc.ref:hover{background:var(--brand-soft)}
+.covrow{display:grid;grid-auto-flow:column;grid-auto-columns:16px;gap:1px;align-items:end;height:44px}
+.covrow i{display:block;background:var(--brand-line);border-radius:2px 2px 0 0;cursor:pointer}
+.covrow i.sel{background:var(--brand)}
+.gt{display:flex;flex-direction:column;gap:6px}
+.gtbar{display:grid;grid-template-columns:44px 1fr 56px;gap:10px;align-items:center;font-family:var(--mono);font-size:.84rem}
+.gtbar .track{height:12px;border-radius:6px;background:var(--surface-2);overflow:hidden}
+.gtbar .track i{display:block;height:100%;background:var(--brand);transition:width .25s}
+.gtbar.win{font-weight:600}
+
+/* quiz */
+.quiz{display:flex;flex-direction:column;gap:14px}
+.q{border-left:3px solid var(--brand-line);padding-left:16px;display:flex;flex-direction:column;gap:10px}
+.q p{font-weight:500}
+.opts{display:flex;flex-direction:column;gap:6px}
+.opt{text-align:left;border:1px solid var(--line);background:var(--surface);padding:9px 12px;border-radius:8px;cursor:pointer;color:var(--ink);font-size:.93rem}
+.opt:hover:not(:disabled){border-color:var(--brand)}
+.opt.right{background:var(--good-soft);border-color:var(--good);color:var(--good)}
+.opt.wrong{background:var(--bad-soft);border-color:var(--bad);color:var(--bad)}
+.opt:disabled{cursor:default}
+.why{font-size:.9rem;color:var(--muted)}
+
+/* compare */
+.compare{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+@media (max-width:700px){.compare{grid-template-columns:minmax(0,1fr)}}
+.compare .panel ul{margin:0;padding-left:1.1em;display:flex;flex-direction:column;gap:6px;font-size:.93rem}
+.foot{border-top:1px solid var(--line);padding-top:18px;font-size:.84rem;color:var(--muted)}
+
+/* assembly additions */
+a.chip{text-decoration:none;color:var(--brand);border-color:var(--brand-line)}
+a.chip:hover{background:var(--brand-soft)}
+.sel{font:inherit;font-size:.9rem;padding:7px 10px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink);max-width:100%}
+.olc{display:flex;flex-direction:column;gap:3px;font-family:var(--mono);font-size:.9rem;min-width:max-content}
+.olcrow{display:flex;align-items:center;white-space:pre;background:none;border:0;padding:2px 0;color:var(--ink);font:inherit;cursor:pointer;text-align:left;border-radius:4px}
+.olcrow:hover{background:var(--surface-2)}
+.olcrow span{display:inline-block;width:1.2ch;text-align:center}
+.olcrow .lbl{width:92px;text-align:left;font-family:var(--body);font-size:.78rem;color:var(--muted)}
+.olcrow .pad{width:auto}
+.olcrow .ov{background:var(--warn-soft);font-weight:600}
+.olcrow.cons{cursor:default;border-top:1px solid var(--line);padding-top:6px;margin-top:4px;font-weight:600}
+.olcrow.cons:hover{background:none}
+.graphbox{background:var(--surface-2);border-radius:10px;overflow:hidden}
+.graphbox svg{display:block;width:100%;height:auto}
+.contigs{display:flex;flex-direction:column;gap:6px}
+.tig{display:flex;flex-direction:column;gap:2px;font-size:.82rem;color:var(--muted)}
+.tig code{font-size:.9rem;overflow-wrap:anywhere;letter-spacing:.04em}
+.tig code b{font-weight:600}
+ul.plain{margin:0;padding-left:1.1em;display:flex;flex-direction:column;gap:8px;font-size:.93rem}
+
+/* rna-seq additions */
+.batches{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.batch{border:1.5px dashed var(--line);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:10px;min-height:120px}
+.batch h3{font-size:.95rem}
+.batch-list{display:flex;flex-wrap:wrap;gap:8px}
+.sample{border-radius:999px;padding:6px 14px;font-size:.88rem;cursor:pointer;border:1.5px solid;font-weight:500}
+.sample.ctrl{background:var(--brand-soft);border-color:var(--brand);color:var(--brand)}
+.sample.trt{background:var(--warn-soft);border-color:var(--warn);color:var(--warn)}
+.stack{display:flex;height:34px;border-radius:8px;overflow:hidden}
+.stack div{display:grid;place-items:center;color:#fff;font-family:var(--mono);font-size:.78rem;font-weight:600;transition:width .3s}
+.tablewrap{overflow-x:auto}
+.mtx{border-collapse:collapse;width:100%;font-size:.88rem;font-variant-numeric:tabular-nums;min-width:520px}
+.mtx th,.mtx td{padding:7px 10px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+.mtx th:first-child,.mtx td:first-child{text-align:left}
+.mtx th{font-weight:600;font-size:.8rem;color:var(--muted);vertical-align:bottom}
+.mtx th span{font-weight:400;font-family:var(--mono);font-size:.74rem}
+.mtx td{font-family:var(--mono)}
+.mtx td:first-child{font-family:var(--body);font-weight:500}
+.mtx tbody tr[data-i]{cursor:pointer}
+.mtx tbody tr[data-i]:hover{background:var(--surface-2)}
+.mtx tr.sel{background:var(--brand-soft)!important}
+.mtx tr.sf td{color:var(--muted);font-style:italic}
+.volc{display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:16px;align-items:start}
+@media (max-width:760px){.volc{grid-template-columns:minmax(0,1fr)}}
+#volcano{cursor:crosshair}
+
+/* single-cell additions */
+:root{--k1:#3b6fd4;--k2:#159a9a;--k3:#d4822a;--k4:#c4389a;--k5:#3f9a3f;--k6:#8a63d2;--k7:#a8961c;--k8:#2a8fb0;--k9:#e0607e;--k10:#6b8f3a;--k11:#b5651d;--k12:#5a6fa8;--kD:#1d1a22;--kL:#d43d3d;--kE:#a49cae}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--k1:#6f9dff;--k2:#3fcfcf;--k3:#f2a95a;--k4:#f06cc4;--k5:#6fd36f;--k6:#b79aff;--k7:#d9c64a;--k8:#5cc0e0;--k9:#ff8fa8;--k10:#9fc46a;--k11:#e89a5a;--k12:#9aaee8;--kD:#f4f0f8;--kL:#ff6b6b;--kE:#6a6275}}
+:root[data-theme="dark"]{--k1:#6f9dff;--k2:#3fcfcf;--k3:#f2a95a;--k4:#f06cc4;--k5:#6fd36f;--k6:#b79aff;--k7:#d9c64a;--k8:#5cc0e0;--k9:#ff8fa8;--k10:#9fc46a;--k11:#e89a5a;--k12:#9aaee8;--kD:#f4f0f8;--kL:#ff6b6b;--kE:#6a6275}
+.droplets{display:grid;grid-template-columns:repeat(24,minmax(0,1fr));gap:4px}
+@media (max-width:600px){.droplets{grid-template-columns:repeat(16,minmax(0,1fr))}}
+.drop{aspect-ratio:1;border-radius:50%;border:1.5px solid var(--line);background:var(--surface-2);display:flex;align-items:center;justify-content:center;gap:1px;flex-wrap:wrap;max-width:100%}
+.drop i{width:32%;height:32%;border-radius:50%;background:currentColor}
+.drop.one{border-color:var(--good);color:var(--good)}
+.drop.multi{border-color:var(--bad);color:var(--bad);background:var(--bad-soft)}
+.readmap{display:flex;flex-wrap:wrap;border-radius:8px;overflow:hidden;font-family:var(--mono);font-size:.78rem;font-weight:600;color:#fff}
+.readmap span{padding:8px 10px}
+.rm-bc{background:var(--k1)}.rm-umi{background:var(--k3)}.rm-t{background:var(--muted)}.rm-cdna{background:var(--brand);flex:1;color:var(--brand-ink)}
+.mtx.reads{min-width:460px}
+.bc{padding:2px 6px;border-radius:4px;font-family:var(--mono);font-size:.8rem;color:#fff}
+.bc0{background:var(--k1)}.bc1{background:var(--k4)}
+.mtx tr.dupe td{opacity:.4;text-decoration:line-through}
+.embwrap{position:relative}
+.embstatus{position:absolute;right:12px;top:10px;font-size:.78rem;color:var(--muted);font-family:var(--mono)}
+.clab{font-family:var(--display);font-size:15px;font-weight:800;fill:var(--ink);paint-order:stroke;stroke:var(--surface-2);stroke-width:4px}
+.dotplot{display:flex;flex-direction:column;gap:2px;min-width:max-content;font-size:.84rem}
+.dp-row{display:grid;grid-template-columns:70px 160px repeat(13,40px);align-items:center;gap:2px}
+.dp-head{align-items:end;height:74px}
+.dp-g{writing-mode:vertical-rl;transform:rotate(180deg);font-family:var(--mono);font-size:.74rem;color:var(--muted);justify-self:center}
+.dp-cl{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-weight:600}
+.dp-cl i{width:10px;height:10px;border-radius:50%}
+.dp-cl em{font-style:normal;font-weight:400;color:var(--muted);font-size:.74rem}
+.dp-cell{display:grid;place-items:center;height:30px}
+.dp-cell i{border-radius:50%;display:block}
+.dp-sel{padding:4px 6px;font-size:.84rem;width:150px}
+.sel.right{border-color:var(--good);background:var(--good-soft);color:var(--good)}
+.sel.wrong{border-color:var(--bad);background:var(--bad-soft);color:var(--bad)}
+</style>
+
+<div class="layout">
+  <nav class="rail" aria-label="Tutorial stages">
+    <div class="eyebrow">Single-cell</div>
+    <ol id="railList">
+      <li><a href="#capture" data-sec="capture"><span class="n">1</span>Capture &amp; barcodes</a></li>
+      <li><a href="#qc" data-sec="qc"><span class="n">2</span>Cell QC</a></li>
+      <li><a href="#pca" data-sec="pca"><span class="n">3</span>Features &amp; PCA</a></li>
+      <li><a href="#cluster" data-sec="cluster"><span class="n">4</span>Clustering &amp; embedding</a></li>
+      <li><a href="#annot" data-sec="annot"><span class="n">5</span>Annotation</a></li>
+    </ol>
+    <div class="score">
+      <span>Checkpoint questions</span>
+      <b id="scoreNum">0 / 10</b>
+      <div class="meter"><i id="scoreBar"></i></div>
+      <button class="btn" id="resetQuiz" type="button">Reset answers</button>
+    </div>
+  </nav>
+
+  <main>
+    <header class="hero">
+      <div class="eyebrow">BIO 116 · Bioinformatics · Interactive tutorial</div>
+      <h1><span class="dot"></span>One cell at a time</h1>
+      <p class="lede">Bulk RNA-seq averages over millions of cells. Single-cell RNA-seq measures each cell separately, so you can find the cell types in a tissue and how each one responds. You'll analyse a simulated blood sample (PBMCs) from droplets to annotated cell types. Your choices at each stage carry through to the next.</p>
+      <div class="meta">
+        <span class="chip">Audience: undergraduate bioinformatics</span>
+        <span class="chip">About 50 minutes</span>
+        <span class="chip">5 stages · live analysis of ~600 cells · 10 questions</span>
+        <a class="chip" href="https://claude.ai/artifact/TC9CSb15fd16UWGKytCgwU">Part 1: Sequencing</a>
+        <a class="chip" href="https://claude.ai/artifact/9kstF4xeY7CLFHXWeZqZMC">Part 2: Assembly</a>
+        <a class="chip" href="https://claude.ai/artifact/2TG4o5nZdGL9oviNivC7rA">Part 3: Bulk RNA-seq</a>
+      </div>
+      <div class="flow" aria-label="Single-cell workflow overview">
+        <div class="phase">Wet lab &amp; preprocessing</div>
+        <div class="phase dry">Interpretation</div>
+        <a href="#capture"><span class="c">1</span><b>Capture &amp; barcodes</b><span>One cell, one droplet, one barcode</span></a>
+        <a href="#qc"><span class="c">2</span><b>Cell QC</b><span>Remove empties, dying cells, doublets</span></a>
+        <a href="#pca"><span class="c">3</span><b>Features &amp; PCA</b><span>Normalize, pick genes, reduce</span></a>
+        <a href="#cluster"><span class="c">4</span><b>Clustering &amp; embedding</b><span>Group cells, draw the map</span></a>
+        <a href="#annot"><span class="c">5</span><b>Annotation</b><span>Name clusters from marker genes</span></a>
+      </div>
+    </header>
+
+    <!-- 1 CAPTURE -->
+    <section class="stage" id="capture">
+      <div class="stage-head">
+        <div class="eyebrow">Stage 1 of 5</div>
+        <h2><span class="dot"></span>Capture and barcodes</h2>
+        <p class="sub">Tagging every molecule with its cell of origin</p>
+      </div>
+      <div class="prose">
+        <p>In droplet methods such as 10x Genomics Chromium, a microfluidic chip wraps single cells in oil droplets together with a gel bead. Each bead carries millions of primers that share one <span class="term">cell barcode</span> and each have a random <span class="term">unique molecular identifier</span> (UMI). Inside the droplet the cell is lysed, its poly(A) mRNA is captured, and reverse transcription stamps every cDNA with the barcode and a UMI. Then all droplets are pooled and sequenced together.</p>
+        <p>Cells land in droplets at random, following a <span class="term">Poisson distribution</span>. Most droplets stay empty. Loading more cells fills more droplets but also puts two cells in one droplet more often. Such a <span class="term">doublet</span> looks like a single cell that expresses both cells' genes.</p>
+      </div>
+      <div class="lab">
+        <div class="lab-head"><h3>Load the chip</h3><span class="tag">Simulation</span></div>
+        <div class="controls">
+          <label class="ctl" for="lam">Average cells per droplet (λ) <output id="lamOut">0.10</output>
+            <input type="range" id="lam" min="0.02" max="0.6" step="0.02" value="0.1"></label>
+        </div>
+        <div class="droplets" id="droplets" aria-label="Grid of 240 droplets"></div>
+        <div class="scope-legend"><span><i style="background:var(--line)"></i>Empty (bead only)</span><span><i style="background:var(--good)"></i>One cell</span><span><i style="background:var(--bad)"></i>Two or more cells</span></div>
+        <div class="stats">
+          <div class="stat"><span>Empty droplets</span><b id="pEmpty">–</b></div>
+          <div class="stat"><span>Single cells</span><b id="pSingle">–</b></div>
+          <div class="stat"><span>Multiplets</span><b id="pMulti">–</b></div>
+          <div class="stat"><span>Doublets among cell droplets</span><b id="pDoub">–</b></div>
+        </div>
+        <div class="callout" id="lamMsg"></div>
+      </div>
+      <div class="lab">
+        <div class="lab-head"><h3>Count molecules, not reads</h3><span class="tag">Explorer</span></div>
+        <p class="hint">Read 1 carries the barcode and UMI; Read 2 carries the cDNA, which tells you the gene.</p>
+        <div class="readmap"><span class="rm-bc">Cell barcode · 16 bp</span><span class="rm-umi">UMI · 12 bp</span><span class="rm-t">poly(dT)</span><span class="rm-cdna">Read 2: cDNA insert · 90 bp → gene</span></div>
+        <div class="tablewrap"><table class="mtx reads" id="umiReads"></table></div>
+        <div class="controls" id="umiMode">
+          <button class="btn primary" type="button" data-u="reads">Count reads</button>
+          <button class="btn" type="button" data-u="umis">Count unique UMIs</button>
+        </div>
+        <div class="tablewrap"><table class="mtx" id="umiCounts"></table></div>
+        <div class="callout" id="umiMsg"></div>
+      </div>
+      <div class="quiz" data-quiz="capture"></div>
+    </section>
+
+    <!-- 2 QC -->
+    <section class="stage" id="qc">
+      <div class="stage-head">
+        <div class="eyebrow">Stage 2 of 5</div>
+        <h2><span class="dot"></span>Cell quality control</h2>
+        <p class="sub">Deciding which barcodes are real, healthy, single cells</p>
+      </div>
+      <div class="prose">
+        <p>A run produces far more barcodes than cells. Empty droplets still pick up a little <span class="term">ambient RNA</span> from lysed cells, so they appear with a few dozen UMIs. Plotting UMIs per barcode from highest to lowest gives a <span class="term">knee plot</span>: real cells form the plateau, and empties form the long tail.</p>
+        <p>Among real cells, dying cells leak cytoplasmic mRNA but keep mitochondrial transcripts, so they show a high <span class="term">% mitochondrial reads</span> and few genes. Doublets tend to have unusually many UMIs. Tools like scDblFinder find doublets more reliably by comparing each cell with simulated doublets.</p>
+      </div>
+      <div class="lab">
+        <div class="lab-head"><h3>Set QC thresholds</h3><span class="tag">Live analysis</span></div>
+        <p class="hint">These thresholds decide which cells go on to Stages 3–5. The simulation knows each barcode's true identity, which a real analysis never does.</p>
+        <div class="controls">
+          <label class="ctl" for="minU">Minimum UMIs <output id="minUOut">500</output>
+            <input type="range" id="minU" min="100" max="1500" step="25" value="500"></label>
+          <label class="ctl" for="maxM">Maximum % mitochondrial <output id="maxMOut">20%</output>
+            <input type="range" id="maxM" min="5" max="100" step="1" value="20"></label>
+          <label class="ctl" for="maxU">Maximum UMIs <output id="maxUOut">no limit</output>
+            <input type="range" id="maxU" min="3000" max="12000" step="250" value="12000"></label>
+        </div>
+        <div class="two">
+          <div class="panel"><h3>Knee plot</h3><svg class="chart" id="knee" viewBox="0 0 320 250" role="img" aria-label="Barcode rank plot"></svg></div>
+          <div class="panel"><h3>UMIs vs % mitochondrial</h3><svg class="chart" id="qcScatter" viewBox="0 0 320 250" role="img" aria-label="QC scatter"></svg></div>
+        </div>
+        <div class="scope-legend" id="truthLegend"></div>
+        <div class="stats">
+          <div class="stat"><span>Cells kept</span><b id="qcKept">–</b></div>
+          <div class="stat"><span>Healthy singlets kept</span><b id="qcGood">–</b></div>
+          <div class="stat"><span>Low-quality kept</span><b id="qcDying">–</b></div>
+          <div class="stat"><span>Doublets kept</span><b id="qcDoub">–</b></div>
+          <div class="stat"><span>Empty droplets kept</span><b id="qcEmpty">–</b></div>
+        </div>
+        <div class="callout" id="qcMsg"></div>
+      </div>
+      <div class="quiz" data-quiz="qc"></div>
+    </section>
+
+    <!-- 3 PCA -->
+    <section class="stage" id="pca">
+      <div class="stage-head">
+        <div class="eyebrow">Stage 3 of 5</div>
+        <h2><span class="dot"></span>Normalization, feature selection and PCA</h2>
+        <p class="sub">From 20,000 noisy genes to a handful of informative axes</p>
+      </div>
+      <div class="prose">
+        <p>Each cell's counts are divided by its total, scaled to 10,000, and log-transformed, so cells captured with different efficiency become comparable. Most genes vary only by sampling noise, which is large when a cell has just a few thousand UMIs. <span class="term">Highly variable genes</span> (HVGs), those more variable than their average expression predicts, carry the biological signal.</p>
+        <p><span class="term">Principal component analysis</span> then compresses the HVGs into a few axes that capture the main patterns of co-expression. Downstream steps use the top PCs, which also averages away much of the noise.</p>
+      </div>
+      <div class="lab">
+        <div class="lab-head"><h3>Choose highly variable genes</h3><span class="tag">Live analysis</span></div>
+        <p class="hint">This dataset has 165 genes: 12 immune markers, 3 mitochondrial genes and 150 background genes. Real data would have ~20,000 genes and use ~2,000 HVGs.</p>
+        <label class="ctl" for="nHvg">Number of HVGs <output id="nHvgOut">30</output>
+          <input type="range" id="nHvg" min="4" max="165" step="1" value="30"></label>
+        <div class="two">
+          <div class="panel"><h3>Mean vs dispersion</h3><svg class="chart" id="hvgPlot" viewBox="0 0 320 250" role="img" aria-label="Gene mean versus dispersion"></svg></div>
+          <div class="panel"><h3>PC1 vs PC2 (true identities)</h3><svg class="chart" id="pcPlot" viewBox="0 0 320 250" role="img" aria-label="PCA scatter"></svg></div>
+        </div>
+        <div class="panel"><h3>Elbow plot</h3><svg class="chart" id="elbow" viewBox="0 0 640 150" role="img" aria-label="Variance explained per PC"></svg></div>
+        <div class="callout" id="pcaMsg"></div>
+      </div>
+      <div class="quiz" data-quiz="pca"></div>
+    </section>
+
+    <!-- 4 CLUSTER -->
+    <section class="stage" id="cluster">
+      <div class="stage-head">
+        <div class="eyebrow">Stage 4 of 5</div>
+        <h2><span class="dot"></span>Clustering and embedding</h2>
+        <p class="sub">Grouping similar cells and drawing a map</p>
+      </div>
+      <div class="prose">
+        <p>Standard pipelines (Seurat, Scanpy) build a nearest-neighbour graph in PC space and split it into communities with the Leiden algorithm. A <span class="term">resolution</span> parameter sets how finely it splits. Here we use k-means with a chosen number of clusters, which behaves similarly for teaching.</p>
+        <p>To look at the data, cells are embedded in 2D with <span class="term">t-SNE</span> or <span class="term">UMAP</span>. Both keep neighbours close together, but distances between far-apart clusters and cluster sizes on the plot don't mean much. Always cluster in PC space, not on the 2D picture.</p>
+      </div>
+      <div class="lab">
+        <div class="lab-head"><h3>Cluster and embed</h3><span class="tag">Live analysis</span></div>
+        <div class="controls">
+          <label class="ctl" for="nPc">PCs used <output id="nPcOut">8</output>
+            <input type="range" id="nPc" min="2" max="10" step="1" value="8"></label>
+          <label class="ctl" for="kCl">Number of clusters <output id="kClOut">7</output>
+            <input type="range" id="kCl" min="2" max="12" step="1" value="7"></label>
+          <label class="ctl" for="perp">t-SNE perplexity <output id="perpOut">30</output>
+            <input type="range" id="perp" min="5" max="60" step="5" value="30"></label>
+          <label class="ctl" for="colorBy">Colour by
+            <select id="colorBy" class="sel"><option value="cluster">Cluster</option><option value="truth">True identity</option></select></label>
+          <button class="btn" id="rerun" type="button">Re-run t-SNE</button>
+        </div>
+        <div class="embwrap"><svg class="chart" id="emb" viewBox="0 0 640 420" role="img" aria-label="t-SNE embedding"></svg><span class="embstatus" id="embStatus"></span></div>
+        <div class="scope-legend" id="embLegend"></div>
+        <div class="stats">
+          <div class="stat"><span>Cells</span><b id="clN">–</b></div>
+          <div class="stat"><span>Clusters</span><b id="clK">–</b></div>
+          <div class="stat"><span>Agreement with truth (ARI)</span><b id="clARI">–</b></div>
+        </div>
+        <div class="callout" id="clMsg"></div>
+      </div>
+      <div class="quiz" data-quiz="cluster"></div>
+    </section>
+
+    <!-- 5 ANNOT -->
+    <section class="stage" id="annot">
+      <div class="stage-head">
+        <div class="eyebrow">Stage 5 of 5</div>
+        <h2><span class="dot"></span>Annotating cell types</h2>
+        <p class="sub">Putting names on clusters</p>
+      </div>
+      <div class="prose">
+        <p>Clusters are just numbers until you name them. The usual approach is to find each cluster's <span class="term">marker genes</span> and match them to known biology. A <span class="term">dot plot</span> shows two things for each gene and cluster: dot size is the share of cells with any UMI for that gene, and colour is the average expression. Reference-based tools (Azimuth, CellTypist, SingleR) automate this by transferring labels from an annotated atlas.</p>
+      </div>
+      <div class="two">
+        <div class="panel"><h3>PBMC marker cheat sheet</h3>
+          <dl class="kv">
+            <dt>T cells</dt><dd>CD3E</dd><dt>CD4 T</dt><dd>IL7R (no CD8A)</dd><dt>CD8 T</dt><dd>CD8A</dd><dt>B cells</dt><dd>MS4A1, CD79A</dd><dt>NK cells</dt><dd>GNLY, NKG7 (no CD3E)</dd><dt>CD14 monocytes</dt><dd>CD14, LYZ, S100A8</dd><dt>FCGR3A monocytes</dt><dd>FCGR3A, MS4A7</dd>
+          </dl></div>
+        <div class="panel"><h3>Warning signs</h3>
+          <dl class="kv">
+            <dt>Doublets</dt><dd style="font-family:var(--body)">Markers of two unrelated lineages, e.g. CD3E + LYZ</dd>
+            <dt>Low quality</dt><dd style="font-family:var(--body)">High MT-CO1, few markers</dd>
+            <dt>Empty droplets</dt><dd style="font-family:var(--body)">Weak mix of everything</dd>
+          </dl></div>
+      </div>
+      <div class="lab">
+        <div class="lab-head"><h3>Name each cluster</h3><span class="tag">Puzzle</span></div>
+        <p class="hint">These are the clusters from Stage 4. Pick a label for each row, then check your answers.</p>
+        <div class="tablewrap"><div class="dotplot" id="dotplot"></div></div>
+        <div class="scope-legend"><span>Dot size: % of cells expressing</span><span>Colour: mean expression (scaled per gene)</span></div>
+        <div class="controls"><button class="btn primary" id="checkAnn" type="button">Check labels</button></div>
+        <div class="callout" id="annMsg">Choose a label for every cluster.</div>
+      </div>
+      <div class="quiz" data-quiz="annot"></div>
+    </section>
+
+    <section class="stage" id="beyond">
+      <div class="stage-head">
+        <div class="eyebrow">Wrap-up</div>
+        <h2><span class="dot"></span>Droplets and plates</h2>
+        <p class="sub">Throughput versus depth per cell</p>
+      </div>
+      <div class="compare">
+        <div class="panel">
+          <h3>Droplet-based (10x Chromium, similar)</h3>
+          <ul>
+            <li>Thousands to hundreds of thousands of cells per run</li>
+            <li>3′ or 5′ tag counting with UMIs</li>
+            <li>~1,000–5,000 genes detected per cell</li>
+            <li>Low cost per cell; best for cell-type discovery and atlases</li>
+            <li>Isoforms and SNVs mostly out of reach</li>
+          </ul>
+        </div>
+        <div class="panel">
+          <h3>Plate-based full-length (Smart-seq3)</h3>
+          <ul>
+            <li>Hundreds of cells, sorted one per well</li>
+            <li>Coverage across the whole transcript</li>
+            <li>More genes per cell; resolves isoforms and allele-specific expression</li>
+            <li>Higher cost and labour per cell</li>
+            <li>Best for rare, deeply profiled populations</li>
+          </ul>
+        </div>
+      </div>
+      <div class="panel">
+        <h3>Modern frontiers</h3>
+        <ul class="plain">
+          <li><b>Multi-omics per cell.</b> CITE-seq adds surface protein counts; 10x Multiome measures RNA and chromatin accessibility (ATAC) in the same nucleus.</li>
+          <li><b>Integration and atlases.</b> Harmony, scVI and similar tools correct batch effects across donors and labs, powering the Human Cell Atlas and Tabula Sapiens.</li>
+          <li><b>Perturb-seq.</b> CRISPR guides are read out alongside each cell's transcriptome, testing thousands of gene knockouts in one experiment.</li>
+          <li><b>Spatial and foundation models.</b> Spatial platforms map cell types in intact tissue, and models trained on tens of millions of cells (for example scGPT and Geneformer) are being tested for annotation and perturbation prediction.</li>
+        </ul>
+      </div>
+      <p class="foot">The dataset is simulated: six PBMC types with Poisson counts from fixed expression profiles, plus doublets, dying cells and ambient-RNA empty droplets. Clustering uses k-means as a stand-in for Leiden, and the embedding is an exact t-SNE computed in your browser.</p>
+    </section>
+  </main>
+</div>
+
+<script>
+(function(){
+const $=s=>document.querySelector(s);
+function rng(seed){return function(){seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function gauss(r){let u=0;while(!u)u=r();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*r());}
+function pois(r,l){if(l>30)return Math.max(0,Math.round(l+Math.sqrt(l)*gauss(r)));const L=Math.exp(-l);let k=0,p=1;do{k++;p*=r();}while(p>L);return k-1;}
+const fmt=n=>Math.round(n).toLocaleString("en-US");
+const store={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d;}catch(e){return d;}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}};
+const svgNS="http://www.w3.org/2000/svg";
+function el(tag,attrs,parent){const e=document.createElementNS(svgNS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);if(parent)parent.appendChild(e);return e;}
+function debounce(f,ms){let t;return()=>{clearTimeout(t);t=setTimeout(f,ms);};}
+
+/* ---------- 1a Poisson loading ---------- */
+function renderLam(){
+  const l=+$("#lam").value;$("#lamOut").textContent=l.toFixed(2);
+  const p0=Math.exp(-l),p1=l*p0,pm=1-p0-p1;
+  const r=rng(77),box=$("#droplets");box.innerHTML="";
+  for(let i=0;i<240;i++){const k=pois(r,l);const d=document.createElement("span");d.className="drop"+(k===1?" one":k>1?" multi":"");d.innerHTML=k?'<i></i>'.repeat(Math.min(k,3)):"";box.appendChild(d);}
+  $("#pEmpty").textContent=(100*p0).toFixed(1)+"%";$("#pSingle").textContent=(100*p1).toFixed(1)+"%";$("#pMulti").textContent=(100*pm).toFixed(2)+"%";
+  const dr=pm/(1-p0);$("#pDoub").textContent=(100*dr).toFixed(1)+"%";
+  const m=$("#lamMsg");
+  m.className="callout "+(dr<.06?"good":dr<.15?"warn":"bad");
+  m.textContent=dr<.06?"Low loading: about "+(100*dr).toFixed(1)+"% of cell-containing droplets hold more than one cell. Most droplets are wasted, which is why barcodes vastly outnumber cells.":dr<.15?"Moderate loading: more cells per run, but "+(100*dr).toFixed(1)+"% of captured \"cells\" are multiplets. The 10x rule of thumb is roughly 0.8% doublets per 1,000 cells recovered.":"Overloaded: "+(100*dr).toFixed(0)+"% of captured barcodes are multiplets. Sample multiplexing (cell hashing) lets labs load more cells and still identify many doublets.";
+}
+$("#lam").addEventListener("input",renderLam);
+
+/* ---------- 1b UMI ---------- */
+const UREADS=[["AAACCTGAGCGATAGC","GTTACGCAAGTC","LYZ"],["AAACCTGAGCGATAGC","GTTACGCAAGTC","LYZ"],["AAACCTGAGCGATAGC","GTTACGCAAGTC","LYZ"],["AAACCTGAGCGATAGC","GTTACGCAAGTC","LYZ"],["AAACCTGAGCGATAGC","GTTACGCAAGTC","LYZ"],["AAACCTGAGCGATAGC","CCATGAATTGCA","CD14"],["AAACCTGAGCGATAGC","TAGGCTAACGTT","CD14"],["AAACCTGAGCGATAGC","TAGGCTAACGTT","CD14"],["AAACCTGAGCGATAGC","ACGTTGCAGCAT","CD3E"],["TTTGCATCAGGTCACA","CGATTACAGGCA","CD3E"],["TTTGCATCAGGTCACA","CGATTACAGGCA","CD3E"],["TTTGCATCAGGTCACA","GGCTAATCCATG","CD3E"],["TTTGCATCAGGTCACA","TTACGGATCAAC","CD3E"],["TTTGCATCAGGTCACA","AACGTTAGCCTA","LYZ"]];
+let umiMode="reads";
+function renderUmi(){
+  const cells=[...new Set(UREADS.map(r=>r[0]))],genes=["CD3E","CD14","LYZ"];
+  const seen=new Set(),dup=UREADS.map(r=>{const k=r.join("|");const d=seen.has(k);seen.add(k);return d;});
+  $("#umiReads").innerHTML="<thead><tr><th>#</th><th>Cell barcode</th><th>UMI</th><th>Gene</th></tr></thead><tbody>"+UREADS.map((r,i)=>'<tr class="'+(umiMode==="umis"&&dup[i]?"dupe":"")+'"><td>'+(i+1)+'</td><td><span class="bc bc'+cells.indexOf(r[0])+'">'+r[0]+"</span></td><td>"+r[1]+"</td><td>"+r[2]+"</td></tr>").join("")+"</tbody>";
+  const cnt=cells.map(c=>genes.map(g=>umiMode==="reads"?UREADS.filter(r=>r[0]===c&&r[2]===g).length:new Set(UREADS.filter(r=>r[0]===c&&r[2]===g).map(r=>r[1])).size));
+  $("#umiCounts").innerHTML="<thead><tr><th>Cell</th>"+genes.map(g=>"<th>"+g+"</th>").join("")+"</tr></thead><tbody>"+cells.map((c,i)=>'<tr><td><span class="bc bc'+i+'">Cell '+(i+1)+"</span></td>"+cnt[i].map(v=>"<td>"+v+"</td>").join("")+"</tr>").join("")+"</tbody>";
+  document.querySelectorAll("#umiMode [data-u]").forEach(b=>b.classList.toggle("primary",b.dataset.u===umiMode));
+  const m=$("#umiMsg");
+  if(umiMode==="reads"){m.className="callout warn";m.textContent="Counting reads, cell 1 seems to express LYZ at 5 and CD14 at 3. But the five LYZ reads share one UMI: they are PCR copies of a single molecule.";}
+  else{m.className="callout good";m.textContent="Collapsing reads with the same barcode, UMI and gene gives molecule counts: LYZ 1, CD14 2 in cell 1. Struck-through rows are PCR duplicates. UMIs remove amplification bias, which is large when starting from a single cell's few picograms of RNA.";}
+}
+document.querySelectorAll("#umiMode [data-u]").forEach(b=>b.addEventListener("click",()=>{umiMode=b.dataset.u;renderUmi();}));
+
+/* ---------- simulated dataset ---------- */
+const TYPES=[{n:"CD4 T",f:.34,m:{CD3E:12,IL7R:10},lin:0},{n:"CD8 T",f:.16,m:{CD3E:12,CD8A:14,NKG7:3},lin:0},{n:"B cell",f:.14,m:{MS4A1:15,CD79A:15},lin:0},{n:"NK",f:.12,m:{NKG7:15,GNLY:18},lin:0},{n:"CD14 mono",f:.17,m:{CD14:12,LYZ:16,S100A8:15},lin:1},{n:"FCGR3A mono",f:.07,m:{FCGR3A:14,LYZ:6,MS4A7:12},lin:1}];
+const CLASSN=TYPES.map(t=>t.n).concat(["Doublets","Low quality","Empty droplets"]);
+const MARKERS=["CD3E","IL7R","CD8A","MS4A1","CD79A","NKG7","GNLY","CD14","LYZ","S100A8","FCGR3A","MS4A7"],MITO=["MT-CO1","MT-ND1","MT-ATP6"];
+const GENES=MARKERS.concat(MITO);for(let i=1;i<=150;i++)GENES.push("G"+String(i).padStart(3,"0"));
+const NG=GENES.length, MITOIDX=[12,13,14];
+const PROF=(()=>{const r=rng(501),bg=[];let s=0;for(let i=0;i<150;i++){const v=Math.exp(gauss(r)*1.1);bg.push(v);s+=v;}
+  return TYPES.map(T=>{const p=new Float64Array(NG);MARKERS.forEach((g,i)=>p[i]=.0006*(T.m[g]||1));
+    [.02,.012,.008].forEach((v,j)=>p[12+j]=v);
+    for(let i=0;i<150;i++){let v=bg[i]/s*.9;if(i<10&&T.lin===0)v*=2.5;if(i>=10&&i<20&&T.lin===1)v*=2.5;p[15+i]=v;}
+    const tot=p.reduce((a,b)=>a+b,0);return p.map(v=>v/tot);});})();
+const AMBIENT=(()=>{const p=new Float64Array(NG);PROF.forEach((q,t)=>q.forEach((v,i)=>p[i]+=v*TYPES[t].f));return p;})();
+const CELLS=(()=>{const r=rng(9001),out=[];
+  const draw=(p,size)=>{const c=new Uint16Array(NG);for(let i=0;i<NG;i++)c[i]=pois(r,p[i]*size);return c;};
+  const pickType=()=>{let u=r(),t=0;while(t<5&&u>TYPES[t].f){u-=TYPES[t].f;t++;}return t;};
+  for(let i=0;i<540;i++){const t=pickType();out.push({cls:t,c:draw(PROF[t],3000*Math.exp(.45*gauss(r)))});}
+  for(let i=0;i<34;i++){const a=pickType();let b=pickType();while(TYPES[b].lin===TYPES[a].lin&&r()<.7)b=pickType();const p=PROF[a].map((v,k)=>(v+PROF[b][k])/2);out.push({cls:6,c:draw(p,5600*Math.exp(.35*gauss(r)))});}
+  for(let i=0;i<40;i++){const t=pickType(),m=.3+.4*r(),q=PROF[t],pm=MITOIDX.reduce((a,k)=>a+q[k],0);const p=q.map((v,k)=>MITOIDX.includes(k)?v/pm*m:v/(1-pm)*(1-m));out.push({cls:7,c:draw(p,900*Math.exp(.5*gauss(r)))});}
+  for(let i=0;i<4000;i++)out.push({cls:8,c:draw(AMBIENT,40*Math.exp(.7*gauss(r)))});
+  out.forEach(o=>{let t=0,g=0,mt=0;for(let i=0;i<NG;i++){t+=o.c[i];if(o.c[i])g++;}MITOIDX.forEach(k=>mt+=o.c[k]);o.tot=t;o.ng=g;o.mt=t?100*mt/t:0;});
+  return out;})();
+
+/* ---------- legends ---------- */
+const kcol=i=>"var(--k"+(i%12+1)+")";
+const truthCol=c=>c<6?kcol(c):c===6?"var(--kD)":c===7?"var(--kL)":"var(--kE)";
+$("#truthLegend").innerHTML=CLASSN.map((n,i)=>'<span><i style="background:'+truthCol(i)+'"></i>'+n+"</span>").join("");
+
+/* ---------- 2 QC ---------- */
+let kept=[];
+function renderQC(){
+  const minU=+$("#minU").value,maxM=+$("#maxM").value,maxUv=+$("#maxU").value,maxU=maxUv>=12000?Infinity:maxUv;
+  $("#minUOut").textContent=minU;$("#maxMOut").textContent=maxM+"%";$("#maxUOut").textContent=maxU===Infinity?"no limit":fmt(maxU);
+  kept=[];CELLS.forEach((c,i)=>{if(c.tot>=minU&&c.tot<=maxU&&c.mt<=maxM)kept.push(i);});
+  // knee
+  const s=$("#knee");s.innerHTML="";const sorted=CELLS.map(c=>c).sort((a,b)=>b.tot-a.tot),x0=40,x1=310,y0=10,y1=210;
+  const lx=v=>x0+Math.log10(v)/Math.log10(sorted.length)*(x1-x0),ly=v=>y1-(Math.log10(Math.max(v,1)))/4.5*(y1-y0);
+  [1,10,100,1000,10000].forEach(v=>{el("line",{x1:x0,x2:x1,y1:ly(v),y2:ly(v),stroke:"var(--line)","stroke-width":.6},s);el("text",{x:x0-4,y:ly(v)+4,"text-anchor":"end"},s).textContent=v>=1000?v/1000+"k":v;});
+  [1,10,100,1000].forEach(v=>el("text",{x:lx(v),y:y1+14,"text-anchor":"middle"},s).textContent=v>=1000?v/1000+"k":v);
+  el("text",{x:(x0+x1)/2,y:y1+30,"text-anchor":"middle"},s).textContent="barcode rank";
+  el("text",{x:10,y:(y0+y1)/2,"text-anchor":"middle",transform:"rotate(-90 10 "+(y0+y1)/2+")"},s).textContent="UMIs";
+  let d="";sorted.forEach((c,i)=>{if(i<50||i%5===0||i===sorted.length-1)d+=(d?" L":"M")+lx(i+1).toFixed(1)+" "+ly(c.tot).toFixed(1);});
+  el("path",{d,fill:"none",stroke:"var(--ink)","stroke-width":1.2},s);
+  sorted.forEach((c,i)=>{if(i<700&&(i<120||i%2===0))el("circle",{cx:lx(i+1),cy:ly(c.tot),r:1.6,fill:truthCol(c.cls)},s);});
+  el("line",{x1:x0,x2:x1,y1:ly(minU),y2:ly(minU),stroke:"var(--brand)","stroke-dasharray":"4 3","stroke-width":1.5},s);
+  el("text",{x:x1,y:ly(minU)-4,"text-anchor":"end",style:"fill:var(--brand)"},s).textContent="min UMIs";
+  // scatter
+  const q=$("#qcScatter");q.innerHTML="";const sx=v=>x0+(Math.log10(Math.max(v,10))-1.5)/3*(x1-x0),sy=v=>y1-v/100*(y1-y0);
+  [0,25,50,75,100].forEach(v=>{el("line",{x1:x0,x2:x1,y1:sy(v),y2:sy(v),stroke:"var(--line)","stroke-width":.6},q);el("text",{x:x0-4,y:sy(v)+4,"text-anchor":"end"},q).textContent=v+"%";});
+  [100,1000,10000].forEach(v=>el("text",{x:sx(v),y:y1+14,"text-anchor":"middle"},q).textContent=v>=1000?v/1000+"k":v);
+  el("text",{x:(x0+x1)/2,y:y1+30,"text-anchor":"middle"},q).textContent="UMIs per barcode (log)";
+  el("rect",{x:sx(minU),y:sy(maxM),width:Math.max(0,sx(Math.min(maxU,31000))-sx(minU)),height:y1-sy(maxM),fill:"var(--good-soft)",opacity:.6},q);
+  CELLS.forEach(c=>{if(c.tot<60)return;const ok=c.tot>=minU&&c.tot<=maxU&&c.mt<=maxM;el("circle",{cx:sx(c.tot).toFixed(1),cy:sy(c.mt).toFixed(1),r:ok?2:1.6,fill:truthCol(c.cls),"fill-opacity":ok?.9:.3},q);});
+  el("text",{x:sx(minU)+4,y:sy(maxM)+12,style:"fill:var(--good)"},q).textContent="kept";
+  // stats
+  const by=[0,0,0,0];kept.forEach(i=>{const c=CELLS[i].cls;by[c<6?0:c-5]++;});
+  $("#qcKept").textContent=fmt(kept.length);$("#qcGood").textContent=by[0]+" of 540";$("#qcDoub").textContent=by[1]+" of 34";$("#qcDying").textContent=by[2]+" of 40";$("#qcEmpty").textContent=by[3];
+  const m=$("#qcMsg");
+  if(by[3]>20){m.className="callout bad";m.textContent=by[3]+" empty droplets pass the UMI threshold. Their ambient RNA profile will form a spurious cluster downstream. Raise the minimum UMIs to the knee.";}
+  else if(by[2]>10){m.className="callout warn";m.textContent=by[2]+" low-quality cells remain. Their mitochondrial genes will become 'variable' and may form their own cluster. Lower the % mito cutoff.";}
+  else if(by[0]<500){m.className="callout warn";m.textContent="Filters are strict: "+(540-by[0])+" healthy cells were discarded. Rare cell types can vanish this way.";}
+  else{m.className="callout good";m.textContent="Good thresholds: "+by[0]+" healthy cells kept, and most empties and dying cells removed. "+by[1]+" doublets still slip through, since their UMI counts overlap with large healthy cells. Watch for them in Stage 5.";}
+  scheduleAnalysis();
+}
+["minU","maxM","maxU"].forEach(id=>$("#"+id).addEventListener("input",renderQC));
+
+/* ---------- 3 normalization, HVG, PCA ---------- */
+let AN=null;
+function analysis(){
+  const n=kept.length,X=kept.map(i=>{const c=CELLS[i],row=new Float64Array(NG);for(let g=0;g<NG;g++)row[g]=Math.log1p(c.c[g]/c.tot*1e4);return row;});
+  const mean=new Float64Array(NG),vr=new Float64Array(NG);
+  X.forEach(r=>{for(let g=0;g<NG;g++)mean[g]+=r[g]/n;});X.forEach(r=>{for(let g=0;g<NG;g++)vr[g]+=(r[g]-mean[g])**2/(n-1);});
+  const disp=[...mean].map((m,g)=>m>.005?vr[g]/m:0);
+  const order=[...Array(NG).keys()].sort((a,b)=>disp[b]-disp[a]);
+  AN={X,mean,vr,disp,order,n};pcaStep();
+}
+function pcaStep(){
+  const h=+$("#nHvg").value;$("#nHvgOut").textContent=h;
+  const hv=AN.order.slice(0,h),n=AN.n;
+  const Z=AN.X.map(r=>hv.map(g=>{const sd=Math.sqrt(AN.vr[g])||1;return Math.max(-10,Math.min(10,(r[g]-AN.mean[g])/sd));}));
+  const C=[...Array(h)].map(()=>new Float64Array(h));
+  Z.forEach(z=>{for(let a=0;a<h;a++){const za=z[a];if(!za)continue;const Ca=C[a];for(let b=a;b<h;b++)Ca[b]+=za*z[b];}});
+  for(let a=0;a<h;a++)for(let b=a;b<h;b++){C[a][b]/=(n-1);C[b][a]=C[a][b];}
+  const npc=Math.min(10,h),vecs=[],vals=[],r=rng(3);
+  for(let k=0;k<npc;k++){let v=new Float64Array(h).map(()=>r()-.5),lam=0;
+    for(let it=0;it<120;it++){const w=new Float64Array(h);for(let a=0;a<h;a++){let s=0;for(let b=0;b<h;b++)s+=C[a][b]*v[b];w[a]=s;}
+      vecs.forEach((u,j)=>{let dt=0;for(let a=0;a<h;a++)dt+=w[a]*u[a];for(let a=0;a<h;a++)w[a]-=dt*u[a];});
+      lam=Math.hypot(...w);if(!lam)break;v=w.map(x=>x/lam);}
+    vecs.push(v);vals.push(lam);}
+  AN.hv=hv;AN.scores=Z.map(z=>vecs.map(u=>{let s=0;for(let a=0;a<h;a++)s+=z[a]*u[a];return s;}));AN.vals=vals;AN.totVar=h;
+  renderPCA();runClustering();
+}
+function renderPCA(){
+  const h=AN.hv.length,hvset=new Set(AN.hv);
+  // HVG plot
+  const s=$("#hvgPlot");s.innerHTML="";const x0=40,x1=310,y0=10,y1=210,lx=v=>x0+(Math.log10(Math.max(v,.005))+2.3)/3.2*(x1-x0);
+  const dmax=Math.max(...AN.disp)*1.05,dy=v=>y1-v/dmax*(y1-y0);
+  el("text",{x:(x0+x1)/2,y:y1+30,"text-anchor":"middle"},s).textContent="mean log expression (log scale)";
+  el("text",{x:10,y:(y0+y1)/2,"text-anchor":"middle",transform:"rotate(-90 10 "+(y0+y1)/2+")"},s).textContent="dispersion";
+  [.01,.1,1].forEach(v=>el("text",{x:lx(v),y:y1+14,"text-anchor":"middle"},s).textContent=v);
+  el("line",{x1:x0,x2:x1,y1:y1,y2:y1,stroke:"var(--line)"},s);
+  for(let g=0;g<NG;g++){const on=hvset.has(g),isM=g<12,isMt=g>=12&&g<15;
+    el("circle",{cx:lx(AN.mean[g]),cy:dy(AN.disp[g]),r:on?3.2:2.2,fill:on?(isMt?"var(--bad)":"var(--brand)"):"var(--muted)","fill-opacity":on?.9:.35},s);
+    if(on&&(isM||isMt)&&AN.disp[g]>dmax*.18)el("text",{x:lx(AN.mean[g])+5,y:dy(AN.disp[g])+3,style:"font-size:9px;fill:var(--ink)"},s).textContent=GENES[g];}
+  // PC plot
+  const p=$("#pcPlot");p.innerHTML="";const S=AN.scores,e1=S.map(v=>v[0]),e2=S.map(v=>v[1]||0);
+  const mn1=Math.min(...e1),mx1=Math.max(...e1),mn2=Math.min(...e2),mx2=Math.max(...e2);
+  const px=v=>x0+(v-mn1)/(mx1-mn1||1)*(x1-x0),py=v=>y1-(v-mn2)/(mx2-mn2||1)*(y1-y0);
+  el("text",{x:(x0+x1)/2,y:y1+30,"text-anchor":"middle"},p).textContent="PC1";
+  el("text",{x:10,y:(y0+y1)/2,"text-anchor":"middle",transform:"rotate(-90 10 "+(y0+y1)/2+")"},p).textContent="PC2";
+  el("rect",{x:x0,y:y0,width:x1-x0,height:y1-y0,fill:"none",stroke:"var(--line)"},p);
+  S.forEach((v,i)=>el("circle",{cx:px(v[0]).toFixed(1),cy:py(v[1]||0).toFixed(1),r:2,fill:truthCol(CELLS[kept[i]].cls),"fill-opacity":.8},p));
+  // elbow
+  const e=$("#elbow");e.innerHTML="";const ex0=50,ex1=630,ey0=10,ey1=110,ve=AN.vals.map(v=>v/AN.totVar),vmax=Math.max(...ve)*1.1,bw=(ex1-ex0)/10;
+  [0,vmax/2,vmax].forEach(v=>{el("line",{x1:ex0,x2:ex1,y1:ey1-v/vmax*(ey1-ey0),y2:ey1-v/vmax*(ey1-ey0),stroke:"var(--line)","stroke-width":.6},e);el("text",{x:ex0-6,y:ey1-v/vmax*(ey1-ey0)+4,"text-anchor":"end"},e).textContent=Math.round(v*100)+"%";});
+  ve.forEach((v,i)=>{const x=ex0+i*bw+bw*.2;el("rect",{x,y:ey1-v/vmax*(ey1-ey0),width:bw*.6,height:v/vmax*(ey1-ey0),rx:2,fill:i<+$("#nPc").value?"var(--brand)":"var(--brand-line)"},e);el("text",{x:x+bw*.3,y:ey1+14,"text-anchor":"middle"},e).textContent="PC"+(i+1);});
+  el("text",{x:ex0,y:ey1+32},e).textContent="variance explained · dark bars are the PCs used in Stage 4";
+  const mtIn=AN.hv.filter(g=>g>=12&&g<15).length,mkIn=AN.hv.filter(g=>g<12).length,m=$("#pcaMsg");
+  if(h<8){m.className="callout warn";m.textContent="Only "+h+" genes: "+mkIn+" of 12 markers are included, so some cell types have nothing to separate them.";}
+  else if(mkIn<12){m.className="callout warn";m.textContent=mkIn+" of 12 markers are among the HVGs. Add more genes so every cell type is represented.";}
+  else if(h>80){m.className="callout";m.textContent="All markers are in, but so are "+(h-12-mtIn)+" background genes whose variation is mostly noise. PC1–2 still separate the major groups, but noise dilutes the smaller differences, such as CD4 vs CD8 T cells.";}
+  else{m.className="callout good";m.textContent="All 12 markers are among the top "+h+" HVGs. PC1 splits lymphoid cells from monocytes, and later PCs separate B, NK and T cell subsets. The elbow shows most structure in the first few PCs.";}
+  if(mtIn&&CELLS.filter((c,i)=>c.cls===7&&kept.includes(i)).length>5)m.textContent+=" Mitochondrial genes are in your HVG list (red) because low-quality cells survived QC.";
+}
+$("#nHvg").addEventListener("input",debounce(()=>{if(AN)pcaStep();},150));
+
+/* ---------- 4 Clustering + t-SNE ---------- */
+let CL=null,EMB=null,tsneJob=null;
+function kmeans(data,k,seed){
+  const n=data.length,d=data[0].length,r=rng(seed);let best=null;
+  for(let rep=0;rep<5;rep++){
+    const cent=[data[Math.floor(r()*n)].slice()];
+    while(cent.length<k){const dist=data.map(p=>Math.min(...cent.map(c=>c.reduce((s,v,j)=>s+(v-p[j])**2,0))));const tot=dist.reduce((a,b)=>a+b,0);let u=r()*tot,i=0;while(u>dist[i]&&i<n-1){u-=dist[i];i++;}cent.push(data[i].slice());}
+    let lab=new Int32Array(n);
+    for(let it=0;it<60;it++){let ch=0;for(let i=0;i<n;i++){let bi=0,bd=Infinity;for(let c=0;c<k;c++){let s=0;for(let j=0;j<d;j++)s+=(data[i][j]-cent[c][j])**2;if(s<bd){bd=s;bi=c;}}if(lab[i]!==bi){lab[i]=bi;ch++;}}
+      const sum=[...Array(k)].map(()=>new Float64Array(d)),cnt=new Int32Array(k);for(let i=0;i<n;i++){cnt[lab[i]]++;for(let j=0;j<d;j++)sum[lab[i]][j]+=data[i][j];}
+      for(let c=0;c<k;c++)if(cnt[c])for(let j=0;j<d;j++)cent[c][j]=sum[c][j]/cnt[c];if(!ch&&it)break;}
+    let sse=0;for(let i=0;i<n;i++)for(let j=0;j<d;j++)sse+=(data[i][j]-cent[lab[i]][j])**2;
+    if(!best||sse<best.sse)best={lab,sse};
+  }
+  // relabel by size
+  const sizes=[...Array(k)].map((_,c)=>({c,n:best.lab.filter(l=>l===c).length})).sort((a,b)=>b.n-a.n),map=new Int32Array(k);sizes.forEach((s,i)=>map[s.c]=i);
+  return best.lab.map(l=>map[l]);
+}
+function ari(a,b){const n=a.length,ka=Math.max(...a)+1,kb=Math.max(...b)+1,t=[...Array(ka)].map(()=>new Float64Array(kb));for(let i=0;i<n;i++)t[a[i]][b[i]]++;
+  const c2=x=>x*(x-1)/2;let sij=0;t.forEach(r=>r.forEach(v=>sij+=c2(v)));const ra=t.map(r=>r.reduce((x,y)=>x+y,0)),cb=[...Array(kb)].map((_,j)=>t.reduce((s,r)=>s+r[j],0));
+  const sa=ra.reduce((s,v)=>s+c2(v),0),sb=cb.reduce((s,v)=>s+c2(v),0),exp=sa*sb/c2(n),mx=(sa+sb)/2;return (sij-exp)/(mx-exp||1);}
+function runClustering(){
+  const npc=+$("#nPc").value,k=+$("#kCl").value;$("#nPcOut").textContent=npc;$("#kClOut").textContent=k;
+  const data=AN.scores.map(v=>v.slice(0,npc));
+  const lab=kmeans(data,k,42),truth=kept.map(i=>CELLS[i].cls);
+  CL={lab:Array.from(lab),k,truth,ari:ari(Array.from(lab),truth)};annotations={};
+  $("#clN").textContent=fmt(kept.length);$("#clK").textContent=k;$("#clARI").textContent=CL.ari.toFixed(2);
+  const m=$("#clMsg"),a=CL.ari;
+  const extra=truth.some(t=>t>=6)?" The cells flagged as doublets, low-quality or empty in QC can form small clusters of their own.":"";
+  if(k<6){m.className="callout warn";m.textContent="Under-clustered: "+k+" clusters for at least 6 cell types, so related types (often CD4 and CD8 T cells, or the two monocyte types) are merged. ARI "+a.toFixed(2)+".";}
+  else if(k>9){m.className="callout warn";m.textContent="Over-clustered: large populations are split into arbitrary pieces with no marker differences. In Leiden this is a resolution that is too high. ARI "+a.toFixed(2)+".";}
+  else{m.className=a>.8?"callout good":"callout";m.textContent="ARI "+a.toFixed(2)+" (1 = perfect agreement with the true identities)."+(a>.8?" Clusters line up well with cell types.":" Some types are mixed. Check the HVG and PC settings.")+extra;}
+  renderEmbLegend();renderDotplot();startTsne();
+  if(AN)renderPCA();
+}
+["nPc","kCl"].forEach(id=>$("#"+id).addEventListener("input",debounce(()=>{if(AN)runClustering();},150)));
+$("#perp").addEventListener("input",()=>{$("#perpOut").textContent=$("#perp").value;});
+$("#perp").addEventListener("change",()=>startTsne());
+$("#rerun").addEventListener("click",()=>startTsne());
+$("#colorBy").addEventListener("change",()=>{renderEmbLegend();drawEmb();});
+function renderEmbLegend(){
+  const by=$("#colorBy").value;if(!CL)return;
+  $("#embLegend").innerHTML=by==="truth"?[...new Set(CL.truth)].sort((a,b)=>a-b).map(c=>'<span><i style="background:'+truthCol(c)+'"></i>'+CLASSN[c]+"</span>").join(""):[...Array(CL.k).keys()].map(c=>'<span><i style="background:'+kcol(c)+'"></i>Cluster '+(c+1)+"</span>").join("");
+}
+function startTsne(){
+  if(tsneJob)cancelAnimationFrame(tsneJob.raf);
+  const npc=+$("#nPc").value,data=AN.scores.map(v=>v.slice(0,npc)),n=data.length,perp=Math.min(+$("#perp").value,(n-1)/3);
+  const D=new Float64Array(n*n);for(let i=0;i<n;i++)for(let j=i+1;j<n;j++){let s=0;for(let k=0;k<npc;k++)s+=(data[i][k]-data[j][k])**2;D[i*n+j]=D[j*n+i]=s;}
+  const P=new Float64Array(n*n),logU=Math.log(perp);
+  for(let i=0;i<n;i++){let beta=1,bmin=-Infinity,bmax=Infinity;const row=new Float64Array(n);
+    for(let it=0;it<60;it++){let sp=0,sdp=0;for(let j=0;j<n;j++){if(j===i){row[j]=0;continue;}const v=Math.exp(-D[i*n+j]*beta);row[j]=v;sp+=v;sdp+=D[i*n+j]*v;}
+      sp=sp||1e-300;const H=Math.log(sp)+beta*sdp/sp;if(Math.abs(H-logU)<1e-4){for(let j=0;j<n;j++)row[j]/=sp;break;}
+      if(H>logU){bmin=beta;beta=bmax===Infinity?beta*2:(beta+bmax)/2;}else{bmax=beta;beta=bmin===-Infinity?beta/2:(beta+bmin)/2;}
+      if(it===59)for(let j=0;j<n;j++)row[j]/=sp;}
+    for(let j=0;j<n;j++)P[i*n+j]=row[j];}
+  for(let i=0;i<n;i++)for(let j=i+1;j<n;j++){const v=Math.max((P[i*n+j]+P[j*n+i])/(2*n),1e-12);P[i*n+j]=P[j*n+i]=v;}
+  const r=rng(7),Y=new Float64Array(n*2).map(()=>gauss(r)*1e-4);
+  tsneJob={n,P,Y,num:new Float64Array(n*n),g:new Float64Array(n*2).fill(1),st:new Float64Array(n*2),it:0,max:500,raf:0};
+  $("#embStatus").textContent="Running t-SNE…";
+  const step=()=>{const J=tsneJob,{n,P,Y}=J;for(let rep=0;rep<20&&J.it<J.max;rep++){J.it++;const ex=J.it<100?12:1,mom=J.it<250?.5:.8,eta=100;
+      const num=J.num;let Z=0;for(let i=0;i<n;i++)for(let j=i+1;j<n;j++){const dx=Y[2*i]-Y[2*j],dy=Y[2*i+1]-Y[2*j+1],q=1/(1+dx*dx+dy*dy);num[i*n+j]=num[j*n+i]=q;Z+=2*q;}
+      for(let i=0;i<n;i++){let gx=0,gy=0;for(let j=0;j<n;j++){if(i===j)continue;const q=num[i*n+j],m=(ex*P[i*n+j]-q/Z)*q;gx+=m*(Y[2*i]-Y[2*j]);gy+=m*(Y[2*i+1]-Y[2*j+1]);}
+        const gr=[4*gx,4*gy];for(let d=0;d<2;d++){const k=2*i+d;J.g[k]=Math.sign(gr[d])!==Math.sign(J.st[k])?J.g[k]+.2:Math.max(.01,J.g[k]*.8);J.st[k]=mom*J.st[k]-eta*J.g[k]*gr[d];}}
+      let mx=0,my=0;for(let i=0;i<n;i++){Y[2*i]+=J.st[2*i];Y[2*i+1]+=J.st[2*i+1];mx+=Y[2*i];my+=Y[2*i+1];}mx/=n;my/=n;for(let i=0;i<n;i++){Y[2*i]-=mx;Y[2*i+1]-=my;}}
+    EMB=Y;drawEmb();
+    if(J.it<J.max){$("#embStatus").textContent="Running t-SNE… iteration "+J.it+" of "+J.max;J.raf=requestAnimationFrame(step);}else $("#embStatus").textContent="t-SNE · "+n+" cells · perplexity "+Math.round(perp);};
+  tsneJob.raf=requestAnimationFrame(step);
+}
+function drawEmb(){
+  if(!EMB||!CL)return;const s=$("#emb");s.innerHTML="";const n=EMB.length/2;if(n!==CL.lab.length)return;
+  let a=Infinity,b=-Infinity,c=Infinity,d=-Infinity;for(let i=0;i<n;i++){a=Math.min(a,EMB[2*i]);b=Math.max(b,EMB[2*i]);c=Math.min(c,EMB[2*i+1]);d=Math.max(d,EMB[2*i+1]);}
+  const x0=20,x1=620,y0=16,y1=404,sc=Math.min((x1-x0)/(b-a||1),(y1-y0)/(d-c||1)),ox=(x0+x1)/2-(a+b)/2*sc,oy=(y0+y1)/2-(c+d)/2*sc,by=$("#colorBy").value;
+  el("rect",{x:0,y:0,width:640,height:420,fill:"var(--surface-2)",rx:10},s);
+  for(let i=0;i<n;i++)el("circle",{cx:(ox+EMB[2*i]*sc).toFixed(1),cy:(oy+EMB[2*i+1]*sc).toFixed(1),r:3,fill:by==="truth"?truthCol(CL.truth[i]):kcol(CL.lab[i]),"fill-opacity":.85},s);
+  if(by==="cluster"&&tsneJob&&tsneJob.it>=tsneJob.max){for(let k=0;k<CL.k;k++){let sx=0,sy=0,cnt=0;for(let i=0;i<n;i++)if(CL.lab[i]===k){sx+=EMB[2*i];sy+=EMB[2*i+1];cnt++;}if(!cnt)continue;
+    const t=el("text",{x:ox+sx/cnt*sc,y:oy+sy/cnt*sc+4,"text-anchor":"middle",class:"clab"},s);t.textContent=k+1;}}
+}
+
+/* ---------- 5 Annotation ---------- */
+let annotations={};
+const DOTGENES=MARKERS.concat(["MT-CO1"]);
+function renderDotplot(){
+  const k=CL.k,gi=DOTGENES.map(g=>GENES.indexOf(g)),X=AN.X;
+  const mean=[...Array(k)].map(()=>new Float64Array(gi.length)),pct=[...Array(k)].map(()=>new Float64Array(gi.length)),cnt=new Int32Array(k);
+  CL.lab.forEach((c,i)=>{cnt[c]++;gi.forEach((g,j)=>{mean[c][j]+=X[i][g];if(X[i][g]>0)pct[c][j]++;});});
+  for(let c=0;c<k;c++)for(let j=0;j<gi.length;j++){mean[c][j]/=cnt[c]||1;pct[c][j]/=cnt[c]||1;}
+  const gmax=gi.map((_,j)=>Math.max(...mean.map(r=>r[j]))||1);
+  const opts=["Choose…"].concat(CLASSN);
+  let h='<div class="dp-row dp-head"><span></span><span>Label</span>'+DOTGENES.map(g=>'<span class="dp-g">'+g+"</span>").join("")+"</div>";
+  for(let c=0;c<k;c++){h+='<div class="dp-row"><span class="dp-cl"><i style="background:'+kcol(c)+'"></i>'+(c+1)+' <em>'+cnt[c]+'</em></span><span><select class="sel dp-sel" id="ann'+c+'" data-c="'+c+'">'+opts.map((o,oi)=>'<option value="'+(oi-1)+'"'+(annotations[c]===oi-1?" selected":"")+">"+o+"</option>").join("")+"</select></span>"+
+    gi.map((_,j)=>{const sz=4+16*pct[c][j],a=mean[c][j]/gmax[j];return '<span class="dp-cell" title="'+DOTGENES[j]+": "+Math.round(100*pct[c][j])+'% expressing"><i style="width:'+sz.toFixed(1)+'px;height:'+sz.toFixed(1)+'px;background:color-mix(in srgb, var(--brand) '+Math.round(15+85*a)+'%, var(--surface-2))"></i></span>';}).join("")+"</div>";}
+  $("#dotplot").innerHTML=h;
+  document.querySelectorAll(".dp-sel").forEach(sel=>sel.addEventListener("change",()=>{annotations[+sel.dataset.c]=+sel.value;sel.classList.remove("right","wrong");}));
+  $("#annMsg").className="callout";$("#annMsg").textContent="Choose a label for every cluster.";
+}
+$("#checkAnn").addEventListener("click",()=>{
+  const k=CL.k;let right=0,done=0;const maj=[];
+  for(let c=0;c<k;c++){const t={};CL.lab.forEach((l,i)=>{if(l===c)t[CL.truth[i]]=(t[CL.truth[i]]||0)+1;});maj[c]=+Object.keys(t).sort((a,b)=>t[b]-t[a])[0];}
+  document.querySelectorAll(".dp-sel").forEach(sel=>{const c=+sel.dataset.c,v=annotations[c];sel.classList.remove("right","wrong");if(v==null||v<0)return;done++;const ok=v===maj[c];if(ok)right++;sel.classList.add(ok?"right":"wrong");});
+  const m=$("#annMsg");
+  if(done<k){m.className="callout warn";m.textContent=right+" of "+done+" labelled clusters are correct. "+(k-done)+" still need a label.";}
+  else if(right===k){m.className="callout good";m.textContent="All "+k+" clusters correctly named. You have gone from droplets to an annotated cell atlas. Next steps would be comparing conditions with pseudobulk DE (Part 3) within each cell type.";}
+  else{m.className="callout bad";m.textContent=right+" of "+k+" correct. Red labels don't match the majority identity of that cluster. Look for the marker that is strongest in that row, and check whether two lineages' markers appear together.";}
+});
+
+/* ---------- pipeline scheduling ---------- */
+const scheduleAnalysis=debounce(()=>{if(kept.length<20)return;analysis();},250);
+
+/* ---------- Quiz ---------- */
+const QUIZ={
+ capture:[
+  {q:"Why do droplet protocols load cells so that most droplets stay empty?",o:["To save reagents","To keep the rate of two cells per droplet (doublets) low","Because beads are expensive","Empty droplets improve sequencing quality"],a:1,w:"Poisson loading means higher λ gives more multiplets. Keeping λ low keeps most captured barcodes to single cells."},
+  {q:"Five reads share the same cell barcode, UMI and gene. How many molecules do they represent?",o:["Five","One","Zero, they're errors","It depends on read length"],a:1,w:"Same barcode + UMI + gene means PCR copies of one original cDNA molecule."}],
+ qc:[
+  {q:"A barcode has 600 UMIs, 180 genes and 55% mitochondrial reads. What is it most likely to be?",o:["A doublet","A healthy small cell","A dying or damaged cell","An empty droplet with no RNA"],a:2,w:"Damaged cells lose cytoplasmic mRNA through their membrane but keep mitochondrial transcripts, so % mito rises."},
+  {q:"What is the knee plot used for?",o:["Choosing the number of PCs","Separating barcodes from real cells from those of empty droplets","Finding marker genes","Measuring doublets directly"],a:1,w:"Real cells form a plateau of high UMI counts; the steep drop marks where empty, ambient-only droplets begin."}],
+ pca:[
+  {q:"Why select highly variable genes before PCA?",o:["To make the data smaller only","To focus on genes carrying biological differences instead of sampling noise","Because PCA can't handle zeros","To remove mitochondrial genes"],a:1,w:"Most genes vary only by technical noise; including them dilutes the signal."},
+  {q:"Your HVG list is dominated by mitochondrial genes. What does that suggest?",o:["Mitochondria are the main biology","Low-quality cells remain after QC","Too many PCs were used","Clustering resolution is too high"],a:1,w:"Mito genes vary mainly because dying cells have very high mito fractions. Revisit QC thresholds."}],
+ cluster:[
+  {q:"On a UMAP, cluster A sits far from cluster B and close to cluster C. What can you conclude?",o:["A is more similar to C than to B, and the distances are proportional","Little about global distances; UMAP mainly preserves local neighbourhoods","A and B are different species","C is a doublet cluster"],a:1,w:"t-SNE and UMAP keep neighbours together but distort distances between separated clusters."},
+  {q:"Raising the Leiden resolution parameter usually…",o:["Merges clusters","Produces more, smaller clusters","Changes the UMAP layout","Removes doublets"],a:1,w:"Higher resolution splits the neighbour graph into more communities."}],
+ annot:[
+  {q:"A cluster has high MS4A1 and CD79A and no CD3E. What is it?",o:["T cells","B cells","NK cells","Monocytes"],a:1,w:"MS4A1 (CD20) and CD79A are classic B-cell markers."},
+  {q:"You want to test drug vs control within the CD14 monocytes of 4 donors per group. What is the right unit of replication?",o:["Each cell","Each donor, by pooling each donor's cells into a pseudobulk sample","Each cluster","Each sequencing read"],a:1,w:"Cells from one donor aren't independent. Pseudobulk per donor avoids wildly inflated significance."}]
+};
+let answers=store.get("sc-quiz",{});
+function renderQuiz(){
+  document.querySelectorAll("[data-quiz]").forEach(box=>{
+    const sec=box.dataset.quiz;box.innerHTML='<div class="eyebrow">Checkpoint</div>';
+    QUIZ[sec].forEach((item,qi)=>{
+      const key=sec+qi, ans=answers[key], d=document.createElement("div");d.className="q";
+      d.innerHTML="<p>"+(qi+1)+". "+item.q+"</p>";
+      const opts=document.createElement("div");opts.className="opts";
+      item.o.forEach((o,oi)=>{const b=document.createElement("button");b.type="button";b.className="opt";b.textContent=o;
+        if(ans!=null){b.disabled=true;if(oi===item.a)b.classList.add("right");else if(oi===ans)b.classList.add("wrong");}
+        b.addEventListener("click",()=>{answers[key]=oi;store.set("sc-quiz",answers);renderQuiz();});opts.appendChild(b);});
+      d.appendChild(opts);
+      if(ans!=null){const w=document.createElement("p");w.className="why";w.textContent=(ans===item.a?"Correct. ":"Not quite. ")+item.w;d.appendChild(w);}
+      box.appendChild(d);
+    });
+  });
+  let right=0;for(const sec in QUIZ){let sr=0;QUIZ[sec].forEach((it,qi)=>{if(answers[sec+qi]===it.a){right++;sr++;}});
+    const a=document.querySelector('.rail a[data-sec="'+sec+'"]');if(a)a.classList.toggle("done",sr===QUIZ[sec].length);}
+  $("#scoreNum").textContent=right+" / 10";$("#scoreBar").style.width=(right*10)+"%";
+}
+$("#resetQuiz").addEventListener("click",()=>{answers={};store.set("sc-quiz",answers);renderQuiz();});
+
+if("IntersectionObserver" in window){
+  const links=[...document.querySelectorAll(".rail a")];
+  const io=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting)links.forEach(l=>l.classList.toggle("active",l.dataset.sec===e.target.id));});},{rootMargin:"-40% 0px -55% 0px"});
+  document.querySelectorAll("section.stage[id]").forEach(s=>io.observe(s));
+}
+
+renderLam(); renderUmi(); renderQC(); renderQuiz();
+})();
+</script>
