@@ -202,6 +202,7 @@ table.data td.min{outline:2px solid var(--heme);outline-offset:-2px;font-weight:
     <li><a href="#pars">Parsimony</a></li>
     <li><a href="#boot">Bootstrap</a></li>
     <li><a href="#ml">Likelihood and Bayes</a></li>
+    <li><a href="#choose">Choosing a method</a></li>
     <li><a href="#run">Building real trees</a></li>
     <li><a href="#pitfalls">Pitfalls</a></li>
     <li><a href="#check">Check yourself</a></li>
@@ -429,8 +430,74 @@ repeat until three nodes remain, then join them to one centre</div>
 
 <p class="part">Part 3 · Doing it for real</p>
 
-<section id="run" aria-labelledby="run-h">
+<section id="choose" aria-labelledby="choose-h">
   <span class="snum">9</span>
+  <div class="prose">
+  <h2 id="choose-h">Choosing a tree method</h2>
+  <p>The method follows from the question. A quick look at how sequences cluster needs a different tool from a published species tree or a dated tree. Answer three questions for a starting point, then read the table and the notes on support values.</p>
+  </div>
+  <div class="tool" id="pickTool">
+    <div class="tool-title">Which method? <small>A starting point, not a rule</small></div>
+    <div class="controls">
+      <label class="field">Data <select id="pkData">
+        <option value="seq" selected>One gene or protein alignment</option>
+        <option value="genes">Many genes (phylogenomics)</option>
+        <option value="morph">Morphological characters</option>
+      </select></label>
+      <label class="field">Number of sequences <select id="pkN">
+        <option value="small" selected>Up to a few hundred</option>
+        <option value="mid">Hundreds to ~10,000</option>
+        <option value="big">More than ~10,000</option>
+      </select></label>
+      <label class="field">Question <select id="pkQ">
+        <option value="rel" selected>Relationships, with branch support</option>
+        <option value="quick">Quick look at clustering</option>
+        <option value="dates">When did lineages split? (dated tree)</option>
+        <option value="unc">Full uncertainty (posterior probabilities)</option>
+      </select></label>
+    </div>
+    <div class="readout" id="pkOut" aria-live="polite"></div>
+    <div class="eq" id="pkCmd" style="margin-bottom:0"></div>
+  </div>
+  <div class="tablewrap">
+  <table class="data">
+    <thead><tr><th>Task</th><th>Good choice</th><th>Why</th></tr></thead>
+    <tbody>
+      <tr><td><b>Explore data, check for problems, quick figure</b></td><td>Neighbor-joining with a corrected distance (MEGA)</td><td>Seconds, and usually close to the ML tree for clear-cut data. Not for final conclusions: it uses no explicit model beyond the distance correction.</td></tr>
+      <tr><td><b>Relationships with support: the standard analysis</b></td><td>Maximum likelihood: IQ-TREE (ModelFinder, UFBoot, SH-aLRT) or RAxML-NG</td><td>Uses every site under a fitted substitution model. This is what most published single-gene trees use.</td></tr>
+      <tr><td><b>Very large alignments</b> (tens of thousands of sequences or more)</td><td>FastTree 2; IQ-TREE <code>--fast</code></td><td>Approximate ML. FastTree was 100 to 1,000 times faster than PhyML and RAxML on large alignments and handles hundreds of thousands of sequences on a desktop.</td></tr>
+      <tr><td><b>Divergence times, rates, dated trees</b></td><td>Bayesian relaxed-clock analysis: BEAST 2, BEAST X (or MrBayes with a clock)</td><td>Combines sequences with fossil or sampling-date calibrations and gives credible intervals for every date.</td></tr>
+      <tr><td><b>Posterior probabilities, complex models</b></td><td>MrBayes</td><td>Samples trees in proportion to their probability. Needs convergence checks and more time than ML.</td></tr>
+      <tr><td><b>Species tree from many genes</b></td><td>Partitioned ML on the concatenated genes (IQ-TREE <code>-p</code>); gene trees summarized with ASTRAL</td><td>Genes can have different histories (incomplete lineage sorting). ASTRAL combines gene trees under the multispecies coalescent; comparing both approaches shows where genes disagree.</td></tr>
+      <tr><td><b>Morphological characters</b></td><td>Parsimony (TNT, PAUP*); Bayesian Mk model (MrBayes)</td><td>No sequence substitution model applies. Parsimony remains common for morphology.</td></tr>
+      <tr><td><b>Guide trees for alignment only</b></td><td>UPGMA, or whatever the aligner builds</td><td>Fine for ordering merges. UPGMA assumes a molecular clock, so do not use it as a phylogeny.</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="prose">
+  <h3>Choosing a substitution model</h3>
+  <p>Let the data choose. ModelFinder (IQ-TREE <code>-m MFP</code>) or ModelTest-NG fits dozens of models and ranks them by BIC, which rewards fit but penalizes extra parameters. For proteins the winner is usually an empirical matrix such as LG, WAG or JTT, with rate variation across sites (+G4 or +R) and sometimes the alignment's own amino-acid frequencies (+F). Report the chosen model with the tree.</p>
+  <h3>Reading support values</h3>
+  </div>
+  <div class="tablewrap">
+  <table class="data">
+    <thead><tr><th>Support</th><th>From</th><th>Common rule of thumb</th><th>Caveat</th></tr></thead>
+    <tbody>
+      <tr><td><b>Standard bootstrap</b></td><td>NJ, parsimony, ML (RAxML-NG, MEGA)</td><td>≥ 70% is often called well supported</td><td>Hillis &amp; Bull (1993) found that 70% corresponded to ≥ 95% probability only under simple conditions; in general the bootstrap is conservative.</td></tr>
+      <tr><td><b>Ultrafast bootstrap (UFBoot)</b></td><td>IQ-TREE</td><td>≥ 95%</td><td>Not on the same scale as the standard bootstrap. The IQ-TREE documentation gives these thresholds for single-gene trees only.</td></tr>
+      <tr><td><b>SH-aLRT</b></td><td>IQ-TREE, PhyML</td><td>≥ 80%</td><td>A fast branch test. IQ-TREE suggests trusting a clade when SH-aLRT ≥ 80% and UFBoot ≥ 95%.</td></tr>
+      <tr><td><b>Posterior probability</b></td><td>MrBayes, BEAST</td><td>≥ 0.95</td><td>Usually higher than the bootstrap for the same clade, and more often high for wrong clades too (Erixon et al. 2003).</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="prose">
+  <p class="note"><b>Big data, false confidence.</b> With hundreds of genes, almost every branch can reach 100% bootstrap support, including branches that are wrong, because support measures sampling error, not model error or conflict between genes. In phylogenomics, also look at how many genes and sites agree with each branch, for example IQ-TREE's gene and site concordance factors.</p>
+  <p class="note"><b>When in doubt:</b> for one gene or protein, run IQ-TREE with ModelFinder, UFBoot and SH-aLRT, root the tree with an outgroup, and trust clades that pass both support thresholds. Use neighbor-joining to explore and Bayesian methods when you need dates or posterior probabilities.</p>
+  </div>
+</section>
+
+<section id="run" aria-labelledby="run-h">
+  <span class="snum">10</span>
   <div class="prose">
   <h2 id="run-h">Building real trees</h2>
   <p>A typical workflow:</p>
@@ -458,7 +525,7 @@ iqtree2 -s globins_aligned.fasta -m MFP -B 1000 -alrt 1000
 </section>
 
 <section id="pitfalls" aria-labelledby="pitfalls-h">
-  <span class="snum">10</span>
+  <span class="snum">11</span>
   <div class="prose">
   <h2 id="pitfalls-h">Pitfalls</h2>
   <ul class="goals">
@@ -472,7 +539,7 @@ iqtree2 -s globins_aligned.fasta -m MFP -B 1000 -alrt 1000
 </section>
 
 <section id="check" aria-labelledby="check-h">
-  <span class="snum">11</span>
+  <span class="snum">12</span>
   <h2 id="check-h">Check yourself</h2>
   <details><summary>1. Human α-globin and human β-globin: orthologs or paralogs? Human and whale myoglobin?</summary>
     <p>α and β are paralogs: they arose by gene duplication and both exist in one genome. Human and whale myoglobin are orthologs: they diverged when the species did.</p></details>
@@ -491,7 +558,7 @@ iqtree2 -s globins_aligned.fasta -m MFP -B 1000 -alrt 1000
 </section>
 
 <section id="refs" aria-labelledby="refs-h">
-  <span class="snum">12</span>
+  <span class="snum">13</span>
   <h2 id="refs-h">References</h2>
   <ol class="refs" id="refList">
     <li>Fitch WM (1970). Distinguishing homologous from analogous proteins. <i>Syst Zool</i> 19:99–113. <a href="https://doi.org/10.2307/2412448" target="_blank" rel="noopener">doi:10.2307/2412448</a></li>
@@ -507,6 +574,16 @@ iqtree2 -s globins_aligned.fasta -m MFP -B 1000 -alrt 1000
     <li>Hoang DT, Chernomor O, von Haeseler A, Minh BQ, Vinh LS (2018). UFBoot2: improving the ultrafast bootstrap approximation. <i>Mol Biol Evol</i> 35:518–522. <a href="https://doi.org/10.1093/molbev/msx281" target="_blank" rel="noopener">doi:10.1093/molbev/msx281</a></li>
     <li>Kozlov AM, Darriba D, Flouri T, Morel B, Stamatakis A (2019). RAxML-NG: a fast, scalable and user-friendly tool for maximum likelihood phylogenetic inference. <i>Bioinformatics</i> 35:4453–4455. <a href="https://doi.org/10.1093/bioinformatics/btz305" target="_blank" rel="noopener">doi:10.1093/bioinformatics/btz305</a></li>
     <li>Minh BQ, et al. (2020). IQ-TREE 2: new models and efficient methods for phylogenetic inference in the genomic era. <i>Mol Biol Evol</i> 37:1530–1534. <a href="https://doi.org/10.1093/molbev/msaa015" target="_blank" rel="noopener">doi:10.1093/molbev/msaa015</a></li>
+    <li>Hillis DM, Bull JJ (1993). An empirical test of bootstrapping as a method for assessing confidence in phylogenetic analysis. <i>Syst Biol</i> 42:182–192. <a href="https://doi.org/10.1093/sysbio/42.2.182" target="_blank" rel="noopener">doi:10.1093/sysbio/42.2.182</a></li>
+    <li>Erixon P, Svennblad B, Britton T, Oxelman B (2003). Reliability of Bayesian posterior probabilities and bootstrap frequencies in phylogenetics. <i>Syst Biol</i> 52:665–673. <a href="https://doi.org/10.1080/10635150390235485" target="_blank" rel="noopener">doi:10.1080/10635150390235485</a></li>
+    <li>Guindon S, et al. (2010). New algorithms and methods to estimate maximum-likelihood phylogenies: assessing the performance of PhyML 3.0. <i>Syst Biol</i> 59:307–321. <a href="https://doi.org/10.1093/sysbio/syq010" target="_blank" rel="noopener">doi:10.1093/sysbio/syq010</a></li>
+    <li>Price MN, Dehal PS, Arkin AP (2010). FastTree 2: approximately maximum-likelihood trees for large alignments. <i>PLoS ONE</i> 5:e9490. <a href="https://doi.org/10.1371/journal.pone.0009490" target="_blank" rel="noopener">doi:10.1371/journal.pone.0009490</a></li>
+    <li>Chernomor O, von Haeseler A, Minh BQ (2016). Terrace aware data structure for phylogenomic inference from supermatrices. <i>Syst Biol</i> 65:997–1008. <a href="https://doi.org/10.1093/sysbio/syw037" target="_blank" rel="noopener">doi:10.1093/sysbio/syw037</a></li>
+    <li>Kalyaanamoorthy S, Minh BQ, Wong TKF, von Haeseler A, Jermiin LS (2017). ModelFinder: fast model selection for accurate phylogenetic estimates. <i>Nat Methods</i> 14:587–589. <a href="https://doi.org/10.1038/nmeth.4285" target="_blank" rel="noopener">doi:10.1038/nmeth.4285</a></li>
+    <li>Zhang C, Rabiee M, Sayyari E, Mirarab S (2018). ASTRAL-III: polynomial time species tree reconstruction from partially resolved gene trees. <i>BMC Bioinformatics</i> 19(Suppl 6):153. <a href="https://doi.org/10.1186/s12859-018-2129-y" target="_blank" rel="noopener">doi:10.1186/s12859-018-2129-y</a></li>
+    <li>Bouckaert R, et al. (2019). BEAST 2.5: an advanced software platform for Bayesian evolutionary analysis. <i>PLoS Comput Biol</i> 15:e1006650. <a href="https://doi.org/10.1371/journal.pcbi.1006650" target="_blank" rel="noopener">doi:10.1371/journal.pcbi.1006650</a></li>
+    <li>Darriba D, et al. (2020). ModelTest-NG: a new and scalable tool for the selection of DNA and protein evolutionary models. <i>Mol Biol Evol</i> 37:291–294. <a href="https://doi.org/10.1093/molbev/msz189" target="_blank" rel="noopener">doi:10.1093/molbev/msz189</a></li>
+    <li>Baele G, et al. (2025). BEAST X for Bayesian phylogenetic, phylogeographic and phylodynamic inference. <i>Nat Methods</i> 22:1653–1656. <a href="https://doi.org/10.1038/s41592-025-02751-x" target="_blank" rel="noopener">doi:10.1038/s41592-025-02751-x</a></li>
     <li>Tamura K, Stecher G, Kumar S (2021). MEGA11: Molecular Evolutionary Genetics Analysis version 11. <i>Mol Biol Evol</i> 38:3022–3027. <a href="https://doi.org/10.1093/molbev/msab120" target="_blank" rel="noopener">doi:10.1093/molbev/msab120</a></li>
   </ol>
   <footer>Bio 116 · Molecular phylogeny tutorial. The tree tools on this page are teaching implementations of the published algorithms.</footer>
@@ -1101,4 +1178,32 @@ drawHero(); drawCount(); all(); drawPars(); njWire(); alnWire(); tocWire();
 document.getElementById("distSel").addEventListener("change", all);
 document.getElementById("colSlider").addEventListener("input", drawCol);
 document.getElementById("bootRun").addEventListener("click", runBoot);
+/* method picker */
+(() => {
+  const D = document.getElementById("pkData"), N = document.getElementById("pkN"), Q = document.getElementById("pkQ");
+  const R = {
+    ml: ["Maximum likelihood with IQ-TREE", "ModelFinder picks the substitution model, then IQ-TREE searches for the ML tree and adds ultrafast bootstrap and SH-aLRT support.", ["iqtree2 -s aligned.fasta -m MFP -B 1000 --alrt 1000"], "Alternative: RAxML-NG with standard bootstrap. Trust clades with SH-aLRT ≥ 80% and UFBoot ≥ 95%."],
+    mlbig: ["Approximate ML: FastTree 2 or IQ-TREE --fast", "Full ML searches become slow at this size. FastTree gives an approximately-ML tree with local support values in minutes to hours.", ["FastTree aligned.fasta > tree.nwk            # proteins", "FastTree -nt -gtr aligned.fasta > tree.nwk   # DNA", "iqtree2 -s aligned.fasta -m MFP --fast"], "Check key clades with a full ML analysis of a subsample."],
+    nj: ["Neighbor-joining", "Fast, and a good first look. Use a corrected distance (for example JTT or Poisson for proteins), not raw p-distances, for divergent sequences.", ["# MEGA: Phylogeny > Construct/Test Neighbor-Joining Tree"], "For thousands of sequences, FastTree is nearly as fast and closer to ML."],
+    dates: ["Bayesian relaxed clock: BEAST 2 or BEAST X", "Add fossil or sampling-date calibrations; the analysis estimates the tree, the dates and their credible intervals together. Set it up in BEAUti, run BEAST, check convergence in Tracer.", ["beast analysis.xml", "# for a quick first estimate on an ML tree: iqtree2 -s aligned.fasta --date dates.txt"], "Dates are only as good as the calibrations and the clock model."],
+    datesbig: ["Fast dating on an ML tree", "Full Bayesian dating is slow for this many sequences. Build an ML tree first, then date it with a fast least-squares method.", ["iqtree2 -s aligned.fasta -m MFP --date dates.txt"], "Use BEAST on a representative subsample if you need credible intervals."],
+    bayes: ["Bayesian inference with MrBayes", "Samples trees by MCMC; each clade gets a posterior probability. Run at least two independent chains and check that they converge.", ["mb analysis.nex"], "Posterior probabilities tend to be higher than bootstrap values for the same clade."],
+    bayesbig: ["ML with support instead", "Bayesian MCMC is rarely practical at this size. Use ML (IQ-TREE or FastTree) and interpret support carefully.", ["iqtree2 -s aligned.fasta -m MFP -B 1000 --alrt 1000"], "Run Bayesian analyses on a subsample if posterior probabilities are needed."],
+    genes: ["Concatenated partitioned ML, plus ASTRAL", "Estimate one tree from all genes with a model for each partition, and a species tree from individual gene trees under the multispecies coalescent. Compare them.", ["iqtree2 -s concat.phy -p partitions.nex -m MFP+MERGE -B 1000", "iqtree2 -S gene_alignments/ -m MFP          # one tree per gene", "java -jar astral.jar -i gene_alignments.treefile -o species.tre"], "Support near 100% everywhere is common with many genes; check gene and site concordance factors."],
+    morph: ["Parsimony, or Bayesian Mk model", "Morphological characters have no substitution matrix. Parsimony (TNT, PAUP*) is common; MrBayes offers the Mk model for a probabilistic analysis.", ["# TNT or PAUP*: heuristic search + bootstrap", "# MrBayes: lset coding=variable; mcmc"], "Code characters carefully; the tree depends on how states are defined."],
+  };
+  function pick() {
+    const d = D.value, n = N.value, q = Q.value; let k;
+    if (d === "morph") k = "morph";
+    else if (d === "genes") k = q === "dates" ? (n === "big" ? "datesbig" : "dates") : "genes";
+    else if (q === "quick") k = n === "big" ? "mlbig" : "nj";
+    else if (q === "dates") k = n === "big" ? "datesbig" : "dates";
+    else if (q === "unc") k = n === "small" ? "bayes" : "bayesbig";
+    else k = n === "big" ? "mlbig" : "ml";
+    const [name, why, cmd, also] = R[k];
+    document.getElementById("pkOut").innerHTML = `<span class="big">${name}</span>${why}<br><span class="muted">${also}</span>`;
+    document.getElementById("pkCmd").textContent = cmd.join("\n");
+  }
+  [D, N, Q].forEach(el => el.addEventListener("change", pick)); pick();
+})();
 </script>
