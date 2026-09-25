@@ -347,6 +347,19 @@ table.data td.num{font-variant-numeric:tabular-nums;font-family:var(--f-mono);fo
 .punnett td.k-aff{background:var(--bad-soft);border-color:var(--bad)}
 .punnett td.k-car{background:var(--warn-soft);border-color:var(--warn)}
 .punnett td.k-ok{background:var(--ok-soft);border-color:var(--ok)}
+/* comparative genomics */
+.case-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+@media (max-width:860px){.case-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:520px){.case-grid{grid-template-columns:1fr}}
+.chip[aria-pressed="true"]{background:var(--primary);color:var(--primary-ink);border-color:var(--primary)}
+.cons{font-family:var(--f-mono);font-size:.82rem;line-height:1.5;white-space:pre;padding:10px 12px;background:var(--bg);border:1px solid var(--line);border-radius:8px;display:inline-block;min-width:100%}
+.cons-row{display:flex}
+.cons .cn{width:10ch;flex:none;color:var(--muted)}
+.cons .cd{color:var(--muted)}
+.cons .creg{display:inline-block;font-size:.7rem;color:var(--accent);border-bottom:2px solid var(--accent);margin-right:0;overflow:hidden}
+.dot-grid{display:grid;grid-template-columns:minmax(0,480px) minmax(0,1fr);gap:18px;align-items:start}
+.dot-grid canvas{width:100%;max-width:480px;height:auto;aspect-ratio:1;border-radius:8px}
+@media (max-width:760px){.dot-grid{grid-template-columns:1fr}}
 footer{border-top:1px solid var(--line);padding-block:20px;color:var(--muted);font-size:.85rem}
 footer .in{max-width:1280px;margin:0 auto;padding-inline:16px}
 </style>
@@ -382,7 +395,7 @@ footer .in{max-width:1280px;margin:0 auto;padding-inline:16px}
 <section class="ch hero" id="intro" data-title="Start here" data-num="00">
   <p class="eyebrow">Bio116 · Bioinformatics · Biology review</p>
   <h1>The biology you need before you write your first alignment</h1>
-  <p class="lede">Bioinformatics treats living systems as data. This primer walks through the biology behind that data, from the cell down to a single base, and every idea comes with something you can try. Chapter 15 runs real analyses on the course sequence file, <code>triplets.txt</code>.</p>
+  <p class="lede">Bioinformatics treats living systems as data. This primer walks through the biology behind that data, from the cell down to a single base, and every idea comes with something you can try. Chapter 16 runs real analyses on the course sequence file, <code>triplets.txt</code>.</p>
   <div class="strand-banner" aria-label="A short DNA duplex" id="banner"></div>
   <div class="aud-grid">
     <div class="aud">
@@ -610,7 +623,7 @@ footer .in{max-width:1280px;margin:0 auto;padding-inline:16px}
   </div>
   <div class="prose">
     <h3>What the rest of the genome is made of</h3>
-    <p>Roughly half of the human genome is repeated sequence. The most abundant single family is the <b>Alu element</b>, a ~300 bp sequence present in over a million copies and making up about 10% of our DNA. Alus copy themselves through an RNA intermediate and end in a poly-A tail. You will find two of them in the course sequence in Chapter 15.</p>
+    <p>Roughly half of the human genome is repeated sequence. The most abundant single family is the <b>Alu element</b>, a ~300 bp sequence present in over a million copies and making up about 10% of our DNA. Alus copy themselves through an RNA intermediate and end in a poly-A tail. You will find two of them in the course sequence in Chapter 16.</p>
     <ul>
       <li><b>Transposable elements</b> (Alu, LINE-1, endogenous retroviruses): sequences that copy and paste themselves around the genome.</li>
       <li><b>Tandem repeats</b>: short units repeated head to tail. Microsatellites have 1–6 bp units, minisatellites 10–60 bp. They vary in length between people, which makes them useful in forensics.</li>
@@ -1362,9 +1375,93 @@ Sp_E  TTGGTACCTAGCCTTCCTTGGAACGAAG</textarea>
   <div class="quiz" data-quiz="personal"></div>
 </section>
 
+<!-- ============ COMPARATIVE GENOMICS ============ -->
+<section class="ch" id="comparative" data-title="Comparative genomics" data-num="15">
+  <div class="ch-head"><span class="num">Chapter 15</span><h2>What genomes reveal about organisms</h2><p>Comparing genomes across species shows two things. What stays the same over hundreds of millions of years is probably essential. What differs often explains what makes each organism unusual.</p></div>
+  <div class="scroll-x">
+    <table class="data">
+      <thead><tr><th>Signal in the genome</th><th>What happened</th><th>What it can explain</th></tr></thead>
+      <tbody>
+        <tr><td><b>Gene family expansion</b></td><td>Repeated duplication of one gene family</td><td>A sense, a defence or a skill the organism relies on</td></tr>
+        <tr><td><b>Gene loss</b></td><td>Genes decay into pseudogenes once they stop being useful</td><td>Abilities an ancestor had and the organism no longer needs</td></tr>
+        <tr><td><b>New genes</b></td><td>Duplication, whole-genome duplication, or horizontal transfer from another species</td><td>New functions, and in bacteria new diseases</td></tr>
+        <tr><td><b>Regulatory change</b></td><td>Enhancers and promoters gained, lost or altered</td><td>Differences in body form between close relatives</td></tr>
+        <tr><td><b>Conservation</b></td><td>Sequence that barely changes across species</td><td>Where to look for function, including outside genes</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="bench">
+    <div class="bench-head"><h3>Use it or lose it: the sense of smell</h3><span class="hint">Approximate counts of intact olfactory receptor genes (Niimura et al., 2014). Hover a bar.</span></div>
+    <div class="bench-body">
+      <div class="chart-wrap" id="or-wrap"><div class="tip" id="or-tip" hidden></div></div>
+      <p class="small">Olfactory receptors are the largest gene family in most mammals. Elephants carry the most known, around 1,950. Primates, which rely more on vision, have far fewer, and hundreds of broken copies (pseudogenes) sit in our genome as remnants. Toothed whales such as dolphins have lost nearly all of them. The size of the family tracks how much each animal depends on smell.</p>
+    </div>
+  </div>
+  <div class="bench">
+    <div class="bench-head"><h3>Genome case files</h3><span class="hint">What sequencing revealed about particular organisms. Filter by the kind of change.</span></div>
+    <div class="bench-body">
+      <div class="chips" id="case-filter"></div>
+      <div class="case-grid" id="case-grid"></div>
+    </div>
+  </div>
+  <div class="bench">
+    <div class="bench-head"><h3>Conservation reveals function</h3><span class="hint">A simulated alignment of six species around one exon. Dots mean "same as human".</span></div>
+    <div class="bench-body">
+      <div class="scroll-x"><div class="cons" id="cons-aln"></div></div>
+      <div class="chart-wrap scroll-x" id="cons-wrap"><div class="tip" id="cons-tip" hidden></div></div>
+      <p class="small">Intron sequence drifts freely, so distant species barely match. In the exon, the first two positions of each codon hardly change, while the third (the wobble position) changes more, because many third-position changes are synonymous. The conserved element on the right is non-coding, yet it is almost as conserved as the exon. That strongly suggests a function, perhaps an enhancer. Genome browsers show this as phyloP or PhastCons tracks computed from real alignments of up to hundreds of species.</p>
+    </div>
+  </div>
+  <div class="bench">
+    <div class="bench-head"><h3>Dot plot</h3><span class="hint">Every shared k-mer between two sequences is a dot. Diagonal lines are matching stretches.</span></div>
+    <div class="bench-body">
+      <div class="chips" id="dot-presets"><span class="small muted">Compare:</span></div>
+      <div class="controls">
+        <label class="fld" for="dot-k"><span>Word size k: <span class="mono" id="dot-k-v">12</span></span><input type="range" id="dot-k" min="6" max="20" step="1" value="12"></label>
+        <button class="btn" type="button" id="dot-own-btn" aria-expanded="false">Paste your own sequences</button>
+      </div>
+      <div id="dot-own" hidden style="display:grid;gap:8px">
+        <div class="two">
+          <label class="fld" for="dot-a">Sequence 1 (x axis)<textarea id="dot-a" class="seqin" rows="3" spellcheck="false"></textarea></label>
+          <label class="fld" for="dot-b">Sequence 2 (y axis)<textarea id="dot-b" class="seqin" rows="3" spellcheck="false"></textarea></label>
+        </div>
+        <div><button class="btn primary" type="button" id="dot-go">Plot</button></div>
+      </div>
+      <p class="err" id="dot-err" hidden></p>
+      <div class="dot-grid">
+        <canvas id="dot-canvas" width="480" height="480" role="img" aria-label="Dot plot"></canvas>
+        <div id="dot-note" class="small" style="display:grid;gap:8px;align-content:start"></div>
+      </div>
+    </div>
+  </div>
+  <div class="two">
+    <div class="panel">
+      <h3>Why model organisms work</h3>
+      <ul>
+        <li>About 80% of mouse genes have a single clear counterpart (ortholog) in humans.</li>
+        <li>About three-quarters of known human disease genes have a recognisable counterpart in the fruit fly.</li>
+        <li>Genes controlling the body plan, such as the <b>Hox</b> genes, are shared by almost all animals. In many animals they even sit along the chromosome in the same order as the body regions they pattern.</li>
+        <li>So an experiment in yeast, worms, flies, zebrafish or mice can reveal what a human gene does. Comparative genomics tells you which gene to study.</li>
+      </ul>
+    </div>
+    <div class="panel">
+      <h3>Pan-genomes: one species, many genomes</h3>
+      <ul>
+        <li>In bacteria, strains of the same species can differ by more than a thousand genes.</li>
+        <li>The <b>core genome</b> is shared by every strain. The <b>accessory genome</b> is present in only some, often picked up by horizontal transfer.</li>
+        <li>Antibiotic resistance and virulence genes usually sit in the accessory genome, on plasmids, phages or genomic islands.</li>
+        <li>Humans are building pan-genomes too. The Human Pangenome Reference (2023) combines dozens of diverse genomes instead of relying on one reference.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="lens cs"><span class="tag">CS lens</span><p>A dot plot is the brute-force picture of alignment. Comparing whole genomes uses seed-and-extend aligners such as minimap2 or LASTZ, which find exact k-mer seeds (like the dots) and extend only the promising ones. Orthology inference (OrthoFinder, Ensembl Compara) clusters proteins from many species into families and builds a gene tree for each one. Counting family sizes per species then shows expansions and losses, much like the smell chart above.</p></div>
+  <div class="lens bio"><span class="tag">Bio depth</span><p>To test whether a gene was shaped by selection, compare its rate of protein-changing (non-synonymous, dN) and silent (synonymous, dS) substitutions between species. A dN/dS ratio well below 1 means purifying selection: most protein changes were harmful and removed, as for most genes. A ratio above 1 means positive selection favoured change, as seen in some immune and reproductive genes. A gene that has become a pseudogene drifts towards dN/dS ≈ 1, because nothing constrains it any more.</p></div>
+  <div class="quiz" data-quiz="comparative"></div>
+</section>
+
 <!-- ============ 10 BENCH ============ -->
-<section class="ch" id="bench" data-title="Workbench: triplets.txt" data-num="15">
-  <div class="ch-head"><span class="num">Chapter 15</span><h2>Workbench: the course sequence</h2><p>This is the sequence from <code>triplets.txt</code> in the course repository. The file lists one human DNA sequence three times, split into triplets starting at base 1, 2 and 3. Those are its three forward reading frames. Here it is joined back into one string of 10,309 bases so you can analyse it.</p></div>
+<section class="ch" id="bench" data-title="Workbench: triplets.txt" data-num="16">
+  <div class="ch-head"><span class="num">Chapter 16</span><h2>Workbench: the course sequence</h2><p>This is the sequence from <code>triplets.txt</code> in the course repository. The file lists one human DNA sequence three times, split into triplets starting at base 1, 2 and 3. Those are its three forward reading frames. Here it is joined back into one string of 10,309 bases so you can analyse it.</p></div>
   <div class="bench">
     <div class="bench-head"><h3>Composition</h3><span class="hint" id="wb-src"></span></div>
     <div class="bench-body">
@@ -1415,6 +1512,7 @@ Sp_E  TTGGTACCTAGCCTTCCTTGGAACGAAG</textarea>
     <h3>Things to find</h3>
     <ol>
       <li>Search the Alu preset. There are two hits around positions 880 and 1,190. Scroll the viewer there and you will see two Alu elements back to back, each ending in a long run of A's.</li>
+      <li>The exact motif search misses a third, older Alu around positions 3,750–4,000 on the reverse strand. Find it with the dot plot in Chapter 15, then search for <code>TTTTTTGTTTTGAGACG</code>, the start of its reversed poly-A tail. Why does an exact-match search miss diverged copies, and what kind of tool would find them?</li>
       <li>Try the <i>tandem repeat unit</i> preset and watch where the hits cluster. Why might this region be hard to sequence with short reads?</li>
       <li>The overall GC content is much higher than the genome average. Look at the CpG observed/expected ratio. Values near 0.6 or higher over a stretch of DNA suggest a <b>CpG island</b>, which often marks a promoter.</li>
       <li>Set the ORF minimum to 100 aa. Does a long ORF prove there is a gene? What other evidence would you want? (Think about introns, RNA-seq data and similarity to known proteins.)</li>
@@ -1425,8 +1523,8 @@ Sp_E  TTGGTACCTAGCCTTCCTTGGAACGAAG</textarea>
 </section>
 
 <!-- ============ GLOSSARY ============ -->
-<section class="ch" id="glossary" data-title="Glossary" data-num="16">
-  <div class="ch-head"><span class="num">Chapter 16</span><h2>Glossary and translation table</h2><p>Terms from both fields, and how they map onto each other.</p></div>
+<section class="ch" id="glossary" data-title="Glossary" data-num="17">
+  <div class="ch-head"><span class="num">Chapter 17</span><h2>Glossary and translation table</h2><p>Terms from both fields, and how they map onto each other.</p></div>
   <div class="scroll-x">
     <table class="data">
       <thead><tr><th>Biology</th><th>Computing analogy</th><th>Where the analogy breaks</th></tr></thead>
@@ -2644,8 +2742,87 @@ function renderTree(wrap,root,o={}){const L=layoutTree(root),W=o.W||800,rh=o.rh|
   }
   ['prs-p','prs-base','prs-or'].forEach(id=>$('#'+id).addEventListener('input',draw));draw()})();
 
+/* ---------- 15. comparative: olfactory receptors ---------- */
+(function(){const D=[['African elephant',1950],['Rat',1210],['Cow',1190],['Opossum',1190],['Mouse',1130],['Horse',1070],['Dog',810],['Human',400],['Chimpanzee',380],['Platypus',270]];
+  const W=800,ml=150,mr=70,rh=26,top=8,H=top+D.length*rh+28,max=2000,X=v=>ml+v/max*(W-ml-mr);
+  let h=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Olfactory receptor gene counts by species"><g class="grid">${[0,500,1000,1500,2000].map(t=>`<line x1="${X(t)}" x2="${X(t)}" y1="${top}" y2="${H-24}"/>`).join('')}</g>${[0,500,1000,1500,2000].map(t=>`<text x="${X(t)}" y="${H-8}" text-anchor="middle">${fmt(t)}</text>`).join('')}`;
+  D.forEach(([n,v],i)=>{const y=top+i*rh,hu=n==='Human';h+=`<g class="orb" data-i="${i}"><rect x="0" y="${y}" width="${W}" height="${rh}" style="fill:transparent"/><text x="${ml-10}" y="${y+rh/2+4}" text-anchor="end" style="fill:var(--ink);${hu?'font-weight:700':''}">${n}</text><path d="M${ml} ${y+5}h${X(v)-ml-4}a4 4 0 0 1 4 4v${rh-18}a4 4 0 0 1-4 4h${-(X(v)-ml-4)}z" style="fill:${hu?'var(--chart-2)':'var(--chart)'}"/><text x="${X(v)+6}" y="${y+rh/2+4}" style="fill:var(--ink-2);font-variant-numeric:tabular-nums">~${fmt(v)}</text></g>`});
+  h+=`<line x1="${ml}" x2="${ml}" y1="${top}" y2="${H-24}" style="stroke:var(--ink-2)"/></svg>`;const wrap=$('#or-wrap');wrap.insertAdjacentHTML('beforeend',h);const svg=wrap.querySelector('svg');
+  svg.addEventListener('mousemove',e=>{const g=e.target.closest('.orb');if(!g){$('#or-tip').hidden=true;return}const d=D[+g.dataset.i];const p=svgPoint(svg,e,W);tip($('#or-tip'),wrap,p.px,p.py,`<b>${d[0]}</b><br>~${fmt(d[1])} intact olfactory receptor genes`)});
+  svg.addEventListener('mouseleave',()=>$('#or-tip').hidden=true)})();
+
+/* ---------- 15. comparative: case files ---------- */
+(function(){const K={exp:'Expansion',loss:'Gene loss',dup:'Duplication',hgt:'Horizontal transfer',size:'Genome size',cons:'Conservation',warn:'Cautionary tale'};
+  const C=[
+   ['African elephant','dup','About 20 copies of the tumour-suppressor gene <i>TP53</i> (Chapter 08), where most mammals have one. The extra copies, made by retrotransposition, seem to help damaged cells self-destruct. This may explain why elephants rarely get cancer despite having vastly more cells than we do (Peto\'s paradox).'],
+   ['Octopus','exp','Expanded families of protocadherins (about 170 genes) and zinc-finger transcription factors, both linked to building complex nervous systems. Its nerve cells also edit many of their RNAs heavily, changing proteins without changing the DNA.'],
+   ['Human (vitamin C)','loss','We cannot make vitamin C because our <i>GULO</i> gene is a broken pseudogene, a loss shared with monkeys and apes. Guinea pigs and some bats lost the same gene independently. That is why sailors got scurvy and rats do not.'],
+   ['Human (big brain)','dup','Human-specific duplicated genes such as <i>ARHGAP11B</i> and <i>NOTCH2NL</i> boost the stem cells that build the cortex. Human accelerated regions, short stretches conserved in other mammals but changed quickly in our lineage, are mostly enhancers active in the developing brain.'],
+   ['Baleen whales','loss','They have no teeth, yet their genomes still carry broken copies of enamel genes such as <i>MMP20</i>. These molecular fossils confirm that their ancestors had teeth.'],
+   ['E. coli O157:H7','hgt','A dangerous food-poisoning strain. Compared with harmless lab strain K-12, it carries about 1,400 extra genes, many on phages and "pathogenicity islands" acquired by horizontal transfer. The Shiga toxin genes arrived on a phage.'],
+   ['Bdelloid rotifers','hgt','Tiny animals that have reproduced without sex for millions of years. Around 8% of their genes appear to come from bacteria, fungi and plants, an unusually high level of horizontal transfer for an animal.'],
+   ['Tardigrade','warn','A 2015 paper reported that about 17% of tardigrade genes came from other organisms. Re-analysis showed most of this "foreign DNA" was contamination from bacteria in the sample. A reminder to check your data before believing a surprising result.'],
+   ['Pufferfish (Fugu)','size','About 400 Mb, one-eighth the size of the human genome, but with a similar set of genes. Short introns and few repeats make it a compact vertebrate reference, and it helped find human genes early on.'],
+   ['Baker\'s yeast','dup','Its whole genome was duplicated about 100 million years ago. Most extra copies were later lost, but the surviving pairs include genes linked to fast sugar fermentation, the trait bakers and brewers rely on.'],
+   ['Bread wheat','dup','A hexaploid: it carries three complete ancestral genomes (A, B and D), about 16 Gb in total, from two hybridisations between grass species. Polyploidy is common in crops and gives plant breeders extra genetic material to work with.'],
+   ['Human, mouse and rat','cons','481 stretches of at least 200 bp are 100% identical across all three, despite ~80 million years of separation. Many are enhancers. Yet mice missing some of them look normal, a puzzle that is still unsolved.']];
+  let f='';$('#case-filter').innerHTML=`<button type="button" class="chip" data-f="" aria-pressed="true">All</button>`+Object.entries(K).map(([k,v])=>`<button type="button" class="chip" data-f="${k}" aria-pressed="false">${v}</button>`).join('');
+  const draw=()=>{$('#case-grid').innerHTML=C.filter(c=>!f||c[1]===f).map(c=>`<div class="fn"><p class="eyebrow">${K[c[1]]}</p><h3>${c[0]}</h3><p class="small">${c[2]}</p></div>`).join('');$$('#case-filter .chip').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.f===f)))};
+  $('#case-filter').addEventListener('click',e=>{const b=e.target.closest('[data-f]');if(!b)return;f=b.dataset.f;draw()});draw()})();
+
+/* ---------- 15. comparative: conservation ---------- */
+(function(){let seed=7;const rnd=()=>(seed=(seed*1103515245+12345)%2147483648)/2147483648;const B='ACGT';
+  const L=96,REG=[[0,22,'intron'],[22,64,'exon (coding)'],[64,78,'intron'],[78,96,'conserved element']];
+  const rate=i=>{if(i>=22&&i<64){return(i-22)%3===2?0.55:0.08}if(i>=78)return 0.05;return 1};
+  let ref='';for(let i=0;i<L;i++)ref+=B[Math.floor(rnd()*4)];
+  const SP=[['Human',0],['Chimpanzee',0.012],['Mouse',0.16],['Dog',0.14],['Chicken',0.38],['Zebrafish',0.55]];
+  const seqs=SP.map(([n,d])=>[n,[...ref].map((c,i)=>rnd()<d*rate(i)*1.6?B[(B.indexOf(c)+1+Math.floor(rnd()*3))%4]:c).join('')]);
+  $('#cons-aln').innerHTML=`<div class="cons-row"><span class="cn"></span><span class="cs">${REG.map(([a,b,t])=>`<span class="creg" style="width:${b-a}ch">${t.length>(b-a)?'':t}</span>`).join('')}</span></div>`+seqs.map(([n,s],k)=>`<div class="cons-row"><span class="cn">${n}</span><span class="cs">${[...s].map((c,i)=>k&&c===ref[i]?'<span class="cd">.</span>':`<span class="n${c}">${c}</span>`).join('')}</span></div>`).join('');
+  const id=[...ref].map((c,i)=>seqs.filter(s=>s[1][i]===c).length/seqs.length);const W=800,ml=90,mr=10,H=110,bw=(W-ml-mr)/L,Y=v=>10+(1-v)*(H-40);
+  let h=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Per-column conservation" style="min-width:640px">${[0,0.5,1].map(v=>`<line x1="${ml}" x2="${W-mr}" y1="${Y(v)}" y2="${Y(v)}" style="stroke:var(--grid)"/><text x="${ml-6}" y="${Y(v)+4}" text-anchor="end">${v*100}%</text>`).join('')}`;
+  REG.forEach(([a,b,t])=>h+=`<text x="${ml+(a+b)/2*bw}" y="${H-6}" text-anchor="middle" style="font-size:11px">${t}</text><line x1="${ml+a*bw}" x2="${ml+b*bw}" y1="${H-20}" y2="${H-20}" style="stroke:${t.startsWith('intron')?'var(--line)':'var(--chart-2)'};stroke-width:3"/>`);
+  id.forEach((v,i)=>h+=`<rect class="cb" data-i="${i}" x="${(ml+i*bw+0.5).toFixed(1)}" y="${Y(v).toFixed(1)}" width="${(bw-1).toFixed(1)}" height="${(Y(0)-Y(v)).toFixed(1)}" style="fill:var(--chart)"/>`);
+  h+=`<text x="4" y="14" style="fill:var(--ink-2)">identity</text></svg>`;const wrap=$('#cons-wrap');wrap.insertAdjacentHTML('beforeend',h);const svg=wrap.querySelector('svg');
+  svg.addEventListener('mousemove',e=>{const r=e.target.closest('.cb');if(!r){$('#cons-tip').hidden=true;return}const i=+r.dataset.i;const p=svgPoint(svg,e,W);tip($('#cons-tip'),wrap,p.px,p.py,`Column ${i+1}: ${Math.round(id[i]*6)}/6 species match human`)});
+  svg.addEventListener('mouseleave',()=>$('#cons-tip').hidden=true)})();
+
+/* ---------- 15. comparative: dot plot ---------- */
+(function(){let seed=11;const rnd=()=>(seed=(seed*1103515245+12345)%2147483648)/2147483648;const rs=n=>{let s='';for(let i=0;i<n;i++)s+='ACGT'[Math.floor(rnd()*4)];return s};
+  const mut=(s,r)=>[...s].map(c=>rnd()<r?'ACGT'[Math.floor(rnd()*4)]:c).join('');
+  const A=rs(3000);const inv=mut(A.slice(0,1000)+rc(A.slice(1000,1600))+A.slice(1600),0.02);
+  const trn=mut(A.slice(0,700)+A.slice(1900,2500)+A.slice(700,1900)+A.slice(2100,2400)+A.slice(2500),0.02);
+  const rep=(()=>{const u=rs(40);return mut(rs(900)+u.repeat(15)+rs(600)+rc(A.slice(200,500))+rs(400),0.01)})();
+  const P=[['Course sequence vs itself',()=>[COURSE,COURSE],'The main diagonal is the sequence matching itself. The small teal cluster just off the diagonal near position 1,000 is the two back-to-back Alu elements matching each other. The pink marks link them to a third Alu around positions 3,750–4,000. It lies on the opposite strand (its poly-A tail reads as poly-T) and is too diverged for the exact 12-base motif search in Chapter 16 to find. Every match appears twice, mirrored across the diagonal. The dense square near the end is the tandem repeat: every copy of the repeat unit matches every other copy.'],
+    ['Inversion',()=>[A,inv],'Sequence 2 is sequence 1 with positions 1,000–1,600 flipped and reverse-complemented. The teal diagonal breaks, and a pink line running the other way fills the gap. Pink means the match is on the opposite strand. Inversions are a common difference between related genomes.'],
+    ['Rearrangement and duplication',()=>[A,trn],'A block of sequence has moved, so the diagonal is broken into offset pieces. One segment also appears twice in sequence 2, giving two parallel lines at the same x position. Reading a dot plot like this is how researchers spot rearrangements between the genomes of related species.'],
+    ['Tandem repeat',()=>[rep,rep],'A 40 bp unit repeated 15 times gives a solid square: every copy matches every other copy, offset by multiples of 40. The pink segment is an inverted copy of another part of the sequence.']];
+  let cur=0,own=null;
+  $('#dot-presets').insertAdjacentHTML('beforeend',P.map((p,i)=>`<button type="button" class="chip" data-p="${i}" aria-pressed="${i===0}">${p[0]}</button>`).join(''));
+  function draw(){const k=+$('#dot-k').value;$('#dot-k-v').textContent=k;const [a,b]=own||P[cur][1]();const cv=$('#dot-canvas');const S=480,dpr=Math.min(2,window.devicePixelRatio||1);cv.width=S*dpr;cv.height=S*dpr;const ctx=cv.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);
+    const cs=getComputedStyle(document.documentElement);const col=v=>cs.getPropertyValue(v).trim();const m=34,P2=S-m-8;
+    ctx.fillStyle=col('--bg');ctx.fillRect(0,0,S,S);ctx.strokeStyle=col('--line');ctx.strokeRect(m,8,P2,P2);
+    const idx=new Map();for(let i=0;i+k<=a.length;i++){const w=a.substr(i,k);let l=idx.get(w);if(!l)idx.set(w,l=[]);if(l.length<60)l.push(i)}
+    const g=Math.max(a.length,b.length);const px=i=>m+i/a.length*P2,py=j=>8+j/b.length*P2;const sz=Math.max(1,P2/g*1.2);
+    const plot=(color,rev)=>{ctx.fillStyle=color;for(let j=0;j+k<=b.length;j++){let w=b.substr(j,k);if(rev)w=rc(w);const l=idx.get(w);if(l)for(const i of l)ctx.fillRect(px(i),py(j),sz,sz)}};
+    plot(col('--chart'),false);plot(col('--chart-2'),true);
+    ctx.fillStyle=col('--muted');ctx.font='11px system-ui,sans-serif';ctx.textAlign='center';ctx.fillText(`Sequence 1 → (${fmt(a.length)} bp)`,m+P2/2,S-2);ctx.save();ctx.translate(11,8+P2/2);ctx.rotate(-Math.PI/2);ctx.fillText(`Sequence 2 → (${fmt(b.length)} bp)`,0,0);ctx.restore();
+    $('#dot-note').innerHTML=`<p><span style="color:var(--chart);font-weight:700">■ teal</span> = same strand · <span style="color:var(--chart-2);font-weight:700">■ pink</span> = reverse complement</p><p>${own?'Your sequences. Long diagonals are shared stretches; breaks and pink segments suggest rearrangements.':P[cur][2]}</p><p class="muted">Smaller k finds shorter matches but adds random noise. For 4 letters, a given ${k}-mer turns up by chance about once every ${fmt(Math.pow(4,k))} positions.</p>`}
+  $('#dot-presets').addEventListener('click',e=>{const b=e.target.closest('[data-p]');if(!b)return;cur=+b.dataset.p;own=null;$$('#dot-presets .chip').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));draw()});
+  $('#dot-k').addEventListener('input',draw);
+  $('#dot-own-btn').addEventListener('click',()=>{const o=$('#dot-own');o.hidden=!o.hidden;$('#dot-own-btn').setAttribute('aria-expanded',String(!o.hidden))});
+  $('#dot-go').addEventListener('click',()=>{const f=t=>cleanDNA(t.split('\n').filter(l=>!l.startsWith('>')).join(''));const a=f($('#dot-a').value),b=f($('#dot-b').value);const err=$('#dot-err');
+    if(a.length<50||b.length<50){err.textContent='Paste at least 50 bases into each box.';err.hidden=false;return}if(/[^ACGTN]/.test(a+b)){err.textContent='Use DNA letters only (A, C, G, T, N).';err.hidden=false;return}if(a.length>60000||b.length>60000){err.textContent='Keep each sequence under 60,000 bases.';err.hidden=false;return}
+    err.hidden=true;own=[a,b];$$('#dot-presets .chip').forEach(x=>x.setAttribute('aria-pressed','false'));draw()});
+  draw();
+  if(window.matchMedia)window.matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change',draw);
+  new MutationObserver(draw).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']})})();
+
 /* ---------- quizzes ---------- */
 const QUIZ={
+ comparative:[['Dolphins have lost nearly all their olfactory receptor genes. What best explains this?',['Their genomes are too small','Smell became much less useful in water, so broken copies were not removed by selection','Dolphins have no chromosomes for them','The genes moved to the mitochondria'],1,'When a gene stops mattering, mutations that break it are no longer weeded out. It decays into a pseudogene.'],
+  ['A non-coding stretch is almost identical in human, mouse and chicken. What is the most reasonable guess?',['It is junk DNA','It probably has a function, such as an enhancer','It is contamination','It must code for a protein'],1,'Sequence conserved across long evolutionary distances is under purifying selection, which implies function.'],
+  ['On a dot plot comparing two genomes, a line running in the opposite direction (reverse complement) indicates…',['a deletion','an inversion','a point mutation','identical sequences'],1,'An inverted segment matches on the opposite strand and runs against the main diagonal.'],
+  ['A 2015 study reported that 17% of tardigrade genes came from other organisms. What was the lesson from later re-analysis?',['Tardigrades are part bacterium','Most of the signal was contamination, so surprising results need checking','Horizontal gene transfer is impossible in animals','Genome assembly is always correct'],1,'Contaminating bacterial DNA was assembled as if it were tardigrade DNA.']],
  personal:[['In a VCF file, the genotype 0/1 means…',['no copies of the alternative allele','one reference and one alternative allele (heterozygous)','two copies of the alternative allele','the call failed quality filters'],1,'0 is the REF allele and 1 the first ALT allele, one per chromosome copy.'],
   ['Two parents both carry one copy of a variant for a recessive condition. What is the chance each child is affected?',['0%','25%','50%','100%'],1,'Each parent passes on the variant half the time, so ½ × ½ = ¼, independently for every pregnancy.'],
   ['A person has CYP2D6 activity score 0. What happens if they take codeine?',['It works unusually well','It works normally','They make little morphine, so it gives poor pain relief','It is converted to morphine dangerously fast'],2,'Codeine is a prodrug. Poor metabolisers cannot activate it. Ultrarapid metabolisers are the ones at risk of toxicity.'],
@@ -2707,7 +2884,8 @@ $$('[data-dot]').forEach(d=>{if(!QUIZ[d.dataset.dot])d.style.visibility='hidden'
 updateProgress();
 
 /* ---------- glossary ---------- */
-const GL=[['Activity score','For drug-metabolising genes, the sum of the function values of a person\'s two alleles, used to predict drug response.'],['Carrier','Someone with one copy of a recessive disease variant. Usually unaffected.'],['De novo mutation','A new mutation present in a child but in neither parent.'],['Genotype','The alleles a person has at a site, e.g. 0/1 in a VCF.'],['GWAS','Genome-wide association study: testing many variants across many people for links to a trait.'],['Heterozygous / homozygous','Having two different alleles at a site versus two copies of the same one.'],['Haplogroup','A group of related mitochondrial or Y-chromosome lineages sharing a set of variants.'],['Penetrance','The share of people carrying a variant who actually develop the related condition.'],['Pharmacogenomics','How genetic variation affects the response to drugs.'],['Polygenic risk score','A weighted sum of many small-effect variants, used to estimate genetic risk for a common trait.'],['Secondary finding','A medically important result found by chance when sequencing for another reason.'],['Somatic mutation','A mutation arising in body cells during life, such as in a tumour. Not inherited.'],['Star allele','A named version of a pharmacogene, such as CYP2D6*4.'],['VUS','Variant of uncertain significance: not enough evidence to call it harmful or harmless.'],
+const GL=[['Comparative genomics','Studying how genomes differ and match across species to understand function and evolution.'],['Conserved element','Sequence that has changed little across species, suggesting it has a function.'],['Dot plot','A grid showing every shared short word between two sequences; diagonals are matching stretches.'],['dN/dS','Ratio of protein-changing to silent substitution rates. Below 1 means purifying selection; above 1 means positive selection.'],['Gene family','A set of genes descended from one ancestral gene by duplication.'],['Horizontal gene transfer','Movement of genes between organisms other than by inheritance, common in bacteria.'],['Pan-genome','All genes found across the strains or individuals of a species: the core plus the accessory genome.'],['Polyploidy','Having more than two complete sets of chromosomes, common in plants.'],['Pseudogene','A broken copy of a gene that no longer makes a working product.'],['Synteny','Conservation of gene order along chromosomes between species.'],['Whole-genome duplication','Doubling of an entire genome, after which many extra copies are lost.'],
+['Activity score','For drug-metabolising genes, the sum of the function values of a person\'s two alleles, used to predict drug response.'],['Carrier','Someone with one copy of a recessive disease variant. Usually unaffected.'],['De novo mutation','A new mutation present in a child but in neither parent.'],['Genotype','The alleles a person has at a site, e.g. 0/1 in a VCF.'],['GWAS','Genome-wide association study: testing many variants across many people for links to a trait.'],['Heterozygous / homozygous','Having two different alleles at a site versus two copies of the same one.'],['Haplogroup','A group of related mitochondrial or Y-chromosome lineages sharing a set of variants.'],['Penetrance','The share of people carrying a variant who actually develop the related condition.'],['Pharmacogenomics','How genetic variation affects the response to drugs.'],['Polygenic risk score','A weighted sum of many small-effect variants, used to estimate genetic risk for a common trait.'],['Secondary finding','A medically important result found by chance when sequencing for another reason.'],['Somatic mutation','A mutation arising in body cells during life, such as in a tumour. Not inherited.'],['Star allele','A named version of a pharmacogene, such as CYP2D6*4.'],['VUS','Variant of uncertain significance: not enough evidence to call it harmful or harmless.'],
 ['ATP','Adenosine triphosphate, the energy currency of the cell.'],['Catabolism / anabolism','Breaking molecules down to release energy versus building them up using energy.'],['Citric acid cycle','The mitochondrial cycle that oxidises acetyl-CoA to CO₂ and loads NADH and FADH₂. Also called the Krebs or TCA cycle.'],['EC number','Enzyme Commission number: a four-part code classifying an enzyme by the reaction it catalyses.'],['Fermentation','Regenerating NAD⁺ without oxygen by turning pyruvate into lactate or ethanol.'],['Flux balance analysis','Predicting reaction rates in a metabolic network with linear programming, assuming nothing accumulates.'],['Glycolysis','The ten-step pathway splitting glucose into two pyruvate in the cytoplasm.'],['Inborn error of metabolism','An inherited disease caused by a missing or faulty enzyme, such as PKU.'],['Metabolite','A small molecule made or used in metabolism.'],['NADH','A carrier of high-energy electrons, made in catabolism and used to power ATP synthesis.'],['Pathway','A chain of enzyme reactions that converts one molecule into another.'],['Bootstrap','Resampling alignment columns to measure how strongly the data support each clade.'],['Clade','An ancestor and all of its descendants. Also called a monophyletic group.'],['Cladogram / phylogram','A tree showing only branching order, versus one with branch lengths drawn to scale.'],['Jukes–Cantor','The simplest model for correcting distances for hidden repeat substitutions.'],['MRCA','Most recent common ancestor of a set of tips.'],['Molecular clock','The assumption that sequences change at a roughly constant rate, so distance tracks time.'],['Neighbour joining','A fast distance method for building trees that does not assume a molecular clock.'],['Newick','The standard text format for trees, using nested parentheses, e.g. ((A,B),C);'],['Outgroup','A sequence known to lie outside the group being studied, used to root the tree.'],['Phylogeny','The evolutionary history of a set of species or sequences, drawn as a tree.'],['UPGMA','A distance-based tree method that repeatedly joins the closest pair and assumes a molecular clock.'],
 ['Active site','The pocket of an enzyme where the substrate binds and the reaction happens.'],['Alternative splicing','Joining different combinations of exons from one gene to make different mRNAs.'],['Aneuploidy','Having an extra or missing chromosome, as in trisomy 21.'],['Centromere','The constricted region that joins sister chromatids and attaches to the spindle during division.'],['Chromatin','DNA packaged with histones and other proteins.'],['CPM / TPM','Counts per million and transcripts per million: RNA-seq units that correct for sequencing depth, and (TPM) gene length.'],['DNA methylation','A methyl group added to cytosine, usually at CpG sites. Promoter methylation tends to silence genes.'],['Domain','A compact part of a protein that folds on its own and often has its own function.'],['Enhancer','A regulatory DNA region, often far from the gene, where activators bind to boost transcription.'],['Enzyme','A protein (or RNA) that speeds up a chemical reaction without being used up.'],['Epigenetics','Heritable changes in gene activity that do not change the DNA sequence, such as methylation and histone marks.'],['Euchromatin / heterochromatin','Loosely packed, active chromatin versus tightly packed, mostly silent chromatin.'],['Fold change','The ratio of expression between two conditions, usually reported as log₂.'],['Histone','A protein that DNA wraps around. Its tails carry chemical marks that affect gene activity.'],['Isoform','One of several versions of a transcript or protein made from the same gene.'],['Karyotype','The full set of chromosomes of a cell, and the notation for it, such as 46,XX.'],['Kₘ','The substrate concentration at which an enzyme works at half its maximum rate.'],['Nucleosome','About 147 bp of DNA wrapped around a core of eight histones.'],['Operon','A group of bacterial genes transcribed together from one promoter.'],['Post-translational modification','A chemical change to a protein after it is made, such as phosphorylation.'],['Signal peptide','A hydrophobic N-terminal stretch that directs a protein into the secretory pathway.'],['Telomere','Repeats of TTAGGG that cap each chromosome end.'],['Transcription factor','A protein that binds a specific DNA motif and turns genes up or down.'],
 ['Allele','One version of a gene or site. You inherit one allele from each parent at most positions.'],['Alignment','An arrangement of two or more sequences that lines up positions thought to share an ancestor, with gaps for insertions and deletions.'],['Alu element','A ~300 bp primate-specific repeat with over a million copies in the human genome, ending in an A-rich tail.'],['Amino acid','One of the 20 building blocks of proteins, each with a one-letter code.'],['Antiparallel','The two DNA strands run in opposite 5′→3′ directions.'],['Assembly','Reconstructing a genome sequence from many overlapping reads.'],['BAM / SAM','Formats for reads aligned to a reference. SAM is text; BAM is its compressed binary form.'],['BLAST','A fast heuristic search that finds local alignments between a query and a database.'],['Codon','Three consecutive bases in a coding sequence that specify one amino acid or a stop.'],['Coding strand','The DNA strand with the same sequence as the mRNA (T instead of U). Also called the sense strand.'],['Contig','A continuous stretch of sequence produced by assembly.'],['Coverage (depth)','How many reads overlap a given base, on average or at one position.'],['CpG island','A stretch of DNA richer in CG dinucleotides than expected. Often marks promoters.'],['E-value','In BLAST, the number of hits this good expected by chance. Smaller is more significant.'],['Exon','A segment of a gene kept in the mature RNA after splicing.'],['FASTA','A text format: a ">" header line followed by sequence lines.'],['FASTQ','A four-line-per-read format with sequence and per-base quality scores.'],['Frameshift','An insertion or deletion whose length is not a multiple of 3, shifting all downstream codons.'],['Gene','A region of DNA transcribed into a functional RNA, which may be translated into protein.'],['Genome','All the DNA of an organism (or organelle).'],['Haploid / diploid','One copy of each chromosome (sperm, egg) versus two copies (most human cells).'],['Homolog','A sequence that shares common ancestry with another. Includes orthologs and paralogs.'],['Indel','An insertion or deletion of bases.'],['Intron','A segment removed from RNA by splicing. Usually starts with GT and ends with AG.'],['k-mer','A substring of length k. Used in assembly, read counting and fast search.'],['Missense','A substitution that changes one amino acid to another.'],['Motif','A short sequence pattern with biological meaning, such as a binding site.'],['Nonsense','A substitution that creates a premature stop codon.'],['Nucleotide','A sugar, a phosphate and a base: the unit of DNA or RNA.'],['Open reading frame (ORF)','A stretch from a start codon to the next in-frame stop codon.'],['Ortholog','Homologs in different species that diverged by speciation.'],['Paralog','Homologs in the same genome that diverged by gene duplication.'],['Phred score','Base quality: Q = −10·log₁₀(error probability). Q30 means 1 error in 1,000.'],['Promoter','DNA upstream of a gene where transcription machinery binds.'],['Read','One sequenced fragment reported by a sequencer.'],['Reference genome','A standard assembled genome (such as GRCh38) that reads are compared against.'],['Reverse complement','The sequence of the opposite strand, read 5′→3′.'],['RNA-seq','Sequencing a sample\'s RNA to measure gene expression.'],['SNP / SNV','A single-nucleotide variant. "SNP" usually means one common in the population.'],['Splicing','Removing introns from pre-mRNA and joining exons together.'],['Template strand','The DNA strand RNA polymerase reads. It is complementary to the RNA.'],['Transcription','Making RNA from a DNA template.'],['Translation','Making protein from an mRNA template at the ribosome.'],['UTR','Untranslated region at the 5′ or 3′ end of an mRNA.'],['VCF','Variant Call Format: one row per variant site with position, alleles, quality and genotypes.']];
