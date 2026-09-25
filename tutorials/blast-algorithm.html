@@ -234,6 +234,7 @@ textarea{font-family:var(--mono);font-size:13px;width:100%;min-height:6em;color:
 
 <main>
 <header class="hero">
+  <a class="backlink" href="index.html" style="display:inline-block;margin-bottom:14px;font-size:14px;font-weight:600;color:var(--plum);text-decoration:none">← Bio 116 course index</a>
   <div class="eyebrow">Bio 116 · Tutorial · Database searching</div>
   <h1>Inside BLAST</h1>
   <p class="lede">Smith–Waterman finds the best local alignment, but it is far too slow to run against every protein ever sequenced. BLAST gets close to the same answer thousands of times faster by skipping almost the whole matrix. In this tutorial you take BLAST apart one step at a time, run a working mini-BLAST on the globins from the last tutorial, and then learn to run the real thing and read its output.</p>
@@ -654,6 +655,7 @@ blastp -query hbb.fasta -db swissprot -remote -evalue 1e-3 -outfmt 6 -max_target
   <p class="prose">Tools: <a href="https://blast.ncbi.nlm.nih.gov/Blast.cgi" target="_blank" rel="noopener">NCBI BLAST</a>, <a href="https://www.uniprot.org/blast" target="_blank" rel="noopener">UniProt BLAST</a>, <a href="https://www.ncbi.nlm.nih.gov/books/NBK279690/" target="_blank" rel="noopener">BLAST+ user manual</a>. Previous tutorial: Aligning the Globins.</p>
   <footer>Bio 116 · BLAST tutorial. The mini-BLAST here is a teaching model. It follows the published algorithm but simplifies the gapped step and the statistics.</footer>
 </section>
+<p style="margin-top:20px"><a href="index.html" style="font-weight:600;color:var(--plum)">← Back to the Bio 116 course index</a></p>
 </main>
 </div>
 
