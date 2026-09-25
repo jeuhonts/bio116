@@ -467,7 +467,7 @@ table.hits tr.hl td{background:var(--heme-soft)}
   <p><b>Not in a single search.</b> NCBI's own search form says so: <i>"No BLAST database contains all the sequences at NCBI. BLAST databases are organized by informational content (nr, RefSeq, etc.) or by sequencing technique (WGS, EST, etc.)."</i> The default nucleotide database covers only a small part of GenBank.</p>
   </div>
   <div class="tool">
-    <div class="tool-title">How big is "everything"? <small>bases, in trillions</small></div>
+    <div class="tool-title">How big is "everything"? <small>bases and sequence counts</small></div>
     <div class="stats" id="gbStats"></div>
     <svg id="gbChart" viewBox="0 0 720 150" width="100%" role="img" aria-label="Bar chart comparing the number of bases in GenBank's WGS records, GenBank's traditional records and the core_nt BLAST database"></svg>
     <p class="note" style="margin-bottom:0">GenBank figures are from NCBI's GenBank and WGS statistics for Release 273 (August 2026). The core_nt figures are from a real blastn search on 25 September 2026. core_nt also includes RefSeq and other NCBI sequences, so the comparison is approximate. The gap is still about 50-fold.</p>
@@ -635,7 +635,8 @@ drawEx2();
 /* all of GenBank */
 (() => {
   const bars = [["GenBank WGS records", 50829714144609, 5132699813, "var(--s2)"], ["GenBank traditional records", 8236878868450, 267383895, "var(--s1)"], ["core_nt (BLAST default)", 1081933534067, 131070239, "var(--s3)"]];
-  document.getElementById("gbStats").innerHTML = bars.map(([l, b, n]) => `<div class="stat"><b>${(b / 1e12).toFixed(2)}</b><span>${l}: ${(n / 1e6).toLocaleString("en-US", {maximumFractionDigits: 0})} M sequences</span></div>`).join("");
+  const cnt = n => n >= 1e9 ? `${(n / 1e9).toFixed(2)} billion` : `${Math.round(n / 1e6)} million`;
+  document.getElementById("gbStats").innerHTML = bars.map(([l, b, n]) => `<div class="stat"><span>${l.replace(" records", "").replace("BLAST default", "default")}</span><b>${(b / 1e12).toFixed(2)} <small style="font-size:.62em;font-weight:400">trillion bases</small></b><span>${cnt(n)} sequences</span></div>`).join("");
   const W = 720, L = 200, R = 70, max = bars[0][1];
   document.getElementById("gbChart").innerHTML = bars.map(([l, b, , c], i) => { const y = 14 + i * 44, w = Math.max(2, (W - L - R) * b / max);
     return `<text x="${L - 10}" y="${y + 19}" text-anchor="end" font-size="13" fill="var(--ink)">${l}</text><rect x="${L}" y="${y}" width="${w.toFixed(1)}" height="28" rx="4" fill="${c}"/><text x="${L + w + 8}" y="${y + 19}" font-size="13" font-family="var(--mono)" fill="var(--ink)">${(b / 1e12).toFixed(2)} T</text>`; }).join("");
