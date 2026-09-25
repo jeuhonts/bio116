@@ -1,0 +1,845 @@
+<title>From Tube to Variant Call</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+:root{
+  --paper:#f6f5f8; --surface:#ffffff; --surface-2:#f0edf3; --ink:#1d1a22; --muted:#625c6b; --line:#e0dce6;
+  --brand:#5b2a6e; --brand-ink:#ffffff; --brand-soft:#efe6f2; --brand-line:#d7c3de;
+  --good:#1f7a4a; --good-soft:#e3f3ea; --warn:#9a5b00; --warn-soft:#fbf0dc; --bad:#b42f2f; --bad-soft:#fae4e4;
+  --A:#1f9d55; --C:#2563c9; --G:#c98200; --T:#d43d3d;
+  --scope:#0d0a12; --scope-line:#2a2433; --scope-ink:#cfc6da;
+  --display:"Bricolage Grotesque", "Arial Black", system-ui, sans-serif;
+  --body:"IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+  --mono:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --r:10px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --paper:#141218; --surface:#1d1a23; --surface-2:#25212c; --ink:#ece8f1; --muted:#a49cae; --line:#342f3c;
+    --brand:#c79ad6; --brand-ink:#1d1a22; --brand-soft:#2d2236; --brand-line:#4d3a58;
+    --good:#5fd394; --good-soft:#173325; --warn:#f0b54a; --warn-soft:#3a2c12; --bad:#ff8080; --bad-soft:#3d1c1f;
+    --A:#3fcf7f; --C:#6f9dff; --G:#f2b233; --T:#ff6b6b;
+    --scope:#08060b; --scope-line:#2a2433;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --paper:#141218; --surface:#1d1a23; --surface-2:#25212c; --ink:#ece8f1; --muted:#a49cae; --line:#342f3c;
+  --brand:#c79ad6; --brand-ink:#1d1a22; --brand-soft:#2d2236; --brand-line:#4d3a58;
+  --good:#5fd394; --good-soft:#173325; --warn:#f0b54a; --warn-soft:#3a2c12; --bad:#ff8080; --bad-soft:#3d1c1f;
+  --A:#3fcf7f; --C:#6f9dff; --G:#f2b233; --T:#ff6b6b;
+  --scope:#08060b; --scope-line:#2a2433;
+}
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.6;padding:0 16px}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;line-height:1.15;margin:0}
+h1{font-size:clamp(2.1rem,5vw,3.3rem);font-weight:800;letter-spacing:-.02em}
+h2{font-size:clamp(1.55rem,3.2vw,2.1rem);font-weight:700;letter-spacing:-.01em}
+h3{font-size:1.15rem;font-weight:700}
+p{margin:0}
+code,.mono{font-family:var(--mono)}
+a{color:var(--brand)}
+button,input,select{font:inherit}
+:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+
+.layout{max-width:1160px;margin:0 auto;display:grid;grid-template-columns:210px minmax(0,1fr);gap:48px;padding-block:40px 80px}
+@media (max-width:920px){.layout{grid-template-columns:minmax(0,1fr)}.rail{display:none}}
+
+/* rail */
+.rail{position:sticky;top:calc(env(safe-area-inset-top,0px) + 24px);align-self:start;display:flex;flex-direction:column;gap:18px;font-size:.9rem}
+.rail .eyebrow{margin-bottom:-6px}
+.rail ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.rail a{display:grid;grid-template-columns:26px 1fr;gap:10px;align-items:center;padding:7px 8px;border-radius:8px;color:var(--muted);text-decoration:none}
+.rail a:hover{background:var(--surface-2);color:var(--ink)}
+.rail a.active{color:var(--ink);background:var(--brand-soft)}
+.rail .n{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;border:1.5px solid var(--line);font-family:var(--mono);font-size:.75rem;background:var(--surface)}
+.rail a.active .n{border-color:var(--brand);color:var(--brand)}
+.rail a.done .n{background:var(--brand);border-color:var(--brand);color:var(--brand-ink)}
+.score{border-top:1px solid var(--line);padding-top:14px;display:flex;flex-direction:column;gap:6px;color:var(--muted)}
+.score b{font-family:var(--display);font-size:1.6rem;color:var(--ink);font-variant-numeric:tabular-nums}
+.meter{height:6px;border-radius:3px;background:var(--line);overflow:hidden}
+.meter i{display:block;height:100%;background:var(--brand);width:0;transition:width .3s}
+
+main{display:flex;flex-direction:column;gap:72px;min-width:0}
+.eyebrow{font-size:.74rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.lede{font-size:1.14rem;color:var(--muted);max-width:62ch}
+.prose{display:flex;flex-direction:column;gap:14px;max-width:66ch}
+.prose p{color:var(--ink)}
+.term{font-weight:600;color:var(--brand)}
+.dot{display:inline-block;width:.55em;height:.55em;border-radius:50%;background:var(--brand);margin-right:.45em;vertical-align:.12em}
+
+/* hero */
+.hero{display:flex;flex-direction:column;gap:22px}
+.meta{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font-size:.8rem;padding:4px 10px;border-radius:999px;background:var(--surface);border:1px solid var(--line);color:var(--muted)}
+.flow{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:0;margin-top:8px;position:relative}
+.flow .phase{grid-column:span 3;font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);border-bottom:1.5px dashed var(--brand-line);padding-bottom:6px;margin-bottom:14px;font-weight:600}
+.flow .phase.dry{grid-column:span 2;margin-left:12px}
+.flow a{display:flex;flex-direction:column;gap:8px;align-items:flex-start;text-decoration:none;color:var(--ink);padding-right:12px;position:relative}
+.flow a .c{width:40px;height:40px;border-radius:50%;background:var(--brand);color:var(--brand-ink);display:grid;place-items:center;font-family:var(--display);font-weight:800;font-size:1.1rem;position:relative;z-index:1}
+.flow a:not(:last-child)::after{content:"";position:absolute;top:20px;left:40px;right:0;height:2px;background:var(--brand-line)}
+.flow a b{font-family:var(--display);font-size:1rem;line-height:1.2}
+.flow a span{font-size:.84rem;color:var(--muted);line-height:1.4}
+.flow a:hover b{color:var(--brand)}
+@media (max-width:640px){
+  .flow{grid-template-columns:minmax(0,1fr);gap:14px}
+  .flow .phase,.flow .phase.dry{grid-column:auto;margin-left:0;margin-bottom:0}
+  .flow a{display:grid;grid-template-columns:40px 1fr;column-gap:12px;row-gap:2px}
+  .flow a .c{grid-row:span 2}
+  .flow a:not(:last-child)::after{display:none}
+}
+
+/* sections */
+section.stage{display:flex;flex-direction:column;gap:22px;scroll-margin-top:24px}
+.stage-head{display:flex;flex-direction:column;gap:6px}
+.stage-head .sub{font-style:italic;color:var(--muted)}
+.lab{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:22px;display:flex;flex-direction:column;gap:16px}
+.lab-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+.lab-head .tag{font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;font-weight:600;color:var(--brand);background:var(--brand-soft);padding:3px 9px;border-radius:999px}
+.lab .hint{font-size:.9rem;color:var(--muted)}
+@media (max-width:520px){.lab{padding:16px}}
+
+.controls{display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center}
+.ctl{display:flex;flex-direction:column;gap:4px;font-size:.86rem;color:var(--muted);min-width:0}
+.ctl output{font-family:var(--mono);color:var(--ink);font-weight:500}
+input[type=range]{accent-color:var(--brand);width:min(260px,70vw)}
+.btn{border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:8px 14px;border-radius:8px;cursor:pointer;font-weight:500;font-size:.9rem}
+.btn:hover{border-color:var(--brand);color:var(--brand)}
+.btn.primary{background:var(--brand);border-color:var(--brand);color:var(--brand-ink)}
+.btn.primary:hover{filter:brightness(1.08);color:var(--brand-ink)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.toggle{display:flex;align-items:center;gap:8px;font-size:.9rem;cursor:pointer}
+.toggle input{accent-color:var(--brand);width:16px;height:16px}
+
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.stat{background:var(--surface-2);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:2px}
+.stat span{font-size:.76rem;color:var(--muted)}
+.stat b{font-family:var(--mono);font-size:1.12rem;font-weight:600;font-variant-numeric:tabular-nums}
+.callout{border-radius:8px;padding:10px 14px;font-size:.92rem;background:var(--surface-2)}
+.callout.good{background:var(--good-soft);color:var(--good)}
+.callout.warn{background:var(--warn-soft);color:var(--warn)}
+.callout.bad{background:var(--bad-soft);color:var(--bad)}
+
+svg text{fill:var(--muted);font-family:var(--mono);font-size:11px}
+.chart{width:100%;height:auto;display:block}
+
+/* process steps */
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;counter-reset:s}
+.step{display:flex;gap:10px;align-items:flex-start;font-size:.9rem}
+.step .c{flex:none;width:28px;height:28px;border-radius:50%;border:1.5px solid var(--brand);color:var(--brand);display:grid;place-items:center;font-family:var(--mono);font-size:.8rem;font-weight:600}
+.step b{display:block;font-size:.95rem}
+.step span{color:var(--muted);line-height:1.45}
+
+/* library assembly */
+.parts,.slots{display:flex;flex-wrap:wrap;gap:8px}
+.part{font-family:var(--mono);font-size:.84rem;padding:8px 12px;border-radius:6px;border:1.5px solid var(--brand-line);background:var(--brand-soft);color:var(--ink);cursor:pointer}
+.part:hover{border-color:var(--brand)}
+.part.used{visibility:hidden}
+.slots{flex-wrap:nowrap;overflow-x:auto;padding-bottom:4px;gap:0}
+.slot{flex:1 0 92px;min-height:54px;border:1.5px dashed var(--line);display:grid;place-items:center;font-family:var(--mono);font-size:.8rem;text-align:center;padding:6px;cursor:pointer;background:var(--surface);color:var(--muted);position:relative}
+.slot+.slot{border-left:none}
+.slot:first-child{border-radius:8px 0 0 8px}.slot:last-child{border-radius:0 8px 8px 0}
+.slot.filled{border-style:solid;color:var(--ink);background:var(--brand-soft)}
+.slot.insert.filled{background:var(--surface-2)}
+.slot.right{background:var(--good-soft);border-color:var(--good);color:var(--good)}
+.slot.wrong{background:var(--bad-soft);border-color:var(--bad);color:var(--bad)}
+.strand-labels{display:flex;justify-content:space-between;font-family:var(--mono);font-size:.76rem;color:var(--muted)}
+
+/* canvas */
+.scopebox{background:var(--scope);border-radius:10px;overflow:hidden;position:relative}
+.scopebox canvas{display:block;width:100%}
+.scope-legend{display:flex;flex-wrap:wrap;gap:14px;font-size:.82rem;color:var(--muted)}
+.scope-legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:-1px}
+
+/* SBS */
+.sbs{display:grid;grid-template-columns:minmax(0,260px) minmax(0,1fr);gap:22px}
+@media (max-width:700px){.sbs{grid-template-columns:minmax(0,1fr)}}
+.tile{background:var(--scope);border-radius:10px;padding:14px;display:grid;grid-template-columns:repeat(4,1fr);gap:10px;aspect-ratio:1;max-width:100%}
+.clu{border-radius:50%;background:#1a1522;transition:background .25s, box-shadow .25s;position:relative}
+.clu.tracked::after{content:"";position:absolute;inset:-5px;border:1.5px dashed #e8dcf0;border-radius:50%}
+.tile-cap{font-size:.8rem;color:var(--muted);margin-top:8px}
+.seqwrap{overflow-x:auto;padding-bottom:4px}
+.seqrow{display:grid;grid-template-columns:120px repeat(36,22px);gap:2px;align-items:center;font-family:var(--mono);font-size:.82rem;min-width:max-content}
+.seqrow+.seqrow{margin-top:4px}
+.seqrow>span:first-child{font-size:.74rem;color:var(--muted);font-family:var(--body);position:sticky;left:0;background:var(--surface);padding-right:6px}
+.cell{height:24px;display:grid;place-items:center;border-radius:4px;background:var(--surface-2);color:var(--muted)}
+.cell.lit{color:#fff;font-weight:600}
+.cell.now{outline:2px solid var(--ink);outline-offset:1px}
+.cell.err{box-shadow:inset 0 -3px 0 var(--ink)}
+.cell.tmpl.done{background:transparent;color:var(--ink)}
+.bA{background:var(--A)!important}.bC{background:var(--C)!important}.bG{background:var(--G)!important}.bT{background:var(--T)!important}
+.tA{color:var(--A)}.tC{color:var(--C)}.tG{color:var(--G)}.tT{color:var(--T)}
+.channels{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;align-items:end;height:92px}
+.ch{display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end;font-family:var(--mono);font-size:.8rem}
+.ch i{display:block;width:100%;border-radius:4px 4px 0 0;transition:height .25s;min-height:2px}
+.guess{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.guess .btn{font-family:var(--mono);font-weight:600;min-width:44px}
+.guess .btn[data-b="A"]{color:var(--A)}.guess .btn[data-b="C"]{color:var(--C)}.guess .btn[data-b="G"]{color:var(--G)}.guess .btn[data-b="T"]{color:var(--T)}
+.shake{animation:shake .3s}
+@keyframes shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+/* FASTQ */
+.fastq{font-family:var(--mono);font-size:.9rem;background:var(--surface-2);border-radius:8px;padding:14px 16px;overflow-x:auto;line-height:1.9;white-space:pre}
+.fastq .ln{color:var(--muted);user-select:none;display:inline-block;width:2.2em}
+.fastq .q{cursor:pointer;border-radius:3px;padding:1px 0}
+.fastq .q:hover,.fastq .q.sel{background:var(--brand);color:var(--brand-ink)}
+.fastq .trim{opacity:.35;text-decoration:line-through}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+@media (max-width:700px){.two{grid-template-columns:minmax(0,1fr)}}
+.panel{border:1px solid var(--line);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.panel h3{font-size:1rem}
+.bigq{font-family:var(--display);font-size:2.4rem;font-weight:800;line-height:1;color:var(--brand);font-variant-numeric:tabular-nums}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:.9rem}
+.kv dt{color:var(--muted)}.kv dd{margin:0;font-family:var(--mono)}
+
+/* pileup */
+.pile-wrap{overflow-x:auto;padding-bottom:6px}
+.pile{display:grid;gap:2px;font-family:var(--mono);font-size:.78rem;min-width:max-content}
+.prow{display:grid;grid-auto-flow:column;grid-auto-columns:16px;gap:1px}
+.pc{height:17px;display:grid;place-items:center;border-radius:2px;color:var(--muted)}
+.pc.m{color:var(--muted);background:var(--surface-2)}
+.pc.x{color:#fff;font-weight:600}
+.pc.col-sel{outline:1.5px solid var(--brand)}
+.pc.ref{font-weight:600;cursor:pointer;background:transparent}
+.pc.ref:hover{background:var(--brand-soft)}
+.covrow{display:grid;grid-auto-flow:column;grid-auto-columns:16px;gap:1px;align-items:end;height:44px}
+.covrow i{display:block;background:var(--brand-line);border-radius:2px 2px 0 0;cursor:pointer}
+.covrow i.sel{background:var(--brand)}
+.gt{display:flex;flex-direction:column;gap:6px}
+.gtbar{display:grid;grid-template-columns:44px 1fr 56px;gap:10px;align-items:center;font-family:var(--mono);font-size:.84rem}
+.gtbar .track{height:12px;border-radius:6px;background:var(--surface-2);overflow:hidden}
+.gtbar .track i{display:block;height:100%;background:var(--brand);transition:width .25s}
+.gtbar.win{font-weight:600}
+
+/* quiz */
+.quiz{display:flex;flex-direction:column;gap:14px}
+.q{border-left:3px solid var(--brand-line);padding-left:16px;display:flex;flex-direction:column;gap:10px}
+.q p{font-weight:500}
+.opts{display:flex;flex-direction:column;gap:6px}
+.opt{text-align:left;border:1px solid var(--line);background:var(--surface);padding:9px 12px;border-radius:8px;cursor:pointer;color:var(--ink);font-size:.93rem}
+.opt:hover:not(:disabled){border-color:var(--brand)}
+.opt.right{background:var(--good-soft);border-color:var(--good);color:var(--good)}
+.opt.wrong{background:var(--bad-soft);border-color:var(--bad);color:var(--bad)}
+.opt:disabled{cursor:default}
+.why{font-size:.9rem;color:var(--muted)}
+
+/* compare */
+.compare{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+@media (max-width:700px){.compare{grid-template-columns:minmax(0,1fr)}}
+.compare .panel ul{margin:0;padding-left:1.1em;display:flex;flex-direction:column;gap:6px;font-size:.93rem}
+.foot{border-top:1px solid var(--line);padding-top:18px;font-size:.84rem;color:var(--muted)}
+</style>
+
+<div class="layout">
+  <nav class="rail" aria-label="Tutorial stages">
+    <div class="eyebrow">Workflow</div>
+    <ol id="railList">
+      <li><a href="#library" data-sec="library"><span class="n">1</span>Library prep</a></li>
+      <li><a href="#clusters" data-sec="clusters"><span class="n">2</span>Cluster generation</a></li>
+      <li><a href="#sbs" data-sec="sbs"><span class="n">3</span>Sequencing by synthesis</a></li>
+      <li><a href="#reads" data-sec="reads"><span class="n">4</span>Reads &amp; quality</a></li>
+      <li><a href="#variants" data-sec="variants"><span class="n">5</span>Alignment &amp; variants</a></li>
+    </ol>
+    <div class="score">
+      <span>Checkpoint questions</span>
+      <b id="scoreNum">0 / 10</b>
+      <div class="meter"><i id="scoreBar"></i></div>
+      <button class="btn" id="resetQuiz" type="button">Reset answers</button>
+    </div>
+  </nav>
+
+  <main>
+    <header class="hero">
+      <div class="eyebrow">BIO 116 · Bioinformatics · Interactive tutorial</div>
+      <h1><span class="dot"></span>From tube to variant call</h1>
+      <p class="lede">Follow one sample of genomic DNA through an Illumina-style short-read sequencing run. Each stage has a hands-on model to play with and two checkpoint questions.</p>
+      <div class="meta">
+        <span class="chip">Audience: undergraduate bioinformatics</span>
+        <span class="chip">About 45 minutes</span>
+        <span class="chip">5 stages · 6 simulations · 10 questions</span>
+      </div>
+      <div class="flow" aria-label="Workflow overview">
+        <div class="phase">Wet lab</div>
+        <div class="phase dry">Dry lab</div>
+        <a href="#library"><span class="c">1</span><b>Library prep</b><span>Shear DNA, add adapters</span></a>
+        <a href="#clusters"><span class="c">2</span><b>Cluster generation</b><span>Clone each molecule on a flow cell</span></a>
+        <a href="#sbs"><span class="c">3</span><b>Sequencing by synthesis</b><span>Read one base per cycle by fluorescence</span></a>
+        <a href="#reads"><span class="c">4</span><b>Reads &amp; quality</b><span>FASTQ files, Phred scores, trimming</span></a>
+        <a href="#variants"><span class="c">5</span><b>Alignment &amp; variants</b><span>Map reads, pile them up, call genotypes</span></a>
+      </div>
+    </header>
+
+    <!-- 1 LIBRARY -->
+    <section class="stage" id="library">
+      <div class="stage-head">
+        <div class="eyebrow">Stage 1 of 5</div>
+        <h2><span class="dot"></span>Library preparation</h2>
+        <p class="sub">Turning a genome into millions of sequencer-ready molecules</p>
+      </div>
+      <div class="prose">
+        <p>A human genome is about 3.1 billion base pairs long, but a short-read sequencer reads only 100–300 bases at a time. So the first job is to break purified DNA into fragments of a predictable size and attach synthetic <span class="term">adapters</span> to both ends. The collection of adapter-tagged fragments is called a <span class="term">library</span>.</p>
+      </div>
+      <div class="steps">
+        <div class="step"><span class="c">1</span><div><b>Extract &amp; QC</b><span>Measure yield (Qubit) and purity (A260/280 ≈ 1.8)</span></div></div>
+        <div class="step"><span class="c">2</span><div><b>Fragment</b><span>Sonication, enzymes, or Tn5 tagmentation</span></div></div>
+        <div class="step"><span class="c">3</span><div><b>End repair &amp; A-tail</b><span>Blunt the ends, add a single 3′ A overhang</span></div></div>
+        <div class="step"><span class="c">4</span><div><b>Ligate adapters</b><span>T-overhang adapters pair with the A-tail</span></div></div>
+        <div class="step"><span class="c">5</span><div><b>Size-select &amp; PCR</b><span>Beads keep the target size; a few PCR cycles enrich</span></div></div>
+      </div>
+
+      <div class="lab">
+        <div class="lab-head"><h3>Shear the DNA</h3><span class="tag">Simulation</span></div>
+        <p class="hint">Longer sonication breaks DNA into smaller pieces. Aim for most fragments in the 300–500 bp window (shaded), which suits 2 × 150 bp paired-end reads.</p>
+        <div class="controls">
+          <label class="ctl" for="fragTime">Sonication time <output id="fragTimeOut">20 s</output>
+            <input type="range" id="fragTime" min="5" max="120" step="1" value="20"></label>
+          <label class="toggle"><input type="checkbox" id="sizeSelect"> Apply bead size selection (keep 250–600 bp)</label>
+        </div>
+        <svg class="chart" id="fragChart" viewBox="0 0 640 230" role="img" aria-label="Fragment length histogram"></svg>
+        <div class="stats">
+          <div class="stat"><span>Median fragment</span><b id="fragMed">–</b></div>
+          <div class="stat"><span>In 300–500 bp window</span><b id="fragWin">–</b></div>
+          <div class="stat"><span>Fragments retained</span><b id="fragKept">–</b></div>
+        </div>
+        <div class="callout" id="fragMsg"></div>
+      </div>
+
+      <div class="lab">
+        <div class="lab-head"><h3>Build a library molecule</h3><span class="tag">Puzzle</span></div>
+        <p class="hint">Click the parts in order, left (5′) to right (3′), to assemble one strand of a finished library molecule. Click a filled slot to remove it.</p>
+        <div class="parts" id="parts"></div>
+        <div class="strand-labels"><span>5′</span><span>3′</span></div>
+        <div class="slots" id="slots"></div>
+        <div class="controls">
+          <button class="btn primary" id="checkLib" type="button">Check order</button>
+          <button class="btn" id="clearLib" type="button">Clear</button>
+        </div>
+        <div class="callout" id="libMsg">Pick a part to see what it does.</div>
+      </div>
+
+      <div class="quiz" data-quiz="library"></div>
+    </section>
+
+    <!-- 2 CLUSTERS -->
+    <section class="stage" id="clusters">
+      <div class="stage-head">
+        <div class="eyebrow">Stage 2 of 5</div>
+        <h2><span class="dot"></span>Cluster generation</h2>
+        <p class="sub">Making each molecule bright enough to see</p>
+      </div>
+      <div class="prose">
+        <p>A single DNA molecule gives off too little light for a camera to detect. The library is washed over a glass <span class="term">flow cell</span> whose surface is coated with two kinds of oligos that match the P5 and P7 adapters. Each molecule that lands is copied in place by <span class="term">bridge amplification</span>: the strand bends over, anneals to a neighbouring oligo, and is copied again. After about 35 cycles each seed becomes a <span class="term">cluster</span> of roughly 1,000 identical copies.</p>
+        <p>Load too little library and the flow cell is wasted. Load too much and clusters grow into each other. A camera cannot separate overlapping clusters, so those <span class="term">polyclonal</span> spots fail the chastity filter and are thrown away.</p>
+      </div>
+      <div class="lab">
+        <div class="lab-head"><h3>Grow clusters on a tile</h3><span class="tag">Simulation</span></div>
+        <div class="controls">
+          <label class="ctl" for="density">Library loading (molecules on this patch) <output id="densityOut">24</output>
+            <input type="range" id="density" min="4" max="90" step="1" value="24"></label>
+          <button class="btn primary" id="amp1" type="button">+1 cycle</button>
+          <button class="btn" id="amp5" type="button">+5 cycles</button>
+          <button class="btn" id="ampAll" type="button">Run to 35</button>
+          <button class="btn" id="ampReset" type="button">Reset</button>
+        </div>
+        <div class="scopebox"><canvas id="flowcell" height="280" aria-label="Flow cell surface with growing clusters"></canvas></div>
+        <div class="scope-legend"><span><i style="background:#c7a0ff"></i>Monoclonal cluster (passes filter)</span><span><i style="background:#ff8a5c"></i>Overlapping cluster (fails filter)</span></div>
+        <div class="stats">
+          <div class="stat"><span>Bridge cycles</span><b id="ampCycles">0</b></div>
+          <div class="stat"><span>Copies per cluster</span><b id="ampCopies">1</b></div>
+          <div class="stat"><span>Clusters passing filter</span><b id="ampPF">–</b></div>
+          <div class="stat"><span>Usable clusters</span><b id="ampUsable">–</b></div>
+        </div>
+        <div class="callout" id="ampMsg"></div>
+      </div>
+      <div class="quiz" data-quiz="clusters"></div>
+    </section>
+
+    <!-- 3 SBS -->
+    <section class="stage" id="sbs">
+      <div class="stage-head">
+        <div class="eyebrow">Stage 3 of 5</div>
+        <h2><span class="dot"></span>Sequencing by synthesis</h2>
+        <p class="sub">One base, one image, one cycle at a time</p>
+      </div>
+      <div class="prose">
+        <p>A primer binds the Read 1 site and polymerase extends it using nucleotides that carry two modifications: a colour-coded <span class="term">fluorescent dye</span> and a <span class="term">reversible 3′ terminator</span>. The terminator lets only one base be added per cycle. The instrument images the flow cell, cleaves off the dye and terminator, and repeats. The colour of each cluster in each image is that cycle's base.</p>
+        <p>Chemistry is not perfect. In each cycle a small fraction of molecules in a cluster fail to extend (<span class="term">phasing</span>) or jump ahead (<span class="term">pre-phasing</span>). The cluster's signal gets muddier as the read goes on, which is why quality falls toward the 3′ end.</p>
+      </div>
+      <div class="lab">
+        <div class="lab-head"><h3>Run the sequencer</h3><span class="tag">Simulation</span></div>
+        <div class="controls">
+          <button class="btn primary" id="sbsNext" type="button">Next cycle</button>
+          <button class="btn" id="sbsAuto" type="button">Auto-run</button>
+          <button class="btn" id="sbsReset" type="button">Reset</button>
+          <label class="ctl" for="phasing">Phasing per cycle <output id="phasingOut">0.10%</output>
+            <input type="range" id="phasing" min="0" max="1.2" step="0.05" value="0.1"></label>
+          <label class="toggle"><input type="checkbox" id="guessMode"> Call the bases myself</label>
+        </div>
+        <div class="sbs">
+          <div>
+            <div class="tile" id="tile" aria-label="Fluorescence image of 16 clusters"></div>
+            <p class="tile-cap">One tile, 16 clusters. The dashed cluster is the one we are reading.</p>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:14px;min-width:0">
+            <div class="channels" id="channels"></div>
+            <div class="guess" id="guessRow" hidden>
+              <span class="hint">Which base is the brightest channel?</span>
+              <button class="btn" data-b="A" type="button">A</button><button class="btn" data-b="C" type="button">C</button><button class="btn" data-b="G" type="button">G</button><button class="btn" data-b="T" type="button">T</button>
+            </div>
+            <div class="stats">
+              <div class="stat"><span>Cycle</span><b id="sbsCycle">0 / 36</b></div>
+              <div class="stat"><span>Molecules in phase</span><b id="sbsPurity">100%</b></div>
+              <div class="stat"><span>Base quality</span><b id="sbsQ">–</b></div>
+            </div>
+          </div>
+        </div>
+        <div class="seqwrap">
+          <div class="seqrow" id="tmplRow"></div>
+          <div class="seqrow" id="readRow"></div>
+        </div>
+        <svg class="chart" id="qChart" viewBox="0 0 640 170" role="img" aria-label="Base quality by cycle"></svg>
+        <div class="callout" id="sbsMsg">Press <b>Next cycle</b> to add the first base. Turn up phasing to see quality fall and errors appear near the end of the read.</div>
+        <p class="hint">Four-colour chemistry is shown here. Newer instruments (NextSeq, NovaSeq) use two dyes: T is red, C is green, A is both, and G is dark.</p>
+      </div>
+      <div class="quiz" data-quiz="sbs"></div>
+    </section>
+
+    <!-- 4 READS -->
+    <section class="stage" id="reads">
+      <div class="stage-head">
+        <div class="eyebrow">Stage 4 of 5</div>
+        <h2><span class="dot"></span>Reads &amp; quality</h2>
+        <p class="sub">What the sequencer hands you: FASTQ</p>
+      </div>
+      <div class="prose">
+        <p>Base calls are written to a <span class="term">FASTQ</span> file, four lines per read: an <code>@</code> header, the sequence, a <code>+</code> separator, and a quality string with one character per base. Each character encodes a <span class="term">Phred score</span>, Q = −10 log<sub>10</sub>(P<sub>error</sub>), stored as the ASCII character with code Q + 33.</p>
+        <p>The read below is the one you just sequenced in Stage 3, at your chosen phasing setting. Click any quality character to decode it.</p>
+      </div>
+      <div class="lab">
+        <div class="lab-head"><h3>Decode a FASTQ record</h3><span class="tag">Explorer</span></div>
+        <div class="fastq" id="fastq"></div>
+        <div class="two">
+          <div class="panel">
+            <h3>Selected base</h3>
+            <dl class="kv" id="qInspect"></dl>
+          </div>
+          <div class="panel">
+            <h3>Phred calculator</h3>
+            <label class="ctl" for="phredQ">Quality score Q <output id="phredOut">30</output>
+              <input type="range" id="phredQ" min="0" max="42" step="1" value="30"></label>
+            <div class="bigq" id="phredBig">1 in 1,000</div>
+            <dl class="kv" id="phredKv"></dl>
+          </div>
+        </div>
+      </div>
+      <div class="lab">
+        <div class="lab-head"><h3>Quality trimming</h3><span class="tag">Tool</span></div>
+        <p class="hint">A sliding-window trimmer (like Trimmomatic's SLIDINGWINDOW:4:Q) cuts the read where the average quality of four bases first drops below the threshold.</p>
+        <label class="ctl" for="trimQ">Window threshold <output id="trimOut">Q20</output>
+          <input type="range" id="trimQ" min="0" max="38" step="1" value="20"></label>
+        <div class="callout" id="trimMsg"></div>
+      </div>
+      <div class="quiz" data-quiz="reads"></div>
+    </section>
+
+    <!-- 5 VARIANTS -->
+    <section class="stage" id="variants">
+      <div class="stage-head">
+        <div class="eyebrow">Stage 5 of 5</div>
+        <h2><span class="dot"></span>Alignment &amp; variant calling</h2>
+        <p class="sub">From millions of reads to a genotype</p>
+      </div>
+      <div class="prose">
+        <p>An aligner such as BWA-MEM or Bowtie2 finds where each read best matches the <span class="term">reference genome</span> and writes the result to a SAM/BAM file. Stacking the aligned reads gives a <span class="term">pileup</span>. A variant caller looks at each position and asks which genotype best explains the bases it sees, allowing for sequencing errors. Results go into a <span class="term">VCF</span> file.</p>
+        <p>The number of reads covering a position is its <span class="term">depth</span>. A single mismatched base is more likely an error than a variant. A heterozygous SNP should show up in about half the reads.</p>
+      </div>
+      <div class="lab">
+        <div class="lab-head"><h3>Find the variant</h3><span class="tag">Simulation</span></div>
+        <p class="hint">Dots match the reference; letters are mismatches. Click a reference base or coverage bar to call a genotype there. This sample carries one real heterozygous SNP, plus a 1% per-base sequencing error rate.</p>
+        <label class="ctl" for="depth">Reads sequenced <output id="depthOut">14</output>
+          <input type="range" id="depth" min="3" max="70" step="1" value="14"></label>
+        <div class="pile-wrap"><div class="pile" id="pile"></div></div>
+        <div class="two">
+          <div class="panel">
+            <h3 id="colTitle">No position selected</h3>
+            <dl class="kv" id="colKv"></dl>
+          </div>
+          <div class="panel">
+            <h3>Genotype likelihoods</h3>
+            <div class="gt" id="gt"></div>
+            <div class="hint" id="gtNote">Genotype quality (GQ) is the Phred-scaled chance the call is wrong.</div>
+          </div>
+        </div>
+        <div class="callout" id="varMsg"></div>
+      </div>
+      <div class="quiz" data-quiz="variants"></div>
+    </section>
+
+    <section class="stage" id="beyond">
+      <div class="stage-head">
+        <div class="eyebrow">Wrap-up</div>
+        <h2><span class="dot"></span>Short reads and long reads</h2>
+        <p class="sub">The same workflow shape, different trade-offs</p>
+      </div>
+      <div class="compare">
+        <div class="panel">
+          <h3>Short-read (Illumina SBS)</h3>
+          <ul>
+            <li>Reads of 50–300 bp, often paired-end</li>
+            <li>Per-base accuracy &gt; 99.9% (Q30+) for most bases</li>
+            <li>Billions of reads per run; lowest cost per base</li>
+            <li>Struggles with repeats, large structural variants, phasing haplotypes</li>
+            <li>Workhorse for exomes, RNA-seq, ChIP-seq, population genomics</li>
+          </ul>
+        </div>
+        <div class="panel">
+          <h3>Long-read (PacBio HiFi, Oxford Nanopore)</h3>
+          <ul>
+            <li>Reads of 10 kb to over 1 Mb from single molecules</li>
+            <li>HiFi reaches Q30+; nanopore accuracy now ~Q20+ with current chemistry</li>
+            <li>No cluster amplification, so base modifications like 5mC can be read directly</li>
+            <li>Spans repeats and resolves structural variants and haplotypes</li>
+            <li>Used for telomere-to-telomere assemblies and clinical SV detection</li>
+          </ul>
+        </div>
+      </div>
+      <p class="foot">Simulations here use simplified models for teaching: fragment sizes are log-normal, cluster growth is logistic, and phasing error is a single per-cycle rate. Real instruments model these with far more parameters.</p>
+    </section>
+  </main>
+</div>
+
+<script>
+(function(){
+const $=s=>document.querySelector(s);
+const BASES="ACGT", COMP={A:"T",C:"G",G:"C",T:"A"};
+function rng(seed){return function(){seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function gauss(r){let u=0;while(!u)u=r();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*r());}
+const fmt=n=>n.toLocaleString("en-US");
+const esc=c=>c.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+const store={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d;}catch(e){return d;}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}};
+const svgNS="http://www.w3.org/2000/svg";
+function el(tag,attrs,parent){const e=document.createElementNS(svgNS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);if(parent)parent.appendChild(e);return e;}
+
+/* ---------- 1a Fragmentation ---------- */
+const fragT=$("#fragTime"), sizeSel=$("#sizeSelect"), fragChart=$("#fragChart");
+function renderFrag(){
+  const t=+fragT.value; $("#fragTimeOut").textContent=t+" s";
+  const med=150+4000*Math.exp(-t/18), r=rng(7), N=3000, NB=60, BW=25;
+  const all=new Array(NB+1).fill(0), kept=new Array(NB+1).fill(0);
+  let win=0,keptN=0,lens=[];
+  for(let i=0;i<N;i++){
+    const L=med*Math.exp(.38*gauss(r)); lens.push(L);
+    const b=Math.min(NB,Math.floor(L/BW)); all[b]++;
+    const keep=!sizeSel.checked||(L>=250&&L<=600);
+    if(keep){kept[b]++;keptN++; if(L>=300&&L<=500)win++;}
+  }
+  lens.sort((a,b)=>a-b);
+  const x0=46,x1=630,y0=14,y1=190, xs=v=>x0+(v/((NB+1)*BW))*(x1-x0);
+  let mx=Math.max(...all); const step=mx>600?200:mx>250?100:50; mx=Math.ceil(mx/step)*step||step;
+  const ys=v=>y1-(v/mx)*(y1-y0);
+  fragChart.innerHTML="";
+  el("rect",{x:xs(300),y:y0,width:xs(500)-xs(300),height:y1-y0,fill:"var(--good-soft)"},fragChart);
+  el("text",{x:(xs(300)+xs(500))/2,y:y0+12,"text-anchor":"middle",style:"fill:var(--good)"},fragChart).textContent="target";
+  for(let v=0;v<=mx;v+=step){el("line",{x1:x0,x2:x1,y1:ys(v),y2:ys(v),stroke:"var(--line)","stroke-width":v?0.6:1},fragChart);el("text",{x:x0-6,y:ys(v)+4,"text-anchor":"end"},fragChart).textContent=v;}
+  const bw=(x1-x0)/(NB+1);
+  for(let b=0;b<=NB;b++){
+    if(all[b]) el("rect",{x:xs(b*BW)+.5,y:ys(all[b]),width:bw-1,height:y1-ys(all[b]),fill:"var(--line)"},fragChart);
+    if(kept[b]) el("rect",{x:xs(b*BW)+.5,y:ys(kept[b]),width:bw-1,height:y1-ys(kept[b]),fill:"var(--brand)"},fragChart);
+  }
+  [0,250,500,750,1000,1250].forEach(v=>el("text",{x:xs(v),y:y1+16,"text-anchor":"middle"},fragChart).textContent=v);
+  el("text",{x:xs(NB*BW)+bw/2,y:y1+16,"text-anchor":"middle"},fragChart).textContent="1500+";
+  el("text",{x:x1,y:y1+34,"text-anchor":"end"},fragChart).textContent="fragment length (bp)";
+  el("text",{x:x0,y:y1+34,"text-anchor":"start"},fragChart).textContent="fragments";
+  const m=lens[N>>1];
+  $("#fragMed").textContent=fmt(Math.round(m))+" bp";
+  $("#fragWin").textContent=Math.round(100*win/N)+"%";
+  $("#fragKept").textContent=Math.round(100*keptN/N)+"%";
+  const msg=$("#fragMsg");
+  if(m>800){msg.className="callout warn";msg.textContent="Under-sheared. Most fragments are too long to form clusters efficiently, and long inserts leave the middle of each fragment unread.";}
+  else if(m<230){msg.className="callout bad";msg.textContent="Over-sheared. Many inserts are shorter than one read, so reads run past the insert into the adapter and paired reads overlap completely.";}
+  else if(win/N>.5){msg.className="callout good";msg.textContent="Good library. Most retained fragments sit in the target window."+(sizeSel.checked?"":" Try size selection to discard the tails.");}
+  else {msg.className="callout";msg.textContent="Close. The median is in range but the distribution is wide. Bead size selection trims the long and short tails at the cost of some DNA.";}
+}
+fragT.addEventListener("input",renderFrag); sizeSel.addEventListener("change",renderFrag);
+
+/* ---------- 1b Library assembly ---------- */
+const PARTS=[
+  {id:"P5",label:"P5",d:"P5 flow-cell binding site. Hybridises to one of the two oligo types on the flow cell."},
+  {id:"i5",label:"i5 index",d:"i5 index (barcode). 8–10 bases that identify the sample so many libraries can share one run (multiplexing)."},
+  {id:"R1",label:"Read 1 primer",d:"Read 1 sequencing primer site. The Read 1 primer anneals here and sequencing proceeds into the insert."},
+  {id:"INS",label:"Insert (your DNA)",d:"The genomic DNA fragment itself, typically 300–500 bp. Everything else in the molecule is synthetic."},
+  {id:"R2",label:"Read 2 primer",d:"Read 2 sequencing primer site. Used to read the insert from the other end for paired-end data."},
+  {id:"i7",label:"i7 index",d:"i7 index (barcode). A second barcode; dual indexing lets the software catch index hopping."},
+  {id:"P7",label:"P7",d:"P7 flow-cell binding site. Hybridises to the second oligo type on the flow cell."}
+];
+const partOrder=[3,0,5,2,6,1,4];
+let placed=[];
+function renderLib(){
+  const pb=$("#parts"), sb=$("#slots"); pb.innerHTML=""; sb.innerHTML="";
+  partOrder.forEach(i=>{const p=PARTS[i];const b=document.createElement("button");b.type="button";b.className="part"+(placed.includes(i)?" used":"");b.textContent=p.label;
+    b.addEventListener("click",()=>{if(placed.length<7&&!placed.includes(i)){placed.push(i);$("#libMsg").className="callout";$("#libMsg").textContent=p.d;renderLib();}});pb.appendChild(b);});
+  for(let s=0;s<7;s++){const d=document.createElement("button");d.type="button";const i=placed[s];
+    d.className="slot"+(i!=null?" filled":"")+(i===3?" insert":"");d.textContent=i!=null?PARTS[i].label:(s+1);
+    d.addEventListener("click",()=>{if(i!=null){placed.splice(s,1);renderLib();}});sb.appendChild(d);}
+}
+$("#checkLib").addEventListener("click",()=>{
+  const slots=[...document.querySelectorAll("#slots .slot")];let ok=0;
+  slots.forEach((s,k)=>{if(placed[k]==null)return;const r=placed[k]===k;s.classList.add(r?"right":"wrong");if(r)ok++;});
+  const m=$("#libMsg");
+  if(ok===7){m.className="callout good";m.textContent="Correct: P5 · i5 · Read 1 primer · insert · Read 2 primer · i7 · P7. The two outer ends anchor the molecule to the flow cell, the indexes name the sample, and the primer sites tell sequencing where to start.";}
+  else if(placed.length<7){m.className="callout warn";m.textContent=ok+" of "+placed.length+" placed parts are in the right slot. Fill all seven slots. Hint: the flow-cell binding sites go on the very outside.";}
+  else{m.className="callout bad";m.textContent=ok+" of 7 correct. Remember the layout is symmetric around the insert: binding site, index, then primer site on each side.";}
+});
+$("#clearLib").addEventListener("click",()=>{placed=[];$("#libMsg").className="callout";$("#libMsg").textContent="Pick a part to see what it does.";renderLib();});
+
+/* ---------- 2 Bridge amplification ---------- */
+const cv=$("#flowcell"), ctx=cv.getContext("2d"), dens=$("#density");
+const seedR=rng(2024), SEEDS=[];for(let i=0;i<120;i++)SEEDS.push({x:seedR(),y:seedR(),s:Math.floor(seedR()*1e9)});
+let ampC=0, ampTimer=null;
+const copies=c=>Math.round(1000/(1+999*Math.exp(-0.3*c)));
+function drawFlow(){
+  const w=cv.clientWidth||600, h=280, dpr=window.devicePixelRatio||1;
+  if(cv.width!==Math.round(w*dpr)){cv.width=Math.round(w*dpr);cv.height=Math.round(h*dpr);}
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.fillStyle="#0d0a12";ctx.fillRect(0,0,w,h);
+  // lawn of surface oligos
+  const lr=rng(5);ctx.fillStyle="rgba(200,190,220,.10)";for(let i=0;i<w*h/90;i++)ctx.fillRect(lr()*w,lr()*h,1,1);
+  const n=+dens.value, cp=copies(ampC), rad=2+0.72*Math.sqrt(cp)*(w/600);
+  const pts=SEEDS.slice(0,n).map(s=>({x:10+s.x*(w-20),y:10+s.y*(h-20),s:s.s,bad:false}));
+  for(let i=0;i<n;i++)for(let j=i+1;j<n;j++){const dx=pts[i].x-pts[j].x,dy=pts[i].y-pts[j].y;if(Math.hypot(dx,dy)<2*rad){pts[i].bad=pts[j].bad=true;}}
+  pts.forEach(p=>{
+    const pr=rng(p.s), dots=Math.min(cp,220), col=p.bad&&ampC>0?"255,138,92":"199,160,255";
+    const g=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,rad*1.2);g.addColorStop(0,"rgba("+col+",.35)");g.addColorStop(1,"rgba("+col+",0)");
+    ctx.fillStyle=g;ctx.beginPath();ctx.arc(p.x,p.y,rad*1.2,0,7);ctx.fill();
+    ctx.fillStyle="rgba("+col+",.95)";
+    for(let k=0;k<dots;k++){const a=pr()*6.283,rr=rad*Math.sqrt(pr());ctx.fillRect(p.x+Math.cos(a)*rr-.8,p.y+Math.sin(a)*rr-.8,1.6,1.6);}
+  });
+  const good=pts.filter(p=>!p.bad).length;
+  $("#densityOut").textContent=n; $("#ampCycles").textContent=ampC; $("#ampCopies").textContent=fmt(cp);
+  $("#ampPF").textContent=ampC?Math.round(100*good/n)+"%":"–"; $("#ampUsable").textContent=ampC?good+" of "+n:"–";
+  const m=$("#ampMsg");
+  if(ampC===0){m.className="callout";m.textContent="Each dot is one library molecule captured on the surface. Run bridge amplification to grow clusters.";}
+  else if(ampC<20){m.className="callout";m.textContent="Clusters are growing. Copy number rises fast at first, then slows as nearby surface primers get used up.";}
+  else if(good/n<.6){m.className="callout bad";m.textContent="Over-clustered. Most clusters touch a neighbour and will fail the filter, so this run yields fewer usable reads than a lighter load would. Lower the loading.";}
+  else if(n<12){m.className="callout warn";m.textContent="Under-clustered. Nearly every cluster passes, but most of the surface is empty. Output per run will be low.";}
+  else{m.className="callout good";m.textContent="Good loading: dense enough to use the surface, sparse enough that most clusters are clean. Patterned flow cells solve this with nanowells at fixed spacing.";}
+}
+function amp(k){ampC=Math.min(35,ampC+k);drawFlow();}
+$("#amp1").addEventListener("click",()=>amp(1));
+$("#amp5").addEventListener("click",()=>amp(5));
+$("#ampAll").addEventListener("click",()=>{clearInterval(ampTimer);if(matchMedia("(prefers-reduced-motion: reduce)").matches){amp(35);return;}ampTimer=setInterval(()=>{amp(1);if(ampC>=35)clearInterval(ampTimer);},70);});
+$("#ampReset").addEventListener("click",()=>{clearInterval(ampTimer);ampC=0;drawFlow();});
+dens.addEventListener("input",drawFlow);
+window.addEventListener("resize",drawFlow);
+
+/* ---------- 3 SBS ---------- */
+const INSERT="GATTACAGCTTGACCATGGCAAGTCTTAGCCATGAC", NC=INSERT.length;
+const others=[];{const r=rng(31);for(let k=0;k<15;k++){let s="";for(let i=0;i<NC;i++)s+=BASES[Math.floor(r()*4)];others.push(s);}}
+let run=null, cyc=0, guessMode=false, awaiting=false, autoT=null;
+function simulate(phase){
+  const r=rng(99), pre=0.0005, calls=[], quals=[], pur=[];
+  for(let n=1;n<=NC;n++){
+    const p=Math.pow(1-phase-pre,n); let e=0.0001+Math.pow(1-p,2)*1.2+0.0003*n/NC; e=Math.min(e,.6);
+    const truth=INSERT[n-1]; let call=truth; const draw=r(), alt=r();
+    if(draw<e){ if(n>1&&INSERT[n-2]!==truth) call=INSERT[n-2]; else {const o=BASES.replace(truth,"");call=o[Math.floor(alt*3)];} }
+    let Q=Math.max(2,Math.min(41,Math.round(-10*Math.log10(e))));
+    if(call!==truth)Q=Math.max(2,Q-9);
+    calls.push(call);quals.push(Q);pur.push(p);
+  }
+  return {calls,quals,pur};
+}
+function setPhasing(){const v=+$("#phasing").value;$("#phasingOut").textContent=v.toFixed(2)+"%";run=simulate(v/100);}
+const tile=$("#tile"), clus=[];
+for(let k=0;k<16;k++){const d=document.createElement("div");d.className="clu"+(k===5?" tracked":"");tile.appendChild(d);clus.push(d);}
+const baseHex={A:"#3fcf7f",C:"#5b8cff",G:"#f2b233",T:"#ff5c5c"};
+function renderSBS(){
+  const shown=awaiting?cyc-1:cyc;
+  // tile
+  clus.forEach((d,k)=>{
+    if(cyc===0){d.style.background="#1a1522";d.style.boxShadow="none";return;}
+    const b=k===5?run.calls[cyc-1]:others[k<5?k:k-1][cyc-1];
+    const p=k===5?run.pur[cyc-1]:Math.pow(.998,cyc);
+    const hex=baseHex[b];
+    d.style.background="radial-gradient(circle, "+hex+" 0%, "+hex+"cc "+Math.round(30*p)+"%, #1a1522 72%)";
+    d.style.boxShadow="0 0 "+Math.round(14*p)+"px "+hex+"88";
+    d.style.opacity=(0.35+0.65*p).toFixed(2);
+  });
+  // channels
+  const ch=$("#channels");ch.innerHTML="";
+  const inten={A:.03,C:.03,G:.03,T:.03};
+  if(cyc>0){const p=run.pur[cyc-1];inten[run.calls[cyc-1]]+=p*.95;const prev=cyc>1?INSERT[cyc-2]:null;if(prev)inten[prev]+=(1-p)*.8;const c=run.calls[cyc-1];if(c!==INSERT[cyc-1])inten[INSERT[cyc-1]]+=p*.35;}
+  const mx=Math.max(...Object.values(inten),.2);
+  for(const b of BASES){const c=document.createElement("div");c.className="ch";c.innerHTML='<i class="b'+b+'" style="height:'+Math.round(70*inten[b]/mx)+'%"></i><span class="t'+b+'">'+b+"</span>";ch.appendChild(c);}
+  // rows
+  const tr=$("#tmplRow"), rr=$("#readRow");
+  tr.innerHTML="<span>Template 3′→5′</span>"; rr.innerHTML="<span>Read 5′→3′</span>";
+  for(let i=0;i<NC;i++){
+    const t=document.createElement("span");t.className="cell tmpl"+(i<cyc?" done":"")+(i===cyc-1?" now":"");t.textContent=COMP[INSERT[i]];tr.appendChild(t);
+    const c=document.createElement("span");
+    if(i<shown){const b=run.calls[i];c.className="cell lit b"+b+(b!==INSERT[i]?" err":"");c.textContent=b;c.title="Cycle "+(i+1)+": "+b+", Q"+run.quals[i]+(b!==INSERT[i]?" (miscall, true base "+INSERT[i]+")":"");}
+    else if(i===cyc-1&&awaiting){c.className="cell now";c.textContent="?";}
+    else c.className="cell";
+    rr.appendChild(c);
+  }
+  $("#sbsCycle").textContent=cyc+" / "+NC;
+  $("#sbsPurity").textContent=cyc?(100*run.pur[cyc-1]).toFixed(1)+"%":"100%";
+  $("#sbsQ").textContent=shown&&shown===cyc?"Q"+run.quals[cyc-1]:"–";
+  $("#guessRow").hidden=!awaiting;
+  $("#sbsNext").disabled=awaiting||cyc>=NC;
+  $("#sbsAuto").disabled=guessMode||cyc>=NC;
+  drawQ(shown);
+  if(cyc>=NC&&!awaiting){const errs=run.calls.filter((b,i)=>b!==INSERT[i]).length;const m=$("#sbsMsg");
+    m.className="callout "+(errs?"warn":"good");
+    m.innerHTML=errs?"Read complete with <b>"+errs+" miscall"+(errs>1?"s":"")+"</b> (underlined). Notice they fall late in the read, where quality scores are low. The quality string warns downstream tools not to trust those bases.":"Read complete with no errors. Raise phasing and reset to see how imperfect chemistry erodes the end of the read.";}
+  renderFastq();
+}
+function drawQ(n){
+  const s=$("#qChart");s.innerHTML="";const x0=40,x1=630,y0=10,y1=140,xs=i=>x0+(i-.5)/NC*(x1-x0),ys=q=>y1-q/42*(y1-y0);
+  [0,10,20,30,40].forEach(q=>{el("line",{x1:x0,x2:x1,y1:ys(q),y2:ys(q),stroke:"var(--line)","stroke-width":q?.6:1},s);el("text",{x:x0-6,y:ys(q)+4,"text-anchor":"end"},s).textContent="Q"+q;});
+  el("line",{x1:x0,x2:x1,y1:ys(30),y2:ys(30),stroke:"var(--good)","stroke-dasharray":"4 4"},s);
+  el("text",{x:x1,y:ys(30)-5,"text-anchor":"end",style:"fill:var(--good)"},s).textContent="Q30 = 99.9% accurate";
+  [1,6,12,18,24,30,36].forEach(c=>el("text",{x:xs(c),y:y1+16,"text-anchor":"middle"},s).textContent=c);
+  const bw=(x1-x0)/NC;
+  for(let i=0;i<n;i++){const q=run.quals[i];el("rect",{x:xs(i+1)-bw/2+1,y:ys(q),width:bw-2,height:y1-ys(q),rx:2,fill:run.calls[i]!==INSERT[i]?"var(--bad)":q>=30?"var(--brand)":q>=20?"var(--brand-line)":"var(--warn)"},s);}
+  if(!n)el("text",{x:(x0+x1)/2,y:(y0+y1)/2,"text-anchor":"middle"},s).textContent="Quality per cycle appears here";
+}
+function next(){ if(awaiting||cyc>=NC)return; cyc++; if(guessMode)awaiting=true; renderSBS(); }
+$("#sbsNext").addEventListener("click",next);
+$("#sbsAuto").addEventListener("click",()=>{if(autoT){clearInterval(autoT);autoT=null;$("#sbsAuto").textContent="Auto-run";return;}
+  $("#sbsAuto").textContent="Pause";autoT=setInterval(()=>{next();if(cyc>=NC){clearInterval(autoT);autoT=null;$("#sbsAuto").textContent="Auto-run";renderSBS();}},320);});
+$("#sbsReset").addEventListener("click",()=>{clearInterval(autoT);autoT=null;$("#sbsAuto").textContent="Auto-run";cyc=0;awaiting=false;$("#sbsMsg").className="callout";$("#sbsMsg").innerHTML="Press <b>Next cycle</b> to add the first base.";renderSBS();});
+$("#phasing").addEventListener("input",()=>{setPhasing();renderSBS();});
+$("#guessMode").addEventListener("change",e=>{guessMode=e.target.checked;if(autoT){clearInterval(autoT);autoT=null;$("#sbsAuto").textContent="Auto-run";}renderSBS();});
+document.querySelectorAll("#guessRow .btn").forEach(b=>b.addEventListener("click",()=>{
+  const want=run.calls[cyc-1], m=$("#sbsMsg");
+  if(b.dataset.b===want){awaiting=false;m.className="callout good";m.textContent="Correct, "+want+". The polymerase added "+want+" opposite the template's "+COMP[INSERT[cyc-1]]+(want!==INSERT[cyc-1]?", though this cluster's signal was muddied and the true base was "+INSERT[cyc-1]+".":".");renderSBS();}
+  else{m.className="callout bad";m.textContent="Not quite. Look for the tallest channel bar and the cluster's colour in the tile image.";b.classList.remove("shake");void b.offsetWidth;b.classList.add("shake");}
+}));
+
+/* ---------- 4 FASTQ ---------- */
+let selQ=null;
+function trimPoint(th){const q=run.quals;for(let i=0;i+4<=NC;i++){const m=(q[i]+q[i+1]+q[i+2]+q[i+3])/4;if(m<th)return i;}return NC;}
+function renderFastq(){
+  const th=+$("#trimQ").value; $("#trimOut").textContent="Q"+th;
+  const cut=trimPoint(th), seq=run.calls.join(""), f=$("#fastq");
+  const qs=run.quals.map((q,i)=>'<span class="q'+(i===selQ?" sel":"")+(i>=cut?" trim":"")+'" data-i="'+i+'">'+esc(String.fromCharCode(q+33))+"</span>").join("");
+  const sq=[...seq].map((b,i)=>'<span class="t'+b+(i>=cut?" trim":"")+'">'+b+"</span>").join("");
+  f.innerHTML='<span class="ln">1</span>@BIO116:7:HK2VMDSXY:1:1101:15461:1000 1:N:0:ATCACGTT+GGCTACAA\n<span class="ln">2</span>'+sq+'\n<span class="ln">3</span>+\n<span class="ln">4</span>'+qs;
+  f.querySelectorAll(".q").forEach(s=>s.addEventListener("click",()=>{selQ=+s.dataset.i;renderFastq();}));
+  const kv=$("#qInspect");
+  if(selQ==null){kv.innerHTML='<dt>Tip</dt><dd style="font-family:var(--body)">Click a character on line 4</dd>';}
+  else{const q=run.quals[selQ],ch=String.fromCharCode(q+33),p=Math.pow(10,-q/10);
+    kv.innerHTML="<dt>Position</dt><dd>"+(selQ+1)+"</dd><dt>Base</dt><dd class=\"t"+run.calls[selQ]+"\">"+run.calls[selQ]+"</dd><dt>Character</dt><dd>"+esc(ch)+"</dd><dt>ASCII code</dt><dd>"+(q+33)+"</dd><dt>Q = code − 33</dt><dd>"+q+"</dd><dt>P(error)</dt><dd>"+p.toPrecision(2)+" (1 in "+fmt(Math.round(1/p))+")</dd>"+(run.calls[selQ]!==INSERT[selQ]?'<dt>Truth</dt><dd style="color:var(--bad)">Miscall, true base '+INSERT[selQ]+"</dd>":"");}
+  const m=$("#trimMsg"), kept=cut;
+  m.className="callout "+(kept===NC?"good":kept<18?"warn":"");
+  m.innerHTML=kept===NC?"No trimming needed: every 4-base window averages at least Q"+th+". Try a higher threshold, or raise phasing in Stage 3.":"Trimmed at position "+(cut+1)+". Kept <b>"+kept+" of "+NC+"</b> bases. Removed bases are struck through above."+(kept<18?" A read this short may be discarded by a minimum-length filter.":"");
+}
+$("#trimQ").addEventListener("input",renderFastq);
+function renderPhred(){
+  const q=+$("#phredQ").value,p=Math.pow(10,-q/10);$("#phredOut").textContent=q;
+  $("#phredBig").textContent=q===0?"every base":"1 in "+fmt(Math.round(1/p));
+  $("#phredKv").innerHTML="<dt>P(error)</dt><dd>"+p.toPrecision(3)+"</dd><dt>Accuracy</dt><dd>"+(100*(1-p)).toFixed(q>=40?4:q>=30?3:2)+"%</dd><dt>FASTQ character</dt><dd>"+esc(String.fromCharCode(q+33))+" (ASCII "+(q+33)+")</dd><dt>Errors in a 150 bp read</dt><dd>"+(150*p).toFixed(q>=30?3:2)+"</dd>";
+}
+$("#phredQ").addEventListener("input",renderPhred);
+
+/* ---------- 5 Pileup ---------- */
+const REF="TGCATCGGATTCAGCTAGGCTTACGATCCGTAAGCTTGCAGGTACCTAGCAT", RL=REF.length, VP=26, TRANS={A:"G",G:"A",C:"T",T:"C"}, ALT=TRANS[REF[VP]], READLEN=18;
+const READS=[];{const r=rng(116);for(let k=0;k<70;k++){const st=Math.floor(r()*(RL-READLEN+1)),alt=r()<.5;let s="";for(let i=0;i<READLEN;i++){let b=REF[st+i];if(alt&&st+i===VP)b=ALT;if(r()<.01){const o=BASES.replace(b,"");b=o[Math.floor(r()*3)];}s+=b;}READS.push({st,s});}}
+let selCol=null;
+function renderPile(){
+  const n=+$("#depth").value;$("#depthOut").textContent=n;
+  const rs=READS.slice(0,n).slice().sort((a,b)=>a.st-b.st), rows=[];
+  rs.forEach(rd=>{let placed=false;for(const row of rows){if(row.end<rd.st){row.list.push(rd);row.end=rd.st+READLEN;placed=true;break;}}if(!placed)rows.push({end:rd.st+READLEN,list:[rd]});});
+  const cov=new Array(RL).fill(0), counts=[...Array(RL)].map(()=>({A:0,C:0,G:0,T:0}));
+  rs.forEach(rd=>{for(let i=0;i<READLEN;i++){cov[rd.st+i]++;counts[rd.st+i][rd.s[i]]++;}});
+  const mx=Math.max(...cov,1), pile=$("#pile");pile.innerHTML="";
+  const cr=document.createElement("div");cr.className="covrow";
+  cov.forEach((c,i)=>{const b=document.createElement("i");b.style.height=Math.max(2,Math.round(40*c/mx))+"px";b.title="Depth "+c;if(i===selCol)b.className="sel";b.addEventListener("click",()=>{selCol=i;renderPile();});cr.appendChild(b);});
+  pile.appendChild(cr);
+  const rf=document.createElement("div");rf.className="prow";
+  for(let i=0;i<RL;i++){const c=document.createElement("span");c.className="pc ref t"+REF[i]+(i===selCol?" col-sel":"");c.textContent=REF[i];c.title="Reference position "+(i+1);c.addEventListener("click",()=>{selCol=i;renderPile();});rf.appendChild(c);}
+  pile.appendChild(rf);
+  rows.forEach(row=>{const d=document.createElement("div");d.className="prow";const cells=new Array(RL).fill(null);
+    row.list.forEach(rd=>{for(let i=0;i<READLEN;i++)cells[rd.st+i]=rd.s[i];});
+    cells.forEach((b,i)=>{const c=document.createElement("span");if(b==null){c.className="pc";}else if(b===REF[i]){c.className="pc m";c.textContent="·";}else{c.className="pc x b"+b;c.textContent=b;}if(i===selCol)c.classList.add("col-sel");d.appendChild(c);});
+    pile.appendChild(d);});
+  // inspector
+  const kv=$("#colKv"), gt=$("#gt"), m=$("#varMsg");
+  const mism=[];for(let i=0;i<RL;i++){const nonref=cov[i]-counts[i][REF[i]];if(nonref>0)mism.push(i);}
+  if(selCol==null){$("#colTitle").textContent="No position selected";kv.innerHTML='<dt>Tip</dt><dd style="font-family:var(--body)">Click a reference base</dd>';gt.innerHTML="";
+    m.className="callout";m.textContent=mism.length+" position"+(mism.length===1?"":"s")+" show at least one mismatch at this depth. Only one of them is a real variant. Which?";return;}
+  const i=selCol, c=counts[i], d=cov[i], ref=REF[i];
+  let alt=null,ac=0;for(const b of BASES)if(b!==ref&&c[b]>ac){ac=c[b];alt=b;}
+  const rc=c[ref], e=0.01;
+  $("#colTitle").textContent="Position "+(i+1)+" · ref "+ref;
+  kv.innerHTML="<dt>Depth</dt><dd>"+d+"</dd>"+BASES.split("").map(b=>"<dt class=\"t"+b+"\">"+b+(b===ref?" (ref)":"")+"</dt><dd>"+c[b]+"</dd>").join("")+"<dt>Alt fraction</dt><dd>"+(d?(100*ac/d).toFixed(0)+"%":"–")+"</dd>";
+  if(!d){gt.innerHTML='<p class="hint">No reads cover this position. Sequence more reads.</p>';m.className="callout warn";m.textContent="Zero coverage: nothing can be called here.";return;}
+  const other=d-rc-ac;
+  const l=[rc*Math.log(1-e)+(ac+other)*Math.log(e), d*Math.log(.5)+other*Math.log(e), rc*Math.log(e)+ac*Math.log(1-e)+other*Math.log(e)];
+  const mxl=Math.max(...l), pr=l.map(v=>Math.exp(v-mxl)), sm=pr.reduce((a,b)=>a+b,0), post=pr.map(v=>v/sm);
+  const best=post.indexOf(Math.max(...post)), GQ=Math.min(99,Math.round(-10*Math.log10(Math.max(1e-10,1-post[best]))));
+  const a=alt||"–", names=[ref+"/"+ref,ref+"/"+a,a+"/"+a], labels=["0/0","0/1","1/1"];
+  gt.innerHTML=post.map((p,k)=>'<div class="gtbar'+(k===best?" win":"")+'"><span>'+labels[k]+'</span><div class="track"><i style="width:'+(100*p).toFixed(1)+'%"></i></div><span>'+(p>=.995?">99%":p<.005?"<1%":(100*p).toFixed(0)+"%")+"</span></div>").join("")+'<p class="hint">Call: <b>'+labels[best]+" ("+names[best]+")</b>, GQ "+GQ+"</p>";
+  if(i===VP){
+    if(best===1&&GQ>=20){m.className="callout good";m.textContent="Found it. A heterozygous "+ref+">"+ALT+" transition supported by "+ac+" of "+d+" reads, called with GQ "+GQ+". In a VCF this becomes: POS "+(i+1)+", REF "+ref+", ALT "+ALT+", GT 0/1.";}
+    else if(best===1){m.className="callout warn";m.textContent="This is the real variant, and it is called 0/1, but GQ "+GQ+" is low. Add reads to make the call confident.";}
+    else{m.className="callout warn";m.textContent="This is the real heterozygous site, but at depth "+d+" the evidence is too thin or skewed to call it correctly. Increase reads sequenced.";}
+  } else if(ac>0){m.className="callout";m.textContent="Mismatch here is a sequencing error: "+ac+" of "+d+" reads. One stray base cannot outweigh the reference reads, so the caller says 0/0.";}
+  else{m.className="callout";m.textContent="Every read matches the reference here. Keep looking for a column where many reads disagree.";}
+}
+$("#depth").addEventListener("input",renderPile);
+
+/* ---------- Quiz ---------- */
+const QUIZ={
+ library:[
+  {q:"Why are adapters ligated to both ends of every fragment?",o:["To protect the DNA from nucleases during storage","So fragments can bind the flow cell and primers know where to start","To make fragments the same length","To remove the A-tail"],a:1,w:"Adapters carry the P5/P7 flow-cell binding sites, the index barcodes, and the sequencing primer sites."},
+  {q:"Your library's median fragment is 120 bp and you plan 2 × 150 bp reads. What will you see?",o:["Nothing unusual","Reads will run into adapter sequence and paired reads will fully overlap","Clusters will fail to form","Index barcodes will be lost"],a:1,w:"When the insert is shorter than the read, the polymerase reads straight through into the adapter. That sequence has to be trimmed off."}],
+ clusters:[
+  {q:"What is the main purpose of bridge amplification?",o:["To correct sequencing errors","To make enough identical copies at one spot for the camera to detect","To attach the index barcodes","To separate DNA from protein"],a:1,w:"About 1,000 clonal copies per cluster give a signal strong enough to image."},
+  {q:"A run is over-clustered. What happens to the output?",o:["More reads, all higher quality","Fewer usable reads because overlapping clusters fail the purity filter","Longer reads","The index reads fail but insert reads are fine"],a:1,w:"Overlapping clusters produce mixed signals and are removed by the chastity (passing filter) step."}],
+ sbs:[
+  {q:"What prevents polymerase from adding more than one base per cycle?",o:["The fluorescent dye","A reversible 3′ terminator on each nucleotide","Low temperature","The P7 adapter"],a:1,w:"The terminator blocks further extension until it is chemically removed after imaging."},
+  {q:"Why does base quality usually drop toward the end of a read?",o:["The DNA template gets shorter","Phasing: molecules in a cluster fall out of sync, blurring the signal","The camera heats up","Later bases are always G or C"],a:1,w:"Each cycle a small fraction of strands lag or lead. The errors accumulate, so late cycles have a less pure signal."}],
+ reads:[
+  {q:"A base has quality character 'I' (ASCII 73) in Phred+33 encoding. What is its error probability?",o:["1 in 100","1 in 1,000","1 in 10,000","1 in 73"],a:2,w:"Q = 73 − 33 = 40, and 10^(−40/10) = 0.0001, or 1 in 10,000."},
+  {q:"Which line of a FASTQ record holds the quality scores?",o:["Line 1","Line 2","Line 3","Line 4"],a:3,w:"Line 1 is the @header, line 2 the sequence, line 3 the + separator, line 4 the quality string."}],
+ variants:[
+  {q:"At a position with depth 30, 16 reads show T and 14 show the reference C. What is the most likely genotype?",o:["Homozygous reference (0/0)","Heterozygous (0/1)","Homozygous alternate (1/1)","A sequencing error"],a:1,w:"About half the reads carry each allele, as expected for a heterozygote."},
+  {q:"Why does more sequencing depth give more confident variant calls?",o:["Deeper reads are longer","More independent observations make random errors easy to outvote","Depth raises every base's Phred score","Aligners only work above 30× depth"],a:1,w:"Errors are rare and random, so with many reads a true allele stands out clearly from noise."}]
+};
+let answers=store.get("ngs-quiz",{});
+function renderQuiz(){
+  document.querySelectorAll("[data-quiz]").forEach(box=>{
+    const sec=box.dataset.quiz;box.innerHTML='<div class="eyebrow">Checkpoint</div>';
+    QUIZ[sec].forEach((item,qi)=>{
+      const key=sec+qi, ans=answers[key], d=document.createElement("div");d.className="q";
+      d.innerHTML="<p>"+(qi+1)+". "+item.q+"</p>";
+      const opts=document.createElement("div");opts.className="opts";
+      item.o.forEach((o,oi)=>{const b=document.createElement("button");b.type="button";b.className="opt";b.textContent=o;
+        if(ans!=null){b.disabled=true;if(oi===item.a)b.classList.add("right");else if(oi===ans)b.classList.add("wrong");}
+        b.addEventListener("click",()=>{answers[key]=oi;store.set("ngs-quiz",answers);renderQuiz();});opts.appendChild(b);});
+      d.appendChild(opts);
+      if(ans!=null){const w=document.createElement("p");w.className="why";w.textContent=(ans===item.a?"Correct. ":"Not quite. ")+item.w;d.appendChild(w);}
+      box.appendChild(d);
+    });
+  });
+  let right=0;for(const sec in QUIZ){let secRight=0;QUIZ[sec].forEach((it,qi)=>{if(answers[sec+qi]===it.a){right++;secRight++;}});
+    const a=document.querySelector('.rail a[data-sec="'+sec+'"]');if(a)a.classList.toggle("done",secRight===QUIZ[sec].length);}
+  $("#scoreNum").textContent=right+" / 10";$("#scoreBar").style.width=(right*10)+"%";
+}
+$("#resetQuiz").addEventListener("click",()=>{answers={};store.set("ngs-quiz",answers);renderQuiz();});
+
+/* ---------- rail scroll-spy ---------- */
+if("IntersectionObserver" in window){
+  const links=[...document.querySelectorAll(".rail a")];
+  const io=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){links.forEach(l=>l.classList.toggle("active",l.dataset.sec===e.target.id));}});},{rootMargin:"-40% 0px -55% 0px"});
+  document.querySelectorAll("section.stage[id]").forEach(s=>io.observe(s));
+}
+
+/* ---------- init ---------- */
+renderFrag(); renderLib(); drawFlow(); setPhasing(); renderSBS(); renderPhred(); renderPile(); renderQuiz();
+})();
+</script>
