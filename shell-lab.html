@@ -1,0 +1,2881 @@
+<title>Bio116 Shell Lab</title>
+<meta name="description" content="Interactive UNIX shell lessons for bioinformatics students, with a simulated terminal and real-shaped sequencing files.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+:root {
+  --ground: #EDF1EC;
+  --surface: #FAFBF8;
+  --surface-2: #E1E8E2;
+  --ink: #17221E;
+  --muted: #55655D;
+  --line: #CCD6CF;
+  --pine: #1E4A41;
+  --on-pine: #F4F8F5;
+  --pine-soft: #DAE7E0;
+  --rust: #B04E28;
+  --rust-soft: #F5E0D4;
+  --ok: #2B7148;
+  --ok-soft: #D8ECDF;
+  --warn: #8A5F0F;
+  --warn-soft: #F5EAD0;
+  --term-bg: #0E1916;
+  --term-bar: #15231F;
+  --term-line: #22352F;
+  --term-ink: #D4E1D9;
+  --term-dim: #7D958A;
+  --term-prompt: #EE9A64;
+  --term-path: #8CC7B4;
+  --term-err: #F08A7E;
+  --term-mark: rgba(238, 154, 100, .28);
+  --nA: #7CC67F;
+  --nC: #6DA7DA;
+  --nG: #E4B452;
+  --nT: #E57C70;
+  --display: "Bricolage Grotesque", "Arial Black", system-ui, sans-serif;
+  --body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --ground: #0F1513;
+    --surface: #161F1B;
+    --surface-2: #202B26;
+    --ink: #E1EAE4;
+    --muted: #96A79E;
+    --line: #2B3934;
+    --pine: #8FCBB8;
+    --on-pine: #0F1513;
+    --pine-soft: #1B2F29;
+    --rust: #EE8A5C;
+    --rust-soft: #3A2419;
+    --ok: #7BD39B;
+    --ok-soft: #16301F;
+    --warn: #E3B35A;
+    --warn-soft: #30270F;
+    --term-bg: #09110F;
+    --term-bar: #111C18;
+    --term-line: #1E2E29;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --ground: #0F1513;
+  --surface: #161F1B;
+  --surface-2: #202B26;
+  --ink: #E1EAE4;
+  --muted: #96A79E;
+  --line: #2B3934;
+  --pine: #8FCBB8;
+  --on-pine: #0F1513;
+  --pine-soft: #1B2F29;
+  --rust: #EE8A5C;
+  --rust-soft: #3A2419;
+  --ok: #7BD39B;
+  --ok-soft: #16301F;
+  --warn: #E3B35A;
+  --warn-soft: #30270F;
+  --term-bg: #09110F;
+  --term-bar: #111C18;
+  --term-line: #1E2E29;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--ground);
+  color: var(--ink);
+  font: 16px/1.6 var(--body);
+  -webkit-font-smoothing: antialiased;
+}
+.wrap {
+  max-width: 1380px;
+  margin: 0 auto;
+  padding-inline: clamp(16px, 3vw, 40px);
+  padding-block: 28px 72px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+code, kbd, pre { font-family: var(--mono); }
+button { font: inherit; color: inherit; }
+button:focus-visible, input:focus-visible, summary:focus-visible { outline: 2px solid var(--rust); outline-offset: 2px; }
+
+/* ---------- header ---------- */
+.top { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px 32px; align-items: end; }
+.eyebrow { font: 600 12px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--rust); margin: 0 0 10px; }
+.top h1 {
+  font-family: var(--display); font-weight: 800; font-size: clamp(2.6rem, 6vw, 4.2rem);
+  line-height: .95; letter-spacing: -0.03em; margin: 0; color: var(--pine); text-wrap: balance;
+}
+.lede { max-width: 60ch; margin: 12px 0 0; color: var(--muted); font-size: 1.05rem; }
+.codons {
+  grid-column: 1 / -1; font: 12px/1.4 var(--mono); letter-spacing: .08em; white-space: nowrap; overflow: hidden;
+  padding-top: 14px; border-top: 1px solid var(--line); color: var(--muted);
+}
+.codons b { font-weight: 400; }
+.progress { display: flex; flex-direction: column; gap: 8px; align-items: flex-end; }
+.progress-label { font-size: 14px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.progress-label strong { color: var(--ink); }
+.segs { display: flex; gap: 4px; }
+.segs i { width: 22px; height: 8px; border-radius: 2px; background: var(--surface-2); border: 1px solid var(--line); }
+.segs i.done { background: var(--ok); border-color: var(--ok); }
+
+/* ---------- layout ---------- */
+.lab { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.08fr); gap: 28px; align-items: start; }
+.left { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip {
+  display: inline-flex; align-items: center; gap: 7px; padding: 5px 11px 5px 9px; border-radius: 999px;
+  border: 1px solid var(--line); background: var(--surface); cursor: pointer; font-size: 13.5px; color: var(--muted);
+}
+.chip .n { font: 600 12px/1 var(--mono); color: var(--ink); }
+.chip .dot { width: 8px; height: 8px; border-radius: 50%; border: 1.5px solid var(--line); }
+.chip.done .dot { background: var(--ok); border-color: var(--ok); }
+.chip:hover { border-color: var(--pine); color: var(--ink); }
+.chip[aria-current="true"] { background: var(--pine); border-color: var(--pine); color: var(--on-pine); }
+.chip[aria-current="true"] .n { color: var(--on-pine); }
+.chip[aria-current="true"] .dot { border-color: var(--on-pine); }
+
+.lesson {
+  background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+  padding: 24px clamp(18px, 3vw, 32px) 26px; display: flex; flex-direction: column; gap: 16px;
+}
+.kicker { font: 600 12px/1 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin: 0; }
+.lesson h2 {
+  font-family: var(--display); font-weight: 800; font-size: clamp(1.7rem, 3vw, 2.2rem); line-height: 1.05;
+  letter-spacing: -0.02em; margin: -6px 0 0; color: var(--pine); text-wrap: balance;
+}
+.lesson h3 { font: 600 12px/1 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--rust); margin: 6px 0 -4px; }
+.lesson p { margin: 0; max-width: 66ch; }
+.lesson ul.flags { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: max-content 1fr; gap: 4px 14px; }
+.lesson ul.flags li { display: contents; }
+p code, li code, td code, .callout code, dd code {
+  font-size: .86em; background: var(--surface-2); padding: 1px 5px; border-radius: 4px; white-space: nowrap;
+}
+.lesson pre.block {
+  margin: 0; background: var(--term-bg); color: var(--term-ink); border-radius: 8px; padding: 12px 14px;
+  font-size: 13px; line-height: 1.55; overflow-x: auto;
+}
+.gff { display: flex; flex-wrap: wrap; gap: 4px; margin: 0; padding: 0; list-style: none; }
+.gff li { font: 12px/1 var(--mono); padding: 6px 8px; border-radius: 4px; background: var(--surface-2); color: var(--muted); }
+.gff li b { color: var(--ink); font-weight: 600; margin-right: 5px; }
+
+.tries { display: grid; gap: 6px; }
+.try {
+  display: grid; grid-template-columns: minmax(0, 1fr); gap: 1px; text-align: left; cursor: pointer;
+  background: var(--ground); border: 1px solid var(--line); border-radius: 6px; padding: 8px 12px;
+}
+.try code { font-size: 13.5px; color: var(--ink); overflow-wrap: anywhere; }
+.try code::before { content: "$ "; color: var(--rust); }
+.try span { font-size: 13.5px; color: var(--muted); }
+.try:hover { border-color: var(--pine); }
+.try.sent { border-color: var(--rust); }
+.tip { font-size: 14.5px; color: var(--muted); }
+.tip kbd { font-size: 12px; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 0 5px; background: var(--surface); color: var(--ink); }
+
+.callout { border-radius: 8px; padding: 12px 14px; font-size: 15px; background: var(--warn-soft); }
+.callout .lbl { display: block; font: 600 11px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--warn); margin-bottom: 6px; }
+
+.challenge { border-radius: 8px; padding: 16px; background: var(--pine-soft); display: flex; flex-direction: column; gap: 10px; }
+.challenge-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.challenge-head .lbl { font: 600 12px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--pine); }
+.pill { font: 600 12px/1 var(--mono); padding: 5px 9px; border-radius: 999px; background: var(--surface); color: var(--muted); border: 1px solid var(--line); }
+.pill.ok { background: var(--ok); color: var(--surface); border-color: var(--ok); }
+.challenge .q { font-weight: 500; }
+.challenge details { font-size: 15px; }
+.challenge summary { cursor: pointer; color: var(--pine); font-weight: 500; width: max-content; }
+.challenge details > div, .challenge details > pre { margin-top: 6px; }
+.challenge pre { margin: 6px 0 0; background: var(--term-bg); color: var(--term-ink); border-radius: 6px; padding: 10px 12px; font-size: 13px; overflow-x: auto; }
+.challenge .why { color: var(--muted); font-size: 14.5px; }
+.solved-flash { animation: flash .9s ease-out; }
+@keyframes flash { from { box-shadow: 0 0 0 4px var(--ok); } to { box-shadow: 0 0 0 0 transparent; } }
+
+.pager { display: flex; justify-content: space-between; gap: 10px; }
+.btn {
+  border: 1px solid var(--line); background: var(--surface); padding: 8px 14px; border-radius: 6px; cursor: pointer; font-size: 14.5px;
+}
+.btn:hover { border-color: var(--pine); }
+.btn.primary { background: var(--pine); color: var(--on-pine); border-color: var(--pine); }
+.btn[disabled] { opacity: .4; cursor: default; }
+
+/* ---------- terminal ---------- */
+.term {
+  position: sticky; top: calc(env(safe-area-inset-top, 0px) + 16px);
+  height: min(780px, calc(100vh - 32px)); min-height: 420px;
+  display: flex; flex-direction: column; background: var(--term-bg); border-radius: 10px; overflow: hidden;
+  border: 1px solid var(--term-line); color: var(--term-ink);
+}
+.term:focus-within { border-color: var(--term-prompt); }
+.term-bar {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 10px 8px 14px;
+  background: var(--term-bar); border-bottom: 1px solid var(--term-line); font: 12.5px/1.2 var(--mono); color: var(--term-dim);
+}
+.term-bar .title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.term-bar .title b { color: var(--term-ink); font-weight: 600; }
+.term-actions { display: flex; gap: 6px; flex-shrink: 0; }
+.term-actions button {
+  background: transparent; border: 1px solid var(--term-line); color: var(--term-ink); border-radius: 5px;
+  padding: 4px 9px; font: 12px/1.2 var(--mono); cursor: pointer;
+}
+.term-actions button:hover { border-color: var(--term-dim); }
+.term-actions button.confirm { border-color: var(--term-err); color: var(--term-err); }
+.term-screen { flex: 1; overflow-y: auto; padding: 12px 16px 16px; font: 13.5px/1.55 var(--mono); cursor: text; }
+#term-out > div { white-space: pre-wrap; overflow-wrap: anywhere; min-height: 1.55em; }
+.term-line { display: flex; align-items: baseline; gap: 0; }
+.term-line input {
+  flex: 1; min-width: 0; background: transparent; border: 0; outline: none; color: var(--term-ink);
+  font: inherit; padding: 0; caret-color: var(--term-prompt);
+}
+.p-user { color: var(--term-prompt); }
+.p-path { color: var(--term-path); }
+.p-sign { color: var(--term-dim); margin-right: .6ch; }
+.t-err { color: var(--term-err); }
+.t-note { color: var(--term-dim); font-style: italic; }
+.t-dim { color: var(--term-dim); }
+.t-dir { color: var(--term-path); font-weight: 600; }
+.t-gz { color: #D98FD0; }
+.t-x { color: var(--nA); font-weight: 600; }
+.t-hdr { color: var(--term-prompt); }
+.t-fn { color: #C39BE0; }
+.t-num { color: var(--nA); }
+.t-win { color: var(--nA); }
+#term-out mark { background: var(--term-mark); color: #FFD9C2; border-radius: 2px; }
+.nA { color: var(--nA); } .nC { color: var(--nC); } .nG { color: var(--nG); } .nT { color: var(--nT); }
+.term-screen::-webkit-scrollbar { width: 10px; }
+.term-screen::-webkit-scrollbar-thumb { background: var(--term-line); border-radius: 5px; }
+
+/* ---------- reference ---------- */
+.ref { display: flex; flex-direction: column; gap: 18px; }
+.ref-head { display: flex; justify-content: space-between; align-items: end; gap: 16px; flex-wrap: wrap; }
+.ref h2 { font-family: var(--display); font-weight: 800; font-size: clamp(1.6rem, 3vw, 2.1rem); letter-spacing: -0.02em; margin: 0; color: var(--pine); }
+.ref-head p { margin: 4px 0 0; color: var(--muted); }
+.filter {
+  width: min(320px, 100%); padding: 9px 12px; border: 1px solid var(--line); border-radius: 6px;
+  background: var(--surface); color: var(--ink); font: 15px var(--body);
+}
+.groups { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 14px; }
+.group { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; }
+.group h3 { font: 600 12px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--rust); margin: 0 0 10px; }
+.group dl { margin: 0; display: flex; flex-direction: column; gap: 10px; }
+.group dt code { font-size: 13px; color: var(--ink); overflow-wrap: anywhere; }
+.group dd { margin: 2px 0 0; font-size: 14px; color: var(--muted); }
+.empty { color: var(--muted); }
+
+.files-wrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }
+table.files { border-collapse: collapse; width: 100%; font-size: 14.5px; min-width: 560px; }
+table.files th, table.files td { text-align: left; padding: 9px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+table.files tr:last-child td { border-bottom: 0; }
+table.files th { font: 600 11px/1 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+table.files td:first-child code { background: none; padding: 0; color: var(--pine); font-weight: 600; }
+footer { color: var(--muted); font-size: 14px; border-top: 1px solid var(--line); padding-top: 16px; }
+
+@media (max-width: 1000px) {
+  .lab { grid-template-columns: minmax(0, 1fr); }
+  .term { position: static; height: 72vh; }
+}
+@media (max-width: 640px) {
+  .top { grid-template-columns: minmax(0, 1fr); }
+  .progress { align-items: flex-start; }
+  .term-screen { font-size: 12.5px; padding-inline: 12px; }
+  .term-actions button { padding: 4px 7px; }
+}
+@media (prefers-reduced-motion: reduce) { .solved-flash { animation: none; } }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div>
+      <p class="eyebrow">BIO116 · Unix for bioinformatics</p>
+      <h1>Shell Lab</h1>
+      <p class="lede">Eight short lessons on the command line, each with a challenge. The terminal on the right is a practice shell loaded with FASTA, FASTQ, GFF and VCF files. Type freely: nothing you do here can break a real computer.</p>
+    </div>
+    <div class="progress" aria-live="polite">
+      <span class="progress-label"><strong id="solved-count">0</strong> of <span id="lesson-total">8</span> challenges solved</span>
+      <div class="segs" id="segs"></div>
+    </div>
+    <div class="codons" id="codons" aria-hidden="true"></div>
+  </header>
+
+  <main class="lab">
+    <div class="left">
+      <nav class="chips" id="chips" aria-label="Lessons"></nav>
+      <article class="lesson" id="lesson"></article>
+    </div>
+
+    <section class="term" aria-label="Practice terminal">
+      <div class="term-bar">
+        <span class="title" id="term-title"></span>
+        <div class="term-actions">
+          <button type="button" id="btn-clear">Clear</button>
+          <button type="button" id="btn-reset">Reset files</button>
+        </div>
+      </div>
+      <div class="term-screen" id="term-screen">
+        <div id="term-out" role="log"></div>
+        <label class="term-line" for="term-input">
+          <span id="term-prompt"></span>
+          <input id="term-input" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="go" aria-label="Type a command">
+        </label>
+      </div>
+    </section>
+  </main>
+
+  <section class="ref" id="reference">
+    <div class="ref-head">
+      <div>
+        <h2>Command reference</h2>
+        <p>Everything here works in the practice terminal. Type <code>man grep</code> there for the same notes.</p>
+      </div>
+      <input class="filter" id="ref-filter" type="search" placeholder="Filter: sort, count, columns…" aria-label="Filter commands">
+    </div>
+    <div class="groups" id="groups"></div>
+  </section>
+
+  <section class="ref">
+    <div class="ref-head">
+      <div>
+        <h2>The files in ~/data</h2>
+        <p>Small on purpose, so you can check every answer by eye. The formats are the real ones.</p>
+      </div>
+    </div>
+    <div class="files-wrap">
+      <table class="files">
+        <thead><tr><th>File</th><th>Format</th><th>What is in it</th></tr></thead>
+        <tbody>
+          <tr><td><code>sequences.fasta</code></td><td>FASTA</td><td>6 nucleotide sequences (human, mouse, SARS-CoV-2), wrapped at 60 bases per line</td></tr>
+          <tr><td><code>primers.fasta</code></td><td>FASTA</td><td>3 PCR primers for 16S rRNA and fungal ITS</td></tr>
+          <tr><td><code>reads.fastq</code></td><td>FASTQ</td><td>10 Illumina reads, 4 lines each; 3 end in adapter sequence <code>AGATCGGAAGAGC</code></td></tr>
+          <tr><td><code>SRR1039509.fastq.gz</code></td><td>FASTQ, gzip</td><td>3 more reads, compressed. Read it with <code>zcat</code></td></tr>
+          <tr><td><code>genes.gff</code></td><td>GFF3</td><td>22 gene, exon and CDS features on chr1, chr2, chr17 and chrX</td></tr>
+          <tr><td><code>variants.vcf</code></td><td>VCF 4.2</td><td>13 variant calls with QUAL scores and PASS / LowQual filters</td></tr>
+          <tr><td><code>samples.tsv</code></td><td>TSV</td><td>Sample sheet for 6 RNA-seq libraries: condition, tissue, replicate, read count</td></tr>
+          <tr><td><code>triplets.txt</code></td><td>Text</td><td>Codon triplets from this course's <code>triplets.txt</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer>Everything runs in your browser. Files you create are kept on this device between visits; <b>Reset files</b> restores the originals. The practice shell covers the everyday subset of bash and GNU tools, so a few rarely used options are missing.</footer>
+</div>
+
+<script>
+(() => {
+'use strict';
+
+/* =====================================================================
+   Sample data
+   ===================================================================== */
+const HOME = '/home/student';
+const T = s => s.replace(/\|/g, '\t');
+const BASE_TIME = new Date(2026, 8, 22, 9, 14).getTime();
+
+const SEQUENCES = `>NM_007294.4 BRCA1 Homo sapiens
+ATGTGTACATTATCGATTAGGGCGCCTGACGCAATCTGACCCCACGGCGCCTGATTCATA
+CTGCGAGCTATCTACACATTCGACCTGCTGGAAACGGTCGGAGAGTACGCTCTGCGTCCC
+GTTTACATGTAGCGATGATTGGGCTTCCAAGCCGCACTTATAGTGGCGTCATATGTACTT
+>NM_000546.6 TP53 Homo sapiens
+ATGGAAAAACGGCATGCACCAGCATCTCTGTGGTTGTATCTGTGCCGAATTCCGGCTCCT
+AGTAGTCCCATTACATTCTACTACTTGAACTTAGTCCTCCTCGGTGACCTGCCATATGGA
+TGCTTTATCGGCTGATCATAAGTAGACGTA
+>NM_001126.5 ADSS Homo sapiens
+ATGCGCAAGCAGGCTCACATTAGAACGCGAGTGCTATTAAGTTACAGTTATTTCGTGTTT
+TTATAGCAATCCTTACGGGATGAAGGCAGCCCATAG
+>XM_011518912 MYC Mus musculus
+ATGCGCCGGGCCCACGCGAGCTTGATGTGTGTGCGCGGATGCCGAACGATCAGGAGCCAC
+GCCATCCCGTGGACACAGCGAACCGGTGAGCCGCCCGTCCCAGCATCGCTGGAAGCAGGC
+GCCCGCTGCATT
+>NR_003286.4 RNA18S Homo sapiens
+ATGAGTCGGGTTCAGTCCGTGCTCCTCCACCCCCACTATGCGCCATCAGATTTAACCAAT
+TTTTTTTCGATGATC
+>NC_045512.2 ORF1ab SARS-CoV-2
+ATGTTCCTCCCCATCTTGAAATTGACAATTGCTCCGTGCATATGTCCTTTATAAGATGTA
+TCAATGAGAAAATGTACCGGAGATGTAGAGACGTTATCAAAAAAGGAAATAGAAATAGTG
+CATTTGACAATGCATTCGAG
+`;
+
+const PRIMERS = `>16S_27F
+AGAGTTTGATCCTGGCTCAG
+>16S_1492R
+GGTTACCTTGTTACGACTT
+>ITS1F
+CTTGGTCATTTAGAGGAAGTAA
+`;
+
+const READS = `@SRR1039508.1 HWI-ST177:290:C0TECACXX:1:1101:7001:173950
+TCAGCCGTATCACTGCGGATATGGATATCATCGACA
++
+IIIIIFGIHHGFGFHHHHIIDE;FEDE5;D@8?5?F
+@SRR1039508.2 HWI-ST177:290:C0TECACXX:1:1101:9547:145823
+ATTCCGCTTTCCAGCTTGACGAGGTACGACAACATT
++
+IIFIHIIIHHIHGFIFIFGIFFD#8#DE5@?5F5EF
+@SRR1039508.3 HWI-ST177:290:C0TECACXX:1:1101:7398:105883
+CTCTAGGGGGTTCTGCTCTCGAAAGATCGGAAGAGC
++
+IHHIGIGHHFFGFIFIIGIHD#F?@FD5D#5E;F#;
+@SRR1039508.4 HWI-ST177:290:C0TECACXX:1:1101:1448:98736
+GAATCCGTGCTACTGCACCCCTGTCCCGATGTGGCC
++
+IHIGIFFGHIIHGIHGIIIG@@8F@FDFD8F;D5;8
+@SRR1039508.5 HWI-ST177:290:C0TECACXX:1:1101:18746:103387
+TACGGTGCAACGCTGTTGTTTTCATGTCACTGAATC
++
+HIHIHGIIHHIIIIIGIIIH@@DDDD?;?D#E585D
+@SRR1039508.6 HWI-ST177:290:C0TECACXX:1:1101:11289:95434
+GAGAGTAGAAGACGGCGATTATCAGATCGGAAGAGC
++
+HIHHIIIGGIFIIHHIIFII8DDD;FFEE##F#;E?
+@SRR1039508.7 HWI-ST177:290:C0TECACXX:1:1101:12800:96046
+TGGCGGTCACTCCCACTTGCCGCTAACTAGTCAGTG
++
+HIHFGGGGGGIIIHHIGGHI5EDDFF#F5DD;#DE#
+@SRR1039508.8 HWI-ST177:290:C0TECACXX:1:1101:7918:145098
+TTACCATGATGTACGTACCGTAGGGACGTGCATAGG
++
+IGIIHGIHHIFIFIGIIHGIDF#D5DDF@E?E?F#F
+@SRR1039508.9 HWI-ST177:290:C0TECACXX:1:1101:17986:150823
+CGTTATAAATGAGTGCGACCGGCAGATCGGAAGAGC
++
+GHHGIFGGHIIIIGIGIGGI#FDFD#D#8;ED##DD
+@SRR1039508.10 HWI-ST177:290:C0TECACXX:1:1101:10927:183502
+AGGTATTATTCTTGCTTGGAGGCAGAATAAGAGTCT
++
+FHHHHIIHGFGHIGIHHIGIDF@DFDF58D#F##EF
+`;
+
+const READS_GZ = `@SRR1039509.1 HWI-ST177:290:C0TECACXX:2:1101:4412:10233
+GGCTTACGATCGTTAGCCATGACCTGAAGTCCATGC
++
+IIIIHHGIFIHHGIIGIHFF@DD5;F?FD#E;DD85
+@SRR1039509.2 HWI-ST177:290:C0TECACXX:2:1101:5120:18874
+TTGACCATGGCAGTTACGCAGATCGGAAGAGCACAC
++
+IHGIIHFGGIHIIHGIIFGH#D@F5DE;F8D#?#DF
+@SRR1039509.3 HWI-ST177:290:C0TECACXX:2:1101:6003:22910
+CAGGTACCATGTTGCACGGACTTAGCCTAGGATCCA
++
+HHIIGIFHIIGHGIHIIHGF@FDD;?E5D#F8DDE;
+`;
+
+const GFF = T(`##gff-version 3
+chr1|RefSeq|gene|11874|14409|.|+|.|ID=gene0001;Name=DDX11L1
+chr1|RefSeq|exon|11874|12227|.|+|.|Parent=gene0001
+chr1|RefSeq|exon|12613|12721|.|+|.|Parent=gene0001
+chr1|RefSeq|exon|13221|14409|.|+|.|Parent=gene0001
+chr1|RefSeq|gene|65419|71585|.|+|.|ID=gene0002;Name=OR4F5
+chr1|RefSeq|CDS|65565|65573|.|+|0|Parent=gene0002
+chr1|RefSeq|CDS|69037|70008|.|+|0|Parent=gene0002
+chr2|RefSeq|gene|38814|46870|.|-|.|ID=gene0003;Name=FAM110C
+chr2|RefSeq|exon|38814|41627|.|-|.|Parent=gene0003
+chr2|RefSeq|exon|45440|46870|.|-|.|Parent=gene0003
+chr2|RefSeq|CDS|39957|41627|.|-|0|Parent=gene0003
+chr17|RefSeq|gene|43044295|43125483|.|-|.|ID=gene0004;Name=BRCA1
+chr17|RefSeq|exon|43044295|43045802|.|-|.|Parent=gene0004
+chr17|RefSeq|exon|43047643|43047703|.|-|.|Parent=gene0004
+chr17|RefSeq|exon|43049121|43049194|.|-|.|Parent=gene0004
+chr17|RefSeq|CDS|43045678|43045802|.|-|2|Parent=gene0004
+chr17|RefSeq|gene|7661779|7687538|.|-|.|ID=gene0005;Name=TP53
+chr17|RefSeq|exon|7661779|7662014|.|-|.|Parent=gene0005
+chr17|RefSeq|exon|7668402|7669690|.|-|.|Parent=gene0005
+chr17|RefSeq|CDS|7669609|7669690|.|-|0|Parent=gene0005
+chrX|RefSeq|gene|73820651|73852753|.|-|.|ID=gene0006;Name=XIST
+chrX|RefSeq|exon|73820651|73827984|.|-|.|Parent=gene0006
+`);
+
+const VCF = T(`##fileformat=VCFv4.2
+##source=GATK HaplotypeCaller
+##reference=GRCh38
+##INFO=<ID=DP,Number=1,Type=Integer,Description="Total read depth">
+##FILTER=<ID=LowQual,Description="Low quality call">
+#CHROM|POS|ID|REF|ALT|QUAL|FILTER|INFO
+chr1|14653|rs62635297|C|T|88.4|PASS|DP=41
+chr1|69511|rs2691305|A|G|1234.7|PASS|DP=210
+chr1|183629|.|G|A|22.1|LowQual|DP=6
+chr2|41210|rs1139840|T|C|64.0|PASS|DP=33
+chr2|45781|.|A|AT|18.3|LowQual|DP=4
+chr17|7661960|rs1042522|G|C|512.9|PASS|DP=150
+chr17|7668640|.|C|T|47.2|PASS|DP=19
+chr17|43044391|rs1799966|T|C|301.5|PASS|DP=97
+chr17|43045712|rs16941|A|G|29.8|LowQual|DP=11
+chr17|43049150|.|CTT|C|55.0|PASS|DP=25
+chr17|43091983|rs799917|C|T|49.9|PASS|DP=22
+chrX|73826200|.|G|T|12.6|LowQual|DP=3
+chrX|73841382|rs2014|A|G|150.2|PASS|DP=58
+`);
+
+const SAMPLES = T(`sample_id|condition|tissue|replicate|reads_millions
+SRR1039508|control|airway|1|22.9
+SRR1039509|dexamethasone|airway|1|21.8
+SRR1039512|control|airway|2|28.1
+SRR1039513|dexamethasone|airway|2|15.2
+SRR1039516|control|airway|3|30.4
+SRR1039517|dexamethasone|airway|3|25.3
+`);
+
+const TRIPLETS = `start 1
+CCA  CCC  CGA  GCC  TAG  AGA  AGG  CTC  CTA  GCT  TGG  CTG  GGC  CTC  ATG  GGG  CCC  TTG  TCT  GCT
+
+TAG  TTC  CAG  CCT  GGA  GGG  CCT  CAC  GCT  CCC  CTC  CCC  CAG  CCT  TGG  CTC  GAC  CCC  CTC  TGC
+
+TTC  GTA  GGA  CAC  CCT  CCC  TGT  GTT  TCT  GCC  CAT  CCT  CAG  GGT  CCA  TGC  AGG  GAG  TGC  TGG
+
+CTT  CAG  GCC  TCC  CCA  CCT  GAG  GCC  CAC  AGG  GGC  TGT  GAG  CCT  GGG  GTG  CCG  GGC  CAG  CTG
+
+CCG  GTG  GCT  GTG  GGG  CTC  CCG  GCA  CTG  CCT  CAA  GCT  GTG  GGC  TAT  GGG  TCC  TTC  TCC  ACC
+
+TGA  TGG  TCT  CTG  AGC  CTG  GGG  TCC  AGG  ATC  AAG  TCC  CAG  GCC  TTC  CCC  TAC  CCC  AGC  CCT
+
+GTG  CCA  GCC  GAG  CCC  CTT  CAC  CTG  CAG  GCA  GCT  GCC  CTC  TCC  TGC  TGT  GGG  TCA  AAC  ATC
+
+CAG  GCA  AGG  AGG  TGG  CAT  GTA  CCC  TCA  GGC  AGT  ACC  TGC  AAG  AGT  CAG  AGT  GGC  TTC  CTG
+
+GCC  AGG  TTA  CTG  TGC  CCA  TGG  GAG  CCT  GGA  ATG  GGC  CAG  GCT  GAG  GTC  ACA  GCA  CCT  AGA
+`;
+
+const README = `Welcome to the Bio116 practice shell.
+
+  data/      input files (FASTA, FASTQ, GFF, VCF, a sample sheet)
+  results/   put your outputs here
+  scripts/   shell scripts
+
+Tip: press Tab to complete file names, and the up arrow to repeat commands.
+`;
+
+const COUNT_SCRIPT = `#!/bin/bash
+# Count the sequences in every FASTA file in data/
+for f in data/*.fasta; do
+  echo "$f"
+  grep -c '>' "$f"
+done
+`;
+
+function mkFile(t, extra) { return Object.assign({ f: 1, t, m: BASE_TIME }, extra || {}); }
+function mkDir(c) { return { d: 1, c: c || {}, m: BASE_TIME }; }
+function freshFs() {
+  return mkDir({
+    home: mkDir({
+      student: mkDir({
+        'README.txt': mkFile(README),
+        data: mkDir({
+          'sequences.fasta': mkFile(SEQUENCES),
+          'primers.fasta': mkFile(PRIMERS),
+          'reads.fastq': mkFile(READS),
+          'SRR1039509.fastq.gz': mkFile(READS_GZ, { gz: 1 }),
+          'genes.gff': mkFile(GFF),
+          'variants.vcf': mkFile(VCF),
+          'samples.tsv': mkFile(SAMPLES),
+          'triplets.txt': mkFile(TRIPLETS)
+        }),
+        results: mkDir({}),
+        scripts: mkDir({ 'count_seqs.sh': mkFile(COUNT_SCRIPT, { x: 1 }) })
+      })
+    }),
+    tmp: mkDir({}),
+    dev: mkDir({ null: mkFile('') })
+  });
+}
+
+/* =====================================================================
+   Storage
+   ===================================================================== */
+const K_FS = 'bio116-shell-fs-v1', K_PROG = 'bio116-shell-progress-v1';
+const store = {
+  get(k) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : null; } catch (e) { return null; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* storage unavailable */ } },
+  del(k) { try { localStorage.removeItem(k); } catch (e) { /* storage unavailable */ } }
+};
+
+/* =====================================================================
+   Shell state and filesystem helpers
+   ===================================================================== */
+class ShErr extends Error {}
+const saved = store.get(K_FS);
+let fs = saved && saved.fs && saved.fs.d ? saved.fs : freshFs();
+const sh = {
+  cwd: saved && typeof saved.cwd === 'string' ? saved.cwd : HOME,
+  oldcwd: HOME,
+  env: { HOME, USER: 'student', SHELL: '/bin/bash', PATH: '/usr/local/bin:/usr/bin:/bin' },
+  history: (saved && Array.isArray(saved.history)) ? saved.history.slice(-200) : [],
+  code: 0
+};
+function persist() { store.set(K_FS, { fs, cwd: sh.cwd, history: sh.history.slice(-200) }); }
+
+const hasOwn = (o, k) => Object.prototype.hasOwnProperty.call(o, k);
+function norm(p) {
+  if (p === '~' || p.startsWith('~/')) p = HOME + p.slice(1);
+  if (!p.startsWith('/')) p = sh.cwd + '/' + p;
+  const out = [];
+  for (const s of p.split('/')) {
+    if (!s || s === '.') continue;
+    if (s === '..') out.pop(); else out.push(s);
+  }
+  return '/' + out.join('/');
+}
+function getNode(abs) {
+  let n = fs;
+  if (abs === '/') return n;
+  for (const s of abs.slice(1).split('/')) {
+    if (!n.d || !hasOwn(n.c, s)) return null;
+    n = n.c[s];
+  }
+  return n;
+}
+function splitPath(abs) { const i = abs.lastIndexOf('/'); return [abs.slice(0, i) || '/', abs.slice(i + 1)]; }
+function pretty(abs) { return abs === HOME ? '~' : abs.startsWith(HOME + '/') ? '~' + abs.slice(HOME.length) : abs; }
+function baseName(p) { const s = p.replace(/\/+$/, ''); return s.slice(s.lastIndexOf('/') + 1); }
+function clone(n) { return JSON.parse(JSON.stringify(n)); }
+function writeFile(path, text, append, cmd) {
+  const abs = norm(path);
+  if (abs === '/dev/null') return;
+  const [pd, name] = splitPath(abs);
+  const parent = getNode(pd);
+  if (!parent || !parent.d) throw new ShErr(`${cmd || 'bash'}: ${path}: No such file or directory`);
+  const ex = parent.c[name];
+  if (ex && ex.d) throw new ShErr(`${cmd || 'bash'}: ${path}: Is a directory`);
+  if (ex && append) { ex.t = (ex.gz ? '' : ex.t) + text; ex.gz = 0; ex.m = Date.now(); }
+  else parent.c[name] = mkFile(text, { m: Date.now(), x: ex && ex.x ? 1 : 0 });
+}
+function readText(path, cmd) {
+  if (path === '-') return { name: '-', text: '' };
+  const n = getNode(norm(path));
+  if (!n) throw new ShErr(`${cmd}: ${path}: No such file or directory`);
+  if (n.d) throw new ShErr(`${cmd}: ${path}: Is a directory`);
+  return { name: path, text: n.t, gz: !!n.gz };
+}
+const GZ_NOISE = '\u001f\u008b\u0008\u0008Â¤\u0000\u0003SRR1039509.fastq\u0000¥ÒËnÜ0\u0010¼ó+ö´¢ýÉ£\n';
+// Resolve file operands (or standard input when there are none) for a text command.
+function inputs(files, stdin, cmd, errs) {
+  if (!files.length) return [{ name: '(standard input)', text: stdin }];
+  const res = [];
+  for (const f of files) {
+    if (f === '-') { res.push({ name: '(standard input)', text: stdin }); continue; }
+    try {
+      const r = readText(f, cmd);
+      if (r.gz) {
+        errs.push({ note: `${cmd}: ${f} is gzip-compressed, so this is binary noise. Use  zcat ${f}  to read it.` });
+        res.push({ name: f, text: GZ_NOISE, gz: true });
+      } else res.push(r);
+    } catch (e) { errs.push(e.message); }
+  }
+  return res;
+}
+function lines(text) { if (!text) return []; const a = text.split('\n'); if (a[a.length - 1] === '') a.pop(); return a; }
+function joinOut(arr) { return arr.length ? arr.join('\n') + '\n' : ''; }
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const escRe = s => s.replace(/[.*+?^${}()|[\]\\\/]/g, '\\$&');
+const last = a => a && a.length ? a[a.length - 1] : undefined;
+function unesc(s) { return s.replace(/\\(n|t|\\|r|a|0)/g, (m, c) => ({ n: '\n', t: '\t', '\\': '\\', r: '\r', a: '', 0: '' }[c])); }
+
+// POSIX option parsing: combined flags (-vc), attached or separate values (-n5, -n 5), "--".
+function getopt(args, flags, argFlags, cmd) {
+  const o = {}, rest = [];
+  for (let i = 0; i < args.length; i++) {
+    const a = args[i];
+    if (a === '--') { rest.push(...args.slice(i + 1)); break; }
+    if (a.startsWith('--') && a.length > 2) {
+      const [k, v] = a.slice(2).split('=');
+      o[k] = v === undefined ? true : v;
+      continue;
+    }
+    if (a.length > 1 && a[0] === '-' && !/^-\d/.test(a)) {
+      for (let j = 1; j < a.length; j++) {
+        const ch = a[j];
+        if (argFlags.includes(ch)) {
+          let v = a.slice(j + 1);
+          if (!v) { v = args[++i]; if (v === undefined) throw new ShErr(`${cmd}: option requires an argument -- '${ch}'`); }
+          (o[ch] = Array.isArray(o[ch]) ? o[ch] : []).push(v);
+          break;
+        }
+        if (!flags.includes(ch)) throw new ShErr(`${cmd}: invalid option -- '${ch}'\nTry  man ${cmd}  for the options this shell supports.`);
+        o[ch] = (o[ch] || 0) + 1;
+      }
+      continue;
+    }
+    rest.push(a);
+  }
+  return { o, rest };
+}
+
+function posixClasses(p) {
+  const map = { digit: '0-9', alpha: 'A-Za-z', alnum: 'A-Za-z0-9', upper: 'A-Z', lower: 'a-z', space: '\\s', blank: ' \\t', punct: '!-\\/:-@\\[-`{-~' };
+  return p.replace(/\[:(\w+):\]/g, (m, c) => map[c] || m);
+}
+// Basic (BRE) regex to JS: \| \+ \? \( \) \{ \} are operators, bare ones are literals.
+function breToJs(p) {
+  let out = '', inBr = false;
+  for (let i = 0; i < p.length; i++) {
+    const c = p[i];
+    if (inBr) { out += c; if (c === ']' && p[i - 1] !== '[' && p[i - 1] !== '^') inBr = false; continue; }
+    if (c === '[') { inBr = true; out += c; continue; }
+    if (c === '\\' && i + 1 < p.length) {
+      const n = p[++i];
+      out += '|+?(){}'.includes(n) ? n : '\\' + n;
+      continue;
+    }
+    out += '|+?(){}'.includes(c) ? '\\' + c : c;
+  }
+  return out;
+}
+function mkRegex(src, ere, flags, cmd) {
+  try { return new RegExp(ere ? posixClasses(src) : breToJs(posixClasses(src)), flags); }
+  catch (e) { throw new ShErr(`${cmd}: invalid regular expression: ${src}`); }
+}
+function globRe(g, ci) {
+  let s = '';
+  for (let i = 0; i < g.length; i++) {
+    const c = g[i];
+    if (c === '*') s += '.*';
+    else if (c === '?') s += '.';
+    else if (c === '[') { const j = g.indexOf(']', i + 1); if (j > i) { s += '[' + g.slice(i + 1, j).replace(/^!/, '^') + ']'; i = j; } else s += '\\['; }
+    else s += escRe(c);
+  }
+  return new RegExp('^' + s + '$', ci ? 'i' : '');
+}
+
+/* =====================================================================
+   Number formatting shared by awk and printf
+   ===================================================================== */
+const NUM_RE = /^\s*[-+]?(\d+\.?\d*|\.\d+)([eE][-+]?\d+)?\s*$/;
+function toNum(v) {
+  if (v === undefined) return 0;
+  if (typeof v === 'number') return v;
+  const m = String(v).match(/^\s*[-+]?(\d+\.?\d*|\.\d+)([eE][-+]?\d+)?/);
+  return m ? parseFloat(m[0]) : 0;
+}
+function fmtNum(n) {
+  if (Number.isNaN(n)) return 'nan';
+  if (!Number.isFinite(n)) return n > 0 ? 'inf' : '-inf';
+  if (Number.isInteger(n) && Math.abs(n) < 1e16) return String(n);
+  return fmtG(n, 6);
+}
+function fmtG(n, p) {
+  if (n === 0) return '0';
+  const e = Math.floor(Math.log10(Math.abs(n)));
+  if (e < -4 || e >= p) {
+    let s = n.toExponential(Math.max(0, p - 1)).replace(/\.?0+e/, 'e');
+    return s.replace(/e([+-])(\d)$/, 'e$10$2');
+  }
+  return String(parseFloat(n.toFixed(Math.max(0, p - 1 - e))));
+}
+function toStr(v) { return v === undefined ? '' : typeof v === 'number' ? fmtNum(v) : String(v); }
+function looksNum(v) { return v === undefined || typeof v === 'number' || NUM_RE.test(v); }
+function sprintf(fmt, vals) {
+  let k = 0;
+  const s = fmt.replace(/%([-+ 0#]*)(\*|\d+)?(?:\.(\*|\d+))?([sdiouxXeEfgGc%])/g, (m, fl, w, p, conv) => {
+    if (conv === '%') return '%';
+    if (w === '*') w = String(Math.trunc(toNum(vals[k++])));
+    if (p === '*') p = String(Math.trunc(toNum(vals[k++])));
+    const v = vals[k++];
+    let out;
+    const n = toNum(v);
+    switch (conv) {
+      case 's': out = toStr(v); if (p !== undefined) out = out.slice(0, +p); break;
+      case 'd': case 'i': out = String(Math.trunc(n)); break;
+      case 'o': out = Math.trunc(n).toString(8); break;
+      case 'x': out = Math.trunc(n).toString(16); break;
+      case 'X': out = Math.trunc(n).toString(16).toUpperCase(); break;
+      case 'f': out = n.toFixed(p === undefined ? 6 : +p); break;
+      case 'e': case 'E': out = n.toExponential(p === undefined ? 6 : +p).replace(/e([+-])(\d)$/, 'e$10$2'); if (conv === 'E') out = out.toUpperCase(); break;
+      case 'g': case 'G': out = fmtG(n, p === undefined ? 6 : Math.max(1, +p)); if (conv === 'G') out = out.toUpperCase(); break;
+      case 'c': out = typeof v === 'number' ? String.fromCharCode(v) : toStr(v).charAt(0); break;
+      default: out = toStr(v);
+    }
+    if (fl.includes('+') && /[dife]/i.test(conv) && n >= 0) out = '+' + out;
+    if (w) {
+      const width = +w;
+      if (fl.includes('-')) out = out.padEnd(width);
+      else if (fl.includes('0') && conv !== 's' && conv !== 'c') {
+        const neg = /^[-+]/.test(out) ? out[0] : '';
+        out = neg + out.slice(neg.length).padStart(width - neg.length, '0');
+      } else out = out.padStart(width);
+    }
+    return out;
+  });
+  return { s, used: k };
+}
+
+/* =====================================================================
+   awk: lexer, parser, interpreter (the everyday subset)
+   ===================================================================== */
+const AWK_KW = new Set(['BEGIN', 'END', 'print', 'printf', 'if', 'else', 'for', 'in', 'while', 'do', 'next', 'exit', 'delete', 'getline', 'function', 'return']);
+const AWK_FN = new Set(['length', 'substr', 'index', 'split', 'sub', 'gsub', 'match', 'tolower', 'toupper', 'int', 'sqrt', 'log', 'exp', 'sprintf', 'rand', 'srand']);
+function awkLex(src) {
+  const toks = [];
+  let i = 0;
+  const operandEnd = () => {
+    const t = toks[toks.length - 1];
+    return !!t && (t.k === 'num' || t.k === 'str' || t.k === 'name' || (t.k === 'op' && (t.v === ')' || t.v === ']')));
+  };
+  const two = ['+=', '-=', '*=', '/=', '%=', '^=', '++', '--', '==', '!=', '<=', '>=', '&&', '||', '!~', '**', '>>'];
+  while (i < src.length) {
+    const c = src[i];
+    if (c === ' ' || c === '\t' || c === '\r') { i++; continue; }
+    if (c === '\\' && src[i + 1] === '\n') { i += 2; continue; }
+    if (c === '\n') { toks.push({ k: 'nl' }); i++; continue; }
+    if (c === '#') { while (i < src.length && src[i] !== '\n') i++; continue; }
+    if (/\d/.test(c) || (c === '.' && /\d/.test(src[i + 1] || ''))) {
+      const m = src.slice(i).match(/^(\d+\.?\d*|\.\d+)([eE][-+]?\d+)?/);
+      toks.push({ k: 'num', v: parseFloat(m[0]) }); i += m[0].length; continue;
+    }
+    if (c === '"') {
+      let s = ''; i++;
+      while (i < src.length && src[i] !== '"') {
+        if (src[i] === '\\' && i + 1 < src.length) {
+          const n = src[i + 1];
+          s += ({ n: '\n', t: '\t', '"': '"', '\\': '\\', '/': '/', r: '\r' })[n] ?? ('\\' + n);
+          i += 2;
+        } else s += src[i++];
+      }
+      if (src[i] !== '"') throw new ShErr('awk: unterminated string');
+      i++; toks.push({ k: 'str', v: s }); continue;
+    }
+    if (c === '/' && !operandEnd()) {
+      let s = ''; i++; let br = false;
+      while (i < src.length && (src[i] !== '/' || br)) {
+        if (src[i] === '\\' && i + 1 < src.length) { s += src[i + 1] === '/' ? '/' : src[i] + src[i + 1]; i += 2; continue; }
+        if (src[i] === '[') br = true; else if (src[i] === ']') br = false;
+        s += src[i++];
+      }
+      if (src[i] !== '/') throw new ShErr('awk: unterminated regular expression');
+      i++;
+      let re;
+      try { re = new RegExp(posixClasses(s)); } catch (e) { throw new ShErr(`awk: bad regular expression /${s}/`); }
+      toks.push({ k: 're', v: re }); continue;
+    }
+    if (/[A-Za-z_]/.test(c)) {
+      const m = src.slice(i).match(/^[A-Za-z_]\w*/)[0];
+      i += m.length;
+      toks.push(AWK_KW.has(m) ? { k: 'kw', v: m } : { k: 'name', v: m });
+      continue;
+    }
+    const d = src.slice(i, i + 2);
+    if (two.includes(d)) { toks.push({ k: 'op', v: d }); i += 2; continue; }
+    if ('{}()[];,<>=!~+-*/%^?:$|'.includes(c)) { toks.push({ k: 'op', v: c }); i++; continue; }
+    throw new ShErr(`awk: syntax error at '${c}'`);
+  }
+  return toks;
+}
+
+class AwkParser {
+  constructor(toks) { this.t = toks; this.p = 0; this.noGT = false; }
+  peek(o = 0) { return this.t[this.p + o]; }
+  next() { return this.t[this.p++]; }
+  isOp(v, o = 0) { const t = this.peek(o); return !!t && t.k === 'op' && t.v === v; }
+  isKw(v) { const t = this.peek(); return !!t && t.k === 'kw' && t.v === v; }
+  expect(v) {
+    const t = this.next();
+    if (!t || t.k !== 'op' || t.v !== v) throw new ShErr(`awk: syntax error: expected '${v}'${t ? ' near ' + this.show(t) : ' at end of program'}`);
+  }
+  show(t) { return t.k === 'nl' ? 'newline' : t.k === 're' ? '/' + t.v.source + '/' : `'${t.v}'`; }
+  skipNl() { while (this.peek() && this.peek().k === 'nl') this.p++; }
+  skipTerms() { while (this.peek() && (this.peek().k === 'nl' || this.isOp(';'))) this.p++; }
+  isTerm() { const t = this.peek(); return !t || t.k === 'nl' || (t.k === 'op' && (t.v === ';' || t.v === '}')); }
+  program() {
+    const items = [];
+    this.skipTerms();
+    while (this.peek()) {
+      if (this.isKw('BEGIN') || this.isKw('END')) {
+        const k = this.next().v; this.skipNl();
+        items.push({ type: k, body: this.block() });
+      } else if (this.isKw('function')) {
+        throw new ShErr('awk: user-defined functions are not supported in this practice shell');
+      } else if (this.isOp('{')) {
+        items.push({ type: 'main', pat: null, body: this.block() });
+      } else {
+        const pat = this.expr();
+        let pat2 = null;
+        if (this.isOp(',')) { this.next(); pat2 = this.expr(); }
+        const body = this.isOp('{') ? this.block() : null;
+        items.push({ type: 'main', pat, pat2, body, on: false });
+      }
+      this.skipTerms();
+    }
+    return items;
+  }
+  block() {
+    this.expect('{');
+    const list = [];
+    this.skipTerms();
+    while (this.peek() && !this.isOp('}')) { list.push(this.stmt()); this.skipTerms(); }
+    this.expect('}');
+    return list;
+  }
+  body() {
+    this.skipNl();
+    if (this.isOp(';')) { this.next(); return { t: 'block', body: [] }; }
+    return this.stmt();
+  }
+  stmt() {
+    const t = this.peek();
+    if (this.isOp('{')) return { t: 'block', body: this.block() };
+    if (t.k === 'kw') {
+      switch (t.v) {
+        case 'print': case 'printf': {
+          this.next();
+          let args = [];
+          if (!this.isTerm() && !this.isOp('>') && !this.isOp('>>') && !this.isOp('|')) {
+            const save = this.noGT; this.noGT = true;
+            args = this.exprList();
+            this.noGT = save;
+          }
+          if (this.isOp('>') || this.isOp('>>') || this.isOp('|')) throw new ShErr('awk: redirecting output inside awk is not supported here. Redirect the whole command instead:  awk \'...\' file > out.txt');
+          if (args.length === 1 && args[0].t === 'group') args = args[0].list;
+          if (t.v === 'printf' && !args.length) throw new ShErr('awk: printf needs a format string');
+          return { t: t.v, args };
+        }
+        case 'if': {
+          this.next(); this.expect('('); const c = this.expr(); this.expect(')');
+          const a = this.body();
+          let j = this.p;
+          while (this.t[j] && (this.t[j].k === 'nl' || (this.t[j].k === 'op' && this.t[j].v === ';'))) j++;
+          let b = null;
+          if (this.t[j] && this.t[j].k === 'kw' && this.t[j].v === 'else') { this.p = j + 1; b = this.body(); }
+          return { t: 'if', c, a, b };
+        }
+        case 'while': {
+          this.next(); this.expect('('); const c = this.expr(); this.expect(')');
+          return { t: 'while', c, s: this.body() };
+        }
+        case 'for': {
+          this.next(); this.expect('(');
+          if (this.peek().k === 'name' && this.peek(1) && this.peek(1).k === 'kw' && this.peek(1).v === 'in') {
+            const v = this.next().v; this.next();
+            const arr = this.next();
+            if (!arr || arr.k !== 'name') throw new ShErr('awk: syntax error in for (key in array)');
+            this.expect(')');
+            return { t: 'forin', v, arr: arr.v, s: this.body() };
+          }
+          const init = this.isOp(';') ? null : this.expr(); this.expect(';');
+          const c = this.isOp(';') ? null : this.expr(); this.expect(';');
+          const step = this.isOp(')') ? null : this.expr(); this.expect(')');
+          return { t: 'for', init, c, step, s: this.body() };
+        }
+        case 'next': this.next(); return { t: 'next' };
+        case 'exit': this.next(); return { t: 'exit', e: this.isTerm() ? null : this.expr() };
+        case 'delete': {
+          this.next(); const n = this.next();
+          if (!n || n.k !== 'name') throw new ShErr('awk: syntax error after delete');
+          if (this.isOp('[')) { this.next(); const subs = [this.expr()]; while (this.isOp(',')) { this.next(); subs.push(this.expr()); } this.expect(']'); return { t: 'delete', name: n.v, subs }; }
+          return { t: 'delete', name: n.v, subs: null };
+        }
+        case 'getline': throw new ShErr('awk: getline is not supported in this practice shell');
+        default: break;
+      }
+    }
+    return { t: 'expr', e: this.expr() };
+  }
+  exprList() {
+    const list = [this.expr()];
+    while (this.isOp(',')) { this.next(); this.skipNl(); list.push(this.expr()); }
+    return list;
+  }
+  expr() {
+    const left = this.ternary();
+    const t = this.peek();
+    if (t && t.k === 'op' && ['=', '+=', '-=', '*=', '/=', '%=', '^='].includes(t.v)) {
+      if (!['var', 'field', 'idx'].includes(left.t)) throw new ShErr('awk: syntax error: can only assign to a variable, field or array element');
+      this.next();
+      return { t: 'assign', op: t.v, lv: left, e: this.expr() };
+    }
+    return left;
+  }
+  ternary() {
+    const c = this.or();
+    if (this.isOp('?')) { this.next(); const a = this.ternary(); this.expect(':'); const b = this.ternary(); return { t: 'cond', c, a, b }; }
+    return c;
+  }
+  or() { let l = this.and(); while (this.isOp('||')) { this.next(); this.skipNl(); l = { t: 'or', a: l, b: this.and() }; } return l; }
+  and() { let l = this.inop(); while (this.isOp('&&')) { this.next(); this.skipNl(); l = { t: 'and', a: l, b: this.inop() }; } return l; }
+  inop() {
+    let l = this.match();
+    while (this.isKw('in')) { this.next(); const n = this.next(); if (!n || n.k !== 'name') throw new ShErr('awk: syntax error after in'); l = { t: 'in', key: l, arr: n.v }; }
+    return l;
+  }
+  match() {
+    let l = this.cmp();
+    while (this.isOp('~') || this.isOp('!~')) { const neg = this.next().v === '!~'; l = { t: 'match', neg, a: l, re: this.cmp() }; }
+    return l;
+  }
+  cmp() {
+    const l = this.concat();
+    const t = this.peek();
+    if (t && t.k === 'op' && ['<', '<=', '>', '>=', '==', '!='].includes(t.v) && !(this.noGT && t.v === '>')) {
+      this.next();
+      return { t: 'cmp', op: t.v, a: l, b: this.concat() };
+    }
+    return l;
+  }
+  startsConcat() {
+    const t = this.peek();
+    if (!t) return false;
+    if (t.k === 'num' || t.k === 'str' || t.k === 'name' || t.k === 're') return true;
+    return t.k === 'op' && (t.v === '$' || t.v === '(' || t.v === '!' && false);
+  }
+  concat() { let l = this.add(); while (this.startsConcat()) l = { t: 'cat', a: l, b: this.add() }; return l; }
+  add() { let l = this.mul(); while (this.isOp('+') || this.isOp('-')) { const op = this.next().v; l = { t: 'bin', op, a: l, b: this.mul() }; } return l; }
+  mul() { let l = this.unary(); while (this.isOp('*') || this.isOp('/') || this.isOp('%')) { const op = this.next().v; l = { t: 'bin', op, a: l, b: this.unary() }; } return l; }
+  unary() {
+    if (this.isOp('!')) { this.next(); return { t: 'not', e: this.unary() }; }
+    if (this.isOp('-')) { this.next(); return { t: 'neg', e: this.unary() }; }
+    if (this.isOp('+')) { this.next(); return { t: 'pos', e: this.unary() }; }
+    return this.pow();
+  }
+  pow() {
+    const b = this.postfix();
+    if (this.isOp('^') || this.isOp('**')) { this.next(); return { t: 'bin', op: '^', a: b, b: this.unary() }; }
+    return b;
+  }
+  postfix() {
+    const e = this.primary();
+    if ((this.isOp('++') || this.isOp('--')) && ['var', 'field', 'idx'].includes(e.t)) {
+      return { t: 'post', d: this.next().v === '++' ? 1 : -1, lv: e };
+    }
+    return e;
+  }
+  primary() {
+    const t = this.next();
+    if (!t) throw new ShErr('awk: syntax error: unexpected end of program');
+    if (t.k === 'num') return { t: 'num', v: t.v };
+    if (t.k === 'str') return { t: 'str', v: t.v };
+    if (t.k === 're') return { t: 're', re: t.v };
+    if (t.k === 'op') {
+      if (t.v === '++' || t.v === '--') return { t: 'pre', d: t.v === '++' ? 1 : -1, lv: this.primary() };
+      if (t.v === '$') return { t: 'field', e: this.primary() };
+      if (t.v === '-') return { t: 'neg', e: this.primary() };
+      if (t.v === '!') return { t: 'not', e: this.primary() };
+      if (t.v === '(') {
+        const save = this.noGT; this.noGT = false;
+        const list = [this.expr()];
+        while (this.isOp(',')) { this.next(); list.push(this.expr()); }
+        this.expect(')');
+        this.noGT = save;
+        if (list.length > 1) {
+          if (this.isKw('in')) { this.next(); const n = this.next(); return { t: 'in', key: { t: 'multi', list }, arr: n.v }; }
+          return { t: 'group', list };
+        }
+        return list[0];
+      }
+    }
+    if (t.k === 'name') {
+      if (AWK_FN.has(t.v)) {
+        if (this.isOp('(')) {
+          this.next();
+          const save = this.noGT; this.noGT = false;
+          const args = this.isOp(')') ? [] : this.exprList();
+          this.expect(')');
+          this.noGT = save;
+          return { t: 'call', f: t.v, args };
+        }
+        if (t.v === 'length') return { t: 'call', f: 'length', args: [] };
+        throw new ShErr(`awk: ${t.v} needs parentheses, like ${t.v}(...)`);
+      }
+      if (this.isOp('[')) {
+        this.next();
+        const save = this.noGT; this.noGT = false;
+        const subs = [this.expr()];
+        while (this.isOp(',')) { this.next(); subs.push(this.expr()); }
+        this.expect(']');
+        this.noGT = save;
+        return { t: 'idx', name: t.v, subs };
+      }
+      return { t: 'var', name: t.v };
+    }
+    throw new ShErr(`awk: syntax error near ${this.show(t)}`);
+  }
+}
+
+const SIG_NEXT = { sig: 'next' }, SIG_EXIT = { sig: 'exit' };
+class AwkRun {
+  constructor(items, vars) {
+    this.items = items;
+    this.v = Object.assign(Object.create(null), { FS: ' ', OFS: ' ', ORS: '\n', NR: 0, NF: 0, FNR: 0, FILENAME: '', SUBSEP: '\u001c', RSTART: 0, RLENGTH: -1 }, vars);
+    this.arr = Object.create(null);
+    this.rec = ''; this.flds = [];
+    this.out = []; this.steps = 0; this.exitCode = 0;
+  }
+  tick() { if (++this.steps > 2e6) throw new ShErr('awk: stopped after too many steps (is there an endless loop?)'); }
+  splitFields(s, fsv) {
+    const FS = fsv === undefined ? toStr(this.v.FS) : fsv;
+    if (FS === ' ') { const t = s.trim(); return t === '' ? [] : t.split(/[ \t\n]+/); }
+    if (s === '') return [];
+    if (FS.length === 1 && FS !== '\\') return s.split(FS);
+    try { return s.split(new RegExp(FS)); } catch (e) { throw new ShErr(`awk: bad field separator ${FS}`); }
+  }
+  setRec(s) { this.rec = s; this.flds = this.splitFields(s); this.v.NF = this.flds.length; }
+  getField(i) {
+    if (i < 0) throw new ShErr(`awk: trying to access out of range field ${i}`);
+    return i === 0 ? this.rec : this.flds[i - 1];
+  }
+  setField(i, val) {
+    if (i === 0) { this.setRec(toStr(val)); return; }
+    while (this.flds.length < i) this.flds.push('');
+    this.flds[i - 1] = toStr(val);
+    this.v.NF = this.flds.length;
+    this.rec = this.flds.join(toStr(this.v.OFS));
+  }
+  array(name) { return this.arr[name] || (this.arr[name] = Object.create(null)); }
+  key(subs) { return subs.map(x => toStr(this.ev(x))).join(toStr(this.v.SUBSEP)); }
+  get(lv) {
+    if (lv.t === 'var') return this.v[lv.name];
+    if (lv.t === 'field') return this.getField(Math.trunc(toNum(this.ev(lv.e))));
+    const a = this.array(lv.name); const k = this.key(lv.subs);
+    if (!(k in a)) a[k] = undefined;
+    return a[k];
+  }
+  set(lv, val) {
+    if (lv.t === 'var') {
+      if (lv.name === 'NF') { const n = Math.trunc(toNum(val)); this.flds.length = n; for (let i = 0; i < n; i++) if (this.flds[i] === undefined) this.flds[i] = ''; this.v.NF = n; this.rec = this.flds.join(toStr(this.v.OFS)); return; }
+      this.v[lv.name] = val; return;
+    }
+    if (lv.t === 'field') { this.setField(Math.trunc(toNum(this.ev(lv.e))), val); return; }
+    this.array(lv.name)[this.key(lv.subs)] = val;
+  }
+  truthy(v) { if (v === undefined) return false; if (typeof v === 'number') return v !== 0; return looksNum(v) ? toNum(v) !== 0 : v !== ''; }
+  toRe(node) {
+    if (node.t === 're') return node.re;
+    const s = toStr(this.ev(node));
+    try { return new RegExp(posixClasses(s)); } catch (e) { throw new ShErr(`awk: bad regular expression ${s}`); }
+  }
+  ev(e) {
+    switch (e.t) {
+      case 'num': case 'str': return e.v;
+      case 're': return e.re.test(this.rec) ? 1 : 0;
+      case 'var': case 'field': case 'idx': return this.get(e);
+      case 'group': throw new ShErr('awk: syntax error: unexpected comma');
+      case 'assign': {
+        let val = this.ev(e.e);
+        if (e.op !== '=') val = this.arith(e.op[0], this.get(e.lv), val);
+        this.set(e.lv, val); return val;
+      }
+      case 'cond': return this.truthy(this.ev(e.c)) ? this.ev(e.a) : this.ev(e.b);
+      case 'or': return this.truthy(this.ev(e.a)) || this.truthy(this.ev(e.b)) ? 1 : 0;
+      case 'and': return this.truthy(this.ev(e.a)) && this.truthy(this.ev(e.b)) ? 1 : 0;
+      case 'not': return this.truthy(this.ev(e.e)) ? 0 : 1;
+      case 'neg': return -toNum(this.ev(e.e));
+      case 'pos': return toNum(this.ev(e.e));
+      case 'in': {
+        const k = e.key.t === 'multi' ? this.key(e.key.list) : toStr(this.ev(e.key));
+        return k in this.array(e.arr) ? 1 : 0;
+      }
+      case 'match': return (this.toRe(e.re).test(toStr(this.ev(e.a))) !== e.neg) ? 1 : 0;
+      case 'cmp': {
+        const a = this.ev(e.a), b = this.ev(e.b);
+        let r;
+        if (looksNum(a) && looksNum(b)) { const x = toNum(a), y = toNum(b); r = x < y ? -1 : x > y ? 1 : 0; }
+        else { const x = toStr(a), y = toStr(b); r = x < y ? -1 : x > y ? 1 : 0; }
+        return ({ '<': r < 0, '<=': r <= 0, '>': r > 0, '>=': r >= 0, '==': r === 0, '!=': r !== 0 })[e.op] ? 1 : 0;
+      }
+      case 'cat': return toStr(this.ev(e.a)) + toStr(this.ev(e.b));
+      case 'bin': return this.arith(e.op, this.ev(e.a), this.ev(e.b));
+      case 'pre': { const v = toNum(this.get(e.lv)) + e.d; this.set(e.lv, v); return v; }
+      case 'post': { const v = toNum(this.get(e.lv)); this.set(e.lv, v + e.d); return v; }
+      case 'call': return this.call(e);
+      default: throw new ShErr('awk: unsupported expression');
+    }
+  }
+  arith(op, a, b) {
+    const x = toNum(a), y = toNum(b);
+    switch (op) {
+      case '+': return x + y;
+      case '-': return x - y;
+      case '*': return x * y;
+      case '/': if (y === 0) throw new ShErr('awk: division by zero'); return x / y;
+      case '%': if (y === 0) throw new ShErr('awk: division by zero in %'); return x % y;
+      case '^': return Math.pow(x, y);
+    }
+    return 0;
+  }
+  call(e) {
+    const A = e.args;
+    const s = i => toStr(this.ev(A[i]));
+    switch (e.f) {
+      case 'length':
+        if (!A.length) return this.rec.length;
+        if (A[0].t === 'var' && this.arr[A[0].name]) return Object.keys(this.arr[A[0].name]).length;
+        return s(0).length;
+      case 'substr': {
+        const str = s(0); const m = Math.round(toNum(this.ev(A[1])));
+        const begin = Math.max(m, 1);
+        const end = A.length > 2 ? Math.min(m + Math.round(toNum(this.ev(A[2]))), str.length + 1) : str.length + 1;
+        return begin < end ? str.slice(begin - 1, end - 1) : '';
+      }
+      case 'index': return s(0).indexOf(s(1)) + 1;
+      case 'split': {
+        if (!A[1] || A[1].t !== 'var') throw new ShErr('awk: split needs an array name as its second argument');
+        const parts = A.length > 2 ? (A[2].t === 're' ? s(0).split(A[2].re) : this.splitFields(s(0), s(2))) : this.splitFields(s(0));
+        const arr = this.arr[A[1].name] = Object.create(null);
+        parts.forEach((p, i) => { arr[i + 1] = p; });
+        return parts.length;
+      }
+      case 'sub': case 'gsub': {
+        const re = this.toRe(A[0]);
+        const rep = s(1);
+        const target = A[2] || { t: 'field', e: { t: 'num', v: 0 } };
+        if (!['var', 'field', 'idx'].includes(target.t)) throw new ShErr(`awk: ${e.f} needs a variable or field as its target`);
+        const g = new RegExp(re.source, re.flags.replace('g', '') + (e.f === 'gsub' ? 'g' : ''));
+        let n = 0;
+        const res = toStr(this.get(target)).replace(g, m => { n++; return rep.replace(/\\\\&|\\&|&/g, x => x === '&' ? m : x === '\\&' ? '&' : '\\&'); });
+        if (n) this.set(target, res);
+        return n;
+      }
+      case 'match': {
+        const m = this.toRe(A[1]).exec(s(0));
+        this.v.RSTART = m ? m.index + 1 : 0; this.v.RLENGTH = m ? m[0].length : -1;
+        return this.v.RSTART;
+      }
+      case 'tolower': return s(0).toLowerCase();
+      case 'toupper': return s(0).toUpperCase();
+      case 'int': return Math.trunc(toNum(this.ev(A[0])));
+      case 'sqrt': return Math.sqrt(toNum(this.ev(A[0])));
+      case 'log': return Math.log(toNum(this.ev(A[0])));
+      case 'exp': return Math.exp(toNum(this.ev(A[0])));
+      case 'rand': return Math.random();
+      case 'srand': return 0;
+      case 'sprintf': return sprintf(s(0), A.slice(1).map(a => this.ev(a))).s;
+    }
+    return '';
+  }
+  exec(list) { for (const st of list) this.stmt(st); }
+  stmt(st) {
+    switch (st.t) {
+      case 'block': this.exec(st.body); break;
+      case 'print':
+        this.out.push((st.args.length ? st.args.map(a => toStr(this.ev(a))).join(toStr(this.v.OFS)) : this.rec) + toStr(this.v.ORS));
+        break;
+      case 'printf': {
+        const fmt = toStr(this.ev(st.args[0]));
+        this.out.push(sprintf(fmt, st.args.slice(1).map(a => this.ev(a))).s);
+        break;
+      }
+      case 'if': if (this.truthy(this.ev(st.c))) this.stmt(st.a); else if (st.b) this.stmt(st.b); break;
+      case 'while': while (this.truthy(this.ev(st.c))) { this.tick(); this.stmt(st.s); } break;
+      case 'for':
+        if (st.init) this.ev(st.init);
+        while (!st.c || this.truthy(this.ev(st.c))) { this.tick(); this.stmt(st.s); if (st.step) this.ev(st.step); }
+        break;
+      case 'forin': for (const k of Object.keys(this.array(st.arr))) { this.tick(); this.v[st.v] = k; this.stmt(st.s); } break;
+      case 'next': throw SIG_NEXT;
+      case 'exit': if (st.e) this.exitCode = Math.trunc(toNum(this.ev(st.e))); throw SIG_EXIT;
+      case 'delete': if (st.subs) delete this.array(st.name)[this.key(st.subs)]; else this.arr[st.name] = Object.create(null); break;
+      case 'expr': this.ev(st.e); break;
+    }
+  }
+  run(ins) {
+    const begins = this.items.filter(x => x.type === 'BEGIN');
+    const mains = this.items.filter(x => x.type === 'main');
+    const ends = this.items.filter(x => x.type === 'END');
+    let exited = false;
+    try { for (const b of begins) this.exec(b.body); }
+    catch (e) { if (e === SIG_EXIT) exited = true; else if (e === SIG_NEXT) throw new ShErr('awk: next used in BEGIN'); else throw e; }
+    if (!exited && (mains.length || ends.length)) {
+      outer:
+      for (const f of ins) {
+        this.v.FILENAME = f.name === '(standard input)' ? '' : f.name; this.v.FNR = 0;
+        for (const line of lines(f.text)) {
+          this.tick();
+          this.v.NR++; this.v.FNR++;
+          this.setRec(line);
+          try {
+            for (const it of mains) {
+              let hit;
+              if (!it.pat) hit = true;
+              else if (it.pat2) {
+                if (it.on) { hit = true; if (this.truthy(this.ev(it.pat2))) it.on = false; }
+                else if (this.truthy(this.ev(it.pat))) { hit = true; it.on = !this.truthy(this.ev(it.pat2)); }
+                else hit = false;
+              } else hit = this.truthy(this.ev(it.pat));
+              if (hit) { if (it.body) this.exec(it.body); else this.out.push(this.rec + toStr(this.v.ORS)); }
+            }
+          } catch (e) {
+            if (e === SIG_NEXT) continue;
+            if (e === SIG_EXIT) { exited = true; break outer; }
+            throw e;
+          }
+        }
+      }
+    }
+    try { for (const b of ends) this.exec(b.body); }
+    catch (e) { if (e !== SIG_EXIT) throw e; }
+    return this.out.join('');
+  }
+}
+
+/* =====================================================================
+   Commands
+   ===================================================================== */
+const CMDS = Object.create(null);
+const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+function nodeSize(n) { return n.d ? 4096 : n.gz ? Math.max(24, Math.round(n.t.length * 0.3)) : n.t.length; }
+function human(b) {
+  if (b < 1024) return String(b);
+  const u = ['K', 'M', 'G']; let v = b, i = -1;
+  while (v >= 1024 && i < 2) { v /= 1024; i++; }
+  return v < 10 ? (Math.ceil(v * 10) / 10).toFixed(1) + u[i] : Math.ceil(v) + u[i];
+}
+function lsDate(m) { const d = new Date(m); return `${MON[d.getMonth()]} ${String(d.getDate()).padStart(2)} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`; }
+function nameHtml(name, n, F) {
+  const suf = F ? (n.d ? '/' : n.x ? '*' : '') : '';
+  const cls = n.d ? 't-dir' : n.gz ? 't-gz' : n.x ? 't-x' : '';
+  return cls ? `<span class="${cls}">${esc(name + suf)}</span>` : esc(name + suf);
+}
+
+CMDS.pwd = () => ({ out: sh.cwd + '\n' });
+CMDS.cd = (args) => {
+  let t = args[0];
+  if (args.length > 1) throw new ShErr('cd: too many arguments');
+  if (t === undefined || t === '~') t = HOME;
+  else if (t === '-') t = sh.oldcwd;
+  const abs = norm(t), n = getNode(abs);
+  if (!n) throw new ShErr(`cd: ${args[0]}: No such file or directory`);
+  if (!n.d) throw new ShErr(`cd: ${args[0]}: Not a directory`);
+  sh.oldcwd = sh.cwd; sh.cwd = abs;
+  return { out: args[0] === '-' ? abs + '\n' : '' };
+};
+CMDS.ls = (args) => {
+  const { o, rest } = getopt(args, 'lah1FtrSd', '', 'ls');
+  const targets = rest.length ? rest : ['.'];
+  const errs = [], files = [], dirs = [];
+  for (const t of targets) {
+    const n = getNode(norm(t));
+    if (!n) errs.push(`ls: cannot access '${t}': No such file or directory`);
+    else if (n.d && !o.d) dirs.push([t, n]); else files.push({ name: t, n });
+  }
+  const sortList = list => {
+    list.sort((a, b) => a.name.toLowerCase() < b.name.toLowerCase() ? -1 : a.name.toLowerCase() > b.name.toLowerCase() ? 1 : 0);
+    if (o.t) list.sort((a, b) => b.n.m - a.n.m);
+    if (o.S) list.sort((a, b) => nodeSize(b.n) - nodeSize(a.n));
+    if (o.r) list.reverse();
+    return list;
+  };
+  const render = (list, withTotal) => {
+    if (!list.length) return withTotal && o.l ? { t: ['total 0'], h: ['total 0'] } : { t: [], h: [] };
+    if (!o.l) {
+      if (o[1]) return { t: list.map(x => x.name), h: list.map(x => nameHtml(x.name, x.n, o.F)) };
+      return { t: [list.map(x => x.name + (o.F ? (x.n.d ? '/' : x.n.x ? '*' : '') : '')).join('  ')], h: [list.map(x => nameHtml(x.name, x.n, o.F)).join('  ')] };
+    }
+    const sizes = list.map(x => o.h ? human(nodeSize(x.n)) : String(nodeSize(x.n)));
+    const w = Math.max(...sizes.map(s => s.length));
+    const t = [], h = [];
+    if (withTotal) { const tot = 'total ' + list.reduce((s, x) => s + Math.ceil(nodeSize(x.n) / 1024) * 4, 0); t.push(tot); h.push(tot); }
+    list.forEach((x, i) => {
+      const perm = x.n.d ? 'drwxr-xr-x' : x.n.x ? '-rwxr-xr-x' : '-rw-r--r--';
+      const pre = `${perm} ${x.n.d ? 2 : 1} student bio116 ${sizes[i].padStart(w)} ${lsDate(x.n.m)} `;
+      t.push(pre + x.name); h.push(esc(pre) + nameHtml(x.name, x.n, o.F));
+    });
+    return { t, h };
+  };
+  const T = [], H = [];
+  if (files.length) { const r = render(sortList(files), false); T.push(...r.t); H.push(...r.h); }
+  const multi = dirs.length + (files.length ? 1 : 0) > 1;
+  dirs.forEach(([t, n], i) => {
+    if (T.length || i > 0) { T.push(''); H.push(''); }
+    if (multi) { T.push(t + ':'); H.push(esc(t + ':')); }
+    let list = Object.keys(n.c).filter(x => o.a || !x.startsWith('.')).map(name => ({ name, n: n.c[name] }));
+    list = sortList(list);
+    if (o.a) list = [{ name: '.', n }, { name: '..', n: mkDir() }, ...list];
+    const r = render(list, true); T.push(...r.t); H.push(...r.h);
+  });
+  return { out: joinOut(T), html: H, err: errs.join('\n'), code: errs.length ? 2 : 0 };
+};
+CMDS.cat = (args, stdin) => {
+  const { o, rest } = getopt(args, 'nAE', '', 'cat');
+  const errs = []; let out = ''; let k = 0;
+  for (const f of inputs(rest, stdin, 'cat', errs)) {
+    if (o.n) out += joinOut(lines(f.text).map(l => String(++k).padStart(6) + '\t' + l));
+    else if (o.A || o.E) out += joinOut(lines(f.text).map(l => (o.A ? l.replace(/\t/g, '^I') : l) + '$'));
+    else out += f.text;
+  }
+  return { out, errs };
+};
+function headTail(isHead) {
+  const name = isHead ? 'head' : 'tail';
+  return (args, stdin) => {
+    args = args.flatMap(a => /^-\d+$/.test(a) ? ['-n', a.slice(1)] : [a]);
+    const { o, rest } = getopt(args, 'qv', 'nc', name);
+    const errs = [];
+    const ins = inputs(rest, stdin, name, errs);
+    const useC = o.c !== undefined;
+    const spec = useC ? last(o.c) : (last(o.n) ?? '10');
+    const fromStart = !isHead && spec.startsWith('+');
+    const n = parseInt(spec.replace(/^\+/, ''), 10);
+    if (Number.isNaN(n)) throw new ShErr(`${name}: invalid number of ${useC ? 'bytes' : 'lines'}: '${spec}'`);
+    let out = '';
+    ins.forEach((f, i) => {
+      if (ins.length > 1 && !o.q) out += (i ? '\n' : '') + `==> ${f.name} <==\n`;
+      if (useC) {
+        out += isHead ? (n >= 0 ? f.text.slice(0, n) : f.text.slice(0, n)) : (fromStart ? f.text.slice(n - 1) : f.text.slice(-n || f.text.length));
+        return;
+      }
+      const L = lines(f.text);
+      const sel = isHead ? (n >= 0 ? L.slice(0, n) : L.slice(0, Math.max(0, L.length + n)))
+        : (fromStart ? L.slice(Math.max(0, n - 1)) : (n === 0 ? [] : L.slice(-Math.abs(n))));
+      out += joinOut(sel);
+    });
+    return { out, errs };
+  };
+}
+CMDS.head = headTail(true);
+CMDS.tail = headTail(false);
+CMDS.less = CMDS.more = (args, stdin) => {
+  const r = CMDS.cat(args.filter(a => !a.startsWith('-')), stdin);
+  r.errs = (r.errs || []).concat([{ note: 'In a real terminal, less opens a scrolling viewer: arrows to move, /word to search, q to quit. Here it prints the file.' }]);
+  return r;
+};
+CMDS.wc = (args, stdin) => {
+  const { o, rest } = getopt(args, 'lwcm', '', 'wc');
+  let sel = ['l', 'w', 'c'].filter(k => o[k] || (k === 'c' && o.m));
+  if (!sel.length) sel = ['l', 'w', 'c'];
+  const errs = [];
+  const ins = inputs(rest, stdin, 'wc', errs);
+  const rows = ins.map(f => ({
+    name: rest.length ? f.name : '',
+    v: sel.map(k => k === 'l' ? (f.text.match(/\n/g) || []).length : k === 'w' ? (f.text.match(/\S+/g) || []).length : f.text.length)
+  }));
+  if (rows.length > 1) rows.push({ name: 'total', v: sel.map((_, i) => rows.reduce((s, r) => s + r.v[i], 0)) });
+  let w = 0;
+  if (sel.length > 1 || rows.length > 1) w = rest.length ? Math.max(...rows.flatMap(r => r.v.map(x => String(x).length))) : 7;
+  const out = joinOut(rows.map(r => r.v.map(x => String(x).padStart(w)).join(' ') + (r.name ? ' ' + r.name : '')));
+  return { out, errs };
+};
+CMDS.grep = (args, stdin) => {
+  const { o, rest } = getopt(args, 'cvinowEFHhlLqxPrsz', 'eABCm', 'grep');
+  let pat = o.e ? o.e[0] : rest.shift();
+  if (pat === undefined) throw new ShErr('Usage: grep [OPTION]... PATTERN [FILE]...\nExample:  grep -c \'>\' data/sequences.fasta');
+  let src = o.F ? escRe(pat) : (o.E || o.P ? posixClasses(pat) : breToJs(posixClasses(pat)));
+  if (o.w) src = `(?<![A-Za-z0-9_])(?:${src})(?![A-Za-z0-9_])`;
+  if (o.x) src = `^(?:${src})$`;
+  let re, reG;
+  try { re = new RegExp(src, o.i ? 'i' : ''); reG = new RegExp(src, o.i ? 'gi' : 'g'); }
+  catch (e) { throw new ShErr(`grep: invalid regular expression: ${pat}`); }
+  const errs = [];
+  const ins = inputs(rest, stdin, 'grep', errs);
+  const multi = (rest.length > 1 && !o.h) || !!o.H;
+  const A = +(last(o.A) || last(o.C) || 0), B = +(last(o.B) || last(o.C) || 0);
+  const max = o.m ? +last(o.m) : Infinity;
+  const T = [], H = [];
+  let any = false;
+  const hl = l => {
+    let res = '', i = 0;
+    reG.lastIndex = 0;
+    let m;
+    while ((m = reG.exec(l)) !== null) {
+      if (m[0] === '') { reG.lastIndex++; continue; }
+      res += esc(l.slice(i, m.index)) + '<mark>' + esc(m[0]) + '</mark>';
+      i = m.index + m[0].length;
+    }
+    return res + esc(l.slice(i));
+  };
+  for (const f of ins) {
+    if (f.gz) {
+      const real = getNode(norm(f.name));
+      if (real && re.test(real.t) !== !!o.v) { any = true; T.push(`grep: ${f.name}: binary file matches`); H.push(esc(`grep: ${f.name}: binary file matches`)); }
+      continue;
+    }
+    const L = lines(f.text);
+    const hits = [];
+    for (let i = 0; i < L.length && hits.length < max; i++) if (re.test(L[i]) !== !!o.v) hits.push(i);
+    if (hits.length) any = true;
+    const pre = (sep, i) => ({ t: (multi ? f.name + sep : '') + (o.n ? (i + 1) + sep : ''), h: (multi ? `<span class="t-fn">${esc(f.name)}</span><span class="t-dim">${sep}</span>` : '') + (o.n ? `<span class="t-num">${i + 1}</span><span class="t-dim">${sep}</span>` : '') });
+    if (o.q) continue;
+    if (o.l) { if (hits.length) { T.push(f.name); H.push(`<span class="t-fn">${esc(f.name)}</span>`); } continue; }
+    if (o.L) { if (!hits.length) { T.push(f.name); H.push(esc(f.name)); } continue; }
+    if (o.c) { const p = multi ? f.name + ':' : ''; T.push(p + hits.length); H.push((multi ? `<span class="t-fn">${esc(f.name)}</span><span class="t-dim">:</span>` : '') + hits.length); continue; }
+    if (o.o && !o.v) {
+      for (const i of hits) {
+        reG.lastIndex = 0; let m;
+        while ((m = reG.exec(L[i])) !== null) {
+          if (m[0] === '') { reG.lastIndex++; continue; }
+          const p = pre(':', i); T.push(p.t + m[0]); H.push(p.h + '<mark>' + esc(m[0]) + '</mark>');
+        }
+      }
+      continue;
+    }
+    if (!A && !B) {
+      for (const i of hits) { const p = pre(':', i); T.push(p.t + L[i]); H.push(p.h + (o.v ? esc(L[i]) : hl(L[i]))); }
+      continue;
+    }
+    const show = new Set(), hitSet = new Set(hits);
+    for (const i of hits) for (let j = Math.max(0, i - B); j <= Math.min(L.length - 1, i + A); j++) show.add(j);
+    let prev = -2;
+    [...show].sort((a, b) => a - b).forEach(i => {
+      if (prev >= 0 && i > prev + 1) { T.push('--'); H.push('<span class="t-dim">--</span>'); }
+      const isHit = hitSet.has(i), p = pre(isHit ? ':' : '-', i);
+      T.push(p.t + L[i]); H.push(p.h + (isHit && !o.v ? hl(L[i]) : esc(L[i])));
+      prev = i;
+    });
+  }
+  return { out: joinOut(T), html: H, errs: errs.filter(e => typeof e === 'string'), code: any ? 0 : 1 };
+};
+function parseList(spec, cmd) {
+  const ranges = spec.split(',').map(r => {
+    if (/^\d+$/.test(r)) { if (+r === 0) throw new ShErr(`${cmd}: fields and positions are numbered from 1`); return [+r, +r]; }
+    const m = r.match(/^(\d*)-(\d*)$/);
+    if (!m || (m[1] === '' && m[2] === '')) throw new ShErr(`${cmd}: invalid field range '${r}'`);
+    return [m[1] ? +m[1] : 1, m[2] ? +m[2] : Infinity];
+  });
+  return i => ranges.some(([a, b]) => i >= a && i <= b);
+}
+CMDS.cut = (args, stdin) => {
+  const { o, rest } = getopt(args, 's', 'fdcb', 'cut');
+  const d = o.d ? last(o.d) : '\t';
+  if (d.length !== 1) throw new ShErr(`cut: the delimiter must be a single character${d === '\\t' ? "\nTab is already cut's default, so leave out -d." : ''}`);
+  const spec = last(o.f) || last(o.c) || last(o.b);
+  if (!spec) throw new ShErr('cut: you must specify a list of fields (-f) or characters (-c)\nExample:  cut -f 1,3 data/genes.gff');
+  const sel = parseList(spec, 'cut');
+  const errs = []; const out = [];
+  for (const f of inputs(rest, stdin, 'cut', errs)) {
+    for (const l of lines(f.text)) {
+      if (o.f) {
+        if (!l.includes(d)) { if (!o.s) out.push(l); continue; }
+        out.push(l.split(d).filter((_, i) => sel(i + 1)).join(d));
+      } else out.push([...l].filter((_, i) => sel(i + 1)).join(''));
+    }
+  }
+  return { out: joinOut(out), errs };
+};
+function numLead(s, humanUnits) {
+  const m = String(s).trim().match(/^[-+]?(\d+\.?\d*|\.\d+)(e[-+]?\d+)?([KMGT]?)/i);
+  if (!m) return 0;
+  let v = parseFloat(m[0]);
+  if (humanUnits && m[3]) v *= Math.pow(1024, 'KMGT'.indexOf(m[3].toUpperCase()) + 1);
+  return v;
+}
+CMDS.sort = (args, stdin) => {
+  const { o, rest } = getopt(args, 'nrugfbshV', 'kto', 'sort');
+  const sep = o.t ? last(o.t) : null;
+  if (sep !== null && sep.length !== 1) throw new ShErr(`sort: multi-character tab '${sep}'${sep === '\\t' ? "\nFor a tab, write  -t $'\\t'  (or leave out -t: sort splits on blanks and tabs)." : ''}`);
+  const keys = (o.k || []).map(k => {
+    const m = k.match(/^(\d+)(?:\.\d+)?([a-zA-Z]*)(?:,(\d+)(?:\.\d+)?([a-zA-Z]*))?$/);
+    if (!m) throw new ShErr(`sort: invalid key '${k}'`);
+    return { s: +m[1], e: m[3] ? +m[3] : Infinity, opts: (m[2] || '') + (m[4] || '') };
+  });
+  const errs = [];
+  let L = [];
+  for (const f of inputs(rest, stdin, 'sort', errs)) L = L.concat(lines(f.text));
+  const fieldsOf = l => sep !== null ? l.split(sep) : l.trim().split(/\s+/);
+  const keyOf = (l, k) => { const f = fieldsOf(l); return f.slice(k.s - 1, k.e === Infinity ? undefined : k.e).join(sep ?? ' '); };
+  const cmpVal = (a, b, numeric, fold, hum) => {
+    if (numeric) { const d = numLead(a, hum) - numLead(b, hum); return d < 0 ? -1 : d > 0 ? 1 : 0; }
+    if (fold) { a = a.toLowerCase(); b = b.toLowerCase(); }
+    return a < b ? -1 : a > b ? 1 : 0;
+  };
+  const gNum = !!(o.n || o.g || o.h);
+  const keyCmp = (a, b) => {
+    if (!keys.length) { const c = cmpVal(a, b, gNum, o.f, o.h); return o.r ? -c : c; }
+    for (const k of keys) {
+      // A key with its own ordering options ignores the global ones, as in GNU sort.
+      const own = /[nghrf]/.test(k.opts);
+      const num = own ? /[ngh]/.test(k.opts) : gNum;
+      const rev = own ? k.opts.includes('r') : !!o.r;
+      const c = cmpVal(keyOf(a, k), keyOf(b, k), num, own ? k.opts.includes('f') : !!o.f, own ? k.opts.includes('h') : !!o.h);
+      if (c) return rev ? -c : c;
+    }
+    return 0;
+  };
+  const full = (a, b) => keyCmp(a, b) || (o.s ? 0 : (o.r ? (a < b ? 1 : a > b ? -1 : 0) : (a < b ? -1 : a > b ? 1 : 0)));
+  L = L.map((l, i) => [l, i]).sort((x, y) => full(x[0], y[0]) || x[1] - y[1]).map(x => x[0]);
+  if (o.u) L = L.filter((l, i) => i === 0 || keyCmp(L[i - 1], l) !== 0);
+  const out = joinOut(L);
+  if (o.o) { writeFile(last(o.o), out, false, 'sort'); return { out: '', errs }; }
+  return { out, errs };
+};
+CMDS.uniq = (args, stdin) => {
+  const { o, rest } = getopt(args, 'cdui', '', 'uniq');
+  const errs = [];
+  const f = inputs(rest.slice(0, 1), stdin, 'uniq', errs)[0];
+  const L = f ? lines(f.text) : [];
+  const groups = [];
+  for (const l of L) {
+    const g = groups[groups.length - 1];
+    if (g && (o.i ? g.l.toLowerCase() === l.toLowerCase() : g.l === l)) g.n++;
+    else groups.push({ l, n: 1 });
+  }
+  const out = groups.filter(g => (!o.d || g.n > 1) && (!o.u || g.n === 1)).map(g => o.c ? String(g.n).padStart(7) + ' ' + g.l : g.l);
+  const text = joinOut(out);
+  if (rest[1]) { writeFile(rest[1], text, false, 'uniq'); return { out: '', errs }; }
+  return { out: text, errs };
+};
+function expandSet(s) {
+  s = s.replace(/\[:(upper|lower|digit|alpha|alnum|space):\]/g, (m, c) => ({ upper: 'A-Z', lower: 'a-z', digit: '0-9', alpha: 'A-Za-z', alnum: 'A-Za-z0-9', space: ' \\t\\n' }[c]));
+  const chars = [];
+  for (let i = 0; i < s.length; i++) {
+    let c = s[i];
+    if (c === '\\' && i + 1 < s.length) { const n = s[++i]; c = ({ n: '\n', t: '\t', '\\': '\\', r: '\r' })[n] ?? n; }
+    if (s[i + 1] === '-' && i + 2 < s.length) {
+      let e = s[i + 2]; let skip = 2;
+      if (e === '\\' && i + 3 < s.length) { e = ({ n: '\n', t: '\t' })[s[i + 3]] ?? s[i + 3]; skip = 3; }
+      const a = c.charCodeAt(0), b = e.charCodeAt(0);
+      if (b >= a) { for (let k = a; k <= b; k++) chars.push(String.fromCharCode(k)); i += skip; continue; }
+    }
+    chars.push(c);
+  }
+  return chars;
+}
+CMDS.tr = (args, stdin) => {
+  const { o, rest } = getopt(args, 'dscC', '', 'tr');
+  const need = (o.d && !o.s) || (o.s && rest.length === 1) ? 1 : 2;
+  if (!rest.length) throw new ShErr("tr: missing operand\nExample:  tr ACGT TGCA < seq.txt");
+  if (rest.length > need) {
+    const extra = rest[need];
+    throw new ShErr(`tr: extra operand '${extra}'${getNode(norm(extra)) ? `\ntr only reads standard input. Try:  tr ${rest.slice(0, need).map(a => `'${a}'`).join(' ')} < ${extra}` : ''}`);
+  }
+  if (need === 2 && rest.length < 2) throw new ShErr(`tr: missing operand after '${rest[0]}'`);
+  const s1 = expandSet(rest[0]), set1 = new Set(s1);
+  const s2 = rest[1] !== undefined ? expandSet(rest[1]) : null;
+  const comp = !!(o.c || o.C);
+  const inS1 = c => comp ? !set1.has(c) : set1.has(c);
+  let out = '';
+  if (o.d) out = [...stdin].filter(c => !inS1(c)).join('');
+  else if (s2) {
+    const map = new Map();
+    if (!comp) s1.forEach((c, i) => map.set(c, s2[Math.min(i, s2.length - 1)]));
+    for (const c of stdin) out += comp ? (set1.has(c) ? c : s2[s2.length - 1]) : (map.has(c) ? map.get(c) : c);
+  } else out = stdin;
+  if (o.s) {
+    const sq = new Set(s2 && !(o.d && rest.length === 1) ? s2 : s1);
+    let r = '';
+    for (const c of out) if (!(sq.has(c) && r[r.length - 1] === c)) r += c;
+    out = r;
+  }
+  return { out };
+};
+CMDS.rev = (args, stdin) => {
+  const errs = [];
+  let out = '';
+  for (const f of inputs(args, stdin, 'rev', errs)) out += joinOut(lines(f.text).map(l => [...l].reverse().join('')));
+  return { out, errs };
+};
+CMDS.fold = (args, stdin) => {
+  const { o, rest } = getopt(args, 's', 'w', 'fold');
+  const w = +(last(o.w) || 80);
+  if (!(w > 0)) throw new ShErr('fold: invalid width');
+  const errs = [], out = [];
+  for (const f of inputs(rest, stdin, 'fold', errs)) for (const l of lines(f.text)) {
+    if (!l.length) out.push('');
+    for (let i = 0; i < l.length; i += w) out.push(l.slice(i, i + w));
+  }
+  return { out: joinOut(out), errs };
+};
+function parseSed(s, ere) {
+  const cmds = []; let i = 0;
+  const fail = m => { throw new ShErr(`sed: -e expression #1, char ${i + 1}: ${m}`); };
+  const addr = () => {
+    if (s[i] === '$') { i++; return { t: 'last' }; }
+    if (/\d/.test(s[i] || '')) { const j = i; while (/\d/.test(s[i] || '')) i++; return { t: 'line', n: +s.slice(j, i) }; }
+    if (s[i] === '/') {
+      i++; let src = '';
+      while (i < s.length && s[i] !== '/') { if (s[i] === '\\' && i + 1 < s.length) { src += s[i + 1] === '/' ? '/' : s[i] + s[i + 1]; i += 2; } else src += s[i++]; }
+      if (s[i] !== '/') fail('unterminated address regex');
+      i++;
+      return { t: 're', re: mkRegex(src, ere, '', 'sed') };
+    }
+    return null;
+  };
+  while (i < s.length) {
+    while (i < s.length && /[\s;]/.test(s[i])) i++;
+    if (i >= s.length) break;
+    const a1 = addr(); let a2 = null;
+    if (a1 && s[i] === ',') { i++; a2 = addr(); if (!a2) fail('unexpected `,\''); }
+    while (s[i] === ' ') i++;
+    let neg = false;
+    if (s[i] === '!') { neg = true; i++; while (s[i] === ' ') i++; }
+    const c = s[i++];
+    if (c === undefined) fail('missing command');
+    if (c === 's') {
+      const dl = s[i++];
+      if (!dl || /[\s\\\n]/.test(dl)) fail('unterminated `s\' command');
+      const part = () => {
+        let r = '';
+        while (i < s.length && s[i] !== dl) {
+          if (s[i] === '\\' && i + 1 < s.length) { r += s[i + 1] === dl ? dl : s[i] + s[i + 1]; i += 2; }
+          else r += s[i++];
+        }
+        if (s[i] !== dl) fail('unterminated `s\' command');
+        i++; return r;
+      };
+      const pat = part(), rep = part();
+      let flags = '';
+      while (i < s.length && /[gipI0-9]/.test(s[i])) flags += s[i++];
+      const g = flags.includes('g');
+      cmds.push({ a1, a2, neg, c, re: mkRegex(pat, ere, (/[iI]/.test(flags) ? 'i' : '') + (g ? 'g' : ''), 'sed'), rep, p: flags.includes('p') });
+    } else if ('dpq='.includes(c)) cmds.push({ a1, a2, neg, c });
+    else if (c === 'i' || c === 'a' || c === 'c') {
+      cmds.push({ a1, a2, neg, c, text: unesc(s.slice(i).replace(/^\\?\s?/, '')) });
+      i = s.length;
+    } else fail(`unknown command: \`${c}'`);
+    while (s[i] === ' ') i++;
+    if (i < s.length && !/[;\n}]/.test(s[i])) fail('extra characters after command');
+  }
+  return cmds;
+}
+function sedRun(cmds, L, quiet) {
+  const out = [];
+  cmds.forEach(c => { c.on = false; });
+  const hit = (a, n, line, isLast) => a.t === 'last' ? isLast : a.t === 'line' ? a.n === n : a.re.test(line);
+  for (let idx = 0; idx < L.length; idx++) {
+    const n = idx + 1, isLast = idx === L.length - 1;
+    let ps = L[idx], del = false, quit = false;
+    for (const c of cmds) {
+      let sel;
+      if (!c.a1) sel = true;
+      else if (!c.a2) sel = hit(c.a1, n, ps, isLast);
+      else if (c.on) {
+        sel = true;
+        if (c.a2.t === 'line' ? n >= c.a2.n : hit(c.a2, n, ps, isLast)) c.on = false;
+      } else if (hit(c.a1, n, ps, isLast)) {
+        sel = true;
+        c.on = !(c.a2.t === 'line' && c.a2.n <= n);
+      } else sel = false;
+      if (c.neg) sel = !sel;
+      if (!sel) continue;
+      if (c.c === 's') {
+        let did = false;
+        ps = ps.replace(c.re, (...m) => {
+          did = true;
+          const groups = m.slice(0, -2);
+          return c.rep.replace(/\\([0-9&nt\\])|&/g, (x, e) => {
+            if (x === '&') return groups[0];
+            if (/\d/.test(e)) return groups[+e] ?? '';
+            return ({ '&': '&', n: '\n', t: '\t', '\\': '\\' })[e];
+          });
+        });
+        if (did && c.p) out.push(ps);
+      } else if (c.c === 'd') { del = true; break; }
+      else if (c.c === 'p') out.push(ps);
+      else if (c.c === '=') out.push(String(n));
+      else if (c.c === 'i') out.push(c.text);
+      else if (c.c === 'a') { out.push(...(quiet ? [] : [ps])); ps = c.text; }
+      else if (c.c === 'c') { ps = c.text; }
+      else if (c.c === 'q') { quit = true; break; }
+    }
+    if (!del && !quiet) out.push(ps);
+    if (quit) break;
+  }
+  return out;
+}
+CMDS.sed = (args, stdin) => {
+  const { o, rest } = getopt(args, 'nErsi', 'e', 'sed');
+  const script = o.e ? o.e.join('\n') : rest.shift();
+  if (script === undefined) throw new ShErr("Usage: sed [OPTION]... 'script' [FILE]...\nExample:  sed 's/chr//' data/genes.gff");
+  const cmds = parseSed(script, !!(o.E || o.r));
+  const errs = [];
+  if (o.i) {
+    if (!rest.length) throw new ShErr('sed: no input files');
+    for (const f of inputs(rest, '', 'sed', errs)) {
+      if (f.gz) continue;
+      writeFile(f.name, joinOut(sedRun(cmds, lines(f.text), !!o.n)), false, 'sed');
+    }
+    return { out: '', errs };
+  }
+  let L = [];
+  for (const f of inputs(rest, stdin, 'sed', errs)) L = L.concat(lines(f.text));
+  return { out: joinOut(sedRun(cmds, L, !!o.n)), errs };
+};
+CMDS.awk = (args, stdin) => {
+  const vars = {}; let prog = null; const files = [];
+  const setVar = kv => { const m = kv.match(/^([A-Za-z_]\w*)=([\s\S]*)$/); if (!m) throw new ShErr(`awk: invalid -v argument '${kv}'`); vars[m[1]] = unesc(m[2]); };
+  for (let i = 0; i < args.length; i++) {
+    const a = args[i];
+    if (prog === null && a.startsWith('-F')) { const v = a.length > 2 ? a.slice(2) : args[++i]; if (v === undefined) throw new ShErr('awk: -F needs a separator'); vars.FS = v === 't' ? '\t' : unesc(v); }
+    else if (prog === null && a === '-v') setVar(args[++i] || '');
+    else if (prog === null && a.startsWith('-v') && a.length > 2) setVar(a.slice(2));
+    else if (prog === null && a === '--') continue;
+    else if (prog === null) prog = a;
+    else if (/^[A-Za-z_]\w*=/.test(a)) setVar(a);
+    else files.push(a);
+  }
+  if (prog === null) throw new ShErr("Usage: awk [-F sep] 'program' [file ...]\nExample:  awk '{print $1}' data/samples.tsv");
+  const items = new AwkParser(awkLex(prog)).program();
+  const errs = [];
+  const ins = inputs(files, stdin, 'awk', errs);
+  const run = new AwkRun(items, vars);
+  const out = run.run(ins);
+  return { out, errs, code: run.exitCode };
+};
+CMDS.echo = (args) => {
+  let n = false, e = false;
+  args = args.slice();
+  while (args.length && /^-[neE]+$/.test(args[0])) { const f = args.shift(); if (f.includes('n')) n = true; if (f.includes('e')) e = true; }
+  let s = args.join(' ');
+  if (e) s = unesc(s);
+  return { out: s + (n ? '' : '\n') };
+};
+CMDS.printf = (args) => {
+  if (!args.length) throw new ShErr('printf: usage: printf format [arguments]');
+  const fmt = unesc(args[0]); const vals = args.slice(1);
+  let out = '', k = 0;
+  do {
+    const r = sprintf(fmt, vals.slice(k));
+    out += r.s; k += r.used;
+    if (!r.used) break;
+  } while (k < vals.length);
+  return { out };
+};
+CMDS.seq = (args) => {
+  const n = args.map(Number);
+  if (!n.length || n.some(Number.isNaN)) throw new ShErr('seq: usage: seq [first [step]] last');
+  const [a, st, b] = n.length === 1 ? [1, 1, n[0]] : n.length === 2 ? [n[0], 1, n[1]] : n;
+  if (st === 0) throw new ShErr('seq: step cannot be zero');
+  const out = [];
+  for (let x = a; st > 0 ? x <= b : x >= b; x += st) { out.push(fmtNum(x)); if (out.length > 10000) break; }
+  return { out: joinOut(out) };
+};
+CMDS.mkdir = (args) => {
+  const { o, rest } = getopt(args, 'pv', 'm', 'mkdir');
+  if (!rest.length) throw new ShErr('mkdir: missing operand\nExample:  mkdir -p results/qc');
+  const errs = [];
+  for (const t of rest) {
+    const abs = norm(t);
+    if (getNode(abs)) { if (!o.p) errs.push(`mkdir: cannot create directory '${t}': File exists`); continue; }
+    const parts = abs.slice(1).split('/');
+    let n = fs, ok = true;
+    for (let i = 0; i < parts.length; i++) {
+      const p = parts[i];
+      if (!hasOwn(n.c, p)) {
+        if (i < parts.length - 1 && !o.p) { errs.push(`mkdir: cannot create directory '${t}': No such file or directory`); ok = false; break; }
+        n.c[p] = mkDir(); n.c[p].m = Date.now();
+      } else if (!n.c[p].d) { errs.push(`mkdir: cannot create directory '${t}': Not a directory`); ok = false; break; }
+      n = n.c[p];
+    }
+    void ok;
+  }
+  return { out: '', errs };
+};
+CMDS.touch = (args) => {
+  if (!args.length) throw new ShErr('touch: missing file operand');
+  const errs = [];
+  for (const t of args.filter(a => !a.startsWith('-'))) {
+    const n = getNode(norm(t));
+    if (n) n.m = Date.now();
+    else { try { writeFile(t, '', false, 'touch'); } catch (e) { errs.push(`touch: cannot touch '${t}': No such file or directory`); } }
+  }
+  return { out: '', errs };
+};
+function guardDelete(t, abs, cmd) {
+  if (abs === '/' || abs === HOME || abs === '/home' || !(abs.startsWith(HOME + '/') || abs.startsWith('/tmp/')))
+    throw new ShErr(`${cmd}: refusing to remove '${t}' in the practice shell.\nOn a real system this could delete everything you own, and there is no undo.`);
+}
+CMDS.rm = (args) => {
+  const { o, rest } = getopt(args, 'rRfiv', '', 'rm');
+  if (!rest.length) throw new ShErr('rm: missing operand');
+  const errs = [];
+  for (const t of rest) {
+    const abs = norm(t);
+    guardDelete(t, abs, 'rm');
+    const n = getNode(abs);
+    if (!n) { if (!o.f) errs.push(`rm: cannot remove '${t}': No such file or directory`); continue; }
+    if (n.d && !(o.r || o.R)) { errs.push(`rm: cannot remove '${t}': Is a directory\nUse  rm -r ${t}  to delete a folder and everything in it.`); continue; }
+    const [pd, name] = splitPath(abs);
+    delete getNode(pd).c[name];
+  }
+  return { out: '', errs };
+};
+CMDS.rmdir = (args) => {
+  const errs = [];
+  for (const t of args) {
+    const abs = norm(t); guardDelete(t, abs, 'rmdir');
+    const n = getNode(abs);
+    if (!n) errs.push(`rmdir: failed to remove '${t}': No such file or directory`);
+    else if (!n.d) errs.push(`rmdir: failed to remove '${t}': Not a directory`);
+    else if (Object.keys(n.c).length) errs.push(`rmdir: failed to remove '${t}': Directory not empty`);
+    else { const [pd, name] = splitPath(abs); delete getNode(pd).c[name]; }
+  }
+  return { out: '', errs };
+};
+function copyMove(isMove) {
+  const name = isMove ? 'mv' : 'cp';
+  return (args) => {
+    const { o, rest } = getopt(args, 'rRivfnau', '', name);
+    if (rest.length < 2) throw new ShErr(`${name}: missing destination file operand after '${rest[0] || ''}'\nExample:  ${name} data/primers.fasta results/`);
+    const dest = rest.pop(); const dAbs = norm(dest); const dN = getNode(dAbs);
+    if (rest.length > 1 && !(dN && dN.d)) throw new ShErr(`${name}: target '${dest}' is not a directory`);
+    const errs = [];
+    for (const src of rest) {
+      const sAbs = norm(src); const sN = getNode(sAbs);
+      if (!sN) { errs.push(`${name}: cannot stat '${src}': No such file or directory`); continue; }
+      if (sN.d && !isMove && !(o.r || o.R)) { errs.push(`cp: -r not specified; omitting directory '${src}'`); continue; }
+      const tAbs = dN && dN.d ? (dAbs === '/' ? '' : dAbs) + '/' + baseName(sAbs) : dAbs;
+      if (tAbs === sAbs) { errs.push(`${name}: '${src}' and '${dest}' are the same file`); continue; }
+      if (sN.d && (tAbs + '/').startsWith(sAbs + '/')) { errs.push(`${name}: cannot ${isMove ? 'move' : 'copy'} a directory, '${src}', into itself`); continue; }
+      const [pd, nm] = splitPath(tAbs); const parent = getNode(pd);
+      if (!parent || !parent.d) { errs.push(`${name}: cannot create '${dest}': No such file or directory`); continue; }
+      if (parent.c[nm] && parent.c[nm].d && !sN.d) { errs.push(`${name}: cannot overwrite directory '${dest}' with non-directory`); continue; }
+      if (isMove) guardDelete(src, sAbs, 'mv');
+      const copy = clone(sN); if (!isMove) copy.m = Date.now();
+      parent.c[nm] = copy;
+      if (isMove) { const [sp, sn] = splitPath(sAbs); delete getNode(sp).c[sn]; }
+    }
+    return { out: '', errs };
+  };
+}
+CMDS.cp = copyMove(false);
+CMDS.mv = copyMove(true);
+CMDS.find = (args) => {
+  const starts = [];
+  let i = 0;
+  while (i < args.length && !args[i].startsWith('-')) starts.push(args[i++]);
+  if (!starts.length) starts.push('.');
+  const preds = []; let maxd = Infinity, mind = 0;
+  for (; i < args.length; i++) {
+    const a = args[i], v = args[i + 1];
+    if (a === '-name' || a === '-iname') { if (v === undefined) throw new ShErr(`find: missing argument to '${a}'`); const re = globRe(v, a === '-iname'); preds.push((nm) => re.test(nm)); i++; }
+    else if (a === '-type') { if (v !== 'f' && v !== 'd') throw new ShErr("find: -type takes f (file) or d (directory)"); preds.push((nm, n) => v === 'd' ? !!n.d : !n.d); i++; }
+    else if (a === '-maxdepth') { maxd = +v; i++; }
+    else if (a === '-mindepth') { mind = +v; i++; }
+    else if (a === '-print') continue;
+    else throw new ShErr(`find: unknown predicate '${a}'\nThis shell supports -name, -iname, -type f|d and -maxdepth.`);
+  }
+  const out = [], errs = [];
+  for (const s of starts) {
+    const n = getNode(norm(s));
+    if (!n) { errs.push(`find: '${s}': No such file or directory`); continue; }
+    const walk = (node, path, nm, depth) => {
+      if (depth >= mind && preds.every(p => p(nm, node))) out.push(path);
+      if (node.d && depth < maxd) for (const k of Object.keys(node.c).sort()) walk(node.c[k], path.replace(/\/$/, '') + '/' + k, k, depth + 1);
+    };
+    walk(n, s, baseName(norm(s)) || '/', 0);
+  }
+  return { out: joinOut(out), errs };
+};
+CMDS.gzip = (args) => {
+  const { o, rest } = getopt(args, 'kdcfv', '', 'gzip');
+  if (o.d) return CMDS.gunzip(args.filter(a => a !== '-d'));
+  if (!rest.length) throw new ShErr('gzip: compressed data not written to a terminal. Give a file name:  gzip file.txt');
+  const errs = [];
+  for (const t of rest) {
+    const abs = norm(t), n = getNode(abs);
+    if (!n) { errs.push(`gzip: ${t}: No such file or directory`); continue; }
+    if (n.d) { errs.push(`gzip: ${t} is a directory -- ignored`); continue; }
+    if (n.gz || t.endsWith('.gz')) { errs.push(`gzip: ${t} already has .gz suffix -- unchanged`); continue; }
+    const [pd, nm] = splitPath(abs); const parent = getNode(pd);
+    parent.c[nm + '.gz'] = mkFile(n.t, { gz: 1, m: n.m });
+    if (!o.k) delete parent.c[nm];
+  }
+  return { out: '', errs };
+};
+CMDS.gunzip = (args) => {
+  const { o, rest } = getopt(args, 'kcfvd', '', 'gunzip');
+  if (o.c) return CMDS.zcat(rest);
+  const errs = [];
+  for (const t of rest) {
+    const abs = norm(t), n = getNode(abs);
+    if (!n) { errs.push(`gunzip: ${t}: No such file or directory`); continue; }
+    if (!n.gz || !t.endsWith('.gz')) { errs.push(`gunzip: ${t}: unknown suffix -- ignored`); continue; }
+    const [pd, nm] = splitPath(abs); const parent = getNode(pd);
+    parent.c[nm.slice(0, -3)] = mkFile(n.t, { m: n.m });
+    if (!o.k) delete parent.c[nm];
+  }
+  return { out: '', errs };
+};
+CMDS.zcat = (args, stdin) => {
+  if (!args.length) return { out: stdin };
+  const errs = []; let out = '';
+  for (const t of args) {
+    try {
+      const r = readText(t, 'zcat');
+      if (!r.gz) errs.push(`zcat: ${t}: not in gzip format`); else out += r.text;
+    } catch (e) { errs.push(e.message.replace('No such', 'No such')); }
+  }
+  return { out, errs };
+};
+CMDS.column = (args, stdin) => {
+  const { o, rest } = getopt(args, 'tn', 's', 'column');
+  const errs = []; let L = [];
+  for (const f of inputs(rest, stdin, 'column', errs)) L = L.concat(lines(f.text));
+  if (!o.t) return { out: joinOut(L), errs };
+  const sep = o.s ? unesc(last(o.s)) : null;
+  const rows = L.map(l => sep ? l.split(new RegExp('[' + escRe(sep) + ']+')) : l.trim().split(/\s+/));
+  const w = [];
+  rows.forEach(r => r.forEach((c, i) => { w[i] = Math.max(w[i] || 0, c.length); }));
+  return { out: joinOut(rows.map(r => r.map((c, i) => i < r.length - 1 ? c.padEnd(w[i]) : c).join('  '))), errs };
+};
+CMDS.paste = (args, stdin) => {
+  const { o, rest } = getopt(args, 's', 'd', 'paste');
+  const delims = o.d ? unesc(last(o.d)) : '\t';
+  const srcs = rest.length ? rest : ['-'];
+  const sIn = lines(stdin); let ptr = 0;
+  const errs = [];
+  const fileL = srcs.map(s => s === '-' ? null : (() => { try { return lines(readText(s, 'paste').text); } catch (e) { errs.push(e.message); return []; } })());
+  const join = parts => parts.reduce((acc, p, j) => j === 0 ? p : acc + (delims ? delims[(j - 1) % delims.length] : '') + p, '');
+  const out = [];
+  if (o.s) {
+    srcs.forEach((s, k) => out.push(join(s === '-' ? sIn.splice(0) : fileL[k])));
+  } else {
+    const idx = srcs.map(() => 0);
+    for (let row = 0; row < 100000; row++) {
+      let any = false;
+      const parts = srcs.map((s, k) => {
+        if (s === '-') { if (ptr < sIn.length) { any = true; return sIn[ptr++]; } return ''; }
+        if (idx[k] < fileL[k].length) { any = true; return fileL[k][idx[k]++]; }
+        return '';
+      });
+      if (!any) break;
+      out.push(join(parts));
+    }
+  }
+  return { out: joinOut(out), errs };
+};
+CMDS.tee = (args, stdin) => {
+  const { o, rest } = getopt(args, 'a', '', 'tee');
+  for (const f of rest) writeFile(f, stdin, !!o.a, 'tee');
+  return { out: stdin };
+};
+CMDS.basename = (args) => {
+  if (!args.length) throw new ShErr('basename: missing operand');
+  let b = baseName(args[0]);
+  if (args[1] && b.endsWith(args[1]) && b !== args[1]) b = b.slice(0, -args[1].length);
+  return { out: b + '\n' };
+};
+CMDS.dirname = (args) => {
+  if (!args.length) throw new ShErr('dirname: missing operand');
+  const s = args[0].replace(/\/+$/, ''); const i = s.lastIndexOf('/');
+  return { out: (i < 0 ? '.' : i === 0 ? '/' : s.slice(0, i)) + '\n' };
+};
+CMDS.file = (args) => {
+  const out = args.map(t => {
+    const n = getNode(norm(t));
+    if (!n) return `${t}: cannot open '${t}' (No such file or directory)`;
+    if (n.d) return `${t}: directory`;
+    if (n.gz) return `${t}: gzip compressed data, was "${baseName(t).replace(/\.gz$/, '')}"`;
+    if (!n.t) return `${t}: empty`;
+    if (n.t.startsWith('#!')) return `${t}: Bourne-Again shell script, ASCII text executable`;
+    return `${t}: ASCII text`;
+  });
+  return { out: joinOut(out) };
+};
+CMDS.chmod = (args) => {
+  if (args.length < 2) throw new ShErr('chmod: missing operand\nExample:  chmod +x scripts/count_seqs.sh');
+  const mode = args[0];
+  const errs = [];
+  for (const t of args.slice(1)) {
+    const n = getNode(norm(t));
+    if (!n) { errs.push(`chmod: cannot access '${t}': No such file or directory`); continue; }
+    if (/^[ugoa]*\+[rwx]*x/.test(mode)) n.x = 1;
+    else if (/^[ugoa]*-[rwx]*x/.test(mode)) n.x = 0;
+    else if (/^[0-7]{3}$/.test(mode)) n.x = (+mode[0]) & 1 ? 1 : 0;
+  }
+  return { out: '', errs };
+};
+CMDS.history = () => ({ out: joinOut(sh.history.map((h, i) => String(i + 1).padStart(5) + '  ' + h)) });
+CMDS.clear = () => ({ out: '', clear: true });
+CMDS.whoami = () => ({ out: 'student\n' });
+CMDS.hostname = () => ({ out: 'bio116\n' });
+CMDS.uname = (a) => ({ out: (a.includes('-a') ? 'Linux bio116 6.8.0 x86_64 GNU/Linux' : 'Linux') + '\n' });
+CMDS.date = () => ({ out: new Date().toString().replace(/ GMT.*$/, '') + '\n' });
+CMDS.true = () => ({ out: '' });
+CMDS.false = () => ({ out: '', code: 1 });
+CMDS.env = () => ({ out: joinOut(Object.entries(sh.env).map(([k, v]) => `${k}=${v}`)) });
+CMDS.export = (args) => { for (const a of args) { const m = a.match(/^([A-Za-z_]\w*)=([\s\S]*)$/); if (m) sh.env[m[1]] = m[2]; } return { out: '' }; };
+CMDS.which = (args) => ({ out: joinOut(args.filter(a => CMDS[a]).map(a => '/usr/bin/' + a)), code: args.every(a => CMDS[a]) ? 0 : 1 });
+CMDS.type = CMDS.which;
+['nano', 'vim', 'vi', 'emacs', 'code', 'pico'].forEach(ed => {
+  CMDS[ed] = () => { throw new ShErr(`${ed}: text editors aren't available in the practice shell.\nWrite small files with echo instead:  echo 'grep -c ">" data/*.fasta' > scripts/count.sh`); };
+});
+['python', 'python3', 'R', 'Rscript', 'conda', 'pip', 'module', 'samtools', 'bedtools', 'bcftools', 'seqkit', 'fastqc', 'blastn', 'sudo', 'apt', 'curl', 'wget', 'ssh', 'git', 'top', 'man2'].forEach(p => {
+  CMDS[p] = () => { throw new ShErr(`${p}: not installed in the practice shell. This terminal only has the core UNIX text tools.\nType  help  to see what is available.`); };
+});
+CMDS.exit = CMDS.logout = () => ({ out: '', errs: [{ note: 'This is a practice shell, so there is nothing to log out of. Use Reset files to start fresh.' }] });
+
+const REF = [
+  ['Navigate', 'pwd', 'pwd', 'Print the working directory: where you are.'],
+  ['Navigate', 'ls', 'ls -lh data', 'List files. -l long format, -h readable sizes, -a hidden files, -t newest first.'],
+  ['Navigate', 'cd', 'cd data', 'Change directory. cd .. goes up, cd alone goes home, cd - goes back.'],
+  ['Navigate', 'find', 'find . -name "*.fastq*"', 'Search a folder tree by name. -type f for files, -type d for folders.'],
+  ['View', 'cat', 'cat data/samples.tsv', 'Print whole files. -n numbers the lines. Best for small files.'],
+  ['View', 'head', 'head -n 4 data/reads.fastq', 'The first lines of a file (10 by default).'],
+  ['View', 'tail', 'tail -n +2 data/samples.tsv', 'The last lines. tail -n +2 starts at line 2, skipping a header.'],
+  ['View', 'less', 'less data/genes.gff', 'Scroll a big file. Space pages, /word searches, q quits.'],
+  ['View', 'wc', 'wc -l data/reads.fastq', 'Count lines (-l), words (-w) or characters (-c).'],
+  ['View', 'zcat', 'zcat data/SRR1039509.fastq.gz | head', 'Print a gzip-compressed file without unpacking it.'],
+  ['Search', 'grep', "grep -c '>' data/sequences.fasta", 'Lines matching a pattern. -c count, -v invert, -i ignore case, -n line numbers, -o only the match, -w whole word, -A/-B lines after/before, -E extended regex.'],
+  ['Combine', '|', 'grep ">" f.fasta | wc -l', 'Pipe: the output of the left command becomes the input of the right one.'],
+  ['Combine', '>', 'cmd > out.txt', 'Write output to a file, replacing it. >> appends, < reads a file as input, 2> saves errors.'],
+  ['Combine', 'tee', 'cmd | tee out.txt | wc -l', 'Save a copy of the stream to a file and pass it along.'],
+  ['Columns', 'cut', 'cut -f 1,4,5 data/genes.gff', 'Pick columns. Tab is the default separator; -d , for CSV; -c 1-10 for characters.'],
+  ['Columns', 'sort', 'sort -k5,5nr data/samples.tsv', 'Order lines. -n numeric, -r reverse, -k column, -t separator, -u unique.'],
+  ['Columns', 'uniq', 'sort | uniq -c', 'Merge neighbouring repeats; -c counts them, -d shows only repeats. Sort first.'],
+  ['Columns', 'paste', 'paste - - - - < data/reads.fastq', 'Join lines side by side. Four dashes make each FASTQ record one row.'],
+  ['Columns', 'column', 'column -t data/samples.tsv', 'Line up columns so a table is easy to read.'],
+  ['Transform', 'awk', "awk '$6 > 30 {print $1, $2}' f.vcf", 'Filter rows and compute with fields $1…$NF. -F sets the separator. NR is the line number.'],
+  ['Transform', 'sed', "sed 's/chr//' data/genes.gff", "Stream editor. s/old/new/g substitutes, -n '5p' prints line 5, '/^#/d' deletes lines, -i edits the file."],
+  ['Transform', 'tr', "tr ACGT TGCA < seq.txt", 'Translate or delete (-d) characters. Only reads standard input.'],
+  ['Transform', 'rev', 'rev', 'Reverse each line. rev | tr ACGT TGCA gives a reverse complement.'],
+  ['Transform', 'fold', 'fold -w 60', 'Wrap long lines to a fixed width, as FASTA files do.'],
+  ['Files', 'mkdir', 'mkdir -p results/qc', 'Make a folder. -p also makes missing parent folders and ignores existing ones.'],
+  ['Files', 'cp', 'cp data/*.vcf results/', 'Copy files. -r copies folders.'],
+  ['Files', 'mv', 'mv old.txt new.txt', 'Move or rename.'],
+  ['Files', 'rm', 'rm results/tmp.txt', 'Delete for good. -r removes folders. There is no undo and no bin.'],
+  ['Files', 'touch', 'touch results/notes.txt', 'Create an empty file, or update its timestamp.'],
+  ['Files', 'chmod', 'chmod +x scripts/run.sh', 'Change permissions. +x lets you run a script as ./scripts/run.sh.'],
+  ['Files', 'gzip', 'gzip -k data/reads.fastq', 'Compress to .gz (-k keeps the original). gunzip undoes it.'],
+  ['Automate', 'for', 'for f in data/*.fasta; do grep -c ">" "$f"; done', 'Run the same commands once per item. $f holds the current item.'],
+  ['Automate', 'bash', 'bash scripts/count_seqs.sh', 'Run the commands saved in a script file.'],
+  ['Automate', 'echo', 'echo "Done: $USER"', 'Print text and variables. -e understands \\t and \\n.'],
+  ['Automate', 'printf', 'printf "%s\\t%d\\n" chr1 42', 'Formatted printing: %s text, %d integers, %.2f decimals.'],
+  ['Automate', 'history', 'history', 'Every command you have run. The up arrow recalls them one by one.'],
+];
+const MAN_EXTRA = {
+  gunzip: 'Uncompress file.gz back to file. -k keeps the .gz copy.', seq: 'Print a sequence of numbers: seq 5, seq 2 10, seq 0 5 100.',
+  basename: 'Strip the folder (and optionally a suffix): basename data/reads.fastq .fastq', dirname: 'The folder part of a path.',
+  file: 'Guess what kind of file something is.', man: 'Show help for a command.', clear: 'Clear the screen (Ctrl+L also works).',
+  help: 'List the available commands.', rmdir: 'Remove an empty folder.', more: 'Like less.', which: 'Show where a command lives.',
+};
+CMDS.help = () => {
+  const groups = {};
+  REF.forEach(([g, c]) => { if (/^[a-z]/.test(c)) (groups[g] = groups[g] || []).push(c); });
+  groups.Other = ['gunzip', 'seq', 'basename', 'dirname', 'file', 'rmdir', 'man', 'clear', 'history', 'whoami', 'date'];
+  const L = ['Commands in this practice shell:', ''];
+  for (const [g, cs] of Object.entries(groups)) L.push(`  ${(g + ':').padEnd(11)}${cs.join('  ')}`);
+  L.push('', 'Also: pipes |, redirection > >> < 2>, wildcards * ?, variables $HOME, ; && ||, and one-line for loops.');
+  L.push('Type  man <command>  for notes and an example. Tab completes names; the up arrow recalls commands.');
+  return { out: joinOut(L) };
+};
+CMDS.man = (args) => {
+  if (!args.length) throw new ShErr('What manual page do you want? For example:  man grep');
+  const c = args[0];
+  const r = REF.find(x => x[1] === c);
+  if (r) return { out: joinOut([`${c.toUpperCase()}`, '', `  ${r[3]}`, '', '  Example:', `    ${r[2]}`, '', '  Real manuals are longer: on a real system  man ' + c + '  lists every option.']) };
+  if (MAN_EXTRA[c]) return { out: joinOut([c.toUpperCase(), '', '  ' + MAN_EXTRA[c]]) };
+  throw new ShErr(`No manual entry for ${c}`);
+};
+
+/* =====================================================================
+   The shell: tokenizing, expansion, pipelines, loops, scripts
+   ===================================================================== */
+function tokenize(line) {
+  const toks = [];
+  let cur = null, glob = false, i = 0;
+  const flush = () => { if (cur !== null) { toks.push({ t: 'w', v: cur, glob }); cur = null; glob = false; } };
+  const add = s => { cur = (cur ?? '') + s; };
+  const varAt = (j) => {
+    if (line[j + 1] === '(') throw new ShErr('Command substitution $(...) and arithmetic $((...)) are not supported in the practice shell.');
+    if (line[j + 1] === '{') { const k = line.indexOf('}', j); const nm = line.slice(j + 2, k); return [sh.env[nm] ?? '', k + 1]; }
+    if (line[j + 1] === '?') return [String(sh.code), j + 2];
+    const m = line.slice(j + 1).match(/^[A-Za-z_]\w*|^\d/);
+    if (!m) return ['$', j + 1];
+    return [sh.env[m[0]] ?? '', j + 1 + m[0].length];
+  };
+  while (i < line.length) {
+    const c = line[i];
+    if (c === ' ' || c === '\t' || c === '\n') { flush(); i++; continue; }
+    if (c === "'") {
+      const j = line.indexOf("'", i + 1);
+      if (j < 0) throw new ShErr('bash: unexpected end of line while looking for matching \'');
+      add(line.slice(i + 1, j)); i = j + 1; continue;
+    }
+    if (c === '"') {
+      let j = i + 1, s = '';
+      while (j < line.length && line[j] !== '"') {
+        if (line[j] === '\\' && '"\\$`'.includes(line[j + 1])) { s += line[j + 1]; j += 2; continue; }
+        if (line[j] === '$') { const [v, k] = varAt(j); s += v; j = k; continue; }
+        s += line[j++];
+      }
+      if (j >= line.length) throw new ShErr('bash: unexpected end of line while looking for matching "');
+      add(s); i = j + 1; continue;
+    }
+    if (c === '\\') { add(line[i + 1] ?? ''); i += 2; continue; }
+    if (c === '$' && line[i + 1] === "'") {
+      const j = line.indexOf("'", i + 2);
+      if (j < 0) throw new ShErr("bash: unexpected end of line while looking for matching '");
+      add(unesc(line.slice(i + 2, j))); i = j + 1; continue;
+    }
+    if (c === '$') { const [v, k] = varAt(i); add(v); i = k; continue; }
+    if (c === '|' || c === ';' || c === '<' || c === '>' || c === '&') {
+      if (c === '>' && cur === '2' && !glob) { cur = null; toks.push({ t: 'op', v: line[i + 1] === '>' ? '2>>' : '2>' }); i += line[i + 1] === '>' ? 2 : 1; continue; }
+      flush();
+      const two = line.slice(i, i + 2);
+      if (['>>', '&&', '||'].includes(two)) { toks.push({ t: 'op', v: two }); i += 2; continue; }
+      if (c === '&') throw new ShErr('Background jobs (&) are not supported in the practice shell.');
+      toks.push({ t: 'op', v: c }); i++; continue;
+    }
+    if (c === '#' && cur === null) break;
+    if (c === '~' && cur === null && (i + 1 === line.length || /[\/\s;|]/.test(line[i + 1]))) { add(HOME); i++; continue; }
+    if (c === '*' || c === '?' || c === '[') glob = true;
+    add(c); i++;
+  }
+  flush();
+  return toks;
+}
+function expandGlob(w) {
+  if (!w.glob) return [w.v];
+  const i = w.v.lastIndexOf('/');
+  const dirPart = i >= 0 ? w.v.slice(0, i + 1) : '';
+  const pat = w.v.slice(i + 1);
+  if (/[*?[]/.test(dirPart)) return [w.v];
+  const dn = getNode(norm(dirPart || '.'));
+  if (!dn || !dn.d) return [w.v];
+  const re = globRe(pat);
+  const hits = Object.keys(dn.c).filter(n => re.test(n) && (pat.startsWith('.') || !n.startsWith('.'))).sort();
+  return hits.length ? hits.map(n => dirPart + n) : [w.v];
+}
+// Split a line at top-level ; && || while keeping for...do...done blocks whole.
+function splitTop(line) {
+  const segs = []; let cur = '', depth = 0, q = null, op = null;
+  for (let i = 0; i < line.length; i++) {
+    const c = line[i];
+    if (q) { cur += c; if (c === q) q = null; else if (c === '\\' && q === '"') { cur += line[++i] ?? ''; } continue; }
+    if (c === "'" || c === '"') { q = c; cur += c; continue; }
+    if (c === '\\') { cur += c + (line[++i] ?? ''); continue; }
+    const prevOk = i === 0 || /[\s;|&]/.test(line[i - 1]);
+    if (prevOk) {
+      const m = line.slice(i).match(/^(for|done)(?=$|[\s;|&>])/);
+      if (m) { depth += m[1] === 'for' ? 1 : -1; cur += m[1]; i += m[1].length - 1; continue; }
+    }
+    if (depth === 0) {
+      const two = line.slice(i, i + 2);
+      if (two === '&&' || two === '||') { segs.push({ text: cur, op }); op = two; cur = ''; i++; continue; }
+      if (c === ';') { segs.push({ text: cur, op }); op = ';'; cur = ''; continue; }
+    }
+    cur += c;
+  }
+  if (q) throw new ShErr(`bash: unexpected end of line while looking for matching ${q}`);
+  if (depth > 0) throw new ShErr("bash: syntax error: 'for' loop is missing its 'done'. Write it on one line: for f in data/*.fasta; do echo \"$f\"; done");
+  segs.push({ text: cur, op });
+  return segs.filter(s => s.text.trim());
+}
+function findDone(s) {
+  let depth = 1, q = null;
+  for (let i = 0; i < s.length; i++) {
+    const c = s[i];
+    if (q) { if (c === q) q = null; continue; }
+    if (c === "'" || c === '"') { q = c; continue; }
+    if (i === 0 || /[\s;|&]/.test(s[i - 1])) {
+      const m = s.slice(i).match(/^(do|done)(?=$|[\s;|&>])/);
+      if (m) { depth += m[1] === 'do' ? 1 : -1; if (depth === 0) return i; i += m[1].length - 1; }
+    }
+  }
+  return -1;
+}
+let loopBudget = 0;
+function runFor(seg, sink, stdin) {
+  const m = seg.match(/^\s*for\s+([A-Za-z_]\w*)\s+in\s+([\s\S]*?)\s*;\s*do\b([\s\S]*)$/);
+  if (!m) throw new ShErr('bash: syntax error in for loop. The shape is:\n  for f in data/*.fasta; do echo "$f"; done');
+  const d = findDone(m[3]);
+  if (d < 0) throw new ShErr("bash: syntax error: 'for' loop is missing its 'done'");
+  const body = m[3].slice(0, d).replace(/;\s*$/, '').trim();
+  const after = m[3].slice(d + 4).trim();
+  if (!body) throw new ShErr("bash: syntax error near unexpected token 'done'");
+  const items = tokenize(m[2]).filter(t => t.t === 'w').flatMap(expandGlob);
+  const sub = [];
+  let code = 0;
+  for (const it of items) {
+    if (++loopBudget > 5000) throw new ShErr('bash: loop stopped after 5000 iterations in the practice shell');
+    sh.env[m[1]] = it;
+    code = runLine(body, sub, stdin);
+  }
+  if (!after) { sink.push(...sub); return code; }
+  const loopOut = sub.filter(x => x.k === 'out').map(x => x.text).join('');
+  sub.filter(x => x.k !== 'out').forEach(x => sink.push(x));
+  if (after.startsWith('|')) return runSimple(after.slice(1), sink, loopOut);
+  const r = after.match(/^(>>|>)\s*(\S+)\s*$/);
+  if (r) { const t = tokenize(r[2])[0]; writeFile(t ? t.v : r[2], loopOut, r[1] === '>>'); return code; }
+  throw new ShErr(`bash: syntax error near '${after.slice(0, 12)}'`);
+}
+function runLine(line, sink, stdin) {
+  const segs = splitTop(line);
+  let code = 0;
+  for (const s of segs) {
+    if (s.op === '&&' && code !== 0) continue;
+    if (s.op === '||' && code === 0) continue;
+    try {
+      code = /^\s*for\s/.test(s.text) ? runFor(s.text, sink, stdin) : runSimple(s.text, sink, stdin);
+    } catch (e) {
+      if (!(e instanceof ShErr)) throw e;
+      sink.push({ k: 'err', text: e.message }); code = 1;
+    }
+    sh.code = code;
+  }
+  return code;
+}
+function runScript(path, sink, cmdName) {
+  const r = readText(path, cmdName);
+  const body = lines(r.text).filter(l => l.trim() && !/^\s*#/.test(l)).join('; ')
+    .replace(/\bdo\s*;/g, 'do').replace(/;\s*;/g, ';');
+  if (!body.trim()) return 0;
+  return runLine(body, sink, '');
+}
+function runSimple(text, sink, stdin) {
+  const toks = tokenize(text);
+  if (!toks.length) return 0;
+  const cmds = [[]];
+  for (const t of toks) { if (t.t === 'op' && t.v === '|') cmds.push([]); else cmds[cmds.length - 1].push(t); }
+  const parsed = cmds.map(ts => {
+    if (!ts.length) throw new ShErr("bash: syntax error near unexpected token '|'");
+    const words = [], redirs = [];
+    for (let i = 0; i < ts.length; i++) {
+      const t = ts[i];
+      if (t.t === 'op') {
+        if (['>', '>>', '<', '2>', '2>>'].includes(t.v)) {
+          const nx = ts[i + 1];
+          if (!nx || nx.t !== 'w') throw new ShErr(`bash: syntax error near unexpected token '${nx ? nx.v : 'newline'}'`);
+          redirs.push({ op: t.v, target: nx.v }); i++;
+        } else throw new ShErr(`bash: syntax error near unexpected token '${t.v}'`);
+      } else words.push(...expandGlob(t));
+    }
+    return { words, redirs };
+  });
+  // Variable assignments: NAME=value
+  if (parsed.length === 1 && parsed[0].words.length && parsed[0].words.every(w => /^[A-Za-z_]\w*=/.test(w))) {
+    parsed[0].words.forEach(w => { const k = w.indexOf('='); sh.env[w.slice(0, k)] = w.slice(k + 1); });
+    return 0;
+  }
+  // The shell truncates output files before any command runs, just like bash.
+  for (const p of parsed) for (const r of p.redirs) if (r.op === '>') writeFile(r.target, '', false);
+  let input = stdin || '', code = 0;
+  parsed.forEach((p, idx) => {
+    const isLast = idx === parsed.length - 1;
+    let res;
+    try {
+      const inR = p.redirs.filter(r => r.op === '<').pop();
+      if (inR) { const f = readText(inR.target, 'bash'); input = f.gz ? GZ_NOISE : f.text; }
+      if (!p.words.length) { res = { out: input }; }
+      else {
+        const [name, ...args] = p.words;
+        if (name.includes('/')) {
+          const n = getNode(norm(name));
+          if (!n) throw new ShErr(`bash: ${name}: No such file or directory`);
+          if (n.d) throw new ShErr(`bash: ${name}: Is a directory`);
+          if (!n.x) throw new ShErr(`bash: ${name}: Permission denied\nMake it executable first:  chmod +x ${name}   (or run it with  bash ${name})`);
+          const sub = []; const c = runScript(name, sub, 'bash');
+          res = { out: sub.filter(x => x.k === 'out').map(x => x.text).join(''), errs: sub.filter(x => x.k !== 'out').map(x => x.k === 'note' ? { note: x.text } : x.text), code: c };
+        } else if (name === 'bash' || name === 'sh' || name === 'source' || name === '.') {
+          if (!args.length) throw new ShErr(`${name}: you are already in a shell. To run a script:  bash scripts/count_seqs.sh`);
+          const sub = []; const c = runScript(args[0], sub, name);
+          res = { out: sub.filter(x => x.k === 'out').map(x => x.text).join(''), errs: sub.filter(x => x.k !== 'out').map(x => x.k === 'note' ? { note: x.text } : x.text), code: c };
+        } else if (CMDS[name]) {
+          res = CMDS[name](args, input);
+        } else {
+          const near = Object.keys(CMDS).find(k => k.length > 1 && levenshtein(k, name) === 1);
+          throw new ShErr(`bash: ${name}: command not found${near ? `\nDid you mean  ${near} ?` : ''}`);
+        }
+      }
+    } catch (e) {
+      if (!(e instanceof ShErr)) { res = { out: '', errs: [`bash: internal error: ${e.message}`], code: 1 }; }
+      else res = { out: '', errs: [e.message], code: /command not found/.test(e.message) ? 127 : 1 };
+    }
+    if (res.clear) sink.push({ k: 'clear' });
+    const errList = [].concat(res.errs || []).concat(res.err ? [res.err] : []).filter(Boolean);
+    const errR = p.redirs.filter(r => r.op === '2>' || r.op === '2>>').pop();
+    for (const e of errList) {
+      if (typeof e === 'object') { if (e.note) sink.push({ k: 'note', text: e.note }); continue; }
+      if (errR) writeFile(errR.target, e + '\n', errR.op === '2>>'); else sink.push({ k: 'err', text: e });
+    }
+    const outR = p.redirs.filter(r => r.op === '>' || r.op === '>>').pop();
+    let out = res.out || '';
+    if (outR) {
+      writeFile(outR.target, out, true);
+      out = ''; res.html = null;
+    }
+    if (isLast) { if (out) sink.push({ k: 'out', text: out, html: res.html }); }
+    else input = out;
+    code = res.code || 0;
+  });
+  return code;
+}
+function levenshtein(a, b) {
+  const d = Array.from({ length: a.length + 1 }, (_, i) => [i, ...Array(b.length).fill(0)]);
+  for (let j = 1; j <= b.length; j++) d[0][j] = j;
+  for (let i = 1; i <= a.length; i++) for (let j = 1; j <= b.length; j++)
+    d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+  return d[a.length][b.length];
+}
+
+/* =====================================================================
+   Lessons
+   ===================================================================== */
+const fileText = p => { const n = getNode(p); return n && n.f ? n.t : null; };
+const origLines = s => lines(s);
+const firstInt = s => { const m = s.match(/-?\d+/); return m ? +m[0] : null; };
+
+const LESSONS = [
+  {
+    id: 'nav', tag: 'Navigation', title: 'Find your way around',
+    body: `
+      <p>The shell always has a <em>working directory</em>: the folder your commands act on. Folders form a tree that starts at <code>/</code>. Your home folder is <code>/home/student</code>, written <code>~</code> for short.</p>
+      <p>A path starting with <code>/</code> is <b>absolute</b>, like <code>/home/student/data</code>. Anything else is <b>relative</b> to where you are, like <code>data/reads.fastq</code>. Two special names help you move: <code>.</code> is the current folder and <code>..</code> is the one above it.</p>`,
+    tries: [
+      ['pwd', 'Print the working directory: where am I?'],
+      ['ls', 'List what is here'],
+      ['ls -l data', 'Long listing: permissions, size in bytes, date modified'],
+      ['cd data', 'Move into the data folder'],
+      ['ls -lh', '-h shows sizes as K and M'],
+      ['cd ..', 'Go up one level'],
+      ['cat README.txt', 'Print a short file'],
+    ],
+    after: `<p class="tip">Press <kbd>Tab</kbd> to complete file and folder names. If Tab won't complete, the path doesn't exist, which catches most typos. <kbd>↑</kbd> brings back your last command.</p>`,
+    challenge: {
+      q: 'Move into the data folder and list its contents in long format with human-readable sizes.',
+      hint: 'Two commands: one changes directory, one lists. ls takes the flags -l and -h, and you can combine them as -lh.',
+      solution: 'cd ~/data\nls -lh',
+      why: 'Checked when you are in ~/data and have run ls with both -l and -h.',
+      check: c => c.cwd === HOME + '/data' && /(^|[;&|]\s*)ls\b/.test(c.cmd) && /\s-\w*l/.test(c.cmd) && /\s-\w*h/.test(c.cmd)
+    }
+  },
+  {
+    id: 'view', tag: 'Viewing', title: 'Look inside files',
+    body: `
+      <p>Nearly every bioinformatics format is plain text, so the same few tools read them all. These files are small, but real ones often run to gigabytes. Peek with <code>head</code> rather than printing a whole file with <code>cat</code>.</p>
+      <p>From here on, the lesson commands run from your home folder. If your prompt doesn't end in <code>~$</code>, type <code>cd</code> first.</p>
+      <p><b>FASTA</b> holds sequences: a header line starting with <code>&gt;</code>, then one or more sequence lines. <b>FASTQ</b> holds sequencing reads in blocks of exactly four lines: an <code>@</code> ID line, the bases, a <code>+</code> line, and a quality string with one character per base.</p>`,
+    tries: [
+      ['head -n 4 data/reads.fastq', 'The first read: four lines'],
+      ['head -n 3 data/sequences.fasta', 'A header and the first two sequence lines'],
+      ['tail -n 3 data/variants.vcf', 'The last lines of a file'],
+      ['cat data/samples.tsv', 'Fine for a small table'],
+      ['less data/genes.gff', 'Page through a big file (q quits in a real terminal)'],
+      ['wc -l data/reads.fastq', 'Count lines'],
+      ['zcat data/SRR1039509.fastq.gz | head -n 4', 'Read a compressed file without unpacking it'],
+    ],
+    after: `<div class="callout"><span class="lbl">Good to know</span>Sequencing data usually arrives compressed as <code>.fastq.gz</code>. <code>cat</code> on a .gz file prints binary noise; <code>zcat</code> decompresses as it reads.</div>`,
+    challenge: {
+      q: 'How many lines are in data/reads.fastq? Run a command that prints the number. Then work out how many reads that is.',
+      hint: 'wc counts things. The -l flag counts lines only.',
+      solution: 'wc -l data/reads.fastq',
+      why: '40 lines ÷ 4 lines per read = 10 reads.',
+      check: c => /reads\.fastq/.test(c.cmd) && firstInt(c.out) === origLines(fileText(HOME + '/data/reads.fastq') || READS).length
+    }
+  },
+  {
+    id: 'grep', tag: 'Searching', title: 'Search with grep',
+    body: `
+      <p><code>grep PATTERN FILE</code> prints every line containing the pattern. It is the quickest way to answer "is it in there?" and "how many?".</p>
+      <ul class="flags">
+        <li><code>-c</code><span>count matching lines instead of printing them</span></li>
+        <li><code>-v</code><span>invert: lines that do <em>not</em> match</span></li>
+        <li><code>-i</code><span>ignore upper and lower case</span></li>
+        <li><code>-n</code><span>show line numbers</span></li>
+        <li><code>-o</code><span>print only the matching part, one per line</span></li>
+        <li><code>-A 1</code><span>also show 1 line after each match</span></li>
+      </ul>
+      <p>Patterns are regular expressions. <code>^</code> anchors to the start of a line, <code>$</code> to the end, and <code>.</code> matches any single character.</p>`,
+    tries: [
+      ["grep '>' data/sequences.fasta", 'Every FASTA header'],
+      ["grep -c '>' data/sequences.fasta", 'Count them instead'],
+      ["grep -i 'homo sapiens' data/sequences.fasta", 'Case-insensitive search'],
+      ['grep -n AGATCGGAAGAGC data/reads.fastq', 'Reads containing the Illumina adapter, with line numbers'],
+      ["grep -v '^#' data/variants.vcf", 'Hide the VCF header lines'],
+      ['grep -A 1 TP53 data/sequences.fasta', 'The match plus the line after it'],
+      ['grep -o ATG data/triplets.txt', 'Every ATG start codon in the course triplets file'],
+    ],
+    after: `<div class="callout"><span class="lbl">Watch out</span>Always quote the pattern. <code>grep &gt; data/sequences.fasta</code> doesn't search for &gt;: the shell reads <code>&gt;</code> as "write output to this file" and empties your FASTA. Type <code>grep '&gt;'</code> with quotes.</div>`,
+    challenge: {
+      q: 'How many sequences are in data/sequences.fasta? Get the shell to print the number.',
+      hint: 'Every FASTA record has exactly one header line, and every header starts with >. Count those lines.',
+      solution: "grep -c '>' data/sequences.fasta",
+      why: 'Checked when your output starts with the right count.',
+      check: c => /sequences\.fasta/.test(c.cmd) && firstInt(c.out) === (fileText(HOME + '/data/sequences.fasta') || SEQUENCES).split('\n').filter(l => l.startsWith('>')).length
+    }
+  },
+  {
+    id: 'pipes', tag: 'Combining', title: 'Pipes and redirection',
+    body: `
+      <p>Each tool does one small job. The pipe <code>|</code> feeds the output of one command straight into the next, so small tools chain into an analysis.</p>
+      <p>Redirection sends output to a file instead of the screen. <code>&gt;</code> creates the file or <b>replaces</b> it, <code>&gt;&gt;</code> adds to the end, and <code>&lt;</code> feeds a file in as input.</p>`,
+    tries: [
+      ["grep '>' data/sequences.fasta | head -n 2", 'Only the first two headers'],
+      ['grep AGATCGGAAGAGC data/reads.fastq | wc -l', 'How many reads carry adapter?'],
+      ["grep '>' data/sequences.fasta > results/headers.txt", 'Save headers to a file (prints nothing)'],
+      ['cat results/headers.txt', 'Check what was saved'],
+      ['echo "adapter check done" >> results/log.txt', 'Append a line to a log'],
+      ['wc -l < data/reads.fastq', 'Just the number, without the file name'],
+      ['paste - - - - < data/reads.fastq | cut -f 1,2', 'One read per line: ID and bases'],
+    ],
+    after: `<div class="callout"><span class="lbl">Watch out</span><code>&gt;</code> never asks before replacing a file. <code>sort data.txt &gt; data.txt</code> leaves you with an empty file, because the shell empties the output file before sort starts reading.</div>`,
+    challenge: {
+      q: 'Save the headers of the human (Homo sapiens) sequences, and only those, to results/human_headers.txt.',
+      hint: "Find the header lines, pipe them into a second grep for 'Homo sapiens', and send the final output to the file with >.",
+      solution: "grep '>' data/sequences.fasta | grep 'Homo sapiens' > results/human_headers.txt",
+      why: 'Checked by reading results/human_headers.txt: it should hold exactly the four human headers.',
+      check: () => {
+        const got = fileText(HOME + '/results/human_headers.txt');
+        if (got === null) return false;
+        const want = SEQUENCES.split('\n').filter(l => l.startsWith('>') && l.includes('Homo sapiens'));
+        const g = lines(got).map(l => l.trim()).filter(Boolean);
+        return g.length === want.length && g.every((l, i) => l === want[i]);
+      }
+    }
+  },
+  {
+    id: 'cols', tag: 'Tables', title: 'Slice and count columns',
+    body: `
+      <p>GFF, VCF, BED and most sample sheets are tab-separated tables. <code>cut</code> picks columns, <code>sort</code> orders lines, and <code>uniq</code> collapses repeated neighbouring lines. The nine GFF columns are:</p>
+      <ul class="gff" aria-label="GFF columns">
+        <li><b>1</b>seqid</li><li><b>2</b>source</li><li><b>3</b>type</li><li><b>4</b>start</li><li><b>5</b>end</li><li><b>6</b>score</li><li><b>7</b>strand</li><li><b>8</b>phase</li><li><b>9</b>attributes</li>
+      </ul>
+      <p><code>sort | uniq -c</code> is the shell's frequency table. <code>uniq</code> only merges lines that sit next to each other, so always sort first.</p>`,
+    tries: [
+      ['head -n 4 data/genes.gff', 'Header line, then features'],
+      ['cut -f 1,3,4,5 data/genes.gff | head -n 5', 'Chromosome, type, start, end'],
+      ['cut -f 3 data/genes.gff | sort | uniq -c', 'How many genes, exons and CDS?'],
+      ['sort -k5,5nr data/samples.tsv', 'Samples by read count, largest first'],
+      ['tail -n +2 data/samples.tsv | cut -f 2 | sort | uniq -c', 'Samples per condition, header skipped'],
+      ["tr -s ' ' '\\n' < data/triplets.txt | grep '^[ACGT][ACGT][ACGT]$' | sort | uniq -c | sort -rn | head -n 5", 'The five most common codons in triplets.txt'],
+    ],
+    after: `<p class="tip">Read the codon-usage pipeline one stage at a time: run the first command alone, then add <code>| next-step</code> and run again. Building pipelines step by step is how everyone writes them.</p>`,
+    challenge: {
+      q: 'Count the features on each chromosome in data/genes.gff. Print one line per chromosome with its count, the way uniq -c does.',
+      hint: "Remove the ## header line with grep -v '^#', take column 1 with cut, then sort and uniq -c.",
+      solution: "grep -v '^#' data/genes.gff | cut -f 1 | sort | uniq -c",
+      why: 'Checked when every chromosome appears once with the right count and the header line is gone.',
+      check: c => {
+        const want = {};
+        GFF.split('\n').filter(l => l && !l.startsWith('#')).forEach(l => { const k = l.split('\t')[0]; want[k] = (want[k] || 0) + 1; });
+        const got = {};
+        const L = lines(c.out).filter(l => l.trim());
+        if (!L.length) return false;
+        for (const l of L) {
+          let m = l.match(/^\s*(\d+)\s+(\S+)\s*$/), n, k;
+          if (m) { n = +m[1]; k = m[2]; }
+          else { m = l.match(/^\s*(\S+)\s+(\d+)\s*$/); if (!m) return false; k = m[1]; n = +m[2]; }
+          if (k in got) return false;
+          got[k] = n;
+        }
+        const wk = Object.keys(want);
+        return wk.length === Object.keys(got).length && wk.every(k => got[k] === want[k]);
+      }
+    }
+  },
+  {
+    id: 'awk', tag: 'Transforming', title: 'Filter and edit with awk and sed',
+    body: `
+      <p><code>awk</code> splits each line into fields: <code>$1</code>, <code>$2</code> and so on, with <code>$0</code> for the whole line, <code>NF</code> for the number of fields and <code>NR</code> for the line number. A program reads <code>condition { action }</code>: wherever the condition is true, the action runs. Leave out the action and awk prints the line.</p>
+      <p><code>sed</code> edits text as it streams past. Its workhorse is substitution: <code>s/old/new/</code> replaces the first match on each line, and <code>s/old/new/g</code> replaces every match.</p>`,
+    tries: [
+      ["awk '{print $1, $2}' data/samples.tsv", 'Two columns, space-separated'],
+      ["awk 'NR > 1 && $5 > 25' data/samples.tsv", 'Libraries with over 25 million reads, header skipped'],
+      [`awk -F '\\t' '$3 == "gene" {print $9, $5 - $4 + 1}' data/genes.gff`, 'Length of every gene'],
+      ["awk '!/^#/ && $6 > 100' data/variants.vcf", 'High-quality variant calls'],
+      ["sed 's/^chr//' data/genes.gff | head -n 3", 'Strip the chr prefix (UCSC to Ensembl naming)'],
+      ["sed -n '2p' data/sequences.fasta", 'Print only line 2'],
+      [`awk '/^>/ {if (id) print id, len; id = $1; len = 0; next} {len += length($0)} END {print id, len}' data/sequences.fasta`, 'The length of every FASTA sequence'],
+      ['head -n 4 data/primers.fasta | tail -n 1 | rev | tr ACGT TGCA', 'Reverse complement of the 1492R primer'],
+    ],
+    after: `<p class="tip">Quote awk and sed programs with single quotes, so the shell leaves <code>$1</code> alone and awk sees it.</p>`,
+    challenge: {
+      q: 'How many variants in data/variants.vcf passed the filter (FILTER is PASS) and have QUAL above 50?',
+      hint: 'QUAL is column 6 and FILTER is column 7. awk can test both at once with &&. Pipe the result to wc -l to count the lines, or print them and count by eye.',
+      solution: `awk '$7 == "PASS" && $6 > 50' data/variants.vcf | wc -l`,
+      why: 'Checked when you print the right count, or print exactly the right variant lines.',
+      check: c => {
+        const rows = VCF.split('\n').filter(l => l && !l.startsWith('#')).map(l => l.split('\t'));
+        const want = rows.filter(r => r[6] === 'PASS' && +r[5] > 50).map(r => r[0] + ':' + r[1]);
+        const L = lines(c.out).filter(l => l.trim());
+        if (L.length === 1 && /^\s*\d+\s*$/.test(L[0])) return +L[0] === want.length && /variants\.vcf/.test(c.cmd);
+        if (L.length !== want.length) return false;
+        const got = L.map(l => { const f = l.trim().split(/\s+/); return f[0] + ':' + f[1]; });
+        return want.every(w => got.includes(w));
+      }
+    }
+  },
+  {
+    id: 'files', tag: 'Files', title: 'Organise a project',
+    body: `
+      <p>A tidy project never modifies its raw data and keeps everything it generates somewhere else, so results can always be rebuilt. A common layout: <code>data/</code> for inputs, <code>results/</code> for outputs, <code>scripts/</code> for code.</p>
+      <p>Wildcards match many files at once. <code>*</code> matches any run of characters and <code>?</code> exactly one, so <code>*.fasta</code> means every file ending in .fasta. The shell expands the wildcard into a list of names before the command runs.</p>`,
+    tries: [
+      ['mkdir -p results/qc', 'Make a folder (and any missing parents)'],
+      ['ls data/*.fasta', 'See what a wildcard matches'],
+      ['cp data/*.fasta results/', 'Copy both FASTA files'],
+      ['mv results/primers.fasta results/primers_16S.fasta', 'Rename a file'],
+      ['rm results/primers_16S.fasta', 'Delete it'],
+      ["find . -name '*.fastq*'", 'Find FASTQ files anywhere below here'],
+      ['gzip -k data/reads.fastq', 'Compress a copy; ls -lh data to compare sizes'],
+    ],
+    after: `<div class="callout"><span class="lbl">Watch out</span><code>rm</code> deletes immediately. There is no bin and no undo. Test a wildcard with <code>ls</code> first: if <code>ls results/*.tmp</code> lists the files you expect, then run <code>rm results/*.tmp</code>.</div>`,
+    challenge: {
+      q: 'Make a folder results/variants and copy the VCF file into it, using a wildcard such as *.vcf.',
+      hint: 'mkdir -p creates the folder. cp takes the files to copy, then the destination folder.',
+      solution: 'mkdir -p results/variants\ncp data/*.vcf results/variants/',
+      why: 'Checked when results/variants contains an unchanged copy of variants.vcf.',
+      check: () => {
+        const d = getNode(HOME + '/results/variants');
+        return !!(d && d.d && d.c['variants.vcf'] && d.c['variants.vcf'].t === VCF);
+      }
+    }
+  },
+  {
+    id: 'loops', tag: 'Automation', title: 'Automate with loops and scripts',
+    body: `
+      <p>Real projects have dozens of samples. A <code>for</code> loop runs the same commands once per item, and the loop variable holds the current item. Write <code>"$f"</code> to use it.</p>
+      <pre class="block">for f in data/*.fasta; do
+  echo "$f"
+  grep -c '&gt;' "$f"
+done</pre>
+      <p>In this terminal, type a loop on one line with semicolons: <code>for f in data/*.fasta; do echo "$f"; done</code>. Once a loop works, save it in a script so you can rerun it and show exactly what you did.</p>`,
+    tries: [
+      ['for f in data/*.fasta; do echo "$f"; done', 'What does the loop visit?'],
+      ['for s in SRR1039508 SRR1039509; do echo "processing $s"; done', 'Loop over a list of sample IDs'],
+      ['cat scripts/count_seqs.sh', 'A saved loop'],
+      ['bash scripts/count_seqs.sh', 'Run the script'],
+      ['chmod +x scripts/count_seqs.sh', 'Make it executable...'],
+      ['./scripts/count_seqs.sh', '...then run it by its path'],
+    ],
+    after: `<p class="tip">Where next: the same pattern drives specialist tools. <code>samtools view sample.bam | cut -f 3 | sort | uniq -c</code> counts reads per chromosome, and a loop over <code>*.fastq.gz</code> runs your QC on every sample.</p>`,
+    challenge: {
+      q: 'Write a for loop that prints the number of sequences in every .fasta file in data.',
+      hint: "Loop over data/*.fasta and run grep -c '>' \"$f\" inside the loop. Echo the file name too, so you know which count is which.",
+      solution: `for f in data/*.fasta; do echo "$f"; grep -c '>' "$f"; done`,
+      why: 'Checked when a for loop prints the count for each FASTA file.',
+      check: c => {
+        if (!/^\s*for\s/.test(c.cmd)) return false;
+        const d = getNode(HOME + '/data');
+        if (!d) return false;
+        const counts = Object.keys(d.c).filter(n => n.endsWith('.fasta') && d.c[n].f).map(n => d.c[n].t.split('\n').filter(l => l.startsWith('>')).length);
+        const toks = c.out.split(/[\s:]+/).filter(t => /^\d+$/.test(t)).map(Number);
+        return counts.length > 0 && counts.every(n => toks.includes(n)) && toks.length >= counts.length;
+      }
+    }
+  }
+];
+
+/* =====================================================================
+   UI
+   ===================================================================== */
+const $ = id => document.getElementById(id);
+const outEl = $('term-out'), inputEl = $('term-input'), screenEl = $('term-screen');
+const prog = Object.assign({ solved: {}, lesson: 0 }, store.get(K_PROG) || {});
+if (!(prog.lesson >= 0 && prog.lesson < LESSONS.length)) prog.lesson = 0;
+const saveProg = () => store.set(K_PROG, prog);
+
+function promptHtml(cwd) {
+  return `<span class="p-user">student@bio116</span><span class="p-sign">:</span><span class="p-path">${esc(pretty(cwd))}</span><span class="p-sign">$</span>`;
+}
+function renderPrompt() {
+  $('term-prompt').innerHTML = promptHtml(sh.cwd);
+  $('term-title').innerHTML = `bash — <b>${esc(pretty(sh.cwd))}</b>`;
+}
+function colorize(line) {
+  if (line.startsWith('>')) return `<span class="t-hdr">${esc(line)}</span>`;
+  if (line.startsWith('#')) return `<span class="t-dim">${esc(line)}</span>`;
+  if (/^[ACGTN]{8,}$/.test(line) || (/^(?:[ACGT]{3}\s+)+[ACGT]{0,3}\s*$/.test(line) && line.length >= 12)) {
+    return line.replace(/A+|C+|G+|T+|[^ACGT]+/g, m => /^[ACGT]/.test(m) ? `<span class="n${m[0]}">${m}</span>` : esc(m));
+  }
+  return esc(line);
+}
+const MAX_LINES = 3000;
+function emit(html, cls) {
+  const d = document.createElement('div');
+  if (cls) d.className = cls;
+  d.innerHTML = html;
+  outEl.appendChild(d);
+}
+function trim() { while (outEl.childElementCount > MAX_LINES) outEl.removeChild(outEl.firstChild); }
+function emitOut(item) {
+  const L = lines(item.text);
+  const H = item.html && item.html.length === L.length ? item.html : null;
+  const frag = document.createDocumentFragment();
+  const cap = 2000;
+  const show = L.length > cap ? L.slice(0, cap) : L;
+  show.forEach((l, i) => {
+    const d = document.createElement('div');
+    d.innerHTML = H ? (H[i] || '') : colorize(l);
+    frag.appendChild(d);
+  });
+  outEl.appendChild(frag);
+  if (L.length > cap) emit(esc(`… ${L.length - cap} more lines. Pipe into head or less to see a part.`), 't-note');
+  if (item.text && !item.text.endsWith('\n')) outEl.lastChild && (outEl.lastChild.dataset.nonl = '1');
+}
+function scrollDown() { screenEl.scrollTop = screenEl.scrollHeight; }
+
+let histIdx = null, draft = '';
+function execute(cmd) {
+  emit(promptHtml(sh.cwd) + esc(cmd));
+  if (cmd.trim()) { sh.history.push(cmd); if (sh.history.length > 500) sh.history.shift(); }
+  histIdx = null; draft = '';
+  const sink = [];
+  loopBudget = 0;
+  try { runLine(cmd, sink, ''); }
+  catch (e) { sink.push({ k: 'err', text: e instanceof ShErr ? e.message : 'bash: internal error: ' + e.message }); }
+  if (!getNode(sh.cwd)) { sh.cwd = HOME; sink.push({ k: 'note', text: 'The folder you were in no longer exists, so you are back home.' }); }
+  sh.env.PWD = sh.cwd;
+  if (sh.cwd !== HOME && sink.some(x => x.k === 'err' && /No such file|cannot (stat|access)/.test(x.text)) && /(^|\s)(data|results|scripts)\//.test(cmd)) {
+    sink.push({ k: 'note', text: `You are in ${pretty(sh.cwd)}, but the lesson commands run from your home folder. Type  cd  to go home, then try again.` });
+  }
+  let outText = '';
+  for (const it of sink) {
+    if (it.k === 'clear') { outEl.innerHTML = ''; continue; }
+    if (it.k === 'out') { emitOut(it); outText += it.text; }
+    else if (it.k === 'err') lines(it.text + '\n').forEach(l => emit(esc(l), 't-err'));
+    else if (it.k === 'note') emit(esc(it.text), 't-note');
+  }
+  trim();
+  renderPrompt();
+  persist();
+  checkChallenges({ cmd: cmd.trim(), out: outText, cwd: sh.cwd });
+  scrollDown();
+}
+
+function checkChallenges(ctx) {
+  LESSONS.forEach((L, i) => {
+    if (prog.solved[L.id]) return;
+    let ok = false;
+    try { ok = !!L.challenge.check(ctx); } catch (e) { ok = false; }
+    if (ok) {
+      prog.solved[L.id] = true;
+      saveProg();
+      emit(esc(`✓ Lesson ${i + 1} challenge solved: ${L.title}. ${L.challenge.why.startsWith('Checked') ? '' : L.challenge.why}`), 't-win');
+      renderProgress();
+      if (i === prog.lesson) {
+        renderLesson();
+        const ch = document.querySelector('.challenge');
+        if (ch) ch.classList.add('solved-flash');
+      }
+    }
+  });
+}
+
+// Tab completion over commands (first word) and paths (other words).
+function complete() {
+  const v = inputEl.value, pos = inputEl.selectionStart ?? v.length;
+  const before = v.slice(0, pos), after = v.slice(pos);
+  const m = before.match(/(^|[\s|;&<>])([^\s|;&<>]*)$/);
+  const word = m ? m[2] : '';
+  const start = before.length - word.length;
+  const isCmd = /^\s*$/.test(before.slice(0, start)) || /[|;&]\s*$/.test(before.slice(0, start));
+  let cands;
+  if (isCmd && !word.includes('/')) {
+    cands = Object.keys(CMDS).filter(k => k.startsWith(word)).sort().map(k => ({ v: k, add: ' ' }));
+  } else {
+    const q = word.replace(/^["']/, '');
+    const i = q.lastIndexOf('/');
+    const dirPart = i >= 0 ? q.slice(0, i + 1) : '';
+    const base = q.slice(i + 1);
+    const dn = getNode(norm(dirPart || '.'));
+    if (!dn || !dn.d) return;
+    cands = Object.keys(dn.c).filter(n => n.startsWith(base) && (base.startsWith('.') || !n.startsWith('.'))).sort()
+      .map(n => ({ v: dirPart + n, add: dn.c[n].d ? '/' : ' ', label: n + (dn.c[n].d ? '/' : '') }));
+  }
+  if (!cands.length) return;
+  let rep;
+  if (cands.length === 1) rep = cands[0].v + cands[0].add;
+  else {
+    let p = cands[0].v;
+    for (const c of cands) while (!c.v.startsWith(p)) p = p.slice(0, -1);
+    rep = p;
+    if (p.length <= word.replace(/^["']/, '').length) {
+      emit(promptHtml(sh.cwd) + esc(v));
+      emit(esc(cands.map(c => c.label || c.v).join('  ')), 't-dim');
+      scrollDown();
+    }
+  }
+  inputEl.value = before.slice(0, start) + rep + after;
+  const np = start + rep.length;
+  inputEl.setSelectionRange(np, np);
+}
+
+inputEl.addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); const c = inputEl.value; inputEl.value = ''; execute(c); }
+  else if (e.key === 'Tab') { e.preventDefault(); complete(); }
+  else if (e.key === 'ArrowUp') {
+    if (!sh.history.length) return;
+    e.preventDefault();
+    if (histIdx === null) { draft = inputEl.value; histIdx = sh.history.length; }
+    histIdx = Math.max(0, histIdx - 1);
+    inputEl.value = sh.history[histIdx];
+    requestAnimationFrame(() => inputEl.setSelectionRange(inputEl.value.length, inputEl.value.length));
+  } else if (e.key === 'ArrowDown') {
+    if (histIdx === null) return;
+    e.preventDefault();
+    histIdx++;
+    if (histIdx >= sh.history.length) { histIdx = null; inputEl.value = draft; }
+    else inputEl.value = sh.history[histIdx];
+  } else if (e.key === 'l' && e.ctrlKey) { e.preventDefault(); outEl.innerHTML = ''; }
+  else if (e.key === 'c' && e.ctrlKey && inputEl.selectionStart === inputEl.selectionEnd) {
+    e.preventDefault(); emit(promptHtml(sh.cwd) + esc(inputEl.value) + '^C'); inputEl.value = ''; histIdx = null; scrollDown();
+  }
+});
+screenEl.addEventListener('click', () => { if (!window.getSelection().toString()) inputEl.focus({ preventScroll: true }); });
+$('btn-clear').addEventListener('click', () => { outEl.innerHTML = ''; inputEl.focus({ preventScroll: true }); });
+let resetArmed = null;
+$('btn-reset').addEventListener('click', () => {
+  const b = $('btn-reset');
+  if (!resetArmed) {
+    b.textContent = 'Click again to reset'; b.classList.add('confirm');
+    resetArmed = setTimeout(() => { resetArmed = null; b.textContent = 'Reset files'; b.classList.remove('confirm'); }, 4000);
+    return;
+  }
+  clearTimeout(resetArmed); resetArmed = null;
+  b.textContent = 'Reset files'; b.classList.remove('confirm');
+  fs = freshFs(); sh.cwd = HOME; sh.oldcwd = HOME; persist();
+  outEl.innerHTML = '';
+  emit(esc('Files restored to the originals. Your challenge progress is kept.'), 't-note');
+  renderPrompt(); inputEl.focus({ preventScroll: true });
+});
+
+function renderProgress() {
+  const n = LESSONS.filter(l => prog.solved[l.id]).length;
+  $('solved-count').textContent = n;
+  $('lesson-total').textContent = LESSONS.length;
+  $('segs').innerHTML = LESSONS.map(l => `<i class="${prog.solved[l.id] ? 'done' : ''}" title="${esc(l.title)}"></i>`).join('');
+  $('chips').innerHTML = LESSONS.map((l, i) => `<button type="button" class="chip${prog.solved[l.id] ? ' done' : ''}" data-i="${i}" aria-current="${i === prog.lesson}"><span class="dot" aria-hidden="true"></span><span class="n">${i + 1}</span>${esc(l.tag)}</button>`).join('');
+}
+function renderLesson() {
+  const i = prog.lesson, L = LESSONS[i], ok = !!prog.solved[L.id];
+  $('lesson').innerHTML = `
+    <p class="kicker">Lesson ${i + 1} of ${LESSONS.length} · ${esc(L.tag)}</p>
+    <h2>${esc(L.title)}</h2>
+    ${L.body}
+    <h3>Try these</h3>
+    <p class="tip">Click a command to put it in the terminal, then press <kbd>Enter</kbd>. Change it and see what happens.</p>
+    <div class="tries">${L.tries.map(([c, n]) => `<button type="button" class="try" data-cmd="${esc(c)}"><code>${esc(c)}</code><span>${esc(n)}</span></button>`).join('')}</div>
+    ${L.after || ''}
+    <div class="challenge">
+      <div class="challenge-head"><span class="lbl">Challenge</span><span class="pill${ok ? ' ok' : ''}">${ok ? 'Solved' : 'Not solved yet'}</span></div>
+      <p class="q">${esc(L.challenge.q)}</p>
+      <details><summary>Hint</summary><div>${esc(L.challenge.hint)}</div></details>
+      <details><summary>Show a solution</summary><pre>${esc(L.challenge.solution)}</pre><div class="why">${esc(L.challenge.why)}</div></details>
+    </div>
+    <div class="pager">
+      <button type="button" class="btn" id="prev" ${i === 0 ? 'disabled' : ''}>← Previous</button>
+      <button type="button" class="btn primary" id="next" ${i === LESSONS.length - 1 ? 'disabled' : ''}>Next lesson →</button>
+    </div>`;
+  $('prev').onclick = () => go(i - 1);
+  $('next').onclick = () => go(i + 1);
+}
+function go(i) {
+  if (i < 0 || i >= LESSONS.length) return;
+  prog.lesson = i; saveProg();
+  renderProgress(); renderLesson();
+  const top = document.querySelector('.left').getBoundingClientRect().top;
+  if (top < 0) document.querySelector('.left').scrollIntoView({ block: 'start' });
+}
+$('chips').addEventListener('click', e => { const b = e.target.closest('.chip'); if (b) go(+b.dataset.i); });
+$('lesson').addEventListener('click', e => {
+  const b = e.target.closest('.try');
+  if (!b) return;
+  inputEl.value = b.dataset.cmd;
+  document.querySelectorAll('.try.sent').forEach(x => x.classList.remove('sent'));
+  b.classList.add('sent');
+  const narrow = window.matchMedia('(max-width: 1000px)').matches;
+  inputEl.focus({ preventScroll: !narrow });
+  if (narrow) document.querySelector('.term').scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  inputEl.setSelectionRange(inputEl.value.length, inputEl.value.length);
+});
+
+function renderRef(filter) {
+  const f = (filter || '').trim().toLowerCase();
+  const groups = {};
+  REF.filter(r => !f || r.join(' ').toLowerCase().includes(f)).forEach(r => (groups[r[0]] = groups[r[0]] || []).push(r));
+  const keys = Object.keys(groups);
+  $('groups').innerHTML = keys.length ? keys.map(g => `
+    <div class="group"><h3>${esc(g)}</h3><dl>${groups[g].map(r => `<div><dt><code>${esc(r[2])}</code></dt><dd>${esc(r[3])}</dd></div>`).join('')}</dl></div>`).join('')
+    : `<p class="empty">No command matches "${esc(filter)}".</p>`;
+}
+$('ref-filter').addEventListener('input', e => renderRef(e.target.value));
+
+// Header codon strip, coloured by base.
+$('codons').innerHTML = TRIPLETS.split('\n')[1].trim().split(/\s+/).concat(TRIPLETS.split('\n')[3].trim().split(/\s+/))
+  .map(c => [...c].map(b => `<b class="n${b}">${b}</b>`).join('')).join(' ');
+
+renderProgress();
+renderLesson();
+renderRef('');
+renderPrompt();
+if (!getNode(sh.cwd)) sh.cwd = HOME;
+emit(esc('Bio116 practice shell. Type  help  for the command list, or click a command in the lesson.'), 't-note');
+emit(esc('Your files are in ~/data. Try  ls data  to start.'), 't-note');
+})();
+</script>
