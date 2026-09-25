@@ -616,12 +616,26 @@ LGB3_SOYBN   -&gt; CYGB_HUMAN    24.812% id  E = 3.85e-06</span></pre></div>
 <span class="p">$ </span>update_blastdb.pl --decompress swissprot    <span class="c"># download and unpack Swiss-Prot</span>
 <span class="p">$ </span>blastp -query hbb.faa -db swissprot -evalue 0.05 -max_target_seqs 100 -seg yes</pre></div>
   <div class="prose">
-  <p>The last command uses the settings NCBI's FAQ recommends for reproducing web blastp results. Check the database sizes first. Swiss-Prot is about half a million sequences and fits on a laptop. nr and core_nt are hundreds of gigabytes.</p>
+  <p>The last command uses the settings NCBI's FAQ recommends for reproducing web blastp results. Check the database sizes first:</p>
+  </div>
+  <div class="tablewrap"><table class="data">
+    <thead><tr><th>Database</th><th class="num">Sequences</th><th class="num">Letters</th><th class="num">Database files</th><th class="num">Memory to run it quickly</th></tr></thead>
+    <tbody>
+      <tr><td><b>nr</b> (protein)</td><td class="num">1.12 billion</td><td class="num">424 billion aa</td><td class="num">734 GB (169 volumes)</td><td class="num">434 GB</td></tr>
+      <tr><td>refseq_protein</td><td class="num">464 million</td><td class="num">179 billion aa</td><td class="num">267 GB</td><td class="num">183 GB</td></tr>
+      <tr><td>swissprot</td><td class="num">487,492</td><td class="num">186 million aa</td><td class="num">0.37 GB</td><td class="num">0.19 GB</td></tr>
+      <tr><td>core_nt (DNA)</td><td class="num">129 million</td><td class="num">948 billion nt</td><td class="num">270 GB</td><td class="num">241 GB</td></tr>
+      <tr><td>nt (DNA)</td><td class="num">129 million</td><td class="num">4.1 trillion nt</td><td class="num">1.06 TB</td><td class="num">1.03 TB</td></tr>
+    </tbody>
+    <caption class="muted" style="caption-side:bottom;text-align:left;font-size:13px;padding-top:6px">From NCBI's database metadata files (<code>*-metadata.json</code>, fields <code>bytes-total</code> and <code>bytes-to-cache</code>) for the 21 July 2026 copy on NCBI's AWS mirror. The databases grow with every update.</caption>
+  </table></div>
+  <div class="prose">
+  <p>Swiss-Prot fits on any laptop. nr does not: it needs about three-quarters of a terabyte of disk, and a fast search keeps over 400 GB in memory, which means a server or computing cluster. For a single protein against nr, use the website or <code>-remote</code>. For local work, choose a smaller database such as swissprot, <code>refseq_select_prot</code> or one organism's proteome, as in Exercise 1. nt versus core_nt shows why NCBI made core_nt the default: about the same number of sequences, but under a quarter of the bases, because most of nt's bulk is large genome sequences.</p>
   <p>Any BLAST+ search program can also send the search to NCBI's servers instead of running locally, by adding <code>-remote</code> and naming an NCBI database:</p>
   </div>
   <div class="term"><pre><span class="p">$ </span>blastp -query hbb.faa -db swissprot -remote -outfmt 6</pre></div>
   <div class="prose">
-  <p class="note">We could not run these three commands in our build environment, which blocks NCBI's download server and the BLAST+ remote service, so no output is shown. A <code>-remote</code> search waits in NCBI's queue like a web search and is meant for occasional use. Scripted searches of <code>nt</code> are sent to core_nt, as the web tutorial explains. For large jobs, download the database and search locally.</p>
+  <p class="note">We could not run these three commands in our build environment, which blocks NCBI's download server and the BLAST+ remote service, so no output is shown. A <code>-remote</code> search waits in NCBI's queue like a web search and is meant for occasional use. Scripted searches of <code>nt</code> are sent to core_nt, as the web tutorial explains. For large jobs, download the database to a machine with enough disk and memory and search there.</p>
   </div>
 </section>
 
@@ -665,6 +679,7 @@ LGB3_SOYBN   -&gt; CYGB_HUMAN    24.812% id  E = 3.85e-06</span></pre></div>
   <ul class="goals">
     <li>All commands were run on 25 September 2026 with BLAST+ 2.12.0 (Ubuntu 24.04 package <code>ncbi-blast+</code>). Program options and defaults are from its <code>-help</code> output.</li>
     <li>Sequences downloaded from NCBI on 25 September 2026: NC_000913.3 (genome and CDS translations), NG_000007.3, NM_000518.5, and UniProtKB/Swiss-Prot entries P69905, P68871, P02144, Q8WWM9, Q9NPG2, P02238. Gene coordinates are from the NG_000007.3 and NC_000913.3 annotations.</li>
+    <li>Database sizes: NCBI BLAST database metadata (<code>nr-prot-metadata.json</code> and others) from <a href="https://ncbi-blast-databases.s3.amazonaws.com/latest-dir" target="_blank" rel="noopener">NCBI's AWS mirror</a>, version 2026-07-21, read 25 September 2026.</li>
     <li><a href="https://blast.ncbi.nlm.nih.gov/doc/blast-help/downloadblastdata.html" target="_blank" rel="noopener">NCBI: Download BLAST software and databases</a>; <a href="https://blast.ncbi.nlm.nih.gov/doc/blast-news/2025-BLAST-News.html" target="_blank" rel="noopener">BLAST News 2025</a> (BLAST+ 2.17.0); <a href="https://www.ncbi.nlm.nih.gov/books/NBK279690/" target="_blank" rel="noopener">BLAST+ user manual</a>; <a href="https://blast.ncbi.nlm.nih.gov/doc/blast-help/FAQ.html" target="_blank" rel="noopener">BLAST FAQ</a>.</li>
     <li>Camacho C, et al. (2009). BLAST+: architecture and applications. <i>BMC Bioinformatics</i> 10:421. <a href="https://doi.org/10.1186/1471-2105-10-421" target="_blank" rel="noopener">doi:10.1186/1471-2105-10-421</a></li>
     <li>Shah N, Nute MG, Warnow T, Pop M (2019). Misunderstood parameter of NCBI BLAST impacts the correctness of bioinformatics workflows. <i>Bioinformatics</i> 35:1613–1614. <a href="https://doi.org/10.1093/bioinformatics/bty833" target="_blank" rel="noopener">doi:10.1093/bioinformatics/bty833</a>. NCBI's reply: Madden TL, Busby B, Ye J (2019), <a href="https://academic.oup.com/bioinformatics/article/35/15/2699/5259186" target="_blank" rel="noopener"><i>Bioinformatics</i> 35:2699–2700</a>.</li>
