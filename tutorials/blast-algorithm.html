@@ -170,6 +170,13 @@ table.hits.psi td,table.hits.psi th{text-align:center}
 table.hits.psi tbody tr{cursor:default}
 table.hits.psi tbody tr:hover td{background:none}
 .hm.pssm td{cursor:default;width:28px}
+table.tsvlike{border-collapse:collapse;font-family:var(--mono);font-size:12.5px;width:max-content;min-width:100%}
+table.tsvlike th,table.tsvlike td{padding:4px 8px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+table.tsvlike th{font-size:11.5px;color:var(--muted);font-weight:600;background:var(--panel-2);position:sticky;left:0}
+table.tsvlike th:first-child,table.tsvlike td:first-child{text-align:left;position:sticky;left:0;background:var(--panel-2);font-weight:600}
+table.tsvlike td.pos{color:var(--good);font-weight:700}
+table.tsvlike td.neg{color:var(--muted)}
+#cbStats .stat span{text-transform:none;letter-spacing:0;font-size:13px}
 .hm.pssm th.q{color:var(--heme);text-align:left;padding-right:6px;white-space:nowrap;width:auto}
 .pipe{list-style:none;margin:22px 0 6px;padding:0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
 @media (max-width:760px){.pipe{grid-template-columns:minmax(0,1fr)}}
@@ -471,6 +478,48 @@ score(i,a) = round( 2 · log₂( Q(i,a) / p(a) ) )     half-bits, like BLOSUM62
 With only the query in a column (α = 0), score(i,a) is just the BLOSUM62 row for that residue.</div>
   <div class="prose">
   <p>The pseudocounts matter. With four sequences in a column you have seen very few of the residues that could appear there. g(i,a) spreads some probability to residues that BLOSUM62 says are similar to the ones observed. As more sequences join, α grows and the observed frequencies take over.</p>
+  </div>
+  <div class="prose">
+  <h3 id="pssm-build">Building a PSSM, one column at a time</h3>
+  <p>Every query position gets its own row of 20 scores, and each row is built the same way, in five steps. The calculator below does it for real columns from this page's alignments of β-globin (the query) with α-globin and the two myoglobins, which is exactly what iteration 2 of the PSI-BLAST tool uses.</p>
+  <ol class="goals">
+    <li><b>Collect the column.</b> Line up every included hit under the query and read down one query position. Hit residues opposite a gap in the query are dropped, so the PSSM always has one row per query residue. A hit with a gap at this position adds nothing to the column.</li>
+    <li><b>Count.</b> f(i,a) is the fraction of residues in column i that are amino acid a.</li>
+    <li><b>Add pseudocounts.</b> g(i,a) asks: given the residues seen, which residues does BLOSUM62 say are likely substitutes? A column of isoleucine and leucine gets pseudocounts for valine and methionine too.</li>
+    <li><b>Mix.</b> Q(i,a) combines observed and pseudocount frequencies. α = (sequences in column − 1) weights the data; β weights the pseudocounts. Few sequences means the pseudocounts dominate; many sequences means the data do.</li>
+    <li><b>Convert to scores.</b> score = 2 · log₂(Q / p), where p is the residue's background frequency, rounded to whole half-bits. Positive means "more common here than by chance", negative means "less common".</li>
+  </ol>
+  </div>
+  <div class="tool" id="colTool">
+    <div class="tool-title">Build one PSSM column <small>β-globin query plus α-globin and both myoglobins</small></div>
+    <div class="controls">
+      <label class="field">Column <select id="cbPreset">
+        <option value="HHHH|92" selected>β92: proximal His F8 (H H H H)</option>
+        <option value="HHHH|63">β63: distal His E7 (H H H H)</option>
+        <option value="FFFF|42">β42: Phe CD1 (F F F F)</option>
+        <option value="FLIL|85">β85: buried core (F L I L)</option>
+        <option value="G-KK|46">β46: gap in α (G – K K)</option>
+        <option value="PPDE|5">β5: surface loop (P P D E)</option>
+        <option value="H|0">Query only (iteration 1)</option>
+      </select></label>
+      <label class="field">Residues (query first) <input type="text" id="cbCol" value="HHHH" maxlength="30" spellcheck="false" autocomplete="off"></label>
+      <label class="field">Pseudocount β <input type="number" id="cbBeta" value="10" min="0" max="200" step="1"></label>
+    </div>
+    <div class="stats" id="cbStats"></div>
+    <div class="tablewrap" style="margin-top:0"><table class="tsvlike" id="cbTable"></table></div>
+    <p class="note" id="cbNote" style="margin-bottom:0"></p>
+  </div>
+  <div class="prose">
+  <p>Try these. At the F8 histidine, four out of four sequences agree, and the histidine score rises from BLOSUM62's +8 to +9 while tyrosine, BLOSUM62's best substitute (+2), drops. Set β to 0 and every residue never seen scores −∞: the profile would forbid them outright, which is why pseudocounts are essential with few sequences. Raise β to 100 and the row slides back toward plain BLOSUM62. The buried core column (F L I L) spreads positive scores across all large hydrophobic residues, including ones not yet seen, such as methionine and valine.</p>
+  <h3>What the real PSI-BLAST adds</h3>
+  <ul class="goals">
+    <li><b>Near-duplicates are purged.</b> Only one copy of nearly identical hits is kept, so a family with fifty human sequences does not outvote everything else.</li>
+    <li><b>Sequences are weighted.</b> Similar hits share weight and unusual ones count more (the command-line PSSM's "weighted observed percentages"). The HMMER tutorial shows the same idea as Henikoff weights.</li>
+    <li><b>α uses an effective number of sequences,</b> estimated from how diverse the column really is, not the raw count.</li>
+    <li><b>β is chosen from the data.</b> The 1997 program used a fixed β = 10, as here. Current versions choose the pseudocount weight column by column, using fewer pseudocounts where a column is highly conserved (Altschul et al. 2009).</li>
+    <li><b>Scores are rescaled and statistics recalibrated,</b> so E-values from the PSSM stay comparable to those from BLOSUM62.</li>
+  </ul>
+  <p>The command-line tutorial runs <code>psiblast</code> and prints the PSSM it built, so you can compare real rows with this calculator.</p>
   </div>
   <div class="tool" id="psiTool">
     <div class="tool-title">PSI-BLAST iterations <small>Same mini database, two-hit seeding, T = 11</small></div>
@@ -1353,4 +1402,38 @@ const redraw = () => drawHitMap();
 matchMedia("(prefers-color-scheme: dark)").addEventListener("change", redraw);
 new MutationObserver(redraw).observe(document.documentElement, {attributes: true, attributeFilter: ["data-theme"]});
 addEventListener("resize", () => { clearTimeout(window.__rz); window.__rz = setTimeout(redraw, 120); });
+/* one PSSM column, step by step */
+(() => {
+  const pre = document.getElementById("cbPreset"), col = document.getElementById("cbCol"), be = document.getElementById("cbBeta");
+  const f2 = x => x === 0 ? "0" : x < 0.001 ? x.toExponential(1) : x.toFixed(3);
+  function draw() {
+    const res = [...col.value.toUpperCase()].filter(c => c === "-" || AA.includes(c));
+    const seen = res.filter(c => c !== "-");
+    if (!seen.length) { document.getElementById("cbStats").innerHTML = ""; document.getElementById("cbTable").innerHTML = ""; document.getElementById("cbNote").textContent = "Enter at least one amino-acid letter (the query residue first)."; return; }
+    const n = seen.length, alpha = n - 1, beta = Math.max(0, +be.value || 0), cnt = {};
+    seen.forEach(c => cnt[c] = (cnt[c] || 0) + 1);
+    const rows = [...AA].map(a => {
+      const f = (cnt[a] || 0) / n;
+      let g = 0; for (const b in cnt) g += (cnt[b] / n) * QT[ci(b) * 26 + ci(a)] / PB[ci(b)];
+      const Q = alpha + beta > 0 ? (alpha * f + beta * g) / (alpha + beta) : f;
+      const s = Q > 0 ? Math.round(2 * Math.log2(Q / BG[a])) : -Infinity;
+      return {a, c: cnt[a] || 0, f, g, Q, p: BG[a], s, b62: sc(B62, seen[0], a)};
+    });
+    const top = rows.slice().sort((x, y) => y.s - x.s)[0];
+    document.getElementById("cbStats").innerHTML = [[res.join(" "), "column"], [n + (res.length > n ? ` (+${res.length - n} gap)` : ""), "residues counted"], [alpha, "α (weight on data)"], [beta, "β (pseudocounts)"], [`${top.a} ${top.s > 0 ? "+" : ""}${top.s}`, "highest score"]]
+      .map(([v, l]) => `<div class="stat"><b>${v}</b><span>${l}</span></div>`).join("");
+    const line = (lab, fn) => `<tr><td>${lab}</td>${rows.map(fn).join("")}</tr>`;
+    document.getElementById("cbTable").innerHTML = `<thead><tr><th>step</th>${rows.map(r => `<th>${r.a}</th>`).join("")}</tr></thead><tbody>` +
+      line("1 count", r => `<td>${r.c || ""}</td>`) +
+      line("2 f observed", r => `<td>${r.c ? f2(r.f) : ""}</td>`) +
+      line("3 g pseudocount", r => `<td>${f2(r.g)}</td>`) +
+      line("4 Q mixed", r => `<td>${f2(r.Q)}</td>`) +
+      line("  p background", r => `<td class="neg">${f2(r.p)}</td>`) +
+      line("5 PSSM score", r => `<td class="${r.s > 0 ? "pos" : r.s < 0 ? "neg" : ""}">${r.s === -Infinity ? "−∞" : (r.s > 0 ? "+" : "") + r.s}</td>`) +
+      line(`BLOSUM62 (${seen[0]})`, r => `<td class="neg">${r.b62 > 0 ? "+" : ""}${r.b62}</td>`) + "</tbody>";
+    document.getElementById("cbNote").textContent = beta === 0 ? "With β = 0, only observed residues get finite scores. Unseen residues are forbidden (−∞)." : n === 1 ? "With only the query in the column (α = 0), the PSSM row equals the BLOSUM62 row for the query residue, up to rounding." : "Compare the last two rows: the PSSM row is tuned to this column, the BLOSUM62 row is the same wherever this residue appears.";
+  }
+  pre.addEventListener("change", () => { col.value = pre.value.split("|")[0]; draw(); });
+  col.addEventListener("input", draw); be.addEventListener("input", draw); draw();
+})();
 </script>
