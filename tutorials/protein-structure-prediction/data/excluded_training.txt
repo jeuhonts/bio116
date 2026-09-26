@@ -1,0 +1,18 @@
+# 0-based line index in cb6133filtered.tsv (comment line not counted)	reason
+1	27% identical to hba over 121 residues
+370	small-GTPase motifs (P-loop + G3)
+479	small-GTPase motifs (P-loop + G3)
+867	small-GTPase motifs (P-loop + G3)
+1089	small-GTPase motifs (P-loop + G3)
+1291	small-GTPase motifs (P-loop + G3)
+2265	45% identical to hba over 137 residues; 98% identical to hbb over 146 residues
+2445	small-GTPase motifs (P-loop + G3)
+2482	small-GTPase motifs (P-loop + G3)
+2559	30% identical to hba over 73 residues
+2571	small-GTPase motifs (P-loop + G3); 27% identical to hras over 158 residues
+2579	26% identical to hras over 155 residues
+2681	29% identical to hbb over 93 residues
+3001	small-GTPase motifs (P-loop + G3)
+3050	small-GTPase motifs (P-loop + G3)
+3463	small-GTPase motifs (P-loop + G3)
+5372	small-GTPase motifs (P-loop + G3)

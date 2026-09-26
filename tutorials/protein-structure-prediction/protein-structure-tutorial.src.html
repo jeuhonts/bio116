@@ -1,0 +1,1452 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sequence to Structure</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;1,7..72,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root {
+  color-scheme: light;
+  --bg: #F3F5F1;
+  --surface: #FFFFFF;
+  --sunk: #E9EDE8;
+  --ink: #17211C;
+  --muted: #56645C;
+  --line: #D5DCD6;
+  --brand: #1E5B43;
+  --brand-ink: #FFFFFF;
+  --brand-soft: #DFEBE4;
+  --helix: #B3306A;
+  --strand: #C98400;
+  --coil: #97A39C;
+  --good: #2E7D4F;
+  --warn: #B7791F;
+  --bad: #B3261E;
+  --af-vh: #0053D6; --af-c: #65CBF3; --af-l: #FFDB13; --af-vl: #FF7D45;
+  --display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --body: "Literata", Georgia, "Times New Roman", serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #0F1512; --surface: #161E1A; --sunk: #1D2722; --ink: #E4EBE6; --muted: #98A69E;
+    --line: #2B3731; --brand: #74C49E; --brand-ink: #0F1512; --brand-soft: #1B2E24;
+    --helix: #E0739F; --strand: #EDB23E; --coil: #6C7871; --good: #6CCB8F; --bad: #F08A80; --warn: #E0B04A;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0F1512; --surface: #161E1A; --sunk: #1D2722; --ink: #E4EBE6; --muted: #98A69E;
+  --line: #2B3731; --brand: #74C49E; --brand-ink: #0F1512; --brand-soft: #1B2E24;
+  --helix: #E0739F; --strand: #EDB23E; --coil: #6C7871; --good: #6CCB8F; --bad: #F08A80; --warn: #E0B04A;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body {
+  margin: 0; background: var(--bg); color: var(--ink);
+  font: 400 17px/1.6 var(--body);
+  padding-inline: 16px;
+}
+[hidden] { display: none !important; }
+a { color: var(--brand); text-underline-offset: 2px; }
+:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+h1, h2, h3 { font-family: var(--display); line-height: 1.15; text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(2.2rem, 5vw, 3.4rem); font-weight: 700; letter-spacing: -0.02em; }
+h2 { font-size: clamp(1.6rem, 3.4vw, 2.1rem); font-weight: 700; letter-spacing: -0.01em; }
+h3 { font-size: 1.15rem; font-weight: 500; }
+p { margin: 0; max-width: 66ch; }
+code, .mono { font-family: var(--mono); font-size: 0.86em; }
+.label {
+  font: 500 0.72rem/1.2 var(--display); text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted);
+}
+
+/* ---------- layout ---------- */
+.shell { max-width: 1180px; margin: 0 auto; display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 48px; padding-block: 32px 80px; }
+nav.steps { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 24px); align-self: start; display: grid; gap: 4px; }
+nav.steps a {
+  display: grid; grid-template-columns: 26px 1fr; gap: 8px; align-items: center;
+  padding: 6px 8px; border-radius: 6px; text-decoration: none; color: var(--muted);
+  font: 500 0.92rem/1.25 var(--display);
+}
+nav.steps a .n {
+  width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid var(--line);
+  display: grid; place-items: center; font-size: 0.75rem; font-variant-numeric: tabular-nums;
+}
+nav.steps a:hover { color: var(--ink); background: var(--sunk); }
+nav.steps a.done .n { background: var(--brand); border-color: var(--brand); color: var(--brand-ink); }
+nav.steps a.here { color: var(--ink); }
+nav.steps a.here .n { border-color: var(--brand); }
+.theme-btn { margin-top: 16px; justify-self: start; }
+main { display: grid; gap: 72px; min-width: 0; }
+section { display: grid; gap: 20px; min-width: 0; scroll-margin-top: 24px; }
+.sec-head { display: grid; gap: 8px; }
+.sec-head .label { color: var(--brand); }
+
+/* ---------- hero ---------- */
+.hero { display: grid; gap: 20px; }
+.hero .lede { font-size: 1.15rem; color: var(--muted); max-width: 60ch; }
+.ribbon { width: 100%; max-width: 100%; height: auto; display: block; }
+.meta { display: flex; flex-wrap: wrap; gap: 8px 24px; }
+.meta div { display: grid; gap: 2px; }
+.meta b { font: 500 0.95rem/1.3 var(--display); }
+
+/* ---------- widgets ---------- */
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 20px; display: grid; gap: 16px; min-width: 0; }
+.panel.sunk { background: var(--sunk); border-color: transparent; }
+.row { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center; }
+button, .btn {
+  font: 500 0.9rem/1 var(--display); padding: 9px 14px; border-radius: 6px; cursor: pointer;
+  border: 1px solid var(--line); background: var(--surface); color: var(--ink);
+}
+button:hover { border-color: var(--brand); }
+button.primary { background: var(--brand); color: var(--brand-ink); border-color: var(--brand); }
+button.chip { padding: 6px 10px; font-size: 0.82rem; }
+button.chip[aria-pressed="true"] { background: var(--brand-soft); border-color: var(--brand); }
+input[type="number"], textarea {
+  font: 400 0.9rem/1.4 var(--mono); color: var(--ink); background: var(--bg);
+  border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px;
+}
+input[type="number"] { width: 6.5em; }
+textarea { width: 100%; min-height: 96px; resize: vertical; }
+input[type="range"] { accent-color: var(--brand); width: 160px; max-width: 100%; }
+.ctl { display: grid; gap: 4px; font-size: 0.9rem; }
+.ctl output { font: 500 0.85rem var(--mono); }
+.scroll { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 0.9rem; }
+th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font: 500 0.75rem/1.2 var(--display); text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); font-size: 0.85rem; }
+tr.sel td { background: var(--brand-soft); }
+.seq { font: 400 0.85rem/1.55 var(--mono); word-break: break-all; letter-spacing: 0.02em; }
+.tracks { font: 400 0.82rem/1.35 var(--mono); white-space: pre; }
+.tracks .H { color: var(--helix); font-weight: 500; }
+.tracks .E { color: var(--strand); font-weight: 500; }
+.tracks .C { color: var(--coil); }
+.tracks .x { background: color-mix(in srgb, var(--bad) 22%, transparent); }
+.tracks .lab { color: var(--muted); }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; }
+.tile { display: grid; gap: 2px; padding: 12px 14px; background: var(--sunk); border-radius: 8px; }
+.tile b { font: 500 1.35rem/1.2 var(--display); font-variant-numeric: tabular-nums; }
+.tile span { font-size: 0.8rem; color: var(--muted); }
+.ok { color: var(--good); font-weight: 600; }
+.no { color: var(--bad); font-weight: 600; }
+.mm { background: color-mix(in srgb, var(--bad) 28%, transparent); border-radius: 2px; }
+.note { font-size: 0.92rem; color: var(--muted); }
+.callout { border-left: 3px solid var(--brand); padding: 4px 0 4px 16px; display: grid; gap: 8px; }
+details.hint { border: 1px dashed var(--line); border-radius: 8px; padding: 10px 14px; }
+details.hint summary { cursor: pointer; font: 500 0.92rem var(--display); color: var(--brand); }
+details.hint[open] summary { margin-bottom: 8px; }
+.q { display: grid; gap: 10px; }
+.q .opts { display: grid; gap: 6px; }
+.q .opts button { text-align: left; font: 400 0.95rem/1.35 var(--body); padding: 10px 12px; }
+.q .opts button.right { border-color: var(--good); background: color-mix(in srgb, var(--good) 12%, transparent); }
+.q .opts button.wrong { border-color: var(--bad); background: color-mix(in srgb, var(--bad) 10%, transparent); }
+.q .why { font-size: 0.92rem; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 0.82rem; color: var(--muted); }
+.legend i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; vertical-align: -1px; margin-right: 6px; }
+.timeline { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 0; border-top: 2px solid var(--brand); }
+.timeline div { padding: 12px 14px 4px 0; display: grid; gap: 4px; position: relative; }
+.timeline div::before { content: ""; position: absolute; top: -7px; left: 0; width: 12px; height: 12px; border-radius: 50%; background: var(--sunk); border: 2px solid var(--brand); }
+.timeline b { font: 700 1rem var(--display); }
+.timeline span { font-size: 0.88rem; color: var(--muted); }
+.tools { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; }
+.tools .panel { gap: 8px; }
+.drop { border: 2px dashed var(--line); border-radius: 10px; padding: 20px; text-align: center; display: grid; gap: 8px; justify-items: center; }
+.drop.over { border-color: var(--brand); background: var(--brand-soft); }
+canvas { max-width: 100%; display: block; }
+.two { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+svg text { fill: var(--muted); font: 11px var(--display); }
+
+
+/* ---------- neural network step ---------- */
+.progress { height: 6px; background: var(--sunk); border-radius: 3px; overflow: hidden; }
+.progress i { display: block; height: 100%; width: 0; background: var(--brand); transition: width .15s; }
+@media (prefers-reduced-motion: reduce) { .progress i { transition: none; } }
+.cmp td.num b { font-family: var(--display); font-size: 0.95rem; }
+.ladder { display: grid; gap: 8px; }
+.ladder .r { display: grid; grid-template-columns: minmax(0, 15rem) minmax(0, 1fr) 3.6rem; gap: 12px; align-items: center; font-size: 0.88rem; }
+.ladder .r > span:first-child { line-height: 1.3; }
+.ladder .track { position: relative; height: 18px; background: var(--sunk); border-radius: 3px; }
+.ladder .fill { position: absolute; inset: 0 auto 0 0; border-radius: 3px; background: var(--muted); opacity: .55; }
+.ladder .r.ours .fill { background: var(--brand); opacity: 1; }
+.ladder .r.ceiling .fill { background: repeating-linear-gradient(45deg, var(--line) 0 6px, transparent 6px 12px); opacity: 1; }
+.ladder .v { font: 500 0.88rem var(--mono); font-variant-numeric: tabular-nums; text-align: right; }
+@media (max-width: 560px) { .ladder .r { grid-template-columns: minmax(0, 1fr) 3.6rem; } .ladder .track { grid-column: 1 / -1; grid-row: 2; } }
+
+/* ---------- protein selector, segmented controls, viewer ---------- */
+.protsel, .seg { display: inline-flex; flex-wrap: wrap; gap: 6px; }
+button:disabled { opacity: .45; cursor: not-allowed; }
+.mono { font-family: var(--mono); font-size: 0.82rem; }
+.tracks .ok2 { background: color-mix(in srgb, var(--good) 22%, transparent); color: var(--ink); }
+.tracks .no2 { background: color-mix(in srgb, var(--bad) 26%, transparent); color: var(--ink); }
+.tracks .mid2 { background: color-mix(in srgb, var(--warn) 28%, transparent); color: var(--ink); }
+.viewer-wrap { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+.viewer { position: relative; background: var(--sunk); border-radius: 8px; overflow: hidden; }
+.viewer canvas { width: 100%; display: block; }
+.vtools { position: absolute; right: 8px; bottom: 8px; display: flex; gap: 6px; }
+.vtools .chip { background: var(--surface); }
+.vside { display: grid; gap: 12px; align-content: start; }
+.vside .tiles { grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); }
+@media (max-width: 860px) { .viewer-wrap { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 860px) {
+  .shell { grid-template-columns: minmax(0, 1fr); gap: 24px; padding-block: 0 64px; }
+  nav.steps {
+    top: env(safe-area-inset-top, 0px); z-index: 5; display: flex; overflow-x: auto; gap: 2px;
+    background: var(--bg); border-bottom: 1px solid var(--line); margin-inline: -16px; padding: 8px 16px;
+  }
+  nav.steps a { grid-template-columns: 24px auto; white-space: nowrap; }
+  .theme-btn { margin-top: 0; }
+  section { scroll-margin-top: 72px; }
+  .timeline { grid-template-columns: minmax(0, 1fr); border-top: 0; border-left: 2px solid var(--brand); padding-left: 18px; margin-left: 6px; }
+  .timeline div { padding: 6px 0; }
+  .timeline div::before { top: 12px; left: -26px; }
+}
+</style>
+</head>
+<body>
+<div class="shell">
+  <nav class="steps" aria-label="Tutorial steps">
+    <a href="#proteins"><span class="n">1</span>Two proteins</a>
+    <a href="#sequence"><span class="n">2</span>Read the sequence</a>
+    <a href="#nn"><span class="n">3</span>Neural networks</a>
+    <a href="#correct"><span class="n">4</span>What was right?</a>
+    <a href="#predict"><span class="n">5</span>Predict in 3D</a>
+    <a href="#confidence"><span class="n">6</span>Judge the model</a>
+    <a href="#limits"><span class="n">7</span>Know the limits</a>
+    <a href="#quiz"><span class="n">8</span>Check yourself</a>
+    <button class="chip theme-btn" id="themeBtn" type="button">Dark theme</button>
+  </nav>
+
+  <main>
+    <header class="hero" id="top">
+      <span class="label">BIO116 · Interactive tutorial · Protein structure prediction</span>
+      <h1>From sequence to structure: Ras and haemoglobin</h1>
+      <p class="lede">You have a protein sequence and want to know its 3D structure. This tutorial takes two well-studied proteins, H-Ras and human
+        haemoglobin, and predicts their structure with methods from the 1970s to today. Because both structures are known experimentally, you can see
+        on the 3D structure exactly which parts each method got right. Everything on this page runs in your browser, even offline.</p>
+      <svg class="ribbon" viewBox="0 0 900 90" role="img" aria-label="Pipeline: protein sequence, secondary structure, 3D model, comparison with experiment">
+        <g font-family="var(--mono)"><text x="95" y="50" text-anchor="middle" style="font:500 15px var(--mono);fill:var(--ink)">MTEYKLVVVG…</text></g>
+        <text x="95" y="86" text-anchor="middle">sequence</text>
+        <path d="M195 45 h40" stroke="var(--line)" stroke-width="2"/>
+        <rect x="250" y="38" width="36" height="14" rx="3" fill="var(--coil)"/>
+        <rect x="290" y="34" width="60" height="22" rx="11" fill="var(--helix)"/>
+        <rect x="354" y="38" width="16" height="14" rx="3" fill="var(--coil)"/>
+        <path d="M374 36 h42 l14 9 l-14 9 h-42 z" fill="var(--strand)"/>
+        <text x="340" y="86" text-anchor="middle">secondary structure</text>
+        <path d="M445 45 h40" stroke="var(--line)" stroke-width="2"/>
+        <path d="M510 60 C 520 10, 565 10, 565 40 S 615 75, 625 35 S 585 5, 555 55 S 535 80, 520 50" stroke="var(--brand)" stroke-width="5" fill="none" stroke-linecap="round"/>
+        <text x="570" y="86" text-anchor="middle">3D model</text>
+        <path d="M650 45 h40" stroke="var(--line)" stroke-width="2"/>
+        <path d="M715 60 C 725 10, 770 10, 770 40 S 820 75, 830 35" stroke="var(--good)" stroke-width="5" fill="none" stroke-linecap="round"/>
+        <path d="M830 35 S 790 5, 760 55" stroke="var(--bad)" stroke-width="5" fill="none" stroke-linecap="round"/>
+        <text x="780" y="86" text-anchor="middle">right / wrong</text>
+      </svg>
+      <div class="meta">
+        <div><span class="label">Audience</span><b>Undergraduate bioinformatics</b></div>
+        <div><span class="label">Time</span><b>2–3 hours</b></div>
+        <div><span class="label">You need</span><b>A browser; optionally ChimeraX or Mol*</b></div>
+        <div><span class="label">Companion</span><b><code>structure_tutorial.py</code></b></div>
+      </div>
+
+      <div class="panel sunk">
+        <h3>Background in two minutes</h3>
+        <p><b>Anfinsen</b> showed that for many small proteins the sequence alone determines the fold, so structure should be computable.
+          <b>Levinthal</b> pointed out that a 100-residue chain has about 3<sup>100</sup> ≈ 10<sup>48</sup> conformations, so neither the
+          protein nor a computer can search them all. Prediction methods are shortcuts built from what we already know about proteins:</p>
+        <div class="timeline" aria-label="History of prediction methods">
+          <div><b>1970s</b><span>Chou–Fasman and GOR: residue propensities for helix and strand. Q3 ≈ 50–65%.</span></div>
+          <div><b>1988</b><span>Neural networks learn the rules from known structures (Qian &amp; Sejnowski). Q3 ≈ 64%.</span></div>
+          <div><b>1990s</b><span>Evolutionary profiles (PHD, PSIPRED), homology modelling and threading.</span></div>
+          <div><b>2010s</b><span>Co-evolution: residues that mutate together are usually in contact.</span></div>
+          <div><b>2020</b><span>AlphaFold2 reaches near-experimental accuracy in CASP14.</span></div>
+          <div><b>2022–24</b><span>ESMFold (language model, no MSA); AlphaFold3 and Boltz add ligands, DNA and RNA.</span></div>
+        </div>
+      </div>
+    </header>
+
+    <!-- ================= 1 ================= -->
+    <section id="proteins">
+      <div class="sec-head">
+        <span class="label">Step 1 of 8</span>
+        <h2>Meet the two proteins</h2>
+        <p>Both proteins are famous, both have been solved many times, and they look nothing alike. That makes them good test cases: a method has to get
+          β-strands right for Ras and long helices right for haemoglobin. Pick the protein to work with; the choice carries through every step.</p>
+      </div>
+      <div class="two">
+        <div class="panel">
+          <span class="label">GTPase · alpha/beta fold · UniProt P01112</span>
+          <h3>H-Ras</h3>
+          <p class="note">A molecular switch: active when bound to GTP, inactive with GDP. Mutations at G12, G13 or Q61 lock it "on" and drive many cancers.
+            189 residues: a folded G domain (1–166) with a six-stranded β-sheet surrounded by five helices, plus a flexible tail that anchors it to the membrane.</p>
+          <p class="note"><b>Reference structure:</b> PDB 1CRR, the NMR structure of wild-type H-Ras·GDP (residues 1–166, model 1 of 20).</p>
+        </div>
+        <div class="panel">
+          <span class="label">Oxygen carrier · all-alpha globin fold · UniProt P68871 / P69905</span>
+          <h3>Haemoglobin</h3>
+          <p class="note">Carries O<sub>2</sub> in red blood cells as a tetramer of two α chains (141 residues) and two β chains (146 residues), each holding a haem.
+            Each chain folds into eight helices (A–H) with no β-strands at all. The sickle-cell mutation changes β Glu6 to Val.</p>
+          <p class="note"><b>Reference structure:</b> PDB 4HHB, human deoxyhaemoglobin by X-ray crystallography (Fermi et al. 1984).</p>
+        </div>
+      </div>
+      <div class="panel sunk">
+        <div class="row">
+          <span class="label">Work with</span>
+          <span class="protsel" role="group" aria-label="Choose a protein"></span>
+          <button type="button" id="copyFasta1">Copy FASTA</button>
+          <span class="note" id="fastaMsg1" aria-live="polite"></span>
+        </div>
+        <div class="seq" id="protSeq"></div>
+        <p class="note" id="protNote"></p>
+      </div>
+    </section>
+
+    <!-- ================= 2 ================= -->
+    <section id="sequence">
+      <div class="sec-head">
+        <span class="label">Step 2 of 8</span>
+        <h2>What the sequence alone tells you</h2>
+        <p>Before building a 3D model, simple statistics already hint at the structure: whether the protein is soluble or sits in a membrane,
+          and how much of it is helix or strand.</p>
+      </div>
+      <div class="panel">
+        <div class="row">
+          <span class="label">Protein</span>
+          <span class="protsel" role="group" aria-label="Choose a protein"></span>
+        </div>
+        <label for="seqIn" class="label">Sequence (edit it or paste your own; the comparison with experiment needs an unchanged example)</label>
+        <textarea id="seqIn" spellcheck="false"></textarea>
+        <div class="tiles" id="stats"></div>
+      </div>
+
+      <div class="panel">
+        <h3>Hydropathy plot (Kyte–Doolittle)</h3>
+        <p class="note">Each point is the average hydrophobicity of a window centred on that residue. A 19-residue window above 1.6 suggests a helix that spans the membrane.</p>
+        <div class="row">
+          <label class="ctl" for="kdWin">Window <output id="kdWinOut">19</output>
+            <input type="range" id="kdWin" min="5" max="25" step="2" value="19"></label>
+          <span class="note" id="tmNote"></span>
+        </div>
+        <div class="scroll"><svg id="kdPlot" viewBox="0 0 800 220" style="min-width:520px;width:100%" role="img" aria-label="Hydropathy plot"></svg></div>
+      </div>
+
+      <div class="panel">
+        <h3>Secondary structure: Chou–Fasman</h3>
+        <p class="note">Average each residue's helix propensity (P<sub>α</sub>) and strand propensity (P<sub>β</sub>) over a window. Call helix if ⟨P<sub>α</sub>⟩ passes its
+          threshold and beats ⟨P<sub>β</sub>⟩, strand if ⟨P<sub>β</sub>⟩ passes its threshold, otherwise coil. Then drop helices shorter than 4 and strands shorter than 3.
+          The <b>DSSP</b> row is the secondary structure of the experimental structure; <b>Q3</b> is the fraction of residues predicted correctly.</p>
+        <div class="row">
+          <label class="ctl" for="cfWin">Window <output id="cfWinOut">7</output>
+            <input type="range" id="cfWin" min="3" max="15" step="2" value="7"></label>
+          <label class="ctl" for="cfHa">Helix threshold <output id="cfHaOut">1.03</output>
+            <input type="range" id="cfHa" min="0.90" max="1.20" step="0.01" value="1.03"></label>
+          <label class="ctl" for="cfHb">Strand threshold <output id="cfHbOut">1.05</output>
+            <input type="range" id="cfHb" min="0.90" max="1.25" step="0.01" value="1.05"></label>
+          <button type="button" class="chip" id="cfReset">Reset</button>
+        </div>
+        <div class="tiles" id="cfStats"></div>
+        <div class="legend"><span><i style="background:var(--helix)"></i>H helix</span><span><i style="background:var(--strand)"></i>E strand</span><span><i style="background:var(--coil)"></i>C coil</span><span><i style="background:color-mix(in srgb,var(--bad) 30%,transparent)"></i>disagrees with the experiment</span></div>
+        <div class="scroll"><div class="tracks" id="cfTracks"></div></div>
+      </div>
+      <div class="callout">
+        <p><b>Try this.</b> Compare Q3 for H-Ras and for haemoglobin β. Which protein does Chou–Fasman handle worse, and what kind of mistake does it make?
+          Can you rescue haemoglobin with the sliders without ruining Ras?</p>
+        <details class="hint"><summary>Discussion</summary>
+          <p>For H-Ras the method gets about 60% right. For haemoglobin β it gets under 40%, and it calls about a quarter of the chain β-strand even though haemoglobin has no strands at all.
+            Residues such as Val, Leu, Phe and Tyr have high strand propensities, and haemoglobin's buried helix faces are full of them. Chou–Fasman only looks at a small window of
+            residues, so it can't tell a hydrophobic helix face from a strand.</p>
+          <p>Tuning the thresholds to fix one protein breaks the other: that is <b>overfitting</b>. The methods in the next step learn from thousands of proteins instead.</p>
+        </details>
+      </div>
+    </section>
+
+    <!-- ================= 3 ================= -->
+    <section id="nn">
+      <div class="sec-head">
+        <span class="label">Step 3 of 8</span>
+        <h2>Neural networks: learning the rules from data</h2>
+        <p>Chou and Fasman tabulated their propensities by hand from a few dozen known structures. In 1988, Qian and Sejnowski instead let a <b>neural network</b> learn
+          the rules. It looks at a window of residues around the one being predicted and outputs a probability for helix, strand and coil.
+          Below you can train that kind of network in your browser on 5,517 real proteins and test it on the standard CB513 benchmark. Relatives of Ras and haemoglobin
+          are removed from the training data, so the network has never seen either protein family.</p>
+      </div>
+
+      <div class="panel">
+        <h3>How the network sees a residue</h3>
+        <p class="note">Each residue in the window becomes a column of 22 inputs: 20 amino acids, one for unknown (X) and one for "past the end of the chain". Exactly one input per column is on
+          (<i>one-hot encoding</i>). The hidden units combine them, and the three outputs are turned into probabilities (<i>softmax</i>). Training nudges every weight to make the correct
+          answer a little more likely (<i>gradient descent</i>). Move the slider to look at any residue of the selected protein.</p>
+        <div class="row">
+          <span class="protsel" role="group" aria-label="Choose a protein"></span>
+          <label class="ctl" for="nnRes">Residue <output id="nnResOut">21</output>
+            <input type="range" id="nnRes" min="1" max="166" value="21"></label>
+          <span class="note" id="nnResNote"></span>
+        </div>
+        <div class="scroll"><svg id="nnDiagram" viewBox="0 0 760 300" style="min-width:560px;width:100%" role="img" aria-label="Diagram of the window neural network"></svg></div>
+      </div>
+
+      <div class="panel">
+        <h3>Train it</h3>
+        <div class="row">
+          <label class="ctl" for="nnWin">Window <output id="nnWinOut">13</output>
+            <input type="range" id="nnWin" min="1" max="21" step="2" value="13"></label>
+          <label class="ctl" for="nnHid">Hidden units <output id="nnHidOut">10</output>
+            <input type="range" id="nnHid" min="0" max="40" step="5" value="10"></label>
+          <label class="ctl" for="nnN">Training proteins <output id="nnNOut">300</output>
+            <input type="range" id="nnN" min="0" max="7" step="1" value="3"></label>
+          <label class="ctl" for="nnEp">Epochs <output id="nnEpOut">3</output>
+            <input type="range" id="nnEp" min="1" max="8" step="1" value="3"></label>
+          <label class="row" for="nnL2" style="gap:8px;font-size:0.9rem"><input type="checkbox" id="nnL2"> Second-level network</label>
+        </div>
+        <div class="row">
+          <button type="button" class="primary" id="nnTrain">Train network</button>
+          <button type="button" id="nnStop" disabled>Stop</button>
+          <span class="note" id="nnStatus" aria-live="polite"></span>
+        </div>
+        <div class="progress" aria-hidden="true"><i id="nnBar"></i></div>
+        <div class="two">
+          <div>
+            <span class="label">Q3 after each epoch</span>
+            <svg id="nnChart" viewBox="0 0 420 240" style="width:100%" role="img" aria-label="Accuracy after each training epoch"></svg>
+            <div class="legend"><span><i style="background:var(--brand)"></i>test set (CB513)</span><span><i style="background:var(--coil)"></i>training set</span><span><i style="background:var(--helix)"></i>Chou–Fasman on CB513</span></div>
+          </div>
+          <div class="scroll">
+            <span class="label">CB513 test set: 514 proteins, 84,765 residues</span>
+            <table class="cmp" id="nnCmp" style="margin-top:8px">
+              <thead><tr><th>Method</th><th>Q3</th><th>Helix</th><th>Strand</th><th>Coil</th></tr></thead><tbody></tbody>
+            </table>
+            <p class="note" style="margin-top:8px">Helix, Strand and Coil give the fraction of residues of that true class that were predicted correctly.
+              Q3 is the fraction of all residues predicted correctly.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h3>The example proteins, predicted by both methods</h3>
+        <div class="scroll">
+          <table class="cmp" id="nnProtTable"><thead><tr><th>Protein</th><th>Chou–Fasman Q3</th><th>Neural network Q3</th></tr></thead><tbody></tbody></table>
+        </div>
+        <div class="row"><span class="protsel" role="group" aria-label="Choose a protein"></span></div>
+        <div class="scroll"><div class="tracks" id="nnTracks"></div></div>
+        <p class="note">Step 4 shows these same predictions on the 3D structure.</p>
+      </div>
+
+      <div class="callout">
+        <p><b>Try this.</b></p>
+        <ol style="margin:0;padding-left:1.2em;display:grid;gap:4px;max-width:70ch">
+          <li>Set the window to 1. How good is a prediction from a single residue? Then try 5, 13 and 21.</li>
+          <li>Set hidden units to 0 (a linear network) and then 20. How much do the hidden units add?</li>
+          <li>Train on 50 proteins for 8 epochs. Compare the training and test curves.</li>
+          <li>Turn on the second-level network. What changes in the tracks?</li>
+        </ol>
+        <details class="hint"><summary>What you should see</summary>
+          <p><b>Context matters.</b> One residue on its own gives about 48%, barely better than always guessing "coil" (43% of CB513). A window of 13–17 gives about 62–65%.</p>
+          <p><b>Haemoglobin improves the most.</b> Chou–Fasman gets under 40% of haemoglobin β right. The network typically gets 50–70%, depending on the settings and the run: it has learned from thousands of
+            helices that a hydrophobic residue every three or four positions usually means a helix face, not a strand. Scores for a single protein jump around from run to run; the CB513 score is the reliable one.</p>
+          <p><b>The model size is not the bottleneck.</b> Hidden units add only a point or two. A single sequence simply doesn't carry much more information about local
+            structure, so single-sequence methods level off around 65%.</p>
+          <p><b>Too little data means overfitting.</b> With 50 proteins the training accuracy keeps climbing while the test accuracy stalls, and the gap between them grows.</p>
+          <p><b>A second network cleans up the output.</b> It reads the first network's probabilities over 17 neighbouring residues and learns that helices come in runs, which removes isolated
+            one-residue "helices" and adds about a point of Q3. PHD (1993) used this cascade.</p>
+        </details>
+      </div>
+
+      <div class="panel">
+        <h3>How evolution broke the 65% barrier</h3>
+        <div class="two">
+          <p>In 1993, Rost and Sander's <b>PHD</b> gave the same kind of network a <b>profile</b> instead of a single sequence: for each position, how often each amino acid
+            appears at that position across related proteins in a multiple sequence alignment. A position that is always hydrophobic in homologues is probably buried. A strand's
+            alternating pattern shows up much more clearly across 100 sequences than in one.</p>
+          <p><b>PSIPRED</b> (1999) built the profiles with PSI-BLAST and reached about 76%. Deep networks with profiles now reach about 85% on CB513. The practical ceiling is roughly 88–90%,
+            because DSSP itself assigns slightly different states to different structures of the same protein. The same idea, evolution as data, is what powers AlphaFold's MSA input in step 5.</p>
+        </div>
+        <div class="ladder" id="nnLadder"></div>
+        <p class="note">Solid green bars were measured on this page, on CB513. Grey bars are published values measured on different test sets, so compare them loosely.</p>
+      </div>
+    </section>
+
+    <!-- ================= 4 ================= -->
+    <section id="correct">
+      <div class="sec-head">
+        <span class="label">Step 4 of 8</span>
+        <h2>What was predicted correctly?</h2>
+        <p>Here is the experimental structure. Colour it by a method's prediction to see which parts it got right (green) and wrong (red). Drag to rotate; hover over the chain to identify residues.</p>
+      </div>
+      <div class="panel">
+        <div class="row">
+          <span class="protsel" role="group" aria-label="Choose a protein"></span>
+          <span class="seg" role="group" aria-label="Colour by" id="v1Modes">
+            <button type="button" class="chip" data-mode="dssp">Experimental secondary structure</button>
+            <button type="button" class="chip" data-mode="cf">Chou–Fasman: right or wrong</button>
+            <button type="button" class="chip" data-mode="nn">Neural network: right or wrong</button>
+          </span>
+        </div>
+        <div class="viewer-wrap">
+          <div class="viewer">
+            <canvas id="v1" width="700" height="480" aria-label="3D view of the experimental structure"></canvas>
+            <div class="vtools">
+              <button type="button" class="chip" data-act="spin" aria-pressed="true">Spin</button>
+              <button type="button" class="chip" data-act="in" aria-label="Zoom in">+</button>
+              <button type="button" class="chip" data-act="out" aria-label="Zoom out">−</button>
+              <button type="button" class="chip" data-act="reset">Reset</button>
+            </div>
+          </div>
+          <div class="vside">
+            <div class="tiles" id="v1Tiles"></div>
+            <div class="legend" id="v1Legend"></div>
+            <p class="note mono" id="v1Hover">Hover over the structure to identify a residue.</p>
+            <p class="note" id="v1Note"></p>
+          </div>
+        </div>
+        <div class="scroll"><div class="tracks" id="v1Strip"></div></div>
+      </div>
+      <div class="callout">
+        <p><b>Try this.</b> Switch between Chou–Fasman and the neural network for haemoglobin β. Where are the red segments for each? For H-Ras, are the errors in the β-sheet at the centre, in the helices, or in the loops?</p>
+        <details class="hint"><summary>What to look for</summary>
+          <p>Chou–Fasman paints whole haemoglobin helices red because it calls them strands (the "wrongly called strand" count). The network still calls a few short strands and cuts several helices short,
+            but far fewer residues are wrongly called strand. Retrain it in step 3 with other settings and watch the colours change. In H-Ras, look at the β-hairpin formed by β2 and β3 (residues 37–58): both methods get only part of it. What makes a
+            strand a strand is its partner strand, which can be far away in the sequence, so local methods find strands harder than helices.</p>
+          <p>For haemoglobin, the faint grey chains are the other three subunits of the tetramer and the red spheres are the haem irons. A single-chain prediction knows nothing about them.</p>
+        </details>
+      </div>
+    </section>
+
+    <!-- ================= 5 ================= -->
+    <section id="predict">
+      <div class="sec-head">
+        <span class="label">Step 5 of 8</span>
+        <h2>Predict the 3D structure</h2>
+        <p>Copy the FASTA and run it through <b>one</b> of these free tools. Each takes a few minutes or less for these proteins. Save the result as a <code>.pdb</code> file for step 6.</p>
+      </div>
+      <div class="panel sunk">
+        <div class="row"><span class="protsel" role="group" aria-label="Choose a protein"></span><button type="button" id="copyFasta">Copy FASTA</button><span class="note" id="fastaMsg" aria-live="polite"></span></div>
+        <div class="seq" id="fastaBox"></div>
+        <p class="note" id="predictTip"></p>
+      </div>
+      <div class="tools">
+        <div class="panel"><span class="label">No MSA · seconds</span><h3>ESMFold</h3>
+          <p class="note">A protein language model predicts the structure from the single sequence. Fastest; slightly less accurate than AlphaFold2.</p>
+          <a href="https://esmatlas.com/resources?action=fold" target="_blank" rel="noopener">ESM Atlas fold page ↗</a>
+          <p class="note">Or: <code>python3 structure_tutorial.py fold --protein hbb</code></p></div>
+        <div class="panel"><span class="label">MSA · minutes</span><h3>ColabFold (AlphaFold2)</h3>
+          <p class="note">Paste the sequence, then choose Runtime → Run all. Gives the PAE plot and five ranked models. Separate chains with <code>:</code> to predict a complex.</p>
+          <a href="https://colab.research.google.com/github/sokrypton/ColabFold/blob/main/AlphaFold2.ipynb" target="_blank" rel="noopener">ColabFold notebook ↗</a></div>
+        <div class="panel"><span class="label">Complexes · ligands</span><h3>AlphaFold Server (AF3)</h3>
+          <p class="note">Add GDP or GTP and Mg²⁺ to Ras, or build the haemoglobin tetramer (2 α + 2 β) with four haem groups. Needs a free Google account.</p>
+          <a href="https://alphafoldserver.com" target="_blank" rel="noopener">alphafoldserver.com ↗</a></div>
+        <div class="panel"><span class="label">Precomputed</span><h3>AlphaFold DB</h3>
+          <p class="note">Ready-made models: H-Ras P01112, haemoglobin β P68871, α P69905.</p>
+          <a href="https://alphafold.ebi.ac.uk/entry/P01112" target="_blank" rel="noopener">AF-P01112 ↗</a>
+          <a href="https://alphafold.ebi.ac.uk/entry/P68871" target="_blank" rel="noopener">AF-P68871 ↗</a>
+          <a href="https://alphafold.ebi.ac.uk/entry/P69905" target="_blank" rel="noopener">AF-P69905 ↗</a></div>
+      </div>
+      <div class="panel">
+        <h3>What the network does</h3>
+        <div class="two">
+          <p><b>MSA and co-evolution.</b> If residue <i>i</i> mutates and residue <i>j</i> compensates across many related species, the two are probably in contact.
+            AlphaFold2's <i>Evoformer</i> reasons over the alignment and a residue-pair map through 48 blocks. Globins and Ras-family GTPases both have thousands of relatives, so their alignments are deep.</p>
+          <p><b>Structure module.</b> Each residue is treated as a rigid frame that is rotated and moved into place. The model is recycled three times and outputs
+            coordinates together with pLDDT and PAE. AlphaFold3 replaces this step with <i>diffusion</i>, which also lets it place ligands such as haem or GTP.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= 6 ================= -->
+    <section id="confidence">
+      <div class="sec-head">
+        <span class="label">Step 6 of 8</span>
+        <h2>Judge the model</h2>
+        <p>Load your predicted structure. The page lines it up with the experimental structure (sequence alignment, then the best rigid-body superposition) and colours every residue by how far
+          it is from where it should be. The file is read in your browser and never uploaded.</p>
+      </div>
+      <div class="panel">
+        <div class="row">
+          <span class="protsel" role="group" aria-label="Choose a protein"></span>
+        </div>
+        <div class="drop" id="dropModel">
+          <b id="dropMsg">Drop a predicted .pdb file here</b>
+          <span class="note">from AlphaFold DB, ColabFold, ESMFold or AlphaFold Server (convert .cif to .pdb first)</span>
+          <div class="row" style="justify-content:center">
+            <label class="btn" for="fileModel">Choose file</label>
+            <input type="file" id="fileModel" accept=".pdb,.ent,.txt" hidden>
+            <button type="button" id="demoAlpha">Try a demo: the α chain as a model of β</button>
+          </div>
+        </div>
+        <div class="row">
+          <span class="seg" role="group" aria-label="Colour by" id="v2Modes">
+            <button type="button" class="chip" data-mode="dev">Distance from experiment</button>
+            <button type="button" class="chip" data-mode="plddt">Model confidence (pLDDT)</button>
+          </span>
+          <label class="row" for="v2Overlay" style="gap:8px;font-size:0.9rem"><input type="checkbox" id="v2Overlay" checked> Show the model as a thin line</label>
+        </div>
+        <div class="viewer-wrap">
+          <div class="viewer">
+            <canvas id="v2" width="700" height="480" aria-label="3D comparison of the model with the experimental structure"></canvas>
+            <div class="vtools">
+              <button type="button" class="chip" data-act="spin" aria-pressed="true">Spin</button>
+              <button type="button" class="chip" data-act="in" aria-label="Zoom in">+</button>
+              <button type="button" class="chip" data-act="out" aria-label="Zoom out">−</button>
+              <button type="button" class="chip" data-act="reset">Reset</button>
+            </div>
+          </div>
+          <div class="vside">
+            <div class="tiles" id="v2Tiles"></div>
+            <div class="legend" id="v2Legend"></div>
+            <p class="note mono" id="v2Hover">Hover over the structure to identify a residue.</p>
+            <p class="note" id="v2Note">No model loaded yet. The thick chain is the experimental structure.</p>
+          </div>
+        </div>
+        <div class="scroll"><div class="tracks" id="v2Strip"></div></div>
+        <div id="plddtBox" hidden>
+          <span class="label">pLDDT per residue</span>
+          <div class="scroll"><svg id="plddtPlot" viewBox="0 0 800 200" style="min-width:520px;width:100%;margin-top:8px" role="img" aria-label="pLDDT per residue"></svg></div>
+          <div class="legend">
+            <span><i style="background:var(--af-vh)"></i>≥ 90 very high</span>
+            <span><i style="background:var(--af-c)"></i>70–90 confident</span>
+            <span><i style="background:var(--af-l)"></i>50–70 low</span>
+            <span><i style="background:var(--af-vl)"></i>&lt; 50 very low, likely disordered</span>
+          </div>
+        </div>
+      </div>
+      <div class="two">
+        <div class="callout"><p><b>What to expect.</b> An AlphaFold2 model of H-Ras should put nearly all of residues 1–166 within 2 Å of the experiment. The C-terminal tail (167–189) has no
+          experimental coordinates here and very low pLDDT. Because 1CRR is an NMR structure, a few loops can differ by more than 2 Å even when the model is good. For a haemoglobin chain, expect
+          high pLDDT across all eight helices.</p></div>
+        <div class="callout"><p><b>The demo</b> uses the experimental α chain as a "model" of the β chain. They are 43% identical, which is what homology modelling relies on: 73% of β lands within 2 Å.
+          The unmatched stretch around β residues 45–55 is where α chains are shorter: they lack the D helix. <b>PAE</b> (ColabFold, AlphaFold DB) adds how confident the model is about the relative position of two parts.</p></div>
+      </div>
+    </section>
+
+    <!-- ================= 7 ================= -->
+    <section id="limits">
+      <div class="sec-head">
+        <span class="label">Step 7 of 8</span>
+        <h2>What predictors can't tell you</h2>
+        <p>Both proteins work through details that a single static model of one chain misses.</p>
+      </div>
+      <div class="two">
+        <div class="panel"><h3>Ras: two states</h3><p class="note">Ras switches between inactive GDP-bound and active GTP-bound states. The changes are concentrated in switch I (≈30–38) and switch II (≈59–76). AlphaFold2 gives you only one of them.</p></div>
+        <div class="panel"><h3>Ras: point mutations</h3><p class="note">Predict G12V: the model looks almost the same as wild type. The mutation is oncogenic because it blocks GTP hydrolysis, not because it changes the fold.</p></div>
+        <div class="panel"><h3>Haemoglobin: the tetramer and the haem</h3><p class="note">A single β chain folds correctly on its own in a prediction, but haemoglobin only works as α₂β₂ with four haem groups. AlphaFold2 has no haem; AlphaFold3 can add it and build the tetramer.</p></div>
+        <div class="panel"><h3>Haemoglobin: allostery and sickle cell</h3><p class="note">Oxygen binding shifts the tetramer from the T state (4HHB) to the R state. Sickle-cell haemoglobin (β E6V) folds normally; the disease comes from deoxy HbS tetramers sticking together into fibres, which no single-chain model shows.</p></div>
+      </div>
+    </section>
+
+    <!-- ================= 8 ================= -->
+    <section id="quiz">
+      <div class="sec-head">
+        <span class="label">Step 8 of 8</span>
+        <h2>Check yourself</h2>
+        <p>Pick an answer to see the explanation. Your score is kept in this browser only.</p>
+      </div>
+      <div class="panel" id="quizBox"></div>
+      <p class="note" id="quizScore"></p>
+      <div class="panel sunk">
+        <h3>Exercises to hand in</h3>
+        <ol style="margin:0;padding-left:1.2em;display:grid;gap:6px;max-width:70ch">
+          <li>Make a table of Q3 for H-Ras and haemoglobin β with Chou–Fasman, your best neural network from step 3 (give its settings), PSIPRED, and the DSSP of your AlphaFold or ESMFold model. Explain the ranking.</li>
+          <li>Include a screenshot from step 4 of haemoglobin β coloured by Chou–Fasman and by the neural network. Describe where each method fails.</li>
+          <li>Predict H-Ras and haemoglobin β in 3D. For each, report the fraction of residues within 2 Å and the Cα RMSD from step 6, and the mean pLDDT.</li>
+          <li>Predict the haemoglobin tetramer (2 α + 2 β) with AlphaFold Server, with and without haem. Compare ipTM and the positions of the haem groups with 4HHB.</li>
+          <li>In about 150 words, explain why an accurate AlphaFold model of Ras wasn't enough to design sotorasib against KRAS-G12C.</li>
+        </ol>
+      </div>
+      <p class="note">Sources: Anfinsen 1973 <i>Science</i>; Chou &amp; Fasman 1978 <i>Adv. Enzymol.</i>; Kyte &amp; Doolittle 1982 <i>J. Mol. Biol.</i>; Qian &amp; Sejnowski 1988 <i>J. Mol. Biol.</i>;
+        Rost &amp; Sander 1993 <i>J. Mol. Biol.</i>; Jones 1999 <i>J. Mol. Biol.</i>; Klausen et al. 2019 <i>Proteins</i> (NetSurfP-2.0); Kabsch &amp; Sander 1983 <i>Biopolymers</i> (DSSP);
+        Kraulis et al. 1994 <i>Biochemistry</i> (1CRR); Fermi et al. 1984 <i>J. Mol. Biol.</i> (4HHB); Jumper et al. 2021 <i>Nature</i>; Lin et al. 2023 <i>Science</i>; Mirdita et al. 2022 <i>Nat. Methods</i>;
+        Abramson et al. 2024 <i>Nature</i>. Secondary-structure data: Zhou &amp; Troyanskaya 2014 (ICML), cleaned by Drori et al. 2018 (cu-ssp, MIT License).</p>
+    </section>
+  </main>
+</div>
+
+<!-- Secondary-structure data: sequence<TAB>DSSP 8-state. Source: github.com/idrori/cu-ssp model_3/ (MIT License, Copyright (c) 2018 Iddo Drori). See data/README.md. -->
+<script type="text/plain" id="ssTest">
+__SS_TEST__
+</script>
+<script type="text/plain" id="ssTrain">
+__SS_TRAIN__
+</script>
+<script>
+"use strict";
+/* ---------------- embedded data (filled in by build_html.py) ---------------- */
+const STRUCT = __STRUCTURES_JSON__;      // {hras|hb: {chains: {A: [[resnum, resname3, x, y, z], ...]}, fe: [[chain, x, y, z]]}}
+const REF = __REFERENCE_SS_JSON__;       // {hras|hba|hbb: {pdb, chain, first, seq, dssp}}
+const EXCLUDED = new Set(__EXCLUDED_JSON__);
+
+/* ---------------- helpers ---------------- */
+const wrap = (s, w = 60) => s.match(new RegExp(`.{1,${w}}`, "g")) || [];
+const $ = id => document.getElementById(id);
+const esc = s => s.replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
+const store = {
+  get(k, d) { try { const v = localStorage.getItem("seq2struct:" + k); return v === null ? d : JSON.parse(v); } catch { return d; } },
+  set(k, v) { try { localStorage.setItem("seq2struct:" + k, JSON.stringify(v)); } catch {} }
+};
+async function copyText(text, msgEl, fallbackEl) {
+  try { await navigator.clipboard.writeText(text); msgEl.textContent = "Copied"; }
+  catch {
+    if (fallbackEl) { const r = document.createRange(); r.selectNodeContents(fallbackEl); const s = getSelection(); s.removeAllRanges(); s.addRange(r); }
+    msgEl.textContent = "Selected. Press Ctrl+C or ⌘C to copy.";
+  }
+  setTimeout(() => (msgEl.textContent = ""), 2500);
+}
+function tile(v, lab) { return `<div class="tile"><b>${v}</b><span>${lab}</span></div>`; }
+const pct = v => (v * 100).toFixed(1) + "%";
+const pct0 = v => Math.round(v * 100) + "%";
+const css = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+function rgbOf(c) {
+  c = c.trim();
+  if (c[0] === "#") { const h = c.length === 4 ? [...c.slice(1)].map(x => x + x).join("") : c.slice(1); return [0, 2, 4].map(i => parseInt(h.slice(i, i + 2), 16)); }
+  const m = c.match(/[\d.]+/g); return m ? m.slice(0, 3).map(Number) : [128, 128, 128];
+}
+const THREE = { ALA: "A", ARG: "R", ASN: "N", ASP: "D", CYS: "C", GLN: "Q", GLU: "E", GLY: "G", HIS: "H", ILE: "I", LEU: "L", LYS: "K", MET: "M", PHE: "F", PRO: "P", SER: "S", THR: "T", TRP: "W", TYR: "Y", VAL: "V", MSE: "M" };
+const DSSP3 = { H: "H", G: "H", I: "H", E: "E", B: "E" };
+const toQ3 = s => [...s].map(c => DSSP3[c] || "C").join("");
+const SS_NAME = { H: "helix", E: "strand", C: "coil" };
+
+/* ---------------- the example proteins ---------------- */
+const PROTEINS = {
+  hras: {
+    short: "H-Ras", name: "H-Ras (GTPase HRas), human", uniprot: "P01112", struct: "hras", chain: "A", chainLabel: "",
+    seq: "MTEYKLVVVGAGGVGKSALTIQLIQNHFVDEYDPTIEDSYRKQVVIDGETCLLDILDTAGQEEYSAMRDQYMRTGEGFLCVFAINNTKSFEDIHQYREQIKRVKDSDDVPMVLVGNKCDLAARTVESRQAQDLARSYGIPYIETSAKTRQGVEDAFYTLVREIRQHKLRKLNPPDESGPGCMSCKCVLS",
+    note: "189 residues. The experimental reference (PDB 1CRR) covers the G domain, residues 1–166; the C-terminal tail 167–189 is flexible and not part of it.",
+    tip: "For AlphaFold Server, add GDP (or GTP) and one Mg²⁺ ion as ligands. Residues 167–189 will come out with very low pLDDT."
+  },
+  hbb: {
+    short: "Haemoglobin β", name: "Haemoglobin subunit beta, human", uniprot: "P68871", struct: "hb", chain: "B", chainLabel: "β ",
+    seq: "VHLTPEEKSAVTALWGKVNVDEVGGEALGRLLVVYPWTQRFFESFGDLSTPDAVMGNPKVKAHGKKVLGAFSDGLAHLDNLKGTFATLSELHCDKLHVDPENFRLLGNVLVCVLAHHFGKEFTPPVQAAYQKVVAGVANALAHKYH",
+    note: "146 residues, the mature chain as it appears in PDB 4HHB chain B (the initiator Met of the 147-residue precursor is removed). Eight helices, A to H.",
+    tip: "To build the whole tetramer in AlphaFold Server, add 2 copies of α, 2 copies of β and 4 HEM ligands. In ColabFold, join the chains with ':'."
+  },
+  hba: {
+    short: "Haemoglobin α", name: "Haemoglobin subunit alpha, human", uniprot: "P69905", struct: "hb", chain: "A", chainLabel: "α ",
+    seq: "VLSPADKTNVKAAWGKVGAHAGEYGAEALERMFLSFPTTKTYFPHFDLSHGSAQVKGHGKKVADALTNAVAHVDDMPNALSALSDLHAHKLRVDPVNFKLLSHCLLVTLAAHLPAEFTPAVHASLDKFLASVSTVLTSKYR",
+    note: "141 residues, as in PDB 4HHB chain A. 43% identical to β; it lacks the short D helix.",
+    tip: "To build the whole tetramer in AlphaFold Server, add 2 copies of α, 2 copies of β and 4 HEM ligands. In ColabFold, join the chains with ':'."
+  }
+};
+for (const [k, p] of Object.entries(PROTEINS)) {
+  const r = REF[k];
+  if (p.seq.slice(r.first - 1, r.first - 1 + r.seq.length) !== r.seq) console.error("Reference does not match sequence for " + k);
+  p.ref = toQ3(r.dssp);           // 3-state DSSP of the experimental structure, residues first..first+len-1 (first = 1 here)
+  p.dssp8 = r.dssp;
+}
+let cur = store.get("protein", "hras");
+if (!PROTEINS[cur]) cur = "hras";
+
+/* ---------------- shared sequence methods ---------------- */
+const KD = { A: 1.8, R: -4.5, N: -3.5, D: -3.5, C: 2.5, Q: -3.5, E: -3.5, G: -0.4, H: -3.2, I: 4.5, L: 3.8, K: -3.9, M: 1.9, F: 2.8, P: -1.6, S: -0.8, T: -0.7, W: -0.9, Y: -1.3, V: 4.2 };
+const CF = { E: [1.51, .37], M: [1.45, 1.05], A: [1.42, .83], L: [1.21, 1.30], K: [1.16, .74], F: [1.13, 1.38], Q: [1.11, 1.10], W: [1.08, 1.37], I: [1.08, 1.60], V: [1.06, 1.70], D: [1.01, .54], H: [1.00, .87], R: [.98, .93], T: [.83, 1.19], S: [.77, .75], C: [.70, 1.19], Y: [.69, 1.47], N: [.67, .89], P: [.57, .55], G: [.57, .75] };
+const MASS = { A: 71.08, R: 156.19, N: 114.10, D: 115.09, C: 103.14, E: 129.12, Q: 128.13, G: 57.05, H: 137.14, I: 113.16, L: 113.16, K: 128.17, M: 131.19, F: 147.18, P: 97.12, S: 87.08, T: 101.10, W: 186.21, Y: 163.18, V: 99.13 };
+function smooth(seq, scale, w) {
+  const h = Math.floor(w / 2), v = [...seq].map(a => scale[a] ?? 0), out = Array(seq.length).fill(null);
+  for (let i = h; i < seq.length - h; i++) { let s = 0; for (let j = i - h; j <= i + h; j++) s += v[j]; out[i] = s / w; }
+  return out;
+}
+function chouFasman(seq, w = 7, tA = 1.03, tB = 1.05) {
+  const pa = {}, pb = {}; for (const k in CF) { pa[k] = CF[k][0]; pb[k] = CF[k][1]; }
+  const A = smooth(seq, pa, w), Bv = smooth(seq, pb, w);
+  let s = A.map((a, i) => a === null ? "C" : (a >= tA && a > Bv[i]) ? "H" : (Bv[i] >= tB && Bv[i] >= a) ? "E" : "C").join("");
+  s = s.replace(/H+/g, m => m.length <= 3 ? "C".repeat(m.length) : m).replace(/E+/g, m => m.length <= 2 ? "C".repeat(m.length) : m);
+  return s;
+}
+function q3(pred, ref) { let ok = 0; const n = Math.min(pred.length, ref.length); for (let i = 0; i < n; i++) if (pred[i] === ref[i]) ok++; return ok / n; }
+// Coloured track rows: `ref` marks disagreements
+function trackRow(label, str, s0, ref) {
+  return `<span class="lab">     ${label} </span>` + [...str.slice(s0, s0 + 60)].map((c, j) =>
+    `<span class="${c}${ref && s0 + j < ref.length && c !== ref[s0 + j] ? " x" : ""}">${c}</span>`).join("") + "\n";
+}
+
+/* ---------------- protein selector ---------------- */
+function buildSelectors() {
+  document.querySelectorAll(".protsel").forEach(g => {
+    g.innerHTML = Object.entries(PROTEINS).map(([k, p]) => `<button type="button" class="chip" data-prot="${k}" aria-pressed="${k === cur}">${p.short}</button>`).join("");
+  });
+}
+document.addEventListener("click", e => { const b = e.target.closest("[data-prot]"); if (b) setProtein(b.dataset.prot); });
+function setProtein(k) {
+  cur = k; store.set("protein", k);
+  document.querySelectorAll("[data-prot]").forEach(b => b.setAttribute("aria-pressed", b.dataset.prot === k ? "true" : "false"));
+  const p = PROTEINS[k];
+  $("protSeq").innerHTML = `<span class="label">${esc(p.name)} · UniProt ${p.uniprot} · ${p.seq.length} residues</span><br>` + wrap(p.seq).join("<br>");
+  $("protNote").textContent = p.note;
+  $("seqIn").value = p.seq; analyze();
+  $("nnRes").max = p.ref.length; if (+$("nnRes").value > p.ref.length) $("nnRes").value = 21;
+  drawNNProtein(); drawV1();
+  $("fastaBox").innerHTML = esc(fasta(k)).replace(/\n/g, "<br>");
+  $("predictTip").textContent = p.tip;
+  compareModel();
+}
+const fasta = k => `>${k} ${PROTEINS[k].name} (UniProt ${PROTEINS[k].uniprot})\n` + wrap(PROTEINS[k].seq).join("\n");
+$("copyFasta").addEventListener("click", () => copyText(fasta(cur), $("fastaMsg"), $("fastaBox")));
+$("copyFasta1").addEventListener("click", () => copyText(fasta(cur), $("fastaMsg1"), $("protSeq")));
+
+/* ---------------- step 2: sequence analysis ---------------- */
+const cleanSeq = () => $("seqIn").value.toUpperCase().replace(/[^ACDEFGHIKLMNPQRSTVWY]/g, "");
+const refFor = seq => seq === PROTEINS[cur].seq ? PROTEINS[cur].ref : null;
+function analyze() {
+  const seq = cleanSeq(), n = seq.length;
+  if (n < 5) { $("stats").innerHTML = tile("—", "Enter at least 5 residues"); $("kdPlot").innerHTML = ""; $("cfTracks").textContent = ""; $("cfStats").innerHTML = ""; return; }
+  const c = {}; for (const a of seq) c[a] = (c[a] || 0) + 1;
+  const mw = [...seq].reduce((s, a) => s + (MASS[a] || 110), 18.02) / 1000;
+  const gravy = [...seq].reduce((s, a) => s + KD[a], 0) / n;
+  const charge = (c.K || 0) + (c.R || 0) - (c.D || 0) - (c.E || 0);
+  const dis = [..."PESQKAG"].reduce((s, a) => s + (c[a] || 0), 0) / n;
+  $("stats").innerHTML = tile(n, "residues") + tile(mw.toFixed(1) + " kDa", "molecular weight") + tile((gravy >= 0 ? "+" : "") + gravy.toFixed(2), "GRAVY (<0 soluble)") +
+    tile((charge > 0 ? "+" : "") + charge, "net charge, pH 7") + tile(Math.round(dis * 100) + "%", "disorder-promoting (PESQKAG)");
+  drawKD(seq); drawCF(seq);
+}
+function drawKD(seq) {
+  const w = +$("kdWin").value; $("kdWinOut").textContent = w;
+  const v = smooth(seq, KD, w), n = seq.length, W = 800, H = 220, L = 40, R = 10, T = 12, Bm = 28;
+  const x = i => L + (i / Math.max(1, n - 1)) * (W - L - R), y = k => T + ((4.5 - k) / 9) * (H - T - Bm);
+  let s = "";
+  [-4, -2, 0, 2, 4].forEach(k => s += `<line x1="${L}" x2="${W - R}" y1="${y(k)}" y2="${y(k)}" stroke="var(--line)" ${k === 0 ? "" : 'stroke-dasharray="2 4"'}/><text x="${L - 6}" y="${y(k) + 4}" text-anchor="end">${k > 0 ? "+" + k : k}</text>`);
+  const tick = n > 150 ? 50 : n > 60 ? 20 : 10;
+  for (let i = tick; i <= n; i += tick) s += `<text x="${x(i - 1)}" y="${H - 8}" text-anchor="middle">${i}</text>`;
+  s += `<line x1="${L}" x2="${W - R}" y1="${y(1.6)}" y2="${y(1.6)}" stroke="var(--helix)" stroke-dasharray="6 4"/><text x="${W - R}" y="${y(1.6) - 5}" text-anchor="end" style="fill:var(--helix)">TM cutoff 1.6</text>`;
+  const pts = v.map((k, i) => k === null ? null : `${x(i).toFixed(1)},${y(k).toFixed(1)}`).filter(Boolean);
+  if (pts.length) {
+    s += `<polygon points="${pts[0].split(",")[0]},${y(0)} ${pts.join(" ")} ${pts[pts.length - 1].split(",")[0]},${y(0)}" fill="var(--brand)" opacity="0.12"/>`;
+    s += `<polyline points="${pts.join(" ")}" fill="none" stroke="var(--brand)" stroke-width="2"/>`;
+  }
+  $("kdPlot").innerHTML = s;
+  const vals = v.filter(k => k !== null), mx = vals.length ? Math.max(...vals) : NaN;
+  $("tmNote").innerHTML = vals.length ? `Peak ${mx >= 0 ? "+" : ""}${mx.toFixed(2)} · ${w !== 19 ? "the 1.6 cutoff is calibrated for a 19-residue window" : mx > 1.6 ? '<span class="no">possible transmembrane helix</span>' : '<span class="ok">no transmembrane helix</span>'}` : "Sequence shorter than the window";
+}
+function drawCF(seq) {
+  const w = +$("cfWin").value, tA = +$("cfHa").value, tB = +$("cfHb").value;
+  $("cfWinOut").textContent = w; $("cfHaOut").textContent = tA.toFixed(2); $("cfHbOut").textContent = tB.toFixed(2);
+  const ss = chouFasman(seq, w, tA, tB), n = seq.length, ref = refFor(seq);
+  const share = (s, ch) => pct0([...s].filter(c => c === ch).length / s.length);
+  let stats = tile(share(ss, "H") + " / " + share(ss, "E"), "predicted helix / strand");
+  if (ref) stats += tile(share(ref, "H") + " / " + share(ref, "E"), "experiment: helix / strand") + tile(pct0(q3(ss, ref)), `Q3 vs experiment (1–${ref.length})`);
+  $("cfStats").innerHTML = stats;
+  let out = "";
+  for (let s0 = 0; s0 < n; s0 += 60) {
+    out += `<span class="lab">${String(s0 + 1).padStart(4)} seq  </span>${seq.slice(s0, s0 + 60)}\n` + trackRow("CF  ", ss, s0, ref);
+    if (ref && s0 < ref.length) out += trackRow("DSSP", ref, s0, null);
+    out += "\n";
+  }
+  $("cfTracks").innerHTML = out;
+}
+$("seqIn").addEventListener("input", analyze);
+$("kdWin").addEventListener("input", () => drawKD(cleanSeq()));
+["cfWin", "cfHa", "cfHb"].forEach(id => $(id).addEventListener("input", () => drawCF(cleanSeq())));
+$("cfReset").addEventListener("click", () => { $("cfWin").value = 7; $("cfHa").value = 1.03; $("cfHb").value = 1.05; drawCF(cleanSeq()); });
+
+/* ---------------- step 3: neural network (Qian & Sejnowski style) ---------------- */
+const NN_AA = "ACDEFGHIKLMNPQRSTVWY", NN_SS = "HEC", NN_NAMES = ["helix", "strand", "coil"];
+const DSSP_IDX = { H: 0, G: 0, I: 0, E: 1, B: 1 };
+const NN_SIZES = [50, 100, 200, 300, 500, 1000, 2000, Infinity];
+const toCodes = s => Uint8Array.from(s, c => { const k = NN_AA.indexOf(c); return k < 0 ? 20 : k; });
+function parseSS(id) {
+  return $(id).textContent.trim().split("\n").map(l => l.split("\t"))
+    .map(([s, d]) => ({ seq: s, codes: toCodes(s), y: Uint8Array.from(d, c => DSSP_IDX[c] ?? 2) }));
+}
+const SS_TEST = parseSS("ssTest");
+// Training set minus relatives of Ras and haemoglobin (data/excluded_training.txt)
+const SS_TRAIN = parseSS("ssTrain").filter((_, i) => !EXCLUDED.has(i));
+const PROT_NN = Object.fromEntries(Object.entries(PROTEINS).map(([k, p]) => [k, { seq: p.seq, codes: toCodes(p.seq) }]));
+
+function mulberry32(a) { return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function shuffle(arr, rnd) { for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); const t = arr[i]; arr[i] = arr[j]; arr[j] = t; } return arr; }
+const argmax3 = p => p[0] >= p[1] ? (p[0] >= p[2] ? 0 : 2) : (p[1] >= p[2] ? 1 : 2);
+const tick = () => new Promise(r => setTimeout(r, 0));
+
+function makeNet(W, H, seed) {
+  const rnd = mulberry32(seed), D = 22 * W, r = () => (rnd() * 2 - 1) * 0.1;
+  return {
+    W, H, D, w1: H ? Float32Array.from({ length: D * H }, r) : null, b1: new Float32Array(H),
+    w2: H ? Float32Array.from({ length: H * 3 }, r) : new Float32Array(D * 3), b2: new Float32Array(3),
+    units: new Int32Array(W), a: new Float32Array(H), p: new Float32Array(3), l2: null
+  };
+}
+// One residue: window -> active one-hot units -> tanh hidden layer -> softmax(H, E, C)
+function forward(net, prot, i) {
+  const { W, H, units, a, p } = net, half = W >> 1, n = prot.codes.length;
+  for (let w = 0; w < W; w++) { const j = i - half + w; units[w] = w * 22 + (j < 0 || j >= n ? 21 : prot.codes[j]); }
+  let z0 = net.b2[0], z1 = net.b2[1], z2 = net.b2[2];
+  if (H) {
+    for (let k = 0; k < H; k++) a[k] = net.b1[k];
+    for (let w = 0; w < W; w++) { const base = units[w] * H; for (let k = 0; k < H; k++) a[k] += net.w1[base + k]; }
+    for (let k = 0; k < H; k++) { const v = Math.tanh(a[k]); a[k] = v; z0 += v * net.w2[k * 3]; z1 += v * net.w2[k * 3 + 1]; z2 += v * net.w2[k * 3 + 2]; }
+  } else {
+    for (let w = 0; w < W; w++) { const b = units[w] * 3; z0 += net.w2[b]; z1 += net.w2[b + 1]; z2 += net.w2[b + 2]; }
+  }
+  const m = Math.max(z0, z1, z2), e0 = Math.exp(z0 - m), e1 = Math.exp(z1 - m), e2 = Math.exp(z2 - m), t = e0 + e1 + e2;
+  p[0] = e0 / t; p[1] = e1 / t; p[2] = e2 / t;
+  return p;
+}
+// Stochastic gradient descent on cross-entropy; returns whether the prediction before the update was right.
+function trainStep(net, prot, i, lr) {
+  const p = forward(net, prot, i), y = prot.y[i], right = argmax3(p) === y;
+  const g0 = p[0] - (y === 0), g1 = p[1] - (y === 1), g2 = p[2] - (y === 2);
+  const { W, H, units, a } = net;
+  if (H) {
+    for (let k = 0; k < H; k++) {
+      const da = (net.w2[k * 3] * g0 + net.w2[k * 3 + 1] * g1 + net.w2[k * 3 + 2] * g2) * (1 - a[k] * a[k]);
+      net.w2[k * 3] -= lr * a[k] * g0; net.w2[k * 3 + 1] -= lr * a[k] * g1; net.w2[k * 3 + 2] -= lr * a[k] * g2;
+      net.b1[k] -= lr * da;
+      for (let w = 0; w < W; w++) net.w1[units[w] * H + k] -= lr * da;
+    }
+  } else {
+    for (let w = 0; w < W; w++) { const b = units[w] * 3; net.w2[b] -= lr * g0; net.w2[b + 1] -= lr * g1; net.w2[b + 2] -= lr * g2; }
+  }
+  net.b2[0] -= lr * g0; net.b2[1] -= lr * g1; net.b2[2] -= lr * g2;
+  return right;
+}
+// Second level: reads first-level probabilities over 17 neighbours (+ an "outside the chain" flag).
+const L2_V = 17, L2_F = 4;
+function probsFor(net, prot) {
+  const n = prot.codes.length, P = new Float32Array(n * 3);
+  for (let i = 0; i < n; i++) { const p = forward(net, prot, i); P[i * 3] = p[0]; P[i * 3 + 1] = p[1]; P[i * 3 + 2] = p[2]; }
+  return P;
+}
+function l2Forward(l2, P, n, i) {
+  const z = [l2.b[0], l2.b[1], l2.b[2]], x = l2.x, half = L2_V >> 1;
+  for (let v = 0; v < L2_V; v++) {
+    const j = i - half + v, o = v * L2_F, out = j < 0 || j >= n;
+    x[o] = out ? 0 : P[j * 3]; x[o + 1] = out ? 0 : P[j * 3 + 1]; x[o + 2] = out ? 0 : P[j * 3 + 2]; x[o + 3] = out ? 1 : 0;
+  }
+  for (let f = 0; f < x.length; f++) if (x[f]) for (let c = 0; c < 3; c++) z[c] += x[f] * l2.w[f * 3 + c];
+  const m = Math.max(...z), e = z.map(v => Math.exp(v - m)), t = e[0] + e[1] + e[2];
+  return [e[0] / t, e[1] / t, e[2] / t];
+}
+function predictProt(net, prot) {
+  const n = prot.codes.length, out = new Uint8Array(n);
+  if (net.l2) { const P = probsFor(net, prot); for (let i = 0; i < n; i++) out[i] = argmax3(l2Forward(net.l2, P, n, i)); }
+  else for (let i = 0; i < n; i++) out[i] = argmax3(forward(net, prot, i));
+  return out;
+}
+function evaluate(predict, set) {
+  const ok = [0, 0, 0], tot = [0, 0, 0];
+  for (const prot of set) { const pr = predict(prot); for (let i = 0; i < pr.length; i++) { tot[prot.y[i]]++; if (pr[i] === prot.y[i]) ok[prot.y[i]]++; } }
+  const n = tot[0] + tot[1] + tot[2];
+  return { q3: (ok[0] + ok[1] + ok[2]) / n, rec: ok.map((v, c) => v / tot[c]) };
+}
+const cfPredict = prot => Uint8Array.from(chouFasman(prot.seq), c => NN_SS.indexOf(c));
+const nnString = (net, k) => [...predictProt(net, PROT_NN[k])].map(c => NN_SS[c]).join("");
+
+let nnRun = 0, nnNet = null, nnHist = [], nnCF = null, nnRes = { l1: null, l2: null, desc: "" }, nnPred = {};
+
+function nnControls() {
+  $("nnWinOut").textContent = $("nnWin").value;
+  $("nnHidOut").textContent = +$("nnHid").value || "0 (linear)";
+  const n = NN_SIZES[+$("nnN").value];
+  $("nnNOut").textContent = n === Infinity ? `all ${SS_TRAIN.length.toLocaleString("en")}` : n;
+  $("nnEpOut").textContent = $("nnEp").value;
+}
+["nnWin", "nnHid", "nnN", "nnEp"].forEach(id => $(id).addEventListener("input", () => { nnControls(); if (id === "nnWin" || id === "nnHid") drawDiagram(); }));
+
+async function nnTrain() {
+  const run = ++nnRun;
+  const W = +$("nnWin").value, H = +$("nnHid").value, N = NN_SIZES[+$("nnN").value], E = +$("nnEp").value, useL2 = $("nnL2").checked;
+  const rnd = mulberry32(7);
+  const sub = shuffle(SS_TRAIN.slice(), rnd).slice(0, Math.min(N, SS_TRAIN.length));
+  let total = 0; sub.forEach(p => (total += p.codes.length));
+  const sp = new Int32Array(total), si = new Int32Array(total);
+  { let k = 0; sub.forEach((p, pi) => { for (let i = 0; i < p.codes.length; i++) { sp[k] = pi; si[k] = i; k++; } }); }
+  const perm = Int32Array.from({ length: total }, (_, i) => i);
+  const net = makeNet(W, H, 1); nnNet = null; nnHist = []; nnRes = { l1: null, l2: null, desc: `window ${W}, ${H || "no"} hidden, ${sub.length} proteins` };
+  $("nnTrain").disabled = true; $("nnStop").disabled = false;
+  const steps = (E + (useL2 ? 2 : 0)) * total; let done = 0;
+  const status = t => ($("nnStatus").textContent = t);
+  drawChart(E);
+  for (let ep = 1; ep <= E; ep++) {
+    shuffle(perm, rnd);
+    const lr = 0.02 / Math.sqrt(ep); let ok = 0;
+    status(`Epoch ${ep} of ${E}: training on ${total.toLocaleString("en")} residues from ${sub.length} proteins…`);
+    for (let t = 0; t < total; t++) {
+      const q = perm[t]; ok += trainStep(net, sub[sp[q]], si[q], lr);
+      if ((t & 8191) === 8191) { $("nnBar").style.width = ((done + t) / steps * 100).toFixed(1) + "%"; await tick(); if (run !== nnRun) return; }
+    }
+    done += total;
+    const te = evaluate(p => predictProt(net, p), SS_TEST);
+    nnHist.push({ ep, train: ok / total, test: te.q3 }); nnRes.l1 = te;
+    drawChart(E); await tick(); if (run !== nnRun) return;
+  }
+  if (useL2) {
+    status("Training the second-level network…");
+    const Ps = sub.map(p => probsFor(net, p));
+    const l2 = { w: new Float32Array(L2_V * L2_F * 3), b: new Float32Array(3), x: new Float32Array(L2_V * L2_F) };
+    for (let ep = 1; ep <= 2; ep++) {
+      shuffle(perm, rnd);
+      for (let t = 0; t < total; t++) {
+        const q = perm[t], prot = sub[sp[q]], i = si[q], y = prot.y[i];
+        const p = l2Forward(l2, Ps[sp[q]], prot.codes.length, i), g = [p[0] - (y === 0), p[1] - (y === 1), p[2] - (y === 2)];
+        for (let f = 0; f < l2.x.length; f++) if (l2.x[f]) for (let c = 0; c < 3; c++) l2.w[f * 3 + c] -= 0.02 * l2.x[f] * g[c];
+        for (let c = 0; c < 3; c++) l2.b[c] -= 0.02 * g[c];
+        if ((t & 8191) === 8191) { $("nnBar").style.width = ((done + t) / steps * 100).toFixed(1) + "%"; await tick(); if (run !== nnRun) return; }
+      }
+      done += total;
+    }
+    net.l2 = l2;
+    nnRes.l2 = evaluate(p => predictProt(net, p), SS_TEST);
+  }
+  $("nnBar").style.width = "100%";
+  nnNet = net;
+  nnPred = Object.fromEntries(Object.keys(PROTEINS).map(k => [k, nnString(net, k)]));
+  const last = nnRes.l2 || nnRes.l1;
+  status(`Done. Test Q3 ${pct(last.q3)}${nnRes.l2 ? " with the second level" : ""}, against ${pct(nnCF.q3)} for Chou–Fasman.`);
+  $("nnTrain").disabled = false; $("nnStop").disabled = true;
+  drawNNResults();
+  if (!v1ModeTouched) v1Mode = "nn";
+  drawV1();
+}
+$("nnTrain").addEventListener("click", nnTrain);
+$("nnStop").addEventListener("click", () => {
+  nnRun++; $("nnTrain").disabled = false; $("nnStop").disabled = true; $("nnStatus").textContent = "Stopped. Press Train network to start again.";
+});
+
+function drawChart(E) {
+  const Wd = 420, Ht = 240, L = 40, R = 12, T = 12, B = 40, lo = 0.40, hi = 0.80, n = Math.max(2, E);
+  const x = e => L + ((e - 1) / (n - 1)) * (Wd - L - R), y = v => T + ((hi - v) / (hi - lo)) * (Ht - T - B);
+  let s = "";
+  for (let v = 0.4; v <= 0.801; v += 0.1) s += `<line x1="${L}" x2="${Wd - R}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)"/><text x="${L - 6}" y="${y(v) + 4}" text-anchor="end">${Math.round(v * 100)}%</text>`;
+  for (let e = 1; e <= n; e++) s += `<text x="${x(e)}" y="${Ht - 22}" text-anchor="middle">${e}</text>`;
+  s += `<text x="${(L + Wd - R) / 2}" y="${Ht - 4}" text-anchor="middle">epoch</text>`;
+  if (nnCF) s += `<line x1="${L}" x2="${Wd - R}" y1="${y(nnCF.q3)}" y2="${y(nnCF.q3)}" stroke="var(--helix)" stroke-dasharray="6 4" stroke-width="1.5"/><text x="${L + 4}" y="${y(nnCF.q3) - 5}" style="fill:var(--helix)">Chou–Fasman ${pct(nnCF.q3)}</text>`;
+  const line = (key, col) => {
+    if (!nnHist.length) return "";
+    const pts = nnHist.map(h => [x(h.ep), y(Math.max(lo, Math.min(hi, h[key])))]);
+    return `<polyline points="${pts.map(p => p.map(v => v.toFixed(1)).join(",")).join(" ")}" fill="none" stroke="${col}" stroke-width="2.5"/>` +
+      nnHist.map((h, i) => `<circle cx="${pts[i][0].toFixed(1)}" cy="${pts[i][1].toFixed(1)}" r="${i === nnHist.length - 1 ? 4.5 : 3}" fill="${col}"><title>Epoch ${h.ep}: ${pct(h[key])}</title></circle>`).join("");
+  };
+  s += line("train", "var(--coil)") + line("test", "var(--brand)");
+  if (nnHist.length) { const h = nnHist[nnHist.length - 1]; s += `<text x="${Math.min(x(h.ep) + 6, Wd - R - 40)}" y="${y(h.test) - 8}" style="fill:var(--ink);font-weight:500">${pct(h.test)}</text>`; }
+  if (nnRes.l2) s += `<circle cx="${x(n)}" cy="${y(nnRes.l2.q3)}" r="5" fill="none" stroke="var(--brand)" stroke-width="2"><title>Second level: ${pct(nnRes.l2.q3)}</title></circle><text x="${x(n) - 8}" y="${y(nnRes.l2.q3) + 20}" text-anchor="end" style="fill:var(--brand)">with 2nd level ${pct(nnRes.l2.q3)}</text>`;
+  $("nnChart").innerHTML = s;
+}
+
+function drawNNResults() {
+  const row = (name, r) => `<tr><td>${name}</td><td class="num"><b>${pct(r.q3)}</b></td>${r.rec.map(v => `<td class="num">${pct(v)}</td>`).join("")}</tr>`;
+  let rows = row("Chou–Fasman (simplified)", nnCF);
+  if (nnRes.l1) rows += row(`Neural network <span class="note">(${nnRes.desc})</span>`, nnRes.l1);
+  if (nnRes.l2) rows += row("Neural network + second level", nnRes.l2);
+  $("nnCmp").tBodies[0].innerHTML = rows;
+  drawChart(Math.max(nnHist.length, +$("nnEp").value));
+  $("nnProtTable").tBodies[0].innerHTML = Object.entries(PROTEINS).map(([k, p]) =>
+    `<tr><td>${p.name} <span class="note">(1–${p.ref.length})</span></td><td class="num"><b>${pct0(q3(chouFasman(p.seq), p.ref))}</b></td><td class="num"><b>${nnPred[k] ? pct0(q3(nnPred[k], p.ref)) : "—"}</b></td></tr>`).join("");
+  drawNNProtein(); drawLadder();
+}
+function drawNNProtein() {
+  const p = PROTEINS[cur], ref = p.ref, cf = chouFasman(p.seq), nn = nnPred[cur];
+  let out = "";
+  for (let s0 = 0; s0 < ref.length; s0 += 60) {
+    out += `<span class="lab">${String(s0 + 1).padStart(4)} seq  </span>${p.seq.slice(s0, Math.min(s0 + 60, ref.length))}\n` +
+      trackRow("CF  ", cf.slice(0, ref.length), s0, ref) + (nn ? trackRow("NN  ", nn.slice(0, ref.length), s0, ref) : "") + trackRow("DSSP", ref, s0, null) + "\n";
+  }
+  $("nnTracks").innerHTML = out;
+  drawDiagram();
+}
+
+function drawDiagram() {
+  const p = PROTEINS[cur], prot = PROT_NN[cur], r = +$("nnRes").value, i = r - 1;
+  $("nnResOut").textContent = r;
+  const net = nnNet && nnNet.W === +$("nnWin").value && nnNet.H === +$("nnHid").value ? nnNet : null;
+  const W = +$("nnWin").value, H = +$("nnHid").value, half = W >> 1, n = prot.seq.length;
+  let pr = null, act = null;
+  if (net) { pr = Array.from(forward(net, prot, i)); act = Array.from(net.a); if (net.l2) { const P = probsFor(net, prot); pr = l2Forward(net.l2, P, n, i); forward(net, prot, i); act = Array.from(net.a); } }
+  const truth = SS_NAME[p.ref[i]];
+  $("nnResNote").textContent = `${p.seq[i]}${r} · experimental structure: ${truth}` + (pr ? ` · predicted: ${NN_NAMES[argmax3(pr)]}` : " · train the network to see its prediction");
+  const cw = Math.min(24, 300 / W), x0 = 20 + (300 - W * cw) / 2, gy = 50, chh = 7;
+  let s = "";
+  const nh = Math.min(H, 10), hy = k => 40 + (nh > 1 ? k * (200 / (nh - 1)) : 100), oy = c => 90 + c * 55, gx = x0 + W * cw;
+  for (let e = 0; e < 8; e++) {
+    const sy = gy + 10 + e * (chh * 22 - 20) / 7;
+    if (H) for (let k = 0; k < nh; k++) s += `<line x1="${gx}" y1="${sy}" x2="449" y2="${hy(k)}" stroke="var(--line)" stroke-width="0.7"/>`;
+    else for (let c = 0; c < 3; c++) s += `<line x1="${gx}" y1="${sy}" x2="548" y2="${oy(c)}" stroke="var(--line)" stroke-width="0.7"/>`;
+  }
+  if (H) for (let k = 0; k < nh; k++) for (let c = 0; c < 3; c++) s += `<line x1="471" y1="${hy(k)}" x2="548" y2="${oy(c)}" stroke="var(--line)" stroke-width="0.7"/>`;
+  for (let w = 0; w < W; w++) {
+    const j = i - half + w, inside = j >= 0 && j < n, code = inside ? prot.codes[j] : 21, cx = x0 + w * cw;
+    s += `<rect x="${cx + 1}" y="16" width="${cw - 2}" height="22" rx="3" fill="${w === half ? "var(--brand)" : "var(--sunk)"}"/>`;
+    s += `<text x="${cx + cw / 2}" y="32" text-anchor="middle" style="font:500 ${cw < 16 ? 10 : 13}px var(--mono);fill:${w === half ? "var(--brand-ink)" : "var(--ink)"}">${inside ? prot.seq[j] : "·"}</text>`;
+    for (let a = 0; a < 22; a++) s += `<rect x="${cx + 1.5}" y="${gy + a * chh}" width="${cw - 3}" height="${chh - 1}" fill="${a === code ? "var(--ink)" : "var(--sunk)"}"/>`;
+  }
+  s += `<text x="170" y="${gy + 22 * chh + 18}" text-anchor="middle">${W} residues × 22 inputs, one on per column</text>`;
+  s += `<text x="8" y="${gy + 4}" style="font-size:9px">A</text><text x="8" y="${gy + 19 * chh + 5}" style="font-size:9px">Y</text><text x="4" y="${gy + 21 * chh + 5}" style="font-size:9px">end</text>`;
+  if (H) {
+    for (let k = 0; k < nh; k++) {
+      const v = act ? act[k] : 0;
+      s += `<circle cx="460" cy="${hy(k)}" r="10" fill="${v >= 0 ? "var(--brand)" : "var(--helix)"}" fill-opacity="${act ? Math.min(1, Math.abs(v)).toFixed(2) : 0}" stroke="var(--muted)" stroke-width="1"><title>${act ? `activation ${v.toFixed(2)}` : "hidden unit"}</title></circle>`;
+    }
+    s += `<text x="460" y="275" text-anchor="middle">${H} hidden unit${H > 1 ? "s" : ""}${H > 10 ? " (10 shown)" : ""}</text><text x="460" y="289" text-anchor="middle" style="font-size:10px">tanh</text>`;
+  } else s += `<text x="460" y="150" text-anchor="middle">no hidden layer</text><text x="460" y="165" text-anchor="middle" style="font-size:10px">(linear network)</text>`;
+  ["H helix", "E strand", "C coil"].forEach((lab, c) => {
+    const col = ["var(--helix)", "var(--strand)", "var(--coil)"][c], v = pr ? pr[c] : 0;
+    s += `<text x="552" y="${oy(c) - 10}" style="fill:${col};font-weight:500">${lab}</text>`;
+    s += `<rect x="552" y="${oy(c) - 4}" width="150" height="14" rx="2" fill="var(--sunk)"/><rect x="552" y="${oy(c) - 4}" width="${(v * 150).toFixed(1)}" height="14" rx="2" fill="${col}"/>`;
+    s += `<text x="708" y="${oy(c) + 7}" style="fill:var(--ink)">${pr ? Math.round(v * 100) + "%" : "–"}</text>`;
+  });
+  s += `<text x="630" y="275" text-anchor="middle">output probabilities</text><text x="630" y="289" text-anchor="middle" style="font-size:10px">softmax</text>`;
+  $("nnDiagram").innerHTML = s;
+}
+$("nnRes").addEventListener("input", drawDiagram);
+
+function drawLadder() {
+  const best = nnRes.l2 || nnRes.l1;
+  const rows = [
+    ["Chou–Fasman, simplified (1978 method)", nnCF.q3, pct(nnCF.q3), "ours"],
+    ...(best ? [[`Your neural network (${nnRes.l2 ? "two levels" : "one level"})`, best.q3, pct(best.q3), "ours"]] : []),
+    ["Qian & Sejnowski 1988: network, single sequence", 0.643, "64.3%", ""],
+    ["PHD 1993: network + alignment profiles", 0.708, "70.8%", ""],
+    ["PSIPRED 1999: network + PSI-BLAST profiles", 0.765, "76.5%", ""],
+    ["NetSurfP-2.0 2019: deep network + profiles, CB513", 0.85, "≈85%", ""],
+    ["Practical ceiling (DSSP disagreement)", 0.89, "88–90%", "ceiling"]
+  ];
+  $("nnLadder").innerHTML = rows.map(([lab, v, txt, cls]) => `<div class="r ${cls}"><span>${lab}</span><span class="track"><span class="fill" style="width:${(v * 100).toFixed(1)}%"></span></span><span class="v">${txt}</span></div>`).join("");
+}
+
+/* ---------------- 3D viewer (canvas, Cα trace) ---------------- */
+// layers: [{pts: [{x, y, z, col, res, info}], width, alpha, join}]; spheres: [{x, y, z, col, r}]
+function makeViewer(canvas, hoverEl, toolsEl) {
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const v = { layers: [], spheres: [], rotX: -0.3, rotY: 0.5, zoom: 1, spin: !reduce, center: [0, 0, 0], extent: 20, drag: false, proj: [], visible: true };
+  const ctx = canvas.getContext("2d");
+  const resolve = c => c.startsWith("--") ? css(c) : c;
+  v.set = (layers, spheres, fitPts) => {
+    v.layers = layers; v.spheres = spheres || [];
+    const pts = fitPts || layers.flatMap(l => l.pts);
+    if (pts.length) {
+      v.center = [0, 1, 2].map(k => pts.reduce((s, p) => s + [p.x, p.y, p.z][k], 0) / pts.length);
+      v.extent = Math.max(...pts.map(p => Math.hypot(p.x - v.center[0], p.y - v.center[1], p.z - v.center[2]))) || 20;
+    }
+    v.draw();
+  };
+  v.draw = () => {
+    const dpr = window.devicePixelRatio || 1, cw = canvas.clientWidth || 600, ch = Math.round(cw * 0.68);
+    if (canvas.width !== Math.round(cw * dpr) || canvas.height !== Math.round(ch * dpr)) { canvas.width = Math.round(cw * dpr); canvas.height = Math.round(ch * dpr); }
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, cw, ch);
+    const cX = Math.cos(v.rotX), sX = Math.sin(v.rotX), cY = Math.cos(v.rotY), sY = Math.sin(v.rotY);
+    const sc = (Math.min(cw, ch) / 2 - 14) / v.extent * v.zoom;
+    const P = p => { const x = p.x - v.center[0], y = p.y - v.center[1], z = p.z - v.center[2]; const x1 = cY * x + sY * z, z1 = -sY * x + cY * z; const y1 = cX * y - sX * z1, z2 = sX * y + cX * z1; return [cw / 2 + x1 * sc, ch / 2 - y1 * sc, z2]; };
+    const items = []; v.proj = [];
+    let zmin = Infinity, zmax = -Infinity;
+    v.layers.forEach(l => {
+      const q = l.pts.map(P);
+      q.forEach(([, , z]) => { zmin = Math.min(zmin, z); zmax = Math.max(zmax, z); });
+      for (let i = 0; i + 1 < q.length; i++) if (l.pts[i + 1].join !== false && l.pts[i].chain === l.pts[i + 1].chain && l.pts[i + 1].res - l.pts[i].res === 1)
+        items.push({ t: 0, a: q[i], b: q[i + 1], ca: l.pts[i].col, cb: l.pts[i + 1].col, w: l.width, al: l.alpha ?? 1 });
+      if (l.hover) l.pts.forEach((p, i) => v.proj.push([q[i][0], q[i][1], q[i][2], p]));
+    });
+    v.spheres.forEach(s => { const q = P(s); items.push({ t: 1, a: q, col: s.col, r: s.r * sc }); });
+    items.sort((m, n) => (m.t ? m.a[2] : (m.a[2] + m.b[2]) / 2) - (n.t ? n.a[2] : (n.a[2] + n.b[2]) / 2));
+    const span = zmax - zmin || 1, bg = rgbOf(css("--sunk")), cache = {};
+    // Depth cue: far segments are blended toward the background (opaque, so joints don't show)
+    const shade = (c, f) => { const k = c + f.toFixed(2); if (!cache[k]) { const a = rgbOf(resolve(c)); cache[k] = `rgb(${a.map((x, i) => Math.round(bg[i] + (x - bg[i]) * f)).join(",")})`; } return cache[k]; };
+    ctx.lineCap = "round"; ctx.globalAlpha = 1;
+    for (const it of items) {
+      if (it.t) { ctx.fillStyle = resolve(it.col); ctx.beginPath(); ctx.arc(it.a[0], it.a[1], Math.max(3, it.r), 0, 7); ctx.fill(); continue; }
+      const depth = ((it.a[2] + it.b[2]) / 2 - zmin) / span, f = it.al * (0.4 + 0.6 * depth);
+      ctx.lineWidth = it.w * (0.6 + 0.55 * depth) * Math.max(0.7, Math.min(1.6, v.zoom));
+      if (it.ca === it.cb) { ctx.strokeStyle = shade(it.ca, f); ctx.beginPath(); ctx.moveTo(it.a[0], it.a[1]); ctx.lineTo(it.b[0], it.b[1]); ctx.stroke(); continue; }
+      const mx = (it.a[0] + it.b[0]) / 2, my = (it.a[1] + it.b[1]) / 2;
+      ctx.strokeStyle = shade(it.ca, f); ctx.beginPath(); ctx.moveTo(it.a[0], it.a[1]); ctx.lineTo(mx, my); ctx.stroke();
+      ctx.strokeStyle = shade(it.cb, f); ctx.beginPath(); ctx.moveTo(mx, my); ctx.lineTo(it.b[0], it.b[1]); ctx.stroke();
+    }
+    if (v.hot) { const [x, y] = v.hot; ctx.strokeStyle = css("--ink"); ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(x, y, 7, 0, 7); ctx.stroke(); }
+  };
+  let lx = 0, ly = 0;
+  canvas.style.touchAction = "none"; canvas.style.cursor = "grab";
+  canvas.addEventListener("pointerdown", e => { v.drag = true; lx = e.clientX; ly = e.clientY; canvas.setPointerCapture(e.pointerId); canvas.style.cursor = "grabbing"; });
+  canvas.addEventListener("pointermove", e => {
+    if (v.drag) { v.rotY += (e.clientX - lx) * 0.01; v.rotX += (e.clientY - ly) * 0.01; lx = e.clientX; ly = e.clientY; v.draw(); return; }
+    const rect = canvas.getBoundingClientRect(), x = e.clientX - rect.left, y = e.clientY - rect.top;
+    let best = null, bd = 144;
+    for (const q of v.proj) { const d = (q[0] - x) ** 2 + (q[1] - y) ** 2; if (d < bd || (best && d < bd + 20 && q[2] > best[2])) { if (d < bd) bd = d; best = q; } }
+    v.hot = best ? [best[0], best[1]] : null;
+    hoverEl.textContent = best ? best[3].info : "Hover over the structure to identify a residue.";
+    if (!v.spin) v.draw();
+  });
+  const up = () => { v.drag = false; canvas.style.cursor = "grab"; };
+  canvas.addEventListener("pointerup", up); canvas.addEventListener("pointercancel", up);
+  canvas.addEventListener("pointerleave", () => { v.hot = null; if (!v.spin) v.draw(); });
+  toolsEl.addEventListener("click", e => {
+    const b = e.target.closest("[data-act]"); if (!b) return;
+    const a = b.dataset.act;
+    if (a === "spin") { v.spin = !v.spin; b.setAttribute("aria-pressed", v.spin); }
+    if (a === "in") v.zoom = Math.min(4, v.zoom * 1.25);
+    if (a === "out") v.zoom = Math.max(0.4, v.zoom / 1.25);
+    if (a === "reset") { v.rotX = -0.3; v.rotY = 0.5; v.zoom = 1; }
+    v.draw();
+  });
+  toolsEl.querySelector('[data-act="spin"]').setAttribute("aria-pressed", v.spin);
+  new IntersectionObserver(es => es.forEach(e => (v.visible = e.isIntersecting))).observe(canvas);
+  (function loop() { if (v.spin && !v.drag && v.visible) { v.rotY += 0.005; v.draw(); } requestAnimationFrame(loop); })();
+  addEventListener("resize", () => v.draw());
+  return v;
+}
+const residueLabel = (k, ch, res, aa3) => `${PROTEINS[k].chainLabel}${aa3[0] + aa3.slice(1).toLowerCase()}${res}`;
+function contextLayers(p, dim) {
+  // other chains of the same entry, drawn faint for context (haemoglobin tetramer)
+  const S = STRUCT[p.struct], layers = [];
+  for (const [ch, rows] of Object.entries(S.chains)) if (ch !== p.chain) layers.push({ pts: rows.map(r => ({ x: r[2], y: r[3], z: r[4], res: r[0], chain: ch, col: "--coil" })), width: 3, alpha: dim });
+  const spheres = S.fe.map(f => ({ x: f[1], y: f[2], z: f[3], col: "--bad", r: 1.6 }));
+  return { layers, spheres };
+}
+
+/* ---------------- step 4: what was predicted correctly ---------------- */
+const v1 = makeViewer($("v1"), $("v1Hover"), document.querySelector("#correct .vtools"));
+let v1Mode = "cf", v1ModeTouched = false;
+$("v1Modes").addEventListener("click", e => { const b = e.target.closest("[data-mode]"); if (!b) return; v1Mode = b.dataset.mode; v1ModeTouched = true; drawV1(); });
+function drawV1() {
+  const p = PROTEINS[cur], rows = STRUCT[p.struct].chains[p.chain];
+  if (v1Mode === "nn" && !nnPred[cur]) v1Mode = "cf";
+  document.querySelectorAll("#v1Modes [data-mode]").forEach(b => { b.setAttribute("aria-pressed", b.dataset.mode === v1Mode); b.disabled = b.dataset.mode === "nn" && !nnPred[cur]; });
+  const pred = v1Mode === "cf" ? chouFasman(p.seq) : v1Mode === "nn" ? nnPred[cur] : null;
+  const method = v1Mode === "cf" ? "Chou–Fasman" : "neural network";
+  const SSCOL = { H: "--helix", E: "--strand", C: "--coil" };
+  const pts = rows.map(r => {
+    const i = r[0] - 1, truth = p.ref[i], guess = pred ? pred[i] : null, ok = guess === truth;
+    return {
+      x: r[2], y: r[3], z: r[4], res: r[0], chain: p.chain,
+      col: pred ? (ok ? "--good" : "--bad") : SSCOL[truth],
+      info: `${residueLabel(cur, p.chain, r[0], r[1])} · experiment: ${SS_NAME[truth]}` + (pred ? ` · ${method}: ${SS_NAME[guess]} ${ok ? "✓" : "✗"}` : "")
+    };
+  });
+  const ctxL = contextLayers(p, 0.28);
+  v1.set([...ctxL.layers, { pts, width: 7, hover: true }], ctxL.spheres, pts);
+  const n = pts.length;
+  if (pred) {
+    const ok = pts.filter((_, i) => pred[rows[i][0] - 1] === p.ref[rows[i][0] - 1]).length;
+    const byClass = (c, name) => { const idx = rows.map(r => r[0] - 1).filter(i => p.ref[i] === c); return idx.length ? tile(pct0(idx.filter(i => pred[i] === c).length / idx.length), `of ${name} residues right`) : tile("0", `${name} residues in the experiment`); };
+    const falseE = rows.map(r => r[0] - 1).filter(i => pred[i] === "E" && p.ref[i] !== "E").length;
+    $("v1Tiles").innerHTML = tile(pct0(ok / n), `of residues right (${method})`) + byClass("H", "helix") + byClass("E", "strand") + tile(falseE, "residues wrongly called strand");
+    $("v1Legend").innerHTML = `<span><i style="background:var(--good)"></i>predicted correctly</span><span><i style="background:var(--bad)"></i>predicted wrongly</span>` + (p.struct === "hb" ? `<span><i style="background:var(--coil)"></i>other subunits</span><span><i style="background:var(--bad);border-radius:50%"></i>haem iron</span>` : "");
+  } else {
+    const share = c => pct0([...p.ref].filter(x => x === c).length / p.ref.length);
+    $("v1Tiles").innerHTML = tile(share("H"), "helix") + tile(share("E"), "strand") + tile(share("C"), "coil");
+    $("v1Legend").innerHTML = `<span><i style="background:var(--helix)"></i>helix</span><span><i style="background:var(--strand)"></i>strand</span><span><i style="background:var(--coil)"></i>coil</span>` + (p.struct === "hb" ? `<span><i style="background:var(--coil);opacity:.4"></i>other subunits</span><span><i style="background:var(--bad);border-radius:50%"></i>haem iron</span>` : "");
+  }
+  $("v1Note").textContent = `${REF[cur].pdb} chain ${p.chain}, residues 1–${n}` + (cur === "hras" ? " (NMR model 1). Secondary structure from DSSP on these coordinates." : ". Secondary structure from DSSP on these coordinates.");
+  let out = "";
+  for (let s0 = 0; s0 < n; s0 += 60) {
+    out += `<span class="lab">${String(s0 + 1).padStart(4)} seq  </span>${p.seq.slice(s0, Math.min(s0 + 60, n))}\n`;
+    if (pred) out += `<span class="lab">     ${v1Mode === "cf" ? "CF  " : "NN  "} </span>` + [...pred.slice(s0, Math.min(s0 + 60, n))].map((c, j) => `<span class="${c === p.ref[s0 + j] ? "ok2" : "no2"}">${c}</span>`).join("") + "\n";
+    out += trackRow("DSSP", p.ref, s0, null) + "\n";
+  }
+  $("v1Strip").innerHTML = out;
+}
+
+/* ---------------- step 6: compare a 3D model with the experiment ---------------- */
+function parsePDB(text) {
+  const chains = {};
+  for (const line of text.split(/\r?\n/)) {
+    if (line.startsWith("ENDMDL")) break;
+    if (!(line.startsWith("ATOM") || line.startsWith("HETATM")) || line.slice(12, 16).trim() !== "CA") continue;
+    const alt = line[16]; if (alt !== " " && alt !== "A") continue;
+    const aa = THREE[line.slice(17, 20).trim()]; if (!aa) continue;
+    (chains[line[21]] ||= []).push({ n: parseInt(line.slice(22, 26), 10), aa, x: +line.slice(30, 38), y: +line.slice(38, 46), z: +line.slice(46, 54), b: +line.slice(60, 66) || 0 });
+  }
+  for (const c of Object.values(chains)) if (c.length && Math.max(...c.map(r => r.b)) <= 1.0 && Math.max(...c.map(r => r.b)) > 0) c.forEach(r => (r.b *= 100));
+  return chains;
+}
+// Needleman-Wunsch, same scoring as structure_tutorial.py: match +5, mismatch -2, gap -4
+function alignSeq(a, b, gap = -4) {
+  const n = a.length, m = b.length, S = Array.from({ length: n + 1 }, (_, i) => { const r = new Int32Array(m + 1); r[0] = i * gap; return r; });
+  for (let j = 1; j <= m; j++) S[0][j] = j * gap;
+  const sc = (i, j) => a[i] === b[j] ? 5 : -2;
+  for (let i = 1; i <= n; i++) for (let j = 1; j <= m; j++) S[i][j] = Math.max(S[i - 1][j - 1] + sc(i - 1, j - 1), S[i - 1][j] + gap, S[i][j - 1] + gap);
+  const pairs = []; let i = n, j = m;
+  while (i && j) {
+    if (S[i][j] === S[i - 1][j - 1] + sc(i - 1, j - 1)) { pairs.push([i - 1, j - 1]); i--; j--; }
+    else if (S[i][j] === S[i - 1][j] + gap) i--; else j--;
+  }
+  return pairs.reverse();
+}
+function jacobi4(A) {
+  const a = A.map(r => r.slice()), V = [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]];
+  for (let sweep = 0; sweep < 60; sweep++) {
+    let off = 0; for (let p = 0; p < 4; p++) for (let q = p + 1; q < 4; q++) off += a[p][q] ** 2;
+    if (off < 1e-20) break;
+    for (let p = 0; p < 4; p++) for (let q = p + 1; q < 4; q++) {
+      if (Math.abs(a[p][q]) < 1e-15) continue;
+      const th = (a[q][q] - a[p][p]) / (2 * a[p][q]), t = (th >= 0 ? 1 : -1) / (Math.abs(th) + Math.sqrt(th * th + 1)), c = 1 / Math.sqrt(t * t + 1), s = t * c;
+      for (let k = 0; k < 4; k++) { const akp = a[k][p], akq = a[k][q]; a[k][p] = c * akp - s * akq; a[k][q] = s * akp + c * akq; }
+      for (let k = 0; k < 4; k++) { const apk = a[p][k], aqk = a[q][k]; a[p][k] = c * apk - s * aqk; a[q][k] = s * apk + c * aqk; }
+      for (let k = 0; k < 4; k++) { const vkp = V[k][p], vkq = V[k][q]; V[k][p] = c * vkp - s * vkq; V[k][q] = s * vkp + c * vkq; }
+    }
+  }
+  return { vals: [0, 1, 2, 3].map(i => a[i][i]), V };
+}
+// Optimal rotation + translation moving X onto Y (Horn's quaternion method)
+function superpose(X, Y) {
+  const n = X.length, cx = [0, 0, 0], cy = [0, 0, 0];
+  X.forEach(p => { cx[0] += p[0] / n; cx[1] += p[1] / n; cx[2] += p[2] / n; });
+  Y.forEach(p => { cy[0] += p[0] / n; cy[1] += p[1] / n; cy[2] += p[2] / n; });
+  const S = [[0, 0, 0], [0, 0, 0], [0, 0, 0]];
+  for (let k = 0; k < n; k++) for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) S[i][j] += (X[k][i] - cx[i]) * (Y[k][j] - cy[j]);
+  const [[xx, xy, xz], [yx, yy, yz], [zx, zy, zz]] = S;
+  const { vals, V } = jacobi4([[xx + yy + zz, yz - zy, zx - xz, xy - yx], [yz - zy, xx - yy - zz, xy + yx, zx + xz], [zx - xz, xy + yx, -xx + yy - zz, yz + zy], [xy - yx, zx + xz, yz + zy, -xx - yy + zz]]);
+  const k = vals.indexOf(Math.max(...vals)), [q0, q1, q2, q3] = [0, 1, 2, 3].map(i => V[i][k]);
+  const R = [[q0 * q0 + q1 * q1 - q2 * q2 - q3 * q3, 2 * (q1 * q2 - q0 * q3), 2 * (q1 * q3 + q0 * q2)],
+    [2 * (q1 * q2 + q0 * q3), q0 * q0 - q1 * q1 + q2 * q2 - q3 * q3, 2 * (q2 * q3 - q0 * q1)],
+    [2 * (q1 * q3 - q0 * q2), 2 * (q2 * q3 + q0 * q1), q0 * q0 - q1 * q1 - q2 * q2 + q3 * q3]];
+  return p => { const u = [p[0] - cx[0], p[1] - cx[1], p[2] - cx[2]]; return [0, 1, 2].map(i => R[i][0] * u[0] + R[i][1] * u[1] + R[i][2] * u[2] + cy[i]); };
+}
+// Superimpose on all aligned residues, then re-fit on residues within 4 Å (a few rounds), like structure_tutorial.py
+function compareChains(model, ref) {
+  const pairs = alignSeq(model.map(r => r.aa).join(""), ref.map(r => r.aa).join(""));
+  let use = pairs.map((_, k) => k), move = null, dist = [];
+  for (let round = 0; round < 5; round++) {
+    move = superpose(use.map(k => { const r = model[pairs[k][0]]; return [r.x, r.y, r.z]; }), use.map(k => { const r = ref[pairs[k][1]]; return [r.x, r.y, r.z]; }));
+    dist = pairs.map(([i, j]) => { const m = move([model[i].x, model[i].y, model[i].z]), r = ref[j]; return Math.hypot(m[0] - r.x, m[1] - r.y, m[2] - r.z); });
+    const nu = dist.map((d, k) => d < 4 ? k : -1).filter(k => k >= 0);
+    if (nu.length < 3 || (nu.length === use.length && nu.every((v, i) => v === use[i]))) break;
+    use = nu;
+  }
+  return { pairs, dist, move };
+}
+const v2 = makeViewer($("v2"), $("v2Hover"), document.querySelector("#confidence .vtools"));
+let modelChains = null, modelName = "", v2Mode = "dev";
+$("v2Modes").addEventListener("click", e => { const b = e.target.closest("[data-mode]"); if (!b) return; v2Mode = b.dataset.mode; compareModel(); });
+$("v2Overlay").addEventListener("change", compareModel);
+const bandVar = b => b >= 90 ? "--af-vh" : b >= 70 ? "--af-c" : b >= 50 ? "--af-l" : "--af-vl";
+const devVar = d => d <= 2 ? "--good" : d <= 4 ? "--warn" : "--bad";
+function compareModel() {
+  const p = PROTEINS[cur], refRows = STRUCT[p.struct].chains[p.chain];
+  const ref = refRows.map(r => ({ n: r[0], aa: THREE[r[1]], x: r[2], y: r[3], z: r[4], name: r[1] }));
+  document.querySelectorAll("#v2Modes [data-mode]").forEach(b => b.setAttribute("aria-pressed", b.dataset.mode === v2Mode));
+  const ctxL = contextLayers(p, 0.18);
+  if (!modelChains) {
+    const pts = ref.map(r => ({ x: r.x, y: r.y, z: r.z, res: r.n, chain: p.chain, col: "--muted", info: `${residueLabel(cur, p.chain, r.n, r.name)} · experimental structure` }));
+    v2.set([...ctxL.layers, { pts, width: 7, hover: true }], ctxL.spheres, pts);
+    $("v2Tiles").innerHTML = ""; $("v2Legend").innerHTML = ""; $("v2Strip").innerHTML = ""; $("plddtBox").hidden = true;
+    $("v2Note").textContent = `No model loaded yet. The thick chain is the experimental structure (${REF[cur].pdb} chain ${p.chain}).`;
+    return;
+  }
+  // choose the model chain that best matches the reference sequence
+  const refSeq = ref.map(r => r.aa).join("");
+  let bestCh = null, bestId = -1;
+  for (const [ch, rows] of Object.entries(modelChains)) {
+    const pr = alignSeq(rows.map(r => r.aa).join(""), refSeq), id = pr.filter(([i, j]) => rows[i].aa === refSeq[j]).length;
+    if (id > bestId) { bestId = id; bestCh = ch; }
+  }
+  const model = modelChains[bestCh], { pairs, dist, move } = compareChains(model, ref);
+  const byRef = new Map(pairs.map(([i, j], k) => [j, { i, d: dist[k] }]));
+  const hasB = model.some(r => r.b > 0);
+  const n = ref.length, within = t => dist.filter(d => d <= t).length / n;
+  const rmsd = Math.sqrt(dist.reduce((s, d) => s + d * d, 0) / dist.length);
+  const pts = ref.map((r, j) => {
+    const m = byRef.get(j), mr = m ? model[m.i] : null;
+    const col = !m ? "--line" : v2Mode === "plddt" ? (hasB ? bandVar(mr.b) : "--muted") : devVar(m.d);
+    const info = `${residueLabel(cur, p.chain, r.n, r.name)} · ` + (m ? `${m.d.toFixed(1)} Å from experiment (model ${mr.aa}${mr.n}${hasB ? `, pLDDT ${mr.b.toFixed(0)}` : ""})` : "not in the model");
+    return { x: r.x, y: r.y, z: r.z, res: r.n, chain: p.chain, col, info };
+  });
+  const layers = [...ctxL.layers, { pts, width: 7, hover: true }];
+  if ($("v2Overlay").checked) {
+    const mp = model.map(r => { const q = move([r.x, r.y, r.z]); return { x: q[0], y: q[1], z: q[2], res: r.n, chain: "model", col: v2Mode === "plddt" && hasB ? bandVar(r.b) : "--ink" }; });
+    layers.push({ pts: mp, width: 2, alpha: 0.9 });
+  }
+  v2.set(layers, ctxL.spheres, pts);
+  const ident = pairs.filter(([i, j]) => model[i].aa === refSeq[j]).length;
+  $("v2Tiles").innerHTML = tile(pct0(within(2)), "of residues within 2 Å (correct)") + tile(rmsd.toFixed(2) + " Å", "Cα RMSD, matched residues") +
+    tile(pct0(within(4)), "within 4 Å") + tile((100 * (within(1) + within(2) + within(4) + within(8)) / 4).toFixed(1), "GDT-style score (0–100)") +
+    tile(`${pairs.length}/${n}`, `residues matched, ${pct0(ident / pairs.length)} identical`);
+  $("v2Legend").innerHTML = v2Mode === "plddt"
+    ? (hasB ? `<span><i style="background:var(--af-vh)"></i>pLDDT ≥ 90</span><span><i style="background:var(--af-c)"></i>70–90</span><span><i style="background:var(--af-l)"></i>50–70</span><span><i style="background:var(--af-vl)"></i>&lt; 50</span>` : `<span>This file has no confidence values (the B-factor column is empty).</span>`)
+    : `<span><i style="background:var(--good)"></i>≤ 2 Å: correct</span><span><i style="background:var(--warn)"></i>2–4 Å</span><span><i style="background:var(--bad)"></i>&gt; 4 Å: wrong place</span><span><i style="background:var(--line)"></i>not in the model</span>`;
+  $("v2Note").textContent = `${modelName}, chain ${bestCh} (${model.length} residues), superimposed on ${REF[cur].pdb} chain ${p.chain}. The thick chain is the experiment, coloured by ${v2Mode === "plddt" ? "the model's pLDDT at each residue" : "the model's error"}; the thin line is the model.`;
+  let out = "";
+  for (let s0 = 0; s0 < n; s0 += 60) {
+    out += `<span class="lab">${String(ref[s0].n).padStart(4)} ref  </span>${refSeq.slice(s0, s0 + 60)}\n<span class="lab">     fit  </span>`;
+    for (let j = s0; j < Math.min(n, s0 + 60); j++) { const m = byRef.get(j); out += m ? `<span class="${m.d <= 2 ? "ok2" : m.d <= 4 ? "mid2" : "no2"}">${m.d <= 2 ? "#" : m.d <= 4 ? "+" : "."}</span>` : "-"; }
+    out += "\n\n";
+  }
+  $("v2Strip").innerHTML = `<span class="lab">  # within 2 Å   + 2–4 Å   . more than 4 Å   - not in the model</span>\n\n` + out;
+  drawPlddt(model, hasB);
+}
+function drawPlddt(model, hasB) {
+  $("plddtBox").hidden = !hasB;
+  if (!hasB) return;
+  const W = 800, H = 200, L = 34, R = 8, T = 10, Bm = 26, n = model.length, bw = (W - L - R) / n, y = v => T + (1 - v / 100) * (H - T - Bm);
+  let s = "";
+  [0, 50, 70, 90, 100].forEach(v => s += `<line x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)" ${v % 50 ? 'stroke-dasharray="3 3"' : ""}/><text x="${L - 5}" y="${y(v) + 4}" text-anchor="end">${v}</text>`);
+  model.forEach((r, i) => s += `<rect x="${(L + i * bw).toFixed(2)}" y="${y(r.b).toFixed(1)}" width="${Math.max(0.6, bw - 0.3).toFixed(2)}" height="${(y(0) - y(r.b)).toFixed(1)}" fill="var(${bandVar(r.b)})"><title>Residue ${r.n}: ${r.b.toFixed(1)}</title></rect>`);
+  const tk = n > 150 ? 50 : n > 60 ? 20 : 10;
+  model.forEach((r, i) => { if (r.n % tk === 0) s += `<text x="${L + (i + 0.5) * bw}" y="${H - 8}" text-anchor="middle">${r.n}</text>`; });
+  const mean = model.reduce((a, r) => a + r.b, 0) / n;
+  s += `<text x="${W - R}" y="${T + 12}" text-anchor="end" style="fill:var(--ink)">mean pLDDT ${mean.toFixed(1)}</text>`;
+  $("plddtPlot").innerHTML = s;
+}
+function loadModel(text, name) {
+  const chains = parsePDB(text);
+  if (!Object.keys(chains).length) { $("dropMsg").textContent = `No Cα atoms found in ${name}. Is it a PDB-format file?`; return; }
+  modelChains = chains; modelName = name;
+  $("dropMsg").textContent = `Loaded ${name}. Drop another file to replace it.`;
+  compareModel();
+}
+function readFile(file, cb) { const fr = new FileReader(); fr.onload = () => cb(String(fr.result), file.name); fr.readAsText(file); }
+$("fileModel").addEventListener("change", e => e.target.files[0] && readFile(e.target.files[0], loadModel));
+(() => {
+  const d = $("dropModel");
+  ["dragenter", "dragover"].forEach(ev => d.addEventListener(ev, e => { e.preventDefault(); d.classList.add("over"); }));
+  ["dragleave", "drop"].forEach(ev => d.addEventListener(ev, e => { e.preventDefault(); d.classList.remove("over"); }));
+  d.addEventListener("drop", e => e.dataTransfer.files[0] && readFile(e.dataTransfer.files[0], loadModel));
+})();
+$("demoAlpha").addEventListener("click", () => {
+  modelChains = { A: STRUCT.hb.chains.A.map(r => ({ n: r[0], aa: THREE[r[1]], x: r[2], y: r[3], z: r[4], b: 0 })) };
+  modelName = "Demo: experimental α chain (4HHB chain A) used as a model";
+  $("dropMsg").textContent = "Demo loaded: the α chain as a model of β. Drop your own file to replace it.";
+  if (cur !== "hbb") setProtein("hbb"); else compareModel();
+});
+
+/* ---------------- step 8: quiz ---------------- */
+const QUIZ = [
+  { q: "Chou–Fasman calls about a quarter of haemoglobin β a β-strand. Why?", o: ["Haemoglobin really has short strands", "Its buried helix faces are rich in Val, Leu and Phe, which have high strand propensity", "The DSSP assignment is wrong", "Haemoglobin is a membrane protein"], a: 1, why: "A local window of propensities can't tell a hydrophobic helix face from a strand; haemoglobin has no strands at all." },
+  { q: "A window neural network trained on single sequences levels off near 65% Q3. What pushed accuracy past 75%?", o: ["Many more hidden layers", "Training for more epochs", "Evolutionary profiles from multiple sequence alignments", "A larger window of 51 residues"], a: 2, why: "PHD (1993) and PSIPRED (1999) fed the network profiles of homologous sequences. On this page, extra hidden units add only a point or two." },
+  { q: "Why were relatives of Ras and haemoglobin removed from the network's training data?", o: ["They have errors", "So that the predictions for Ras and haemoglobin are a fair test on unseen proteins", "To make training faster", "Because they are membrane proteins"], a: 1, why: "A network that has seen a near-identical protein can simply recall it, which says nothing about how it does on a new protein." },
+  { q: "In step 6, a model has 95% of residues within 2 Å but a Cα RMSD of 3 Å. What is the most likely reason?", o: ["The model is wrong everywhere", "A few residues (for example a flexible loop or tail) are far off and dominate the RMSD", "The superposition failed", "The sequences don't match"], a: 1, why: "RMSD squares the distances, so a handful of outliers inflate it. The fraction within a cutoff is more robust." },
+  { q: "A region of your model has pLDDT around 35. The best interpretation is:", o: ["The structure there is accurate but flexible", "It is probably disordered; the drawn shape is not meaningful", "It is a transmembrane helix", "The file is corrupted"], a: 1, why: "pLDDT below 50 often marks disordered regions, such as the H-Ras C-terminal tail." },
+  { q: "An AlphaFold2 model of one haemoglobin β chain matches 4HHB closely. What does it still miss?", o: ["The helices", "The haem group and the α₂β₂ tetramer", "The amino-acid sequence", "Nothing; it is complete"], a: 1, why: "AlphaFold2 predicts protein chains only. AlphaFold3 can add haem and build the tetramer if you ask for it." },
+  { q: "The sickle-cell mutant (β E6V) predicted by AlphaFold looks almost identical to normal haemoglobin. Why?", o: ["AlphaFold ignores mutations", "E6V doesn't change the fold; the disease comes from deoxy HbS tetramers sticking together into fibres", "E6V is a silent mutation", "The model failed"], a: 1, why: "Predictors are not reliable estimators of how a mutation changes function, stability or aggregation." }
+];
+let answers = store.get("quiz", {});
+function renderQuiz() {
+  $("quizBox").innerHTML = QUIZ.map((x, i) => `<div class="q"><h3>${i + 1}. ${x.q}</h3><div class="opts">${x.o.map((o, j) => {
+    const picked = answers[i] === j, cls = answers[i] === undefined ? "" : j === x.a ? (picked || answers[i] !== x.a ? "right" : "") : picked ? "wrong" : "";
+    return `<button type="button" data-q="${i}" data-o="${j}" class="${cls}">${o}</button>`; }).join("")}</div>
+    ${answers[i] !== undefined ? `<p class="why"><span class="${answers[i] === x.a ? "ok" : "no"}">${answers[i] === x.a ? "Correct." : "Not quite."}</span> ${x.why}</p>` : ""}</div>`).join("");
+  const done = Object.keys(answers).length, right = QUIZ.filter((x, i) => answers[i] === x.a).length;
+  $("quizScore").innerHTML = done ? `${right} of ${QUIZ.length} correct · <button type="button" class="chip" id="quizReset">Reset quiz</button>` : "";
+  if (done) $("quizReset").addEventListener("click", () => { answers = {}; store.set("quiz", answers); renderQuiz(); });
+}
+$("quizBox").addEventListener("click", e => { const b = e.target.closest("[data-q]"); if (!b) return; answers[b.dataset.q] = +b.dataset.o; store.set("quiz", answers); renderQuiz(); markProgress(); });
+
+/* ---------------- nav progress + theme ---------------- */
+const links = [...document.querySelectorAll("nav.steps a")];
+let visited = store.get("visited", []);
+function markProgress() { links.forEach(a => a.classList.toggle("done", visited.includes(a.getAttribute("href").slice(1)))); }
+const io = new IntersectionObserver(es => es.forEach(e => {
+  if (!e.isIntersecting) return;
+  const id = e.target.id;
+  links.forEach(a => a.classList.toggle("here", a.getAttribute("href") === "#" + id));
+  if (!visited.includes(id)) { visited.push(id); store.set("visited", visited); markProgress(); }
+}), { rootMargin: "-30% 0px -60% 0px" });
+document.querySelectorAll("main section").forEach(s => io.observe(s));
+function applyTheme(t) {
+  if (t) document.documentElement.setAttribute("data-theme", t); else document.documentElement.removeAttribute("data-theme");
+  const dark = t ? t === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+  $("themeBtn").textContent = dark ? "Light theme" : "Dark theme";
+}
+$("themeBtn").addEventListener("click", () => {
+  const cur = document.documentElement.getAttribute("data-theme") || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+  const next = cur === "dark" ? "light" : "dark"; store.set("theme", next); applyTheme(next); v1.draw(); v2.draw();
+});
+
+/* ---------------- boot ---------------- */
+applyTheme(store.get("theme", null));
+buildSelectors();
+nnControls();
+nnCF = evaluate(cfPredict, SS_TEST);
+setProtein(cur);
+drawNNResults();
+renderQuiz(); markProgress();
+nnTrain();
+</script>
+</body>
+</html>

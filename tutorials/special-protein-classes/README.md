@@ -4,7 +4,7 @@
 
 | | |
 |---|---|
-| **Audience** | Undergraduate bioinformatics (BIO116). Assumes you have done the [H-Ras structure prediction tutorial](../protein-structure-prediction/README.md): you know hydropathy plots, pLDDT, PAE and ipTM. |
+| **Audience** | Undergraduate bioinformatics (BIO116). Assumes you have done the [Ras and haemoglobin structure prediction tutorial](../protein-structure-prediction/README.md): you know hydropathy plots, pLDDT, PAE and ipTM. |
 | **Time** | About 2–3 hours (Parts A1–A3 and B1–B3 offline, about 1.5 h; the AlphaFold and web-server exercises need a browser and about 1 h) |
 | **You need** | Python 3.8+ (standard library only), a web browser, and optionally [ChimeraX](https://www.cgl.ucsf.edu/chimerax/) |
 | **Files** | `special-classes-tutorial.html` (interactive version: open it in any browser, works offline), `special_classes.py` (companion script) |

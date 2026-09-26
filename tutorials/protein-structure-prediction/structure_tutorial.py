@@ -2,127 +2,122 @@
 """
 Protein structure prediction tutorial -- companion script.
 
-Walks from the codons in ../../triplets.txt to a predicted protein structure:
+Start from a protein sequence and ask what can be predicted about its
+structure. Two worked examples: H-Ras and human haemoglobin (alpha and beta).
 
-  1. orfs        translate each reading frame and find open reading frames
-  2. splice      join the coding exons and translate the full protein
-  3. analyze     sequence-based predictions for one ORF:
-                   - composition and physicochemical properties
-                   - Kyte-Doolittle hydropathy (buried vs exposed, TM helices)
-                   - Chou-Fasman secondary structure (helix / strand / coil)
-                   - low-complexity and tandem-repeat detection (disorder hints)
-  3b. nn         train a small neural network (Qian & Sejnowski style) on
-                 real DSSP data and compare it with Chou-Fasman on CB513
-  4. fold        (optional, needs internet) submit the ORF to the ESMFold API
-                 and read per-residue confidence (pLDDT) from the returned PDB
-  5. plddt       summarise pLDDT from any AlphaFold/ESMFold/ColabFold PDB file
+  proteins   list the example proteins and their reference structures
+  fasta      print an example sequence in FASTA format
+  analyze    sequence-only predictions: composition, Kyte-Doolittle hydropathy,
+             Chou-Fasman secondary structure, scored against the experimental
+             structure (DSSP)
+  nn         train a small neural network (Qian & Sejnowski style) on real
+             DSSP data and compare it with Chou-Fasman
+  compare    superimpose a predicted model on the experimental structure and
+             report which residues are correct (within 1, 2, 4, 8 A)
+  fold       (needs internet) submit a sequence to the ESMFold API
+  plddt      summarise per-residue confidence in a predicted PDB file
 
-Only the Python standard library is needed, except `fold`, which uses urllib.
+Only the Python standard library is needed (fold uses urllib).
 
 Examples:
-  python3 structure_tutorial.py orfs
-  python3 structure_tutorial.py analyze            # longest ORF overall
-  python3 structure_tutorial.py analyze --frame 3  # longest ORF in frame 3
-  python3 structure_tutorial.py splice             # join exons -> full protein
-  python3 structure_tutorial.py analyze --spliced
-  python3 structure_tutorial.py fasta --spliced > protein.fasta
-  python3 structure_tutorial.py nn                 # about 15 seconds
-  python3 structure_tutorial.py fold --out orf.pdb
-  python3 structure_tutorial.py plddt orf.pdb
+  python3 structure_tutorial.py proteins
+  python3 structure_tutorial.py analyze --protein hras
+  python3 structure_tutorial.py analyze --protein hbb
+  python3 structure_tutorial.py nn                    # about 15 seconds
+  python3 structure_tutorial.py fasta --protein hbb > hbb.fasta
+  python3 structure_tutorial.py compare my_model.pdb --protein hbb
+  python3 structure_tutorial.py compare data/structures/hb_4hhb.pdb --chain A --protein hbb
+  python3 structure_tutorial.py plddt my_model.pdb
 """
 
 import argparse
+import math
 import os
+import random
 import re
 import sys
+import time
 import urllib.request
 from collections import Counter
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-DEFAULT_TRIPLETS = os.path.join(HERE, "..", "..", "triplets.txt")
+DATA_DIR = os.path.join(HERE, "data")
 
 # --------------------------------------------------------------------------
-# Step 1-2: codons -> protein
+# The example proteins
 # --------------------------------------------------------------------------
 
-BASES = "TCAG"
-AMINO = "FFLLSSSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG"
-CODON_TABLE = {
-    a + b + c: AMINO[16 * i + 4 * j + k]
-    for i, a in enumerate(BASES)
-    for j, b in enumerate(BASES)
-    for k, c in enumerate(BASES)
+PROTEINS = {
+    "hras": {
+        "name": "H-Ras (GTPase HRas), human",
+        "uniprot": "P01112",
+        # Full-length protein. Residues 1-166 are identical to the SEQRES of PDB 1CRR;
+        # the whole sequence also matches the translation of the H-Ras gene in ../../triplets.txt.
+        "seq": "MTEYKLVVVGAGGVGKSALTIQLIQNHFVDEYDPTIEDSYRKQVVIDGETCLLDILDTAGQEEYSAMRDQYMRTGEGFLCVFAINN"
+               "TKSFEDIHQYREQIKRVKDSDDVPMVLVGNKCDLAARTVESRQAQDLARSYGIPYIETSAKTRQGVEDAFYTLVREIRQHKLRKLN"
+               "PPDESGPGCMSCKCVLS",
+        "structure": "hras_1crr.pdb", "chain": "A",
+        "about": "189 aa; G domain 1-166 (alpha/beta fold) + flexible C-terminal tail. "
+                 "Reference: PDB 1CRR, NMR model 1 (wild type, GDP-bound), residues 1-166.",
+    },
+    "hbb": {
+        "name": "Haemoglobin subunit beta, human",
+        "uniprot": "P68871",
+        # Mature chain as in PDB 4HHB chain B (the initiator Met of the 147-aa precursor is removed).
+        "seq": "VHLTPEEKSAVTALWGKVNVDEVGGEALGRLLVVYPWTQRFFESFGDLSTPDAVMGNPKVKAHGKKVLGAFSDGLAHLDNLKGTFAT"
+               "LSELHCDKLHVDPENFRLLGNVLVCVLAHHFGKEFTPPVQAAYQKVVAGVANALAHKYH",
+        "structure": "hb_4hhb.pdb", "chain": "B",
+        "about": "146 aa; all-alpha globin fold, binds one haem; part of the alpha2beta2 tetramer. "
+                 "Reference: PDB 4HHB chain B (deoxyhaemoglobin, X-ray 1.74 A).",
+    },
+    "hba": {
+        "name": "Haemoglobin subunit alpha, human",
+        "uniprot": "P69905",
+        "seq": "VLSPADKTNVKAAWGKVGAHAGEYGAEALERMFLSFPTTKTYFPHFDLSHGSAQVKGHGKKVADALTNAVAHVDDMPNALSALSDL"
+               "HAHKLRVDPVNFKLLSHCLLVTLAAHLPAEFTPAVHASLDKFLASVSTVLTSKYR",
+        "structure": "hb_4hhb.pdb", "chain": "A",
+        "about": "141 aa; globin fold, 43% identical to beta. Reference: PDB 4HHB chain A.",
+    },
 }
 
 
-def read_frames(path):
-    """Return {frame_number: [codon, ...]} from a triplets.txt-style file."""
-    frames, current = {}, None
-    with open(path) as fh:
+def load_reference_ss():
+    """{protein: (first_residue, sequence, dssp8)} from data/reference_ss.tsv."""
+    out = {}
+    with open(os.path.join(DATA_DIR, "reference_ss.tsv")) as fh:
         for line in fh:
-            line = line.strip()
-            if not line:
+            if line.startswith("#") or not line.strip():
                 continue
-            if line.lower().startswith("start"):
-                current = int(line.split()[1])
-                frames[current] = []
-            elif current is not None:
-                frames[current].extend(line.split())
-    return frames
-
-
-def translate(codons):
-    # Incomplete trailing codons (e.g. "CC") become X.
-    return "".join(CODON_TABLE.get(c.upper(), "X") for c in codons)
-
-
-def find_orfs(protein, min_len=50):
-    """ORFs = Met ... stop. Returns (start, end, seq) with 1-based residue start."""
-    orfs = []
-    for m in re.finditer(r"M[^*]*\*", protein):
-        # re.finditer does not overlap, so each stop gets its first upstream Met,
-        # which is the longest ORF ending at that stop.
-        seq = m.group()[:-1]
-        if len(seq) >= min_len:
-            orfs.append((m.start() + 1, m.end() - 1, seq))
-    return orfs
-
-
-def all_orfs(path, min_len=50):
-    out = []
-    for frame, codons in sorted(read_frames(path).items()):
-        for start, end, seq in find_orfs(translate(codons), min_len):
-            out.append({"frame": frame, "start": start, "end": end, "seq": seq})
+            name, _pdb, _chain, first, seq, ss = line.rstrip("\n").split("\t")
+            out[name] = (int(first), seq, ss)
     return out
 
 
-# Coding exons found in Part 2 of the tutorial (1-based, inclusive, on the
-# forward strand = frame 1 read as one continuous DNA string). Each intron
-# starts with GT and ends with AG; the last exon includes the stop codon.
-HRAS_EXONS = [(6229, 6339), (6607, 6785), (6939, 7098), (7796, 7915)]
+DSSP_TO_Q3 = {"H": "H", "G": "H", "I": "H", "E": "E", "B": "E"}  # everything else -> C
 
 
-def read_dna(path):
-    return "".join(read_frames(path)[1]).upper()
+def to_q3(dssp):
+    return "".join(DSSP_TO_Q3.get(c, "C") for c in dssp)
 
 
-def splice(path, exons=HRAS_EXONS):
-    dna = read_dna(path)
-    cds = "".join(dna[a - 1:b] for a, b in exons)
-    return cds, translate(cds[i:i + 3] for i in range(0, len(cds) - 2, 3))
+def reference_q3(protein):
+    """3-state reference aligned to the protein sequence (covers residues 1..len(reference))."""
+    first, seq, ss = load_reference_ss()[protein]
+    assert PROTEINS[protein]["seq"][first - 1:first - 1 + len(seq)] == seq, "reference does not match sequence"
+    return to_q3(ss)
 
 
-def pick_orf(path, frame=None):
-    orfs = all_orfs(path, min_len=1)
-    if frame is not None:
-        orfs = [o for o in orfs if o["frame"] == frame]
-    if not orfs:
-        sys.exit("No ORF found.")
-    return max(orfs, key=lambda o: len(o["seq"]))
+def q3(pred, ref):
+    n = min(len(pred), len(ref))
+    return sum(1 for a, b in zip(pred[:n], ref[:n]) if a == b) / n
+
+
+def wrap(s, width=60):
+    return [s[i:i + width] for i in range(0, len(s), width)]
 
 
 # --------------------------------------------------------------------------
-# Step 3: sequence-based structure predictions
+# Sequence-only predictions
 # --------------------------------------------------------------------------
 
 # Kyte & Doolittle (1982) hydropathy scale.
@@ -141,11 +136,9 @@ CHOU_FASMAN = {
     "Y": (0.69, 1.47), "N": (0.67, 0.89), "P": (0.57, 0.55), "G": (0.57, 0.75),
 }
 
-# Residues enriched in intrinsically disordered regions vs. ordered cores.
 DISORDER_PROMOTING = set("PESQKAG")
 ORDER_PROMOTING = set("WCFIYVLN")
 
-# Average residue masses (Da) for a rough molecular weight.
 MASS = {
     "A": 71.08, "R": 156.19, "N": 114.10, "D": 115.09, "C": 103.14, "E": 129.12,
     "Q": 128.13, "G": 57.05, "H": 137.14, "I": 113.16, "L": 113.16, "K": 128.17,
@@ -191,74 +184,21 @@ def chou_fasman(seq, window=6):
     return s
 
 
-def tandem_repeats(seq, min_unit=5, max_unit=40, min_copies=3):
-    """Find the period with the most exact back-to-back repeats (a simple scan)."""
-    best = None
-    for unit in range(min_unit, max_unit + 1):
-        for i in range(len(seq) - unit * min_copies + 1):
-            motif = seq[i:i + unit]
-            copies, j = 1, i + unit
-            while seq[j:j + unit] == motif:
-                copies += 1
-                j += unit
-            if copies >= min_copies and (best is None or copies * unit > best[2] * best[1]):
-                best = (i + 1, unit, copies, motif)
-    return best
+def print_tracks(seq, tracks, ref=None):
+    """tracks: [(label, string)]; residues that disagree with ref are shown in lower case."""
+    for i in range(0, len(seq), 60):
+        print(f"{i + 1:>5} seq  {seq[i:i + 60]}")
+        for lab, s in tracks:
+            part = s[i:i + 60]
+            if ref is not None and lab != "DSSP":
+                part = "".join(c if i + j >= len(ref) or c == ref[i + j] else c.lower()
+                               for j, c in enumerate(part))
+            if part:
+                print(f"      {lab:<4} {part}")
+        print()
 
 
-def approximate_period(seq, max_unit=60):
-    """Period with the highest self-identity when the sequence is shifted by it."""
-    scores = []
-    for p in range(3, min(max_unit, len(seq) // 2) + 1):
-        same = sum(1 for i in range(len(seq) - p) if seq[i] == seq[i + p])
-        scores.append((same / (len(seq) - p), p))
-    return max(scores)
-
-
-def shannon_entropy(s):
-    import math
-    counts = Counter(s)
-    n = len(s)
-    return -sum(c / n * math.log2(c / n) for c in counts.values())
-
-
-def low_complexity(seq, window=12, cutoff=2.2):
-    """Mask windows whose Shannon entropy (bits) is low (SEG-like, simplified)."""
-    mask = [False] * len(seq)
-    for i in range(len(seq) - window + 1):
-        if shannon_entropy(seq[i:i + window]) < cutoff:
-            for j in range(i, i + window):
-                mask[j] = True
-    return mask
-
-
-def wrap(s, width=60):
-    return [s[i:i + width] for i in range(0, len(s), width)]
-
-
-# Approximate secondary structure of H-Ras in crystal structure PDB 5P21
-# (residues 1-166; 167-189 are not resolved). Used to score Chou-Fasman.
-HRAS_SS_5P21 = {
-    "E": [(2, 9), (37, 46), (49, 58), (77, 83), (111, 116), (141, 143)],
-    "H": [(16, 25), (66, 74), (87, 104), (127, 137), (152, 166)],
-}
-
-
-def reference_ss(length=166, ranges=HRAS_SS_5P21):
-    ss = ["C"] * length
-    for state, segs in ranges.items():
-        for a, b in segs:
-            for i in range(a - 1, b):
-                ss[i] = state
-    return "".join(ss)
-
-
-def q3(pred, ref):
-    n = min(len(pred), len(ref))
-    return sum(1 for a, b in zip(pred[:n], ref[:n]) if a == b) / n
-
-
-def analyze(seq, label, reference=None):
+def analyze(seq, label, ref=None):
     n = len(seq)
     comp = Counter(seq)
     mw = sum(MASS.get(a, 110) for a in seq) + 18.02
@@ -278,67 +218,37 @@ def analyze(seq, label, reference=None):
     print(f"Most common       {top}")
     print()
 
-    # Hydropathy: 19-residue window average > 1.6 suggests a TM helix.
     hyd = sliding_mean(seq, KD, 19)
     tm = [i for i, v in enumerate(hyd) if v is not None and v > 1.6]
+    peak = max(v for v in hyd if v is not None) if n >= 19 else float("nan")
     if tm:
-        segs, s = [], tm[0]
-        for a, b in zip(tm, tm[1:] + [None]):
-            if b != a + 1:
-                segs.append((s + 1, a + 1))
-                s = b
-        print("Possible transmembrane segments (KD window 19 > 1.6):",
-              ", ".join(f"{a}-{b}" for a, b in segs))
+        print(f"Possible transmembrane segment(s): windows centred on residues {tm[0] + 1}-{tm[-1] + 1} "
+              f"(KD window 19 > 1.6)")
     else:
         print("No transmembrane helix predicted (no 19-residue window with KD > 1.6).")
-    peak = max(v for v in hyd if v is not None) if n >= 19 else float("nan")
     print(f"Max windowed hydropathy: {peak:+.2f}")
     print()
 
     ss = chou_fasman(seq)
-    lc = low_complexity(seq)
-    lc_str = "".join("x" if m else "." for m in lc)
-    print("Secondary structure (Chou-Fasman, simplified):  H helix  E strand  C coil")
-    print("Low complexity mask:                             x low-entropy window")
-    for i, (a, b, c) in enumerate(zip(wrap(seq), wrap(ss), wrap(lc_str))):
-        print(f"{i * 60 + 1:>5} seq {a}")
-        print(f"      ss  {b}")
-        print(f"      lc  {c}")
+    print("Secondary structure: H helix, E strand, C coil.")
+    if ref:
+        print("DSSP = experimental structure; lower-case letters disagree with it.")
     print()
-    print(f"Helix {ss.count('H') / n:.0%}   Strand {ss.count('E') / n:.0%}   "
-          f"Coil {ss.count('C') / n:.0%}   Low-complexity {sum(lc) / n:.0%}")
-
-    rep = tandem_repeats(seq)
-    ident, period = approximate_period(seq)
-    print()
-    if rep:
-        start, unit, copies, motif = rep
-        print(f"Exact tandem repeat: '{motif}' x{copies} (unit {unit} aa, starts at {start})")
-    print(f"Best approximate period: {period} aa "
-          f"({ident:.0%} of residues match the residue {period} positions later)")
-    if ident > 0.4:
-        print("  -> strongly repetitive; expect low-confidence / disordered prediction")
-
-    if reference:
-        print()
-        print("Comparison with the crystal structure (PDB 5P21, residues 1-166):")
-        for i, (a, b) in enumerate(zip(wrap(ss[:len(reference)]), wrap(reference))):
-            print(f"{i * 60 + 1:>5} pred {a}")
-            print(f"      5P21 {b}")
-        print(f"Q3 accuracy (fraction of residues with the correct state): "
-              f"{q3(ss, reference):.0%}")
+    print_tracks(seq, [("CF", ss)] + ([("DSSP", ref)] if ref else []), ref)
+    print(f"Chou-Fasman: helix {ss.count('H') / n:.0%}, strand {ss.count('E') / n:.0%}, "
+          f"coil {ss.count('C') / n:.0%}")
+    if ref:
+        print(f"Experiment:  helix {ref.count('H') / len(ref):.0%}, strand {ref.count('E') / len(ref):.0%}, "
+              f"coil {ref.count('C') / len(ref):.0%}  (residues 1-{len(ref)})")
+        print(f"Q3 (fraction of residues in the correct state): {q3(ss, ref):.0%}")
 
 
 # --------------------------------------------------------------------------
-# Step 3b: a neural network for secondary structure (Qian & Sejnowski 1988)
+# A neural network for secondary structure (Qian & Sejnowski 1988)
 # --------------------------------------------------------------------------
 
-DATA_DIR = os.path.join(HERE, "data")
-DSSP_TO_Q3 = {"H": "H", "G": "H", "I": "H", "E": "E", "B": "E"}  # rest -> C
 NN_AA = "ACDEFGHIKLMNPQRSTVWY"   # index 20 = unknown (X), 21 = past the chain end
 NN_SS = "HEC"
-GTPASE_PLOOP = re.compile(r"G.{4}GK[ST]")
-GTPASE_G3 = re.compile(r"D.{2}G[QH]")
 
 
 def load_ss_dataset(name):
@@ -349,8 +259,14 @@ def load_ss_dataset(name):
             if line.startswith("#") or not line.strip():
                 continue
             seq, dssp = line.rstrip("\n").split("\t")
-            out.append((seq, "".join(DSSP_TO_Q3.get(c, "C") for c in dssp)))
+            out.append((seq, to_q3(dssp)))
     return out
+
+
+def excluded_training():
+    """Indices of training proteins related to the example proteins (see data/excluded_training.txt)."""
+    with open(os.path.join(DATA_DIR, "excluded_training.txt")) as fh:
+        return {int(l.split("\t")[0]) for l in fh if l.strip() and not l.startswith("#")}
 
 
 def encode_windows(seq, window):
@@ -451,18 +367,17 @@ def score_q3(predict, data):
     return ok / n
 
 
-def run_nn(window, hidden, n_proteins, epochs, lr, seed, hras_seq):
-    import random
-    import time
+def run_nn(window, hidden, n_proteins, epochs, lr, seed):
     train = load_ss_dataset("cb6133filtered")
     test = load_ss_dataset("cb513")
-    kept = [t for t in train if not (GTPASE_PLOOP.search(t[0]) and GTPASE_G3.search(t[0]))]
+    skip = excluded_training()
+    kept = [t for i, t in enumerate(train) if i not in skip]
     random.Random(seed).shuffle(kept)
     subset = kept[:n_proteins]
     examples = [(row, NN_SS.index(y)) for seq, ss in subset
                 for row, y in zip(encode_windows(seq, window), ss)]
     print(f"Training set: {len(subset)} proteins, {len(examples)} residues "
-          f"({len(train) - len(kept)} small-GTPase-like proteins excluded)")
+          f"({len(skip)} relatives of Ras and haemoglobin excluded)")
     print(f"Test set (CB513): {len(test)} proteins, {sum(len(s) for s, _ in test)} residues")
     print(f"Network: window {window} x 22 inputs -> {hidden or 'no'} hidden units -> 3 outputs\n")
 
@@ -476,19 +391,181 @@ def run_nn(window, hidden, n_proteins, epochs, lr, seed, hras_seq):
         print(f"{ep:>5} {tr:>9.1%} {te:>8.1%} {time.time() - t0:>5.0f}s")
     print(f"\nChou-Fasman on the same test set: {cf:.1%}")
 
-    ref = reference_ss()
-    nn_ss, cf_ss = net.predict(hras_seq), chou_fasman(hras_seq)
-    print("\nH-Ras, residues 1-166 (not in the training set):")
-    for i in range(0, 166, 60):
-        print(f"{i + 1:>5} seq  {hras_seq[i:min(i + 60, 166)]}")
-        print(f"      CF   {cf_ss[i:min(i + 60, 166)]}")
-        print(f"      NN   {nn_ss[i:min(i + 60, 166)]}")
-        print(f"      5P21 {ref[i:i + 60]}")
-    print(f"Q3 vs 5P21: Chou-Fasman {q3(cf_ss, ref):.0%}, neural network {q3(nn_ss, ref):.0%}")
+    for name in ("hras", "hbb"):
+        seq, ref = PROTEINS[name]["seq"], reference_q3(name)
+        cf_ss, nn_ss = chou_fasman(seq), net.predict(seq)
+        print(f"\n{PROTEINS[name]['name']} (no relatives in the training set); "
+              f"lower case = disagrees with the experimental structure")
+        print_tracks(seq[:len(ref)], [("CF", cf_ss[:len(ref)]), ("NN", nn_ss[:len(ref)]), ("DSSP", ref)], ref)
+        print(f"Q3: Chou-Fasman {q3(cf_ss, ref):.0%}, neural network {q3(nn_ss, ref):.0%}")
 
 
 # --------------------------------------------------------------------------
-# Step 4-5: 3D prediction with ESMFold and reading pLDDT
+# Comparing a 3D model with the experimental structure
+# --------------------------------------------------------------------------
+
+THREE = {"ALA": "A", "ARG": "R", "ASN": "N", "ASP": "D", "CYS": "C", "GLN": "Q", "GLU": "E",
+         "GLY": "G", "HIS": "H", "ILE": "I", "LEU": "L", "LYS": "K", "MET": "M", "PHE": "F",
+         "PRO": "P", "SER": "S", "THR": "T", "TRP": "W", "TYR": "Y", "VAL": "V", "MSE": "M"}
+
+
+def read_ca(pdb_text):
+    """{chain: [(resnum, aa, (x, y, z), bfactor)]} for CA atoms of the first model."""
+    chains = {}
+    for line in pdb_text.splitlines():
+        if line.startswith("ENDMDL"):
+            break
+        if line.startswith(("ATOM", "HETATM")) and line[12:16].strip() == "CA" and line[16] in " A":
+            aa = THREE.get(line[17:20].strip())
+            if aa:
+                chains.setdefault(line[21], []).append(
+                    (int(line[22:26]), aa, (float(line[30:38]), float(line[38:46]), float(line[46:54])),
+                     float(line[60:66] or 0)))
+    return chains
+
+
+def align_sequences(a, b, gap=-4):
+    """Needleman-Wunsch with a simple identity score; returns [(i, j)] of aligned positions."""
+    n, m = len(a), len(b)
+    S = [[0] * (m + 1) for _ in range(n + 1)]
+    for i in range(1, n + 1):
+        S[i][0] = i * gap
+    for j in range(1, m + 1):
+        S[0][j] = j * gap
+    for i in range(1, n + 1):
+        for j in range(1, m + 1):
+            S[i][j] = max(S[i - 1][j - 1] + (5 if a[i - 1] == b[j - 1] else -2),
+                          S[i - 1][j] + gap, S[i][j - 1] + gap)
+    pairs, i, j = [], n, m
+    while i and j:
+        if S[i][j] == S[i - 1][j - 1] + (5 if a[i - 1] == b[j - 1] else -2):
+            pairs.append((i - 1, j - 1))
+            i, j = i - 1, j - 1
+        elif S[i][j] == S[i - 1][j] + gap:
+            i -= 1
+        else:
+            j -= 1
+    return pairs[::-1]
+
+
+def jacobi_eigen(A, sweeps=60):
+    """Eigen-decomposition of a small symmetric matrix. Returns (eigenvalues, eigenvector columns)."""
+    n = len(A)
+    a = [row[:] for row in A]
+    v = [[float(i == j) for j in range(n)] for i in range(n)]
+    for _ in range(sweeps):
+        off = sum(a[p][q] ** 2 for p in range(n) for q in range(p + 1, n))
+        if off < 1e-20:
+            break
+        for p in range(n):
+            for q in range(p + 1, n):
+                if abs(a[p][q]) < 1e-15:
+                    continue
+                th = (a[q][q] - a[p][p]) / (2 * a[p][q])
+                t = (1 if th >= 0 else -1) / (abs(th) + math.sqrt(th * th + 1))
+                c = 1 / math.sqrt(t * t + 1)
+                s = t * c
+                for k in range(n):
+                    akp, akq = a[k][p], a[k][q]
+                    a[k][p], a[k][q] = c * akp - s * akq, s * akp + c * akq
+                for k in range(n):
+                    apk, aqk = a[p][k], a[q][k]
+                    a[p][k], a[q][k] = c * apk - s * aqk, s * apk + c * aqk
+                for k in range(n):
+                    vkp, vkq = v[k][p], v[k][q]
+                    v[k][p], v[k][q] = c * vkp - s * vkq, s * vkp + c * vkq
+    return [a[i][i] for i in range(n)], v
+
+
+def superpose(X, Y):
+    """
+    Optimal rotation + translation moving points X onto Y (Horn's quaternion method).
+    Returns a function that transforms a point.
+    """
+    n = len(X)
+    cx = [sum(p[k] for p in X) / n for k in range(3)]
+    cy = [sum(p[k] for p in Y) / n for k in range(3)]
+    S = [[0.0] * 3 for _ in range(3)]
+    for p, q in zip(X, Y):
+        u = [p[k] - cx[k] for k in range(3)]
+        w = [q[k] - cy[k] for k in range(3)]
+        for i in range(3):
+            for j in range(3):
+                S[i][j] += u[i] * w[j]
+    (xx, xy, xz), (yx, yy, yz), (zx, zy, zz) = S
+    N = [[xx + yy + zz, yz - zy, zx - xz, xy - yx],
+         [yz - zy, xx - yy - zz, xy + yx, zx + xz],
+         [zx - xz, xy + yx, -xx + yy - zz, yz + zy],
+         [xy - yx, zx + xz, yz + zy, -xx - yy + zz]]
+    vals, vecs = jacobi_eigen(N)
+    k = max(range(4), key=vals.__getitem__)
+    q0, q1, q2, q3_ = (vecs[i][k] for i in range(4))
+    R = [[q0 * q0 + q1 * q1 - q2 * q2 - q3_ * q3_, 2 * (q1 * q2 - q0 * q3_), 2 * (q1 * q3_ + q0 * q2)],
+         [2 * (q1 * q2 + q0 * q3_), q0 * q0 - q1 * q1 + q2 * q2 - q3_ * q3_, 2 * (q2 * q3_ - q0 * q1)],
+         [2 * (q1 * q3_ - q0 * q2), 2 * (q2 * q3_ + q0 * q1), q0 * q0 - q1 * q1 - q2 * q2 + q3_ * q3_]]
+
+    def move(p):
+        u = [p[k] - cx[k] for k in range(3)]
+        return tuple(sum(R[i][j] * u[j] for j in range(3)) + cy[i] for i in range(3))
+    return move
+
+
+def compare_structures(model, ref, core_cutoff=4.0, rounds=5):
+    """
+    model, ref: lists of (resnum, aa, xyz, b) for one chain each.
+    Aligns the sequences, superimposes on all matched CA atoms, then re-fits on
+    the residues within core_cutoff A (a few rounds) so that one floppy loop
+    cannot drag the whole superposition. Returns per-residue distances.
+    """
+    pairs = align_sequences("".join(r[1] for r in model), "".join(r[1] for r in ref))
+    use = list(range(len(pairs)))
+    for _ in range(rounds):
+        move = superpose([model[pairs[k][0]][2] for k in use], [ref[pairs[k][1]][2] for k in use])
+        dist = [math.dist(move(model[i][2]), ref[j][2]) for i, j in pairs]
+        new = [k for k, d in enumerate(dist) if d < core_cutoff]
+        if len(new) < 3 or new == use:
+            break
+        use = new
+    return pairs, dist, move
+
+
+def report_comparison(model_chain, ref_chain, ref_label):
+    pairs, dist, _ = compare_structures(model_chain, ref_chain)
+    n_ref = len(ref_chain)
+    ident = sum(model_chain[i][1] == ref_chain[j][1] for i, j in pairs)
+    rmsd = math.sqrt(sum(d * d for d in dist) / len(dist))
+    within = {t: sum(d <= t for d in dist) / n_ref for t in (1, 2, 4, 8)}
+    print(f"Reference: {ref_label}, {n_ref} residues")
+    print(f"Matched residues: {len(pairs)} ({ident} identical in sequence, {ident / len(pairs):.0%})")
+    print(f"Cα RMSD over all matched residues: {rmsd:.2f} A")
+    core = [d for d in dist if d <= 4]
+    if core:
+        print(f"Cα RMSD over the {len(core)} residues within 4 A: {math.sqrt(sum(d * d for d in core) / len(core)):.2f} A")
+    print("Fraction of reference residues within  " + "   ".join(f"{t} A: {v:.0%}" for t, v in within.items()))
+    print(f"GDT-style score (mean of the four fractions): {100 * sum(within.values()) / 4:.1f}")
+    marks = ["-"] * n_ref
+    for (i, j), d in zip(pairs, dist):
+        marks[j] = "#" if d <= 2 else "+" if d <= 4 else "."
+    ref_seq = "".join(r[1] for r in ref_chain)
+    print("\nPer residue:  # within 2 A (correct)   + 2-4 A   . more than 4 A   - not in model")
+    for k in range(0, n_ref, 60):
+        print(f"{ref_chain[k][0]:>5} ref  {ref_seq[k:k + 60]}")
+        print(f"      fit  {''.join(marks[k:k + 60])}\n")
+
+
+def pick_chain(chains, target_seq, wanted=None):
+    if wanted:
+        if wanted not in chains:
+            sys.exit(f"Chain {wanted!r} not found; chains in file: {', '.join(chains)}")
+        return wanted
+    def score(ch):
+        pairs = align_sequences("".join(r[1] for r in chains[ch]), target_seq)
+        return sum(chains[ch][i][1] == target_seq[j] for i, j in pairs)
+    return max(chains, key=score)
+
+
+# --------------------------------------------------------------------------
+# ESMFold and pLDDT
 # --------------------------------------------------------------------------
 
 ESMFOLD_URL = "https://api.esmatlas.com/foldSequence/v1/pdb/"
@@ -507,10 +584,7 @@ def plddt_from_pdb(pdb_text):
     Returns [(residue_number, plddt)] using the CA atom of each residue.
     ESMFold's API reports 0-1; AlphaFold reports 0-100 -- normalised to 0-100.
     """
-    vals = []
-    for line in pdb_text.splitlines():
-        if line.startswith("ATOM") and line[12:16].strip() == "CA":
-            vals.append((int(line[22:26]), float(line[60:66])))
+    vals = [(r, b) for chain in read_ca(pdb_text).values() for r, _, _, b in chain]
     if vals and max(v for _, v in vals) <= 1.0:
         vals = [(r, v * 100) for r, v in vals]
     return vals
@@ -526,7 +600,6 @@ def summarise_plddt(vals):
         k = sum(1 for _, v in vals if cut <= v < lo)
         print(f"  {name:<10} ({cut:>2}-{lo - 1:<3}) {k:>5} residues  {k / n:.0%}")
         lo = cut
-    # One character per residue: 9 = 90+, 7 = 70-89, 5 = 50-69, . = <50
     track = "".join("9" if v >= 90 else "7" if v >= 70 else "5" if v >= 50 else "."
                     for _, v in vals)
     print("\nPer-residue confidence (9 >=90, 7 >=70, 5 >=50, . <50):")
@@ -541,22 +614,15 @@ def summarise_plddt(vals):
 def main():
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--triplets", default=DEFAULT_TRIPLETS)
     sub = ap.add_subparsers(dest="cmd", required=True)
-
-    p = sub.add_parser("orfs", help="list ORFs in all frames")
-    p.add_argument("--min-len", type=int, default=50)
+    sub.add_parser("proteins", help="list the example proteins")
 
     for name in ("analyze", "fasta", "fold"):
         p = sub.add_parser(name)
-        p.add_argument("--frame", type=int, help="restrict to one reading frame")
-        p.add_argument("--seq", help="analyse this protein sequence instead")
-        p.add_argument("--spliced", action="store_true",
-                       help="use the protein from the spliced exons (see `splice`)")
+        p.add_argument("--protein", choices=sorted(PROTEINS), default="hras")
+        p.add_argument("--seq", help="use this protein sequence instead")
         if name == "fold":
             p.add_argument("--out", default="prediction.pdb")
-
-    sub.add_parser("splice", help="join the exons and translate the full protein")
 
     p = sub.add_parser("nn", help="train a window neural network for secondary structure")
     p.add_argument("--window", type=int, default=13)
@@ -566,56 +632,51 @@ def main():
     p.add_argument("--lr", type=float, default=0.02)
     p.add_argument("--seed", type=int, default=1)
 
+    p = sub.add_parser("compare", help="compare a predicted model with the experimental structure")
+    p.add_argument("model", help="predicted structure (PDB format)")
+    p.add_argument("--protein", choices=sorted(PROTEINS), default="hras")
+    p.add_argument("--chain", help="chain of the model to use (default: best sequence match)")
+
     p = sub.add_parser("plddt", help="summarise confidence in a predicted PDB")
     p.add_argument("pdb")
 
     args = ap.parse_args()
 
-    if args.cmd == "orfs":
-        orfs = all_orfs(args.triplets, args.min_len)
-        print(f"{'frame':>5} {'start':>6} {'end':>6} {'length':>6}  first 40 aa")
-        for o in sorted(orfs, key=lambda o: -len(o["seq"])):
-            print(f"{o['frame']:>5} {o['start']:>6} {o['end']:>6} "
-                  f"{len(o['seq']):>6}  {o['seq'][:40]}")
+    if args.cmd == "proteins":
+        for key, p in PROTEINS.items():
+            print(f"{key:<5} {p['name']} (UniProt {p['uniprot']}), {len(p['seq'])} aa")
+            print(f"      {p['about']}")
         return
-
+    if args.cmd == "nn":
+        run_nn(args.window, args.hidden, args.proteins, args.epochs, args.lr, args.seed)
+        return
     if args.cmd == "plddt":
         with open(args.pdb) as fh:
             summarise_plddt(plddt_from_pdb(fh.read()))
         return
-
-    if args.cmd == "nn":
-        run_nn(args.window, args.hidden, args.proteins, args.epochs, args.lr, args.seed,
-               splice(args.triplets)[1].rstrip("*"))
-        return
-
-    if args.cmd == "splice":
-        dna = read_dna(args.triplets)
-        cds, prot = splice(args.triplets)
-        for n, ((a, b), nxt) in enumerate(zip(HRAS_EXONS, HRAS_EXONS[1:] + [None]), 1):
-            line = f"exon {n}: {a:>5}-{b:<5} ({b - a + 1:>3} nt)"
-            if nxt:
-                intron = dna[b:nxt[0] - 1]
-                line += f"   intron {len(intron):>4} nt  {intron[:2]}...{intron[-2:]}"
-            print(line)
-        print(f"\nCDS {len(cds)} nt -> {len(prot.rstrip('*'))} aa, "
-              f"ends with stop: {prot.endswith('*')}\n")
-        print("\n".join(wrap(prot.rstrip("*"))))
+    if args.cmd == "compare":
+        prot = PROTEINS[args.protein]
+        with open(os.path.join(DATA_DIR, "structures", prot["structure"])) as fh:
+            ref = read_ca(fh.read())[prot["chain"]]
+        with open(args.model) as fh:
+            chains = read_ca(fh.read())
+        if not chains:
+            sys.exit("No CA atoms found in the model file.")
+        ch = pick_chain(chains, "".join(r[1] for r in ref), args.chain)
+        print(f"Model: {args.model}, chain {ch}, {len(chains[ch])} residues")
+        report_comparison(chains[ch], ref, f"{prot['name']}, {prot['structure']} chain {prot['chain']}")
         return
 
     if args.seq:
-        seq, label = args.seq.upper(), "user sequence"
-    elif args.spliced:
-        seq, label = splice(args.triplets)[1].rstrip("*"), "spliced protein (exons 1-4)"
+        seq, label, ref = re.sub(r"[^A-Z]", "", args.seq.upper()), "your sequence", None
     else:
-        o = pick_orf(args.triplets, args.frame)
-        seq = o["seq"]
-        label = f"frame {o['frame']} ORF, residues {o['start']}-{o['end']}"
+        prot = PROTEINS[args.protein]
+        seq, label, ref = prot["seq"], f"{prot['name']} (UniProt {prot['uniprot']})", reference_q3(args.protein)
 
     if args.cmd == "analyze":
-        analyze(seq, label, reference_ss() if args.spliced else None)
+        analyze(seq, label, ref)
     elif args.cmd == "fasta":
-        print(f">{label.replace(' ', '_').replace(',', '')}")
+        print(f">{args.protein if not args.seq else 'query'} {label}")
         print("\n".join(wrap(seq)))
     elif args.cmd == "fold":
         print(f"Submitting {len(seq)} aa to ESMFold ...", file=sys.stderr)
@@ -623,8 +684,7 @@ def main():
             pdb = esmfold(seq)
         except Exception as e:  # network blocked, rate limited, sequence too long
             sys.exit(f"ESMFold request failed: {e}\n"
-                     "Use the FASTA with ColabFold or the ESMFold web page instead "
-                     "(see README, Part 5).")
+                     "Use the FASTA with ColabFold or the ESMFold web page instead (see README, Part 4).")
         with open(args.out, "w") as fh:
             fh.write(pdb)
         print(f"Wrote {args.out}", file=sys.stderr)

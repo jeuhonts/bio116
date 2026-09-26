@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Folding H-Ras</title>
+<title>Sequence to Structure</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;1,7..72,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
@@ -22,6 +22,7 @@
   --strand: #C98400;
   --coil: #97A39C;
   --good: #2E7D4F;
+  --warn: #B7791F;
   --bad: #B3261E;
   --af-vh: #0053D6; --af-c: #65CBF3; --af-l: #FFDB13; --af-vl: #FF7D45;
   --display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
@@ -33,14 +34,14 @@
     color-scheme: dark;
     --bg: #0F1512; --surface: #161E1A; --sunk: #1D2722; --ink: #E4EBE6; --muted: #98A69E;
     --line: #2B3731; --brand: #74C49E; --brand-ink: #0F1512; --brand-soft: #1B2E24;
-    --helix: #E0739F; --strand: #EDB23E; --coil: #6C7871; --good: #6CCB8F; --bad: #F08A80;
+    --helix: #E0739F; --strand: #EDB23E; --coil: #6C7871; --good: #6CCB8F; --bad: #F08A80; --warn: #E0B04A;
   }
 }
 :root[data-theme="dark"] {
   color-scheme: dark;
   --bg: #0F1512; --surface: #161E1A; --sunk: #1D2722; --ink: #E4EBE6; --muted: #98A69E;
   --line: #2B3731; --brand: #74C49E; --brand-ink: #0F1512; --brand-soft: #1B2E24;
-  --helix: #E0739F; --strand: #EDB23E; --coil: #6C7871; --good: #6CCB8F; --bad: #F08A80;
+  --helix: #E0739F; --strand: #EDB23E; --coil: #6C7871; --good: #6CCB8F; --bad: #F08A80; --warn: #E0B04A;
 }
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
@@ -175,6 +176,22 @@ svg text { fill: var(--muted); font: 11px var(--display); }
 .ladder .r.ceiling .fill { background: repeating-linear-gradient(45deg, var(--line) 0 6px, transparent 6px 12px); opacity: 1; }
 .ladder .v { font: 500 0.88rem var(--mono); font-variant-numeric: tabular-nums; text-align: right; }
 @media (max-width: 560px) { .ladder .r { grid-template-columns: minmax(0, 1fr) 3.6rem; } .ladder .track { grid-column: 1 / -1; grid-row: 2; } }
+
+/* ---------- protein selector, segmented controls, viewer ---------- */
+.protsel, .seg { display: inline-flex; flex-wrap: wrap; gap: 6px; }
+button:disabled { opacity: .45; cursor: not-allowed; }
+.mono { font-family: var(--mono); font-size: 0.82rem; }
+.tracks .ok2 { background: color-mix(in srgb, var(--good) 22%, transparent); color: var(--ink); }
+.tracks .no2 { background: color-mix(in srgb, var(--bad) 26%, transparent); color: var(--ink); }
+.tracks .mid2 { background: color-mix(in srgb, var(--warn) 28%, transparent); color: var(--ink); }
+.viewer-wrap { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+.viewer { position: relative; background: var(--sunk); border-radius: 8px; overflow: hidden; }
+.viewer canvas { width: 100%; display: block; }
+.vtools { position: absolute; right: 8px; bottom: 8px; display: flex; gap: 6px; }
+.vtools .chip { background: var(--surface); }
+.vside { display: grid; gap: 12px; align-content: start; }
+.vside .tiles { grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); }
+@media (max-width: 860px) { .viewer-wrap { grid-template-columns: minmax(0, 1fr); } }
 @media (max-width: 860px) {
   .shell { grid-template-columns: minmax(0, 1fr); gap: 24px; padding-block: 0 64px; }
   nav.steps {
@@ -193,10 +210,10 @@ svg text { fill: var(--muted); font: 11px var(--display); }
 <body>
 <div class="shell">
   <nav class="steps" aria-label="Tutorial steps">
-    <a href="#gene"><span class="n">1</span>Find the gene</a>
-    <a href="#splice"><span class="n">2</span>Splice it</a>
-    <a href="#sequence"><span class="n">3</span>Read the sequence</a>
-    <a href="#nn"><span class="n">4</span>Neural networks</a>
+    <a href="#proteins"><span class="n">1</span>Two proteins</a>
+    <a href="#sequence"><span class="n">2</span>Read the sequence</a>
+    <a href="#nn"><span class="n">3</span>Neural networks</a>
+    <a href="#correct"><span class="n">4</span>What was right?</a>
     <a href="#predict"><span class="n">5</span>Predict in 3D</a>
     <a href="#confidence"><span class="n">6</span>Judge the model</a>
     <a href="#limits"><span class="n">7</span>Know the limits</a>
@@ -207,28 +224,26 @@ svg text { fill: var(--muted); font: 11px var(--display); }
   <main>
     <header class="hero" id="top">
       <span class="label">BIO116 · Interactive tutorial · Protein structure prediction</span>
-      <h1>Folding H-Ras, from DNA to a model you can trust</h1>
-      <p class="lede">You'll start from 10&thinsp;kb of human genomic DNA (<code>triplets.txt</code>), find the gene hidden in it,
-        splice it into a protein, predict that protein's structure, and then check the prediction against a crystal structure.
-        Everything on this page runs in your browser, even offline.</p>
-      <svg class="ribbon" viewBox="0 0 900 90" role="img" aria-label="Pipeline: DNA, protein sequence, secondary structure, 3D model">
-        <g stroke-width="3" fill="none" stroke-linecap="round">
-          <path d="M10 45 C 40 15, 70 75, 100 45 S 160 15, 190 45" stroke="var(--coil)"/>
-          <path d="M10 45 C 40 75, 70 15, 100 45 S 160 75, 190 45" stroke="var(--muted)"/>
-        </g>
-        <text x="100" y="86" text-anchor="middle">DNA</text>
-        <path d="M205 45 h40" stroke="var(--line)" stroke-width="2"/>
-        <g font-family="var(--mono)"><text x="330" y="50" text-anchor="middle" style="font:500 15px var(--mono);fill:var(--ink)">MTEYKLVVVG…</text></g>
-        <text x="330" y="86" text-anchor="middle">sequence</text>
-        <path d="M420 45 h40" stroke="var(--line)" stroke-width="2"/>
-        <rect x="475" y="38" width="36" height="14" rx="3" fill="var(--coil)"/>
-        <rect x="515" y="34" width="60" height="22" rx="11" fill="var(--helix)"/>
-        <rect x="579" y="38" width="16" height="14" rx="3" fill="var(--coil)"/>
-        <path d="M599 36 h42 l14 9 l-14 9 h-42 z" fill="var(--strand)"/>
-        <text x="565" y="86" text-anchor="middle">secondary structure</text>
-        <path d="M670 45 h40" stroke="var(--line)" stroke-width="2"/>
-        <path d="M735 60 C 745 10, 790 10, 790 40 S 840 75, 850 35 S 810 5, 780 55 S 760 80, 745 50" stroke="var(--brand)" stroke-width="5" fill="none" stroke-linecap="round"/>
-        <text x="795" y="86" text-anchor="middle">3D model</text>
+      <h1>From sequence to structure: Ras and haemoglobin</h1>
+      <p class="lede">You have a protein sequence and want to know its 3D structure. This tutorial takes two well-studied proteins, H-Ras and human
+        haemoglobin, and predicts their structure with methods from the 1970s to today. Because both structures are known experimentally, you can see
+        on the 3D structure exactly which parts each method got right. Everything on this page runs in your browser, even offline.</p>
+      <svg class="ribbon" viewBox="0 0 900 90" role="img" aria-label="Pipeline: protein sequence, secondary structure, 3D model, comparison with experiment">
+        <g font-family="var(--mono)"><text x="95" y="50" text-anchor="middle" style="font:500 15px var(--mono);fill:var(--ink)">MTEYKLVVVG…</text></g>
+        <text x="95" y="86" text-anchor="middle">sequence</text>
+        <path d="M195 45 h40" stroke="var(--line)" stroke-width="2"/>
+        <rect x="250" y="38" width="36" height="14" rx="3" fill="var(--coil)"/>
+        <rect x="290" y="34" width="60" height="22" rx="11" fill="var(--helix)"/>
+        <rect x="354" y="38" width="16" height="14" rx="3" fill="var(--coil)"/>
+        <path d="M374 36 h42 l14 9 l-14 9 h-42 z" fill="var(--strand)"/>
+        <text x="340" y="86" text-anchor="middle">secondary structure</text>
+        <path d="M445 45 h40" stroke="var(--line)" stroke-width="2"/>
+        <path d="M510 60 C 520 10, 565 10, 565 40 S 615 75, 625 35 S 585 5, 555 55 S 535 80, 520 50" stroke="var(--brand)" stroke-width="5" fill="none" stroke-linecap="round"/>
+        <text x="570" y="86" text-anchor="middle">3D model</text>
+        <path d="M650 45 h40" stroke="var(--line)" stroke-width="2"/>
+        <path d="M715 60 C 725 10, 770 10, 770 40 S 820 75, 830 35" stroke="var(--good)" stroke-width="5" fill="none" stroke-linecap="round"/>
+        <path d="M830 35 S 790 5, 760 55" stroke="var(--bad)" stroke-width="5" fill="none" stroke-linecap="round"/>
+        <text x="780" y="86" text-anchor="middle">right / wrong</text>
       </svg>
       <div class="meta">
         <div><span class="label">Audience</span><b>Undergraduate bioinformatics</b></div>
@@ -244,8 +259,8 @@ svg text { fill: var(--muted); font: 11px var(--display); }
           protein nor a computer can search them all. Prediction methods are shortcuts built from what we already know about proteins:</p>
         <div class="timeline" aria-label="History of prediction methods">
           <div><b>1970s</b><span>Chou–Fasman and GOR: residue propensities for helix and strand. Q3 ≈ 50–65%.</span></div>
-          <div><b>1990s</b><span>Homology modelling and threading: copy the shape of a related protein with a known structure.</span></div>
-          <div><b>2000s</b><span>Rosetta fragment assembly, PSIPRED profiles (Q3 ≈ 80%).</span></div>
+          <div><b>1988</b><span>Neural networks learn the rules from known structures (Qian &amp; Sejnowski). Q3 ≈ 64%.</span></div>
+          <div><b>1990s</b><span>Evolutionary profiles (PHD, PSIPRED), homology modelling and threading.</span></div>
           <div><b>2010s</b><span>Co-evolution: residues that mutate together are usually in contact.</span></div>
           <div><b>2020</b><span>AlphaFold2 reaches near-experimental accuracy in CASP14.</span></div>
           <div><b>2022–24</b><span>ESMFold (language model, no MSA); AlphaFold3 and Boltz add ligands, DNA and RNA.</span></div>
@@ -254,90 +269,57 @@ svg text { fill: var(--muted); font: 11px var(--display); }
     </header>
 
     <!-- ================= 1 ================= -->
-    <section id="gene">
+    <section id="proteins">
       <div class="sec-head">
         <span class="label">Step 1 of 8</span>
-        <h2>Find the gene in the DNA</h2>
-        <p><code>triplets.txt</code> contains the DNA printed as codons in all three forward reading frames. An <b>open reading frame</b> (ORF)
-          runs from a Met (ATG) to a stop codon. Long ORFs are gene candidates. Set the minimum length and click any ORF to inspect it.</p>
+        <h2>Meet the two proteins</h2>
+        <p>Both proteins are famous, both have been solved many times, and they look nothing alike. That makes them good test cases: a method has to get
+          β-strands right for Ras and long helices right for haemoglobin. Pick the protein to work with; the choice carries through every step.</p>
       </div>
-      <div class="panel">
+      <div class="two">
+        <div class="panel">
+          <span class="label">GTPase · alpha/beta fold · UniProt P01112</span>
+          <h3>H-Ras</h3>
+          <p class="note">A molecular switch: active when bound to GTP, inactive with GDP. Mutations at G12, G13 or Q61 lock it "on" and drive many cancers.
+            189 residues: a folded G domain (1–166) with a six-stranded β-sheet surrounded by five helices, plus a flexible tail that anchors it to the membrane.</p>
+          <p class="note"><b>Reference structure:</b> PDB 1CRR, the NMR structure of wild-type H-Ras·GDP (residues 1–166, model 1 of 20).</p>
+        </div>
+        <div class="panel">
+          <span class="label">Oxygen carrier · all-alpha globin fold · UniProt P68871 / P69905</span>
+          <h3>Haemoglobin</h3>
+          <p class="note">Carries O<sub>2</sub> in red blood cells as a tetramer of two α chains (141 residues) and two β chains (146 residues), each holding a haem.
+            Each chain folds into eight helices (A–H) with no β-strands at all. The sickle-cell mutation changes β Glu6 to Val.</p>
+          <p class="note"><b>Reference structure:</b> PDB 4HHB, human deoxyhaemoglobin by X-ray crystallography (Fermi et al. 1984).</p>
+        </div>
+      </div>
+      <div class="panel sunk">
         <div class="row">
-          <label class="ctl" for="minLen">Minimum ORF length <output id="minLenOut">50 aa</output>
-            <input type="range" id="minLen" min="20" max="200" step="5" value="50"></label>
-          <button type="button" class="chip" id="revealExons" aria-pressed="false">Reveal H-Ras exons</button>
-          <span class="note" id="orfCount"></span>
+          <span class="label">Work with</span>
+          <span class="protsel" role="group" aria-label="Choose a protein"></span>
+          <button type="button" id="copyFasta1">Copy FASTA</button>
+          <span class="note" id="fastaMsg1" aria-live="polite"></span>
         </div>
-        <div class="scroll"><svg id="orfMap" viewBox="0 0 1000 150" style="min-width:640px;width:100%" role="img" aria-label="Map of ORFs across three reading frames"></svg></div>
-        <div class="scroll" style="max-height:320px;overflow-y:auto">
-          <table id="orfTable"><thead><tr><th>Frame</th><th>Codons</th><th>Length</th><th>First 40 aa</th><th></th></tr></thead><tbody></tbody></table>
-        </div>
-      </div>
-      <div class="panel sunk" id="orfDetail">
-        <span class="label">Selected ORF</span>
-        <div class="seq" id="orfSeq"></div>
-        <div class="row">
-          <button type="button" id="copyOrf">Copy sequence</button>
-          <a class="btn" href="https://blast.ncbi.nlm.nih.gov/Blast.cgi?PROGRAM=blastp&PAGE_TYPE=BlastSearch" target="_blank" rel="noopener">Open BLASTP ↗</a>
-          <button type="button" id="orfToAnalyzer">Analyse in step 3</button>
-          <span class="note" id="copyMsg" aria-live="polite"></span>
-        </div>
-      </div>
-      <div class="callout">
-        <p><b>Try this.</b> Paste the longest ORF and the frame 1 ORF starting at codon 2077 into BLASTP (database <i>UniProtKB/Swiss-Prot</i>).
-          Which one matches a known protein? Why does the matching protein stop matching after <code>…DPTIE</code>?</p>
-        <details class="hint"><summary>Show the answer</summary>
-          <p>The ORF at codon 2077 (<code>MTEYKLVVVGAGGVGKSALTIQ…</code>) is the start of <b>GTPase HRas</b> (UniProt P01112). After <code>…DPTIE</code> the
-            DNA enters an <b>intron</b>, so the protein continues further along the DNA. The longest ORF gets no convincing hit: introns
-            and repetitive DNA can hold long ORFs purely by chance.</p>
-        </details>
+        <div class="seq" id="protSeq"></div>
+        <p class="note" id="protNote"></p>
       </div>
     </section>
 
     <!-- ================= 2 ================= -->
-    <section id="splice">
-      <div class="sec-head">
-        <span class="label">Step 2 of 8</span>
-        <h2>Splice the exons into one protein</h2>
-        <p>tBLASTn (the H-Ras protein searched against this DNA) finds four coding exons. Each intron should start with <b>GT</b> and end with <b>AG</b>.
-          The coordinates below are correct. Change them by one or two nucleotides to see what breaks.</p>
-      </div>
-      <div class="panel">
-        <div class="scroll">
-          <table id="exonTable"><thead><tr><th>Exon</th><th>Start</th><th>End</th><th>Length</th><th>Reading frame</th><th>Next intron</th></tr></thead><tbody></tbody></table>
-        </div>
-        <div class="row"><button type="button" id="exonReset">Reset to correct coordinates</button><span class="note" id="spliceSummary"></span></div>
-        <div>
-          <span class="label">Translated protein, compared with UniProt P01112 (mismatches highlighted)</span>
-          <div class="seq" id="splicedSeq"></div>
-        </div>
-      </div>
-      <details class="hint"><summary>Why do exons 1–3 sit in frame 1 but exon 4 in frame 2?</summary>
-        <p>Introns 1 and 2 are 267 and 153 nt long, both multiples of 3, so the frame doesn't change, even though codon 97 (Arg, AGG) is split
-          AG|G across intron 2. Intron 3 is 697 nt long, which is not a multiple of 3, so exon 4 moves to frame 2. Translating each frame
-          separately can't join these pieces; splicing can.</p>
-      </details>
-    </section>
-
-    <!-- ================= 3 ================= -->
     <section id="sequence">
       <div class="sec-head">
-        <span class="label">Step 3 of 8</span>
+        <span class="label">Step 2 of 8</span>
         <h2>What the sequence alone tells you</h2>
         <p>Before building a 3D model, simple statistics already hint at the structure: whether the protein is soluble or sits in a membrane,
-          how much of it is helix or strand, and whether it looks folded at all.</p>
+          and how much of it is helix or strand.</p>
       </div>
       <div class="panel">
         <div class="row">
-          <span class="label">Load</span>
-          <button type="button" class="chip" data-preset="hras" aria-pressed="true">H-Ras (spliced)</button>
-          <button type="button" class="chip" data-preset="repeat" aria-pressed="false">Longest ORF (frame 2)</button>
-          <button type="button" class="chip" data-preset="gcn4" aria-pressed="false">GCN4 leucine zipper</button>
+          <span class="label">Protein</span>
+          <span class="protsel" role="group" aria-label="Choose a protein"></span>
         </div>
-        <label for="seqIn" class="label">Protein sequence (edit freely)</label>
+        <label for="seqIn" class="label">Sequence (edit it or paste your own; the comparison with experiment needs an unchanged example)</label>
         <textarea id="seqIn" spellcheck="false"></textarea>
         <div class="tiles" id="stats"></div>
-        <p class="note" id="statsNote"></p>
       </div>
 
       <div class="panel">
@@ -355,7 +337,7 @@ svg text { fill: var(--muted); font: 11px var(--display); }
         <h3>Secondary structure: Chou–Fasman</h3>
         <p class="note">Average each residue's helix propensity (P<sub>α</sub>) and strand propensity (P<sub>β</sub>) over a window. Call helix if ⟨P<sub>α</sub>⟩ passes its
           threshold and beats ⟨P<sub>β</sub>⟩, strand if ⟨P<sub>β</sub>⟩ passes its threshold, otherwise coil. Then drop helices shorter than 4 and strands shorter than 3.
-          For H-Ras, the prediction is scored against the crystal structure 5P21.</p>
+          The <b>DSSP</b> row is the secondary structure of the experimental structure; <b>Q3</b> is the fraction of residues predicted correctly.</p>
         <div class="row">
           <label class="ctl" for="cfWin">Window <output id="cfWinOut">7</output>
             <input type="range" id="cfWin" min="3" max="15" step="2" value="7"></label>
@@ -366,38 +348,40 @@ svg text { fill: var(--muted); font: 11px var(--display); }
           <button type="button" class="chip" id="cfReset">Reset</button>
         </div>
         <div class="tiles" id="cfStats"></div>
-        <div class="legend"><span><i style="background:var(--helix)"></i>H helix</span><span><i style="background:var(--strand)"></i>E strand</span><span><i style="background:var(--coil)"></i>C coil</span><span><i style="background:color-mix(in srgb,var(--bad) 30%,transparent)"></i>disagrees with 5P21</span></div>
+        <div class="legend"><span><i style="background:var(--helix)"></i>H helix</span><span><i style="background:var(--strand)"></i>E strand</span><span><i style="background:var(--coil)"></i>C coil</span><span><i style="background:color-mix(in srgb,var(--bad) 30%,transparent)"></i>disagrees with the experiment</span></div>
         <div class="scroll"><div class="tracks" id="cfTracks"></div></div>
       </div>
       <div class="callout">
-        <p><b>Try this.</b> Can you push Q3 above 65% with the sliders? What do you have to give up? Then load the GCN4 leucine zipper, a known
-          continuous α-helix. How much of it does the method call helix?</p>
+        <p><b>Try this.</b> Compare Q3 for H-Ras and for haemoglobin β. Which protein does Chou–Fasman handle worse, and what kind of mistake does it make?
+          Can you rescue haemoglobin with the sliders without ruining Ras?</p>
         <details class="hint"><summary>Discussion</summary>
-          <p>Tuning thresholds on one protein is <b>overfitting</b>: the settings won't carry over to the next protein. Chou–Fasman ignores two things
-            modern predictors rely on: <b>evolutionary information</b> (the same position in related sequences) and <b>long-range contacts</b>. β-strands pair with partners that can be
-            far apart in the sequence, and a local window can't see that. Step 4 shows how far a neural network gets on the same information.</p>
-          <p>The longest frame 2 ORF is a useful negative control. It is about 18% proline and made of near-perfect 28-residue repeats, which strongly suggests it doesn't fold.</p>
+          <p>For H-Ras the method gets about 60% right. For haemoglobin β it gets under 40%, and it calls about a quarter of the chain β-strand even though haemoglobin has no strands at all.
+            Residues such as Val, Leu, Phe and Tyr have high strand propensities, and haemoglobin's buried helix faces are full of them. Chou–Fasman only looks at a small window of
+            residues, so it can't tell a hydrophobic helix face from a strand.</p>
+          <p>Tuning the thresholds to fix one protein breaks the other: that is <b>overfitting</b>. The methods in the next step learn from thousands of proteins instead.</p>
         </details>
       </div>
     </section>
 
-    <!-- ================= 4 (neural networks) ================= -->
+    <!-- ================= 3 ================= -->
     <section id="nn">
       <div class="sec-head">
-        <span class="label">Step 4 of 8</span>
+        <span class="label">Step 3 of 8</span>
         <h2>Neural networks: learning the rules from data</h2>
         <p>Chou and Fasman tabulated their propensities by hand from a few dozen known structures. In 1988, Qian and Sejnowski instead let a <b>neural network</b> learn
-          the rules from known structures. It looks at a window of residues around the one being predicted and outputs a probability for helix, strand and coil.
-          Below you can train that kind of network in your browser on 5,522 real proteins and test it on the standard CB513 benchmark.</p>
+          the rules. It looks at a window of residues around the one being predicted and outputs a probability for helix, strand and coil.
+          Below you can train that kind of network in your browser on 5,517 real proteins and test it on the standard CB513 benchmark. Relatives of Ras and haemoglobin
+          are removed from the training data, so the network has never seen either protein family.</p>
       </div>
 
       <div class="panel">
         <h3>How the network sees a residue</h3>
         <p class="note">Each residue in the window becomes a column of 22 inputs: 20 amino acids, one for unknown (X) and one for "past the end of the chain". Exactly one input per column is on
           (<i>one-hot encoding</i>). The hidden units combine them, and the three outputs are turned into probabilities (<i>softmax</i>). Training nudges every weight to make the correct
-          answer a little more likely (<i>gradient descent</i>). Move the slider to look at any H-Ras residue.</p>
+          answer a little more likely (<i>gradient descent</i>). Move the slider to look at any residue of the selected protein.</p>
         <div class="row">
-          <label class="ctl" for="nnRes">H-Ras residue <output id="nnResOut">21</output>
+          <span class="protsel" role="group" aria-label="Choose a protein"></span>
+          <label class="ctl" for="nnRes">Residue <output id="nnResOut">21</output>
             <input type="range" id="nnRes" min="1" max="166" value="21"></label>
           <span class="note" id="nnResNote"></span>
         </div>
@@ -441,10 +425,13 @@ svg text { fill: var(--muted); font: 11px var(--display); }
       </div>
 
       <div class="panel">
-        <h3>H-Ras, predicted by both methods</h3>
-        <p class="note">Small GTPases were removed from the training set, so the network has never seen Ras or a close relative.</p>
-        <div class="tiles" id="nnRasTiles"></div>
+        <h3>The example proteins, predicted by both methods</h3>
+        <div class="scroll">
+          <table class="cmp" id="nnProtTable"><thead><tr><th>Protein</th><th>Chou–Fasman Q3</th><th>Neural network Q3</th></tr></thead><tbody></tbody></table>
+        </div>
+        <div class="row"><span class="protsel" role="group" aria-label="Choose a protein"></span></div>
         <div class="scroll"><div class="tracks" id="nnTracks"></div></div>
+        <p class="note">Step 4 shows these same predictions on the 3D structure.</p>
       </div>
 
       <div class="callout">
@@ -453,14 +440,15 @@ svg text { fill: var(--muted); font: 11px var(--display); }
           <li>Set the window to 1. How good is a prediction from a single residue? Then try 5, 13 and 21.</li>
           <li>Set hidden units to 0 (a linear network) and then 20. How much do the hidden units add?</li>
           <li>Train on 50 proteins for 8 epochs. Compare the training and test curves.</li>
-          <li>Turn on the second-level network. What changes in the H-Ras tracks?</li>
+          <li>Turn on the second-level network. What changes in the tracks?</li>
         </ol>
         <details class="hint"><summary>What you should see</summary>
           <p><b>Context matters.</b> One residue on its own gives about 48%, barely better than always guessing "coil" (43% of CB513). A window of 13–17 gives about 62–65%.</p>
-          <p><b>The model size is not the bottleneck.</b> Hidden units add only a point or two. Qian and Sejnowski found the same in 1988. A single sequence
-            simply doesn't carry much more information about local structure, so single-sequence methods level off around 65%.</p>
-          <p><b>Too little data means overfitting.</b> With 50 proteins the training accuracy keeps climbing while the test accuracy stalls, and the gap between them grows:
-            the network starts memorising the training proteins instead of learning general rules. Always judge a predictor on proteins it has never seen.</p>
+          <p><b>Haemoglobin improves the most.</b> Chou–Fasman gets under 40% of haemoglobin β right. The network typically gets 50–70%, depending on the settings and the run: it has learned from thousands of
+            helices that a hydrophobic residue every three or four positions usually means a helix face, not a strand. Scores for a single protein jump around from run to run; the CB513 score is the reliable one.</p>
+          <p><b>The model size is not the bottleneck.</b> Hidden units add only a point or two. A single sequence simply doesn't carry much more information about local
+            structure, so single-sequence methods level off around 65%.</p>
+          <p><b>Too little data means overfitting.</b> With 50 proteins the training accuracy keeps climbing while the test accuracy stalls, and the gap between them grows.</p>
           <p><b>A second network cleans up the output.</b> It reads the first network's probabilities over 17 neighbouring residues and learns that helices come in runs, which removes isolated
             one-residue "helices" and adds about a point of Q3. PHD (1993) used this cascade.</p>
         </details>
@@ -473,10 +461,56 @@ svg text { fill: var(--muted); font: 11px var(--display); }
             appears at that position across related proteins in a multiple sequence alignment. A position that is always hydrophobic in homologues is probably buried. A strand's
             alternating pattern shows up much more clearly across 100 sequences than in one.</p>
           <p><b>PSIPRED</b> (1999) built the profiles with PSI-BLAST and reached about 76%. Deep networks with profiles now reach about 85% on CB513. The practical ceiling is roughly 88–90%,
-            because DSSP itself assigns slightly different states to different crystal structures of the same protein. The same idea, evolution as data, is what powers AlphaFold's MSA input in step 5.</p>
+            because DSSP itself assigns slightly different states to different structures of the same protein. The same idea, evolution as data, is what powers AlphaFold's MSA input in step 5.</p>
         </div>
         <div class="ladder" id="nnLadder"></div>
         <p class="note">Solid green bars were measured on this page, on CB513. Grey bars are published values measured on different test sets, so compare them loosely.</p>
+      </div>
+    </section>
+
+    <!-- ================= 4 ================= -->
+    <section id="correct">
+      <div class="sec-head">
+        <span class="label">Step 4 of 8</span>
+        <h2>What was predicted correctly?</h2>
+        <p>Here is the experimental structure. Colour it by a method's prediction to see which parts it got right (green) and wrong (red). Drag to rotate; hover over the chain to identify residues.</p>
+      </div>
+      <div class="panel">
+        <div class="row">
+          <span class="protsel" role="group" aria-label="Choose a protein"></span>
+          <span class="seg" role="group" aria-label="Colour by" id="v1Modes">
+            <button type="button" class="chip" data-mode="dssp">Experimental secondary structure</button>
+            <button type="button" class="chip" data-mode="cf">Chou–Fasman: right or wrong</button>
+            <button type="button" class="chip" data-mode="nn">Neural network: right or wrong</button>
+          </span>
+        </div>
+        <div class="viewer-wrap">
+          <div class="viewer">
+            <canvas id="v1" width="700" height="480" aria-label="3D view of the experimental structure"></canvas>
+            <div class="vtools">
+              <button type="button" class="chip" data-act="spin" aria-pressed="true">Spin</button>
+              <button type="button" class="chip" data-act="in" aria-label="Zoom in">+</button>
+              <button type="button" class="chip" data-act="out" aria-label="Zoom out">−</button>
+              <button type="button" class="chip" data-act="reset">Reset</button>
+            </div>
+          </div>
+          <div class="vside">
+            <div class="tiles" id="v1Tiles"></div>
+            <div class="legend" id="v1Legend"></div>
+            <p class="note mono" id="v1Hover">Hover over the structure to identify a residue.</p>
+            <p class="note" id="v1Note"></p>
+          </div>
+        </div>
+        <div class="scroll"><div class="tracks" id="v1Strip"></div></div>
+      </div>
+      <div class="callout">
+        <p><b>Try this.</b> Switch between Chou–Fasman and the neural network for haemoglobin β. Where are the red segments for each? For H-Ras, are the errors in the β-sheet at the centre, in the helices, or in the loops?</p>
+        <details class="hint"><summary>What to look for</summary>
+          <p>Chou–Fasman paints whole haemoglobin helices red because it calls them strands (the "wrongly called strand" count). The network still calls a few short strands and cuts several helices short,
+            but far fewer residues are wrongly called strand. Retrain it in step 3 with other settings and watch the colours change. In H-Ras, look at the β-hairpin formed by β2 and β3 (residues 37–58): both methods get only part of it. What makes a
+            strand a strand is its partner strand, which can be far away in the sequence, so local methods find strands harder than helices.</p>
+          <p>For haemoglobin, the faint grey chains are the other three subunits of the tetramer and the red spheres are the haem irons. A single-chain prediction knows nothing about them.</p>
+        </details>
       </div>
     </section>
 
@@ -485,105 +519,123 @@ svg text { fill: var(--muted); font: 11px var(--display); }
       <div class="sec-head">
         <span class="label">Step 5 of 8</span>
         <h2>Predict the 3D structure</h2>
-        <p>Copy the H-Ras FASTA and run it through <b>one</b> of these free tools. Each takes a few minutes or less for 189 residues. Save the result as a <code>.pdb</code> file for step 6.</p>
+        <p>Copy the FASTA and run it through <b>one</b> of these free tools. Each takes a few minutes or less for these proteins. Save the result as a <code>.pdb</code> file for step 6.</p>
       </div>
       <div class="panel sunk">
-        <div class="row"><span class="label">FASTA</span><button type="button" id="copyFasta">Copy H-Ras FASTA</button><span class="note" id="fastaMsg" aria-live="polite"></span></div>
+        <div class="row"><span class="protsel" role="group" aria-label="Choose a protein"></span><button type="button" id="copyFasta">Copy FASTA</button><span class="note" id="fastaMsg" aria-live="polite"></span></div>
         <div class="seq" id="fastaBox"></div>
+        <p class="note" id="predictTip"></p>
       </div>
       <div class="tools">
         <div class="panel"><span class="label">No MSA · seconds</span><h3>ESMFold</h3>
           <p class="note">A protein language model predicts the structure from the single sequence. Fastest; slightly less accurate than AlphaFold2.</p>
           <a href="https://esmatlas.com/resources?action=fold" target="_blank" rel="noopener">ESM Atlas fold page ↗</a>
-          <p class="note">Or: <code>python3 structure_tutorial.py fold --spliced</code></p></div>
+          <p class="note">Or: <code>python3 structure_tutorial.py fold --protein hbb</code></p></div>
         <div class="panel"><span class="label">MSA · minutes</span><h3>ColabFold (AlphaFold2)</h3>
-          <p class="note">Paste the sequence, then choose Runtime → Run all. Gives the PAE plot and five ranked models.</p>
+          <p class="note">Paste the sequence, then choose Runtime → Run all. Gives the PAE plot and five ranked models. Separate chains with <code>:</code> to predict a complex.</p>
           <a href="https://colab.research.google.com/github/sokrypton/ColabFold/blob/main/AlphaFold2.ipynb" target="_blank" rel="noopener">ColabFold notebook ↗</a></div>
         <div class="panel"><span class="label">Complexes · ligands</span><h3>AlphaFold Server (AF3)</h3>
-          <p class="note">Add GTP or GDP plus Mg²⁺ next to the protein. Needs a free Google account.</p>
+          <p class="note">Add GDP or GTP and Mg²⁺ to Ras, or build the haemoglobin tetramer (2 α + 2 β) with four haem groups. Needs a free Google account.</p>
           <a href="https://alphafoldserver.com" target="_blank" rel="noopener">alphafoldserver.com ↗</a></div>
         <div class="panel"><span class="label">Precomputed</span><h3>AlphaFold DB</h3>
-          <p class="note">Download the ready-made model for UniProt P01112 to skip waiting.</p>
-          <a href="https://alphafold.ebi.ac.uk/entry/P01112" target="_blank" rel="noopener">AF-P01112 ↗</a></div>
+          <p class="note">Ready-made models: H-Ras P01112, haemoglobin β P68871, α P69905.</p>
+          <a href="https://alphafold.ebi.ac.uk/entry/P01112" target="_blank" rel="noopener">AF-P01112 ↗</a>
+          <a href="https://alphafold.ebi.ac.uk/entry/P68871" target="_blank" rel="noopener">AF-P68871 ↗</a>
+          <a href="https://alphafold.ebi.ac.uk/entry/P69905" target="_blank" rel="noopener">AF-P69905 ↗</a></div>
       </div>
       <div class="panel">
         <h3>What the network does</h3>
         <div class="two">
           <p><b>MSA and co-evolution.</b> If residue <i>i</i> mutates and residue <i>j</i> compensates across many related species, the two are probably in contact.
-            AlphaFold2's <i>Evoformer</i> reasons over the alignment and a residue-pair map through 48 blocks.</p>
+            AlphaFold2's <i>Evoformer</i> reasons over the alignment and a residue-pair map through 48 blocks. Globins and Ras-family GTPases both have thousands of relatives, so their alignments are deep.</p>
           <p><b>Structure module.</b> Each residue is treated as a rigid frame that is rotated and moved into place. The model is recycled three times and outputs
-            coordinates together with pLDDT and PAE. AlphaFold3 replaces this step with <i>diffusion</i>, which also lets it place ligands.</p>
+            coordinates together with pLDDT and PAE. AlphaFold3 replaces this step with <i>diffusion</i>, which also lets it place ligands such as haem or GTP.</p>
         </div>
-      </div>
-    </section>
-
-    <!-- ================= 5 ================= -->
-    <section id="confidence">
-      <div class="sec-head">
-        <span class="label">Step 6 of 8</span>
-        <h2>Judge the model</h2>
-        <p>A prediction is a hypothesis. Predictors store per-residue confidence (<b>pLDDT</b>, 0–100) in the B-factor column of the PDB file. Load your model below; the file
-          is read in your browser and never uploaded.</p>
-      </div>
-      <div class="panel">
-        <div class="drop" id="dropModel">
-          <b>Drop a predicted .pdb file here</b>
-          <span class="note">from AlphaFold DB, ColabFold or ESMFold</span>
-          <label class="btn" for="fileModel">Choose file</label>
-          <input type="file" id="fileModel" accept=".pdb,.ent,.txt" hidden>
-        </div>
-        <div class="legend">
-          <span><i style="background:var(--af-vh)"></i>≥ 90 very high: backbone and side chains reliable</span>
-          <span><i style="background:var(--af-c)"></i>70–90 confident: backbone reliable</span>
-          <span><i style="background:var(--af-l)"></i>50–70 low: caution</span>
-          <span><i style="background:var(--af-vl)"></i>&lt; 50 very low: likely disordered</span>
-        </div>
-        <div id="modelOut" hidden>
-          <div class="tiles" id="plddtTiles"></div>
-          <div class="scroll"><svg id="plddtPlot" viewBox="0 0 800 200" style="min-width:520px;width:100%;margin-top:12px" role="img" aria-label="pLDDT per residue"></svg></div>
-          <div class="row" style="margin-top:12px">
-            <label class="ctl" for="rFrom">Residues from <input type="number" id="rFrom" value="1" min="1"></label>
-            <label class="ctl" for="rTo">to <input type="number" id="rTo" value="166" min="1"></label>
-            <span id="rangeStat" class="mono"></span>
-          </div>
-          <div class="two" style="margin-top:16px">
-            <div class="panel sunk"><span class="label">Cα trace coloured by pLDDT · drag to rotate</span><canvas id="trace" width="520" height="400" style="width:100%;touch-action:none;cursor:grab"></canvas></div>
-            <div class="panel sunk">
-              <span class="label">Compare with experiment</span>
-              <p class="note">Download <a href="https://www.rcsb.org/structure/5P21" target="_blank" rel="noopener">PDB 5P21 ↗</a> (H-Ras 1–166 with GppNHp and Mg²⁺) and load it here.
-                The Cα RMSD is computed after optimal superposition, over the residue range above, using residues numbered the same in both files.</p>
-              <label class="btn" for="fileRef" style="justify-self:start">Load reference .pdb</label>
-              <input type="file" id="fileRef" accept=".pdb,.ent,.txt" hidden>
-              <div class="tiles" id="rmsdOut"></div>
-              <p class="note">Rules of thumb: Cα RMSD under 2 Å is very close. For TM-score (above 0.5 means the same fold), use the <a href="https://www.rcsb.org/alignment" target="_blank" rel="noopener">RCSB pairwise alignment ↗</a>.</p>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="two">
-        <div class="callout"><p><b>What to expect for H-Ras.</b> The G domain (1–166) should be almost entirely above 90. The <b>hypervariable region</b> (about 167–189, ending in the
-          lipid-anchored <code>CVLS</code>) should drop below 50. It is flexible in the cell and not visible in the crystal either. Compare the RMSD over 1–166 with the RMSD over 1–189.</p></div>
-        <div class="callout"><p><b>PAE</b> (predicted aligned error, the heat map in ColabFold and AlphaFold DB) tells you how confident the model is about the relative position of two residues. High pLDDT with high
-          PAE between two domains means each domain is right, but their relative orientation is not known. For complexes, ipTM above about 0.8 means a confident interface.</p></div>
       </div>
     </section>
 
     <!-- ================= 6 ================= -->
-    <section id="limits">
+    <section id="confidence">
       <div class="sec-head">
-        <span class="label">Step 7 of 8</span>
-        <h2>What predictors can't tell you</h2>
-        <p>H-Ras makes a good case study because its biology depends on details that a single static model misses.</p>
+        <span class="label">Step 6 of 8</span>
+        <h2>Judge the model</h2>
+        <p>Load your predicted structure. The page lines it up with the experimental structure (sequence alignment, then the best rigid-body superposition) and colours every residue by how far
+          it is from where it should be. The file is read in your browser and never uploaded.</p>
+      </div>
+      <div class="panel">
+        <div class="row">
+          <span class="protsel" role="group" aria-label="Choose a protein"></span>
+        </div>
+        <div class="drop" id="dropModel">
+          <b id="dropMsg">Drop a predicted .pdb file here</b>
+          <span class="note">from AlphaFold DB, ColabFold, ESMFold or AlphaFold Server (convert .cif to .pdb first)</span>
+          <div class="row" style="justify-content:center">
+            <label class="btn" for="fileModel">Choose file</label>
+            <input type="file" id="fileModel" accept=".pdb,.ent,.txt" hidden>
+            <button type="button" id="demoAlpha">Try a demo: the α chain as a model of β</button>
+          </div>
+        </div>
+        <div class="row">
+          <span class="seg" role="group" aria-label="Colour by" id="v2Modes">
+            <button type="button" class="chip" data-mode="dev">Distance from experiment</button>
+            <button type="button" class="chip" data-mode="plddt">Model confidence (pLDDT)</button>
+          </span>
+          <label class="row" for="v2Overlay" style="gap:8px;font-size:0.9rem"><input type="checkbox" id="v2Overlay" checked> Show the model as a thin line</label>
+        </div>
+        <div class="viewer-wrap">
+          <div class="viewer">
+            <canvas id="v2" width="700" height="480" aria-label="3D comparison of the model with the experimental structure"></canvas>
+            <div class="vtools">
+              <button type="button" class="chip" data-act="spin" aria-pressed="true">Spin</button>
+              <button type="button" class="chip" data-act="in" aria-label="Zoom in">+</button>
+              <button type="button" class="chip" data-act="out" aria-label="Zoom out">−</button>
+              <button type="button" class="chip" data-act="reset">Reset</button>
+            </div>
+          </div>
+          <div class="vside">
+            <div class="tiles" id="v2Tiles"></div>
+            <div class="legend" id="v2Legend"></div>
+            <p class="note mono" id="v2Hover">Hover over the structure to identify a residue.</p>
+            <p class="note" id="v2Note">No model loaded yet. The thick chain is the experimental structure.</p>
+          </div>
+        </div>
+        <div class="scroll"><div class="tracks" id="v2Strip"></div></div>
+        <div id="plddtBox" hidden>
+          <span class="label">pLDDT per residue</span>
+          <div class="scroll"><svg id="plddtPlot" viewBox="0 0 800 200" style="min-width:520px;width:100%;margin-top:8px" role="img" aria-label="pLDDT per residue"></svg></div>
+          <div class="legend">
+            <span><i style="background:var(--af-vh)"></i>≥ 90 very high</span>
+            <span><i style="background:var(--af-c)"></i>70–90 confident</span>
+            <span><i style="background:var(--af-l)"></i>50–70 low</span>
+            <span><i style="background:var(--af-vl)"></i>&lt; 50 very low, likely disordered</span>
+          </div>
+        </div>
       </div>
       <div class="two">
-        <div class="panel"><h3>One conformation, two states</h3><p class="note">Ras switches between inactive GDP-bound and active GTP-bound states. The changes are concentrated in switch I (≈30–38) and switch II (≈59–76). AlphaFold2 gives you only one of them.</p></div>
-        <div class="panel"><h3>Point mutations</h3><p class="note">Predict G12V: the model looks almost the same as wild type. The mutation is oncogenic because it blocks GTP hydrolysis, not because it changes the fold.</p></div>
-        <div class="panel"><h3>Ligands and lipids</h3><p class="note">AlphaFold2 has no GTP, no Mg²⁺ and no farnesyl lipid. AlphaFold3 can add GTP and Mg²⁺, but most modifications are still out of reach.</p></div>
-        <div class="panel"><h3>Partners, membranes, motion</h3><p class="note">Ras works at the membrane, bound to Raf, SOS and GAP. Low pLDDT can mean real, functional disorder. A predicted model doesn't show dynamics or the folding pathway.</p></div>
+        <div class="callout"><p><b>What to expect.</b> An AlphaFold2 model of H-Ras should put nearly all of residues 1–166 within 2 Å of the experiment. The C-terminal tail (167–189) has no
+          experimental coordinates here and very low pLDDT. Because 1CRR is an NMR structure, a few loops can differ by more than 2 Å even when the model is good. For a haemoglobin chain, expect
+          high pLDDT across all eight helices.</p></div>
+        <div class="callout"><p><b>The demo</b> uses the experimental α chain as a "model" of the β chain. They are 43% identical, which is what homology modelling relies on: 73% of β lands within 2 Å.
+          The unmatched stretch around β residues 45–55 is where α chains are shorter: they lack the D helix. <b>PAE</b> (ColabFold, AlphaFold DB) adds how confident the model is about the relative position of two parts.</p></div>
       </div>
     </section>
 
     <!-- ================= 7 ================= -->
+    <section id="limits">
+      <div class="sec-head">
+        <span class="label">Step 7 of 8</span>
+        <h2>What predictors can't tell you</h2>
+        <p>Both proteins work through details that a single static model of one chain misses.</p>
+      </div>
+      <div class="two">
+        <div class="panel"><h3>Ras: two states</h3><p class="note">Ras switches between inactive GDP-bound and active GTP-bound states. The changes are concentrated in switch I (≈30–38) and switch II (≈59–76). AlphaFold2 gives you only one of them.</p></div>
+        <div class="panel"><h3>Ras: point mutations</h3><p class="note">Predict G12V: the model looks almost the same as wild type. The mutation is oncogenic because it blocks GTP hydrolysis, not because it changes the fold.</p></div>
+        <div class="panel"><h3>Haemoglobin: the tetramer and the haem</h3><p class="note">A single β chain folds correctly on its own in a prediction, but haemoglobin only works as α₂β₂ with four haem groups. AlphaFold2 has no haem; AlphaFold3 can add it and build the tetramer.</p></div>
+        <div class="panel"><h3>Haemoglobin: allostery and sickle cell</h3><p class="note">Oxygen binding shifts the tetramer from the T state (4HHB) to the R state. Sickle-cell haemoglobin (β E6V) folds normally; the disease comes from deoxy HbS tetramers sticking together into fibres, which no single-chain model shows.</p></div>
+      </div>
+    </section>
+
+    <!-- ================= 8 ================= -->
     <section id="quiz">
       <div class="sec-head">
         <span class="label">Step 8 of 8</span>
@@ -595,17 +647,17 @@ svg text { fill: var(--muted); font: 11px var(--display); }
       <div class="panel sunk">
         <h3>Exercises to hand in</h3>
         <ol style="margin:0;padding-left:1.2em;display:grid;gap:6px;max-width:70ch">
-          <li>Report the four exon coordinates and the splice-site dinucleotides. In two sentences, explain why "longest ORF" failed.</li>
-          <li>Make a table of Q3 on H-Ras for Chou–Fasman, your best neural network from step 4 (give its settings), PSIPRED and the DSSP secondary structure of your AlphaFold or ESMFold model. Explain the ranking.</li>
-          <li>Include a figure of your model coloured by pLDDT, with the G domain, the switch regions and the hypervariable region labelled. Give the mean pLDDT for 1–166 and for 167–189.</li>
-          <li>Report the Cα RMSD against 5P21 over 1–166, and explain why it rises when you include every residue.</li>
-          <li>Fold the frame 2 repeat ORF. Using its mean pLDDT, argue whether it is a real protein.</li>
-          <li>In about 150 words, explain why an accurate model of Ras alone wasn't enough to design sotorasib against KRAS-G12C.</li>
+          <li>Make a table of Q3 for H-Ras and haemoglobin β with Chou–Fasman, your best neural network from step 3 (give its settings), PSIPRED, and the DSSP of your AlphaFold or ESMFold model. Explain the ranking.</li>
+          <li>Include a screenshot from step 4 of haemoglobin β coloured by Chou–Fasman and by the neural network. Describe where each method fails.</li>
+          <li>Predict H-Ras and haemoglobin β in 3D. For each, report the fraction of residues within 2 Å and the Cα RMSD from step 6, and the mean pLDDT.</li>
+          <li>Predict the haemoglobin tetramer (2 α + 2 β) with AlphaFold Server, with and without haem. Compare ipTM and the positions of the haem groups with 4HHB.</li>
+          <li>In about 150 words, explain why an accurate AlphaFold model of Ras wasn't enough to design sotorasib against KRAS-G12C.</li>
         </ol>
       </div>
-      <p class="note">Sources: Anfinsen 1973 <i>Science</i>; Chou &amp; Fasman 1978 <i>Adv. Enzymol.</i>; Kyte &amp; Doolittle 1982 <i>J. Mol. Biol.</i>; Qian &amp; Sejnowski 1988 <i>J. Mol. Biol.</i>; Rost &amp; Sander 1993 <i>J. Mol. Biol.</i>; Jones 1999 <i>J. Mol. Biol.</i>;
-        Klausen et al. 2019 <i>Proteins</i> (NetSurfP-2.0); secondary-structure data from Zhou &amp; Troyanskaya 2014 (ICML) as cleaned by Drori et al. 2018 (cu-ssp, MIT License); Pai et al. 1990 <i>EMBO J.</i> (5P21);
-        Jumper et al. 2021 <i>Nature</i>; Lin et al. 2023 <i>Science</i>; Mirdita et al. 2022 <i>Nat. Methods</i>; Abramson et al. 2024 <i>Nature</i>.</p>
+      <p class="note">Sources: Anfinsen 1973 <i>Science</i>; Chou &amp; Fasman 1978 <i>Adv. Enzymol.</i>; Kyte &amp; Doolittle 1982 <i>J. Mol. Biol.</i>; Qian &amp; Sejnowski 1988 <i>J. Mol. Biol.</i>;
+        Rost &amp; Sander 1993 <i>J. Mol. Biol.</i>; Jones 1999 <i>J. Mol. Biol.</i>; Klausen et al. 2019 <i>Proteins</i> (NetSurfP-2.0); Kabsch &amp; Sander 1983 <i>Biopolymers</i> (DSSP);
+        Kraulis et al. 1994 <i>Biochemistry</i> (1CRR); Fermi et al. 1984 <i>J. Mol. Biol.</i> (4HHB); Jumper et al. 2021 <i>Nature</i>; Lin et al. 2023 <i>Science</i>; Mirdita et al. 2022 <i>Nat. Methods</i>;
+        Abramson et al. 2024 <i>Nature</i>. Secondary-structure data: Zhou &amp; Troyanskaya 2014 (ICML), cleaned by Drori et al. 2018 (cu-ssp, MIT License).</p>
     </section>
   </main>
 </div>
@@ -6665,19 +6717,18 @@ MKRFARKETIYLRGEEARTLYRLEEGLVRVVELLPDGRLITLRHVLPGDYFGEEALEGKAYRYTAEAMTEAVVQGLEPRA
 </script>
 <script>
 "use strict";
-const DNA = "CCACCCCGAGCCTAGAGAAGGCTCCTAGCTTGGCTGGGCCTCATGGGGCCCTTGTCTGCTTAGTTCCAGCCTGGAGGGCCTCACGCTCCCCTCCCCCAGCCTTGGCTCGACCCCCTCTGCTTCGTAGGACACCCTCCCTGTGTTTCTGCCCATCCTCAGGGTCCATGCAGGGAGTGCTGGCTTCAGGCCTCCCCACCTGAGGCCCACAGGGGCTGTGAGCCTGGGGTGCCGGGCCAGCTGCCGGTGGCTGTGGGGCTCCCGGCACTGCCTCAAGCTGTGGGCTATGGGTCCTTCTCCACCTGATGGTCTCTGAGCCTGGGGTCCAGGATCAAGTCCCAGGCCTTCCCCTACCCCAGCCCTGTGCCAGCCGAGCCCCTTCACCTGCAGGCAGCTGCCCTCTCCTGCTGTGGGTCAAACATCCAGGCAAGGAGGTGGCATGTACCCTCAGGCAGTACCTGCAAGAGTCAGAGTGGCTTCCTGGCCAGGTTACTGTGCCCATGGGAGCCTGGAATGGGCCAGGCTGAGGTCACAGCACCTAGAGGTGAGCAGATCAGCCCAGGACCTGACTATCCACGGACCCAGCTGGCGAGGAGGAAGAGAGTCAGGTGTGTGACCGATGCTGGGGTACCTCTGGGTCCCCCAACACAATGCCTGCTGCTCATCCAAATCCCACTTCCCTCCTTCTCCACAGGGGTCCTCTCTTGCACCCTGTTCTTCCTGAGCCCCTCCCCAGGCCTCTGAGGGTATTGGCCCAGTGTGTCCCTCTCTTGCATCCCATTCTTCCTAAGCCCAGTGTGTCCCTCGACTACGTGCATCAGGCTTACCTGGTGTTGCCCCTTAAAGATGCAGACGTCTGGCGGGGCGCAGTGGCTCACGCCTGTAATCCCAGCACTTTGGGAGGCCGCGGCGGGCAGATCACGAGGTCAGGAGATTGAGACCATCCTGGCTAACACGGTGAAACCCTGTCTCTACTAAAAATACAAAAAAAAAAAAAAAAAAATTAGCTGGCGTGGTGGCAGGTGCCTGTAGTCCCAGCTACTTGGGAGGCTGAGGCAGGAGAATGCCATGAACCCGCGAGGCGGAGCTTGCAGTGAGACAAGATCGCGCCACTGTCCTCCAGCCTGGGCAACAGAGCAAGACTCTGTCTCAAAAAAAAAAAAAAAAAAGGCTGGGTGCGGTGGCTCACACCTGTAATCCCAGCACTTTGGGAGGCTGAGGCGGGCAGATCACAAGATCAGGAGATCAAGACCATCCTGGCTAACGAGGTGAAACCCCATCTCTACTAAAGATACAAAAAACATAGTTAGCCAGGCGTGGTGGCGGACGCCTGTAGTCCCAGCTACTTGGGAGGCTGAGGCTGGGGAATGGCATGAACCCAGGAGGTGGAGCTTGCAGTGAGCCAAGATGGCACCACTGCACTCCAGCCTGGGCGACAGAGAGAGACTCCATCTCAAAAAACAAACAAACAAACAAAGATGCAGACATCTGCCTCGGCCCCAGGCCCTGGAATCATGAGCTCCAGGCGTGGAGTGACAAGTGTGCTCGGAGCGTCCAGTGTCCTCCTCCCTGACCACCTTCATGTGTCTTCAGTCTGGACCTGGACTGATCCCCTGACTGCACTCCCCACCCAGCCTTCCCAGATTTATCTTCCTGATGAGACGAGTTCCCTTCGGAGCCCTGTGTGTCTTACTACGTGTTCGGTTGAGGGCCTGCCTCGCCCCAGAGCTGTGGGCTGCACGTGGCCTGCACGTGGCCTGCGTGCTCCTCTGCTGTCCACAGTCGCAGGAGGGGATGCTCAAATATTTGTCGAAGGAATCCGTGAACAGGCAGATGCACATGTAGCCACTTAGAACGTTCTGGCCATGGCTTTTATCTGTTGACCACGTGTGGACACTGAAGATGCATCCTCTCCATCCCGTCTAGAGCTGCCCCTGTGCCAGGCGAGTTGGCCGGCTGTTGACAGAGGTGGTGGGTGGGAGTGTTGGAGCGGGGCAGTGGCTCAGGCTCTGGGTGCCTCACTGGCCTGGTCTGGAAGGTGACCATGCACCAAGGATCAAAGAAGTGAAGCCCAAAGCAGAATCTCATGGAGTTTCCAGCCCAAATCTCCCCCACTGCCTGCCTTTCTCCAGCCAGTGCAAGGCCCCAGGCCTCACAGCAGGACCCCAACACTGCATCCCCCCAAAGACTCTGGCCACCTCCATCCCAGGCCTGCCAGCCTCGAGCCTCATGGAGGGCGTGAGCTGGCGGGGTCACGGGCAGCCCCTGGACACCTATGGGTGACACTAAGGGCTGAGTCAGCTACCCTTGTCTCCTCTGTGCCCAAGAGCCCCAAGCATCAGACTGGTCTGAGCCCCAAGGCCTGGGGGTGCAAGGGGTTGGAGGCTGTGGGATCCAAAGACCCCATTGAACTCCCACCTCAGACACTGCACCTAGTGTTCTCACCCAGGCCTGAACCCATCCACACACTTCACGGCCCTGCTCCCACCCTGTGTCCCCTCTGCAAGCCCCCATGCTCCCCAAATTGGTAACTGGGGGGCCTGTCTCCACACCCCTGCTAGTGCCATTCCCTGGTGGGTAGCCATCACCTCTGGGTCCCCTGCTGCCCTCGCCCCTTCACCATGGGGGCTCGGAAGGCAGAGCCCGCTCCCCTCCTGAGCCCCACCCTGGAACCCTGAGCACCCTGGGTCATTGCCTCTGAGTCTCCCTCAGGGGCAGGGCTTGGGGCCCCTCCTGTCTCCTGACAGGGAGCCCTTTCAGTGCAGGGCCAGGGGGTGGTGGAGGCAAGGGTCCTCAGGGGACCAGATCTGACATGCGGGGCCATCACTGGGTCCCCGATGGCTGTGCTGCTTCGTCCCCGCGCCCACGCCTCGGCGCAGGTTCCCTCCTGGCACCGGTCATAGGGCGAGGCTTGCGGCTCCCACCCCAAGGGTGCGCTCGGCTCTCACCTGAGGGCTCAGCCTAGGTGTCCGGCCCTGGCAGCTCGGCCCTGGGCGCCCTCCACCTCCAGGCGCTGTCTCCTACTCCAGGCTGTTCTTCCGGCCGCCGCGGGGTTGCGGCCTGGGCGCCATAGCAACGGGAGCCAGGCCTCATTTGAATACGCAAATATTTATAAGTCGCCGGGGGCTCGGGTTCCGTGCGGCTGAGCCACGCCCCTTAGCAACGGTCGCTAGGGCGGGGCCACGTGGACTGGCACGTGCGTGGGCGCCCCTGCTGCGGGCGATCCCAGGGGAAGGTGACGCGCCACCAACTCGAGTTGGGTGGGCGCAGGCGCGTCAGGTGCCAGCTTCCTGCGGCTCCGTGCCTGGGCCGTCGCGATGCACGTGTCGCGTTTCCTCGCGATCCTGGCGCTTCCCACGCGGGGCGGGTAAAGGCGGTCTCTGCTGGAGGCTCGCGCCCACCTTTCCCAGGTGGAAGGGTCGCCCCTGGGGCCGAGGCCTGCCGTCCTGACCTTCGGTTGGAAGTGAGGCCGACGGCAAAAGGAAGCACCGGGGGAAGCGCCCCCGAGGACCAGGAAACACACACCGGACGCCGGAGCGCACCCGAGTGCCCGGCCCGCGGGACACGCTGCCGCCCGCCGTCCAGTCGCCGCTTCTCACTCGCGTTCATGCGTGTCCGCCCCGAGCCGAGCTCTGACTGCGACCGCGCGGTGGACGGACGGCAGGCGGGACCCCCGGGACCGCACGTGGGTGGAGCCCCGGGTCAGCAGCGACCGGCGCAGGAGGGCGAGGCGGGCGCTGGACTGGGCAGAGGCAGGGTTTGCCTGACTGTAAAACGCCTTTTTTGTTTTGAGACGAAGTAGCGCTCTGTTGCCCAGTGCAGTGGCGCGATTTCGGCTCACCGCAACATCCGCCTCCCGGGTTCCAGCGATTCTCCTGCCTCAGCCTCCCGAGTAGCTGGGACTACAGGCGCGCGCCACTGCAGCCGACTAATTTTTTGTGTTTTTAGTAGAGACAGGGTTTCATCATGTTGGCCAGGCTGGTCTTGAACTCCTGACCTCAAGTAATCCACCCGCTTAGGCCTCCCGAAGTGCTGGGATTATAGGCGTGAGCCACCGCGCCCGGCCCTTTTTGTTTTTTAATGAGGATGTATTTCTGATTCCTTTGCAATTTTAAAAAATGTTAAAAACATGTCTTTTTGGGTTTGAAAGAGCTAGGATGTGCGTCTATGTGCTTGGGGTGAGCCCTGGGCACTTCGCTCCCCTGTGGCAACTTGTGGGTACGGTTTAACTGGACCACGCTGAGCTTCTGCAGCGTTGGAACCTCAAGTTTGGGGGGACTGGGCGGGCAGGGTCGCCTGCCACGCAGGCCCGAGAAAGAGGAGAGTGGTGGAGGGGGCGTTCTCACGCCTGGCCCCAGGGCACACGGCTGCGCCCGCCGCCCGGAACCCCACCGGGGCTGCAAGCGTCCTCGGGGTGGGTTGCGGTGGGAGTAGGGGAGCTGGGGTGCGTGGTGGTAGGTGGGGTGCGCGGCCGCTCCACCTGCGCGGAAGGGCAGCCGGGCAACCGGACCCCGCGGCCACCCGGGGGCCCCCAGCTCCGAGCATCCCGCCTTGGTCCCGGCGGATCCCAGCCTTTCCCCAGCCCGTAGCCCCGGGACCTCCGCGGTGGGCGGCGCCGCGCTGCCGGCGCAGGGAGGGCCTCTGGTGCACCGGCACCGCTGAGTCGGGTTCTCTCGCCGGCCTGTTCCCGGGAGAGCCCGGGGCCCTGCTCGGAGATGCCGCCCCGGGCCCCCAGACACCGGCTCCCTGGCCTTCCTCGAGCAACCCCGAGCTCGGCTCCGGTCTCCAGCCAAGCCCAACCCCGAGAGGCCGCGGCCCTACTGGCTCCGCCTCCCGCGTTGCTCCCGGAAGCCCCGCCCGACCGCGGCTCCTGACAGACGGGCCGCTCAGCCAACCGGGGTGGGGCGGGGCCCGATGGCGCGCAGCCAATGGTAGGCCGCGCCTGGCAGACGGACGGGCGCGGGGCGGGGCGTGCGCAGGCCCGCCCGAGTCTCCGCCGCCCGTGCCCTGCGCCCGCAACCCGAGCCGCACCCGCCGCGGACGGAGCCCATGCGCGGGGCGAACCGCGCGCCCCCGCCCCCGCCCCGCCCCGGCCTCGGCCCCGGCCCTGGCCCCGGGGGCAGTCGCGCCTGTGAACGGTGAGTGCGGGCAGGGATCGGCCGGGCCGCGCGCCCTCCTCGCCCCCAGGCGGCAGCAATACGCGCGGCGCGGGCCGGGGGCGCGGGGCCGGCGGGCGTAAGCGGCGGCGGCGGCGGCGGCGGCGGGTGGGTGGGGCCGGGCGGGGCCCGCGGGCACAGGTGAGCGGGCGTCGGGGGCTGCGGCGGGCGGGGGCCCCTTCCTCCCTGGGGCCTGCGGGAATCCGGGCCCCACCCGTGGCCTCGCGCTGGGCACGGTCCCCACGCCGGCGTACCCGGGAGCCTCGGGCCCGGCGCCCTCACACCCGGGGGCGTCTGGGAGGAGGCGGCCGCGGCCACGGCACGCCCGGGCACCCCCGATTCAGCATCACAGGTCGCGGACCAGGCCGGGGGCCTCAGCCCCAGTGCCTTTTCCCTCTCCGGGTCTCCCGCGCCGCTTCTCGGCCCCTTCCTGTCGCTCAGTCCCTGCTTCCCAGGAGCTCCTCTGTCTTCTCCAGCTTTCTGTGGCTGAAAGATGCCCCCGGTTCCCCGCCGGGGGTGCGGGGCGCTGCCCGGGTCTGCCCTCCCCTCGGCGGCGCCTAGTACGCAGTAGGCGCTCAGCAAATACTTGTCGGAGGCACCAGCGCCGCGGGGCCTGCAGGCTGGCACTAGCCTGCCCGGGCACGCCGTGGCGCGCTCCGCCGTGGCCAGACCTGTTCTGGAGGACGGTAACCTCAGCCCTCGGGCGCCTCCCTTTAGCCTTTCTGCCGACCCAGCAGCTTCTAATTTGGGTGCGTGGTTGAGAGCGCTCAGCTGTCAGCCCTGCCTTTGAGGGCTGGGTCCCTTTTCCCATCACTGGGTCATTAAGAGCAAGTGGGGGCGAGGCGACAGCCCTCCCGCACGCTGGGTTGCAGCTGCACAGGTAGGCACGCTGCAGTCCTTGCTGCCTGGCGTTGGGGCCCAGGGACCGCTGTGGGTTTGCCCTTCAGATGGCCCTGCCAGCAGCTGCCCTGTGGGGCCTGGGGCTGGGCCTGGGCCTGGCTGAGCAGGGCCCTCCTTGGCAGGTGGGGCAGGAGACCCTGTAGGAGGACCCCGGGCCGCAGGCCCCTGAGGAGCGATGACGGAATATAAGCTGGTGGTGGTGGGCGCCGGCGGTGTGGGCAAGAGTGCGCTGACCATCCAGCTGATCCAGAACCATTTTGTGGACGAATACGACCCCACTATAGAGGTGAGCCTGGCGCCGCCGTCCAGGTGCCAGCAGCTGCTGCGGGCGAGCCCAGGACACAGCCAGGATAGGGCTGGCTGCAGCCCCTGGTCCCCTGCATGGTGCTGTGGCCCTGTCTCCTGCTTCCTCTAGAGGAGGGGAGTCCCTCGTCTCAGCACCCCAGGAGAGGAGGGGGCATGAGGGGCATGAGAGGTACCAGGGAGAGGCTGGCTGTGTGAACTCCCCCCACGGAAGGTCCTGAGGGGGTCCCTGAGCCCTGTCCTCCTGCAGGATTCCTACCGGAAGCAGGTGGTCATTGATGGGGAGACGTGCCTGTTGGACATCCTGGATACCGCCGGCCAGGAGGAGTACAGCGCCATGCGGGACCAGTACATGCGCACCGGGGAGGGCTTCCTGTGTGTGTTTGCCATCAACAACACCAAGTCTTTTGAGGACATCCACCAGTACAGGTGAACCCCGTGAGGCTGGCCCGGGAGCCCACGCCGCACAGGTGGGGCCAGGCCGGCTGCGTCCAGGCAGGGGCCTCCTGTCCTCTCTGCGCATGTCCTGGATGCCGCTGCGCCTGCAGCCCCCGTAGCCAGCTCTCGCTTTCCACCTCTCAGGGAGCAGATCAAACGGGTGAAGGACTCGGATGACGTGCCCATGGTGCTGGTGGGGAACAAGTGTGACCTGGCTGCACGCACTGTGGAATCTCGGCAGGCTCAGGACCTCGCCCGAAGCTACGGCATCCCCTACATCGAGACCTCGGCCAAGACCCGGCAGGTGAGGCAGCTCTCCACCCCACAGCTAGCCAGGGACCCGCCCCGCCCCGCCCCAGCCAGGGAGCAGCACTCACTGACCCTCTCCCTTGACACAGGGCAGCCGCTCTGGCTCTAGCTCCAGCTCCGGGACCCTCTGGGACCCCCCGGGACCCATGTGACCCAGCGGCCCCTCGCGCTGTAAGTCTCCCGGGACGGCAGGGCAGTGAGGGAGGCGAGGGCCGGGGTCTGGGCTCACGCCCTGCAGTCCTGGGCCGACACAGCTCCGGGGAAGGCGGAGGTCCTTGGGGAGAGCTGCCCTGAGCCAGGCCGGAGCGGTGACCCTGGGGCCCGGCCCCTCTTGTCCCCAGAGTGTCCCACGGGCACCTGTTGGTTCTGAGTCTTAGTGGGGCTACTGGGGACACGGGCCGTAGCTGAGTCGAGAGCTGGGTGCAGGGTGGTCAAACCCTGGCCAGACCTGGAGTTCAGGAGGGCCCCGGGCCACCCTGACCTTTGAGGGGCTGCTGTAGCATGATGCGGGTGGCCCTGGGCACTTCGAGATGGCCAGAGTCCAGCTTCCCGTGTGTGTGGTGGGCCTGGGGAAGTGGCTGGTGGAGTCGGGAGCTTCGGGCCAGGCAAGGCTTGATCCCACAGCAGGGAGCCCCTCACCCAGGCAGGCGGCCACAGGCCGGTCCCTCCTGATCCCATCCCTCCTTTCCCAGGGAGTGGAGGATGCCTTCTACACGTTGGTGCGTGAGATCCGGCAGCACAAGCTGCGGAAGCTGAACCCTCCTGATGAGAGTGGCCCCGGCTGCATGAGCTGCAAGTGTGTGCTCTCCTGACGCAGGTGAGGGGGACTCCCAGGGCGGCCGCCACGCCCACCGGATGACCCCGGCTCCCCGCCCCTGCCGGTCTCCTGGCCTGCGGTCAGCAGCCTCCCTTGTGCCCCGCCCAGCACAAGCTCAGGACATGGAGGTGCCGGATGCAGGAAGGAGGTGCAGACGGAAGGAGGAGGAAGGAAGGACGGAAGCAAGGAAGGAAGGAAGGGCTGCTGGAGCCCAGTCACCCCGGGACCGTGGGCCGAGGTGACTGCAGACCCTCCCAGGGAGGCTGTGCACAGACTGTCTTGAACATCCCAAATGCCACCGGAACCCCAGCCCTTAGCTCCCCTCCCAGGCCTCTGTGGGCCCTTGTCGGGCACAGATGGGATCACAGTAAATTATTGGATGGTCTTGATCTTGGTTTTCGGCTGAGGGTGGGACACGGTGCGCGTGTGGCCTGGCATGAGGTATGTCGGAACCTCAGGCCTGTCCAGCCCTGGGCTCTCCATAGCCTTTGGGAGGGGGAGGTTGGGAGAGGCCGGTCAGGGGTCTGGGCTGTGGTGCTCTCTCCTCCCGCCTGCCCCAGTGTCCACGGCTTCTGGCAGAGAGCTCTGGACAAGCAGGCAGATCATAAGGACAGAGAGCTTACTGTGCTTCTACCAACTAGGAGGGCGTCCTGGTCCTCCAGAGGGAGGTGGTTTCAGGGGTTGGGGATCTGTGCCGGTGGCTCTGGTCTCTGCTGGGAGCCTTCTTGGCGGTGAGAGGCATCACCTTTCCTGACTTGCTCCCAGCGTGAAATGCACCTGCCAAGAATGGCAGACATAGGGACCCCGCCTCCTGGGCCTTCACATGCCCAGTTTTCTTCGGCTCTGTGGCCTGAAGCGGTCTGTGGACCTTGGAAGTAGGGCTCCAGCACCGACTGGCCTCAGGCCTCTGCCTCATTGGTGGTCGGGTAGCGGCCAGTAGGGCGTGGGAGCCTGGCCATCCCTGCCTCCTGGAGTGGACGAGGTTGGCAGCTGGTCCGTCTGCTCCTGCCCCACTCTCCCCCGCCCCTGCCCTCACCCTACCCTTGCCCCACGCCTGCCTCATGGCTGGTTGCTCTTGGAGCCTGGTAGTGTCACTGGCTCAGCCTTGCTGGGTATACACAGGCTCTGCCACCCACTCTGCTCCAAGGGGCTTGCCCTGCCTTGGGCCAAGTTCTAGGTCTGGCCACAGCCACAGACAGCTCAGTCCCCTGTGTGGTCATCCTGGCTTCTGCTGGGGGCCCACAGCGCCCCTGGTGCCCCTCCCCTCCCAGGGCCCGGGTTGAGGCTGGGCCAGGCCCCTCTGGGACGGGGACTTGTGCCCTGTCAGGGTTCCCTATCCCTGAGGTTGGGGGAGAGCTAGCAGGGCATGCCGCTGGCTGGCCAGGGCTGCAGGGACACTCCCCCTTTTGTCCAGGGAATACCACACTCGCCCTTCTCTCCAGCGAACACCACACTCGCCCTTCTCTCCAGGGGACGCCACACTCCCCCTTCTGTCCAGGGGACGCCACACTCCCCCTTCTCTCCAGGGGACGCCACACTCGCCCTTCTCTCCAGGGGACGCCACACTCGCCCTTCTCTCCAGGGGACGCCACACTCCCCCTTCTGTCCAGGGGACGCCACACTCGCCCTTCTCTCCAGGGGACGCCACACTGGCCCTTCTCTCCAGGGGACGCCACACTCCCCCTTCTGTCCAGGGGACGCCACACTCCCCCTTCTCTCCAGGGGACGCCACACTCCCCCTTCTCTCCAGGGGACGCCACACTGGCCCTTCTCTCCAGGGGACGCCACACTCCCCCTTCTGTCCAGGGGACGCCACACTCGCCCTTCTCTCCAGGGGACGCCACACTCGCCCTTCTCTCCAGGGGACGCCACACTCCCCCTTCTCTCCAGGGGACGCCACACTCCCCCTTCTCTCCAGGGGACGCCACACTCCCCCTTCTCTCCAGGGGACGCCACACTCCCCCTTCTGTCCAGGGGACGCCACACTCGCCCTTCTCTCCAGGGGACGCCACACTCCCCCTTCTCTCCAGGGGACGCCACACTCCCCCTTCTCTCCAGGGGACGCCACACTCCCCCTTCTGTCCAGGGGACGCCACACTCGCCCTTCTCTCCAGGGGACGCCACACTCGCCCTTCTCTCCAGGGGACGCCACACTCGCCCTTCTCTCCAGGGGACGCCACACTTGCCCTTCTGTCCAGGGAATGCCACACTCCCCCTTCTCCCCAGCAGCCTCCGAGTGACCAGCTTCCCCATCGATAGACTTCCCGAGGCCAGGAGCCCTCTAGGGCTGCCGGGTGCCACCCTGGCTCCTTCCACACCGTGCTGGTCACTGCCTGCTGGGGGCGTCAGATGCAGGTGACCCTGTGCAGGAGGTATCTCTGGACCTGCC";
+/* ---------------- embedded data (filled in by build_html.py) ---------------- */
+const STRUCT = {"hras":{"chains":{"A":[[1,"MET",63.81,51.96,32.65],[2,"THR",63.26,55.28,30.82],[3,"GLU",64.01,58.61,32.56],[4,"TYR",62.05,61.84,33.19],[5,"LYS",63.14,65.37,34.21],[6,"LEU",60.97,67.06,36.88],[7,"VAL",61.31,70.67,35.65],[8,"VAL",60.41,72.34,39.0],[9,"VAL",59.64,76.1,39.21],[10,"GLY",57.48,78.25,41.53],[11,"ALA",58.58,81.42,43.4],[12,"GLY",61.61,81.5,45.72],[13,"GLY",60.85,80.46,49.32],[14,"VAL",57.89,78.09,48.67],[15,"GLY",59.84,74.99,49.8],[16,"LYS",60.48,73.39,46.38],[17,"SER",64.01,72.06,47.2],[18,"ALA",63.29,70.8,50.77],[19,"LEU",60.34,69.0,49.1],[20,"THR",62.51,67.32,46.41],[21,"ILE",65.35,66.19,48.75],[22,"GLN",62.58,64.92,51.05],[23,"LEU",61.35,62.3,48.54],[24,"ILE",65.06,61.42,48.07],[25,"GLN",67.1,61.45,51.36],[26,"ASN",63.92,62.06,53.45],[27,"HIS",64.69,64.85,55.97],[28,"PHE",63.13,68.32,56.44],[29,"VAL",66.02,70.58,55.36],[30,"ASP",65.73,74.28,56.32],[31,"GLU",68.02,75.18,53.37],[32,"TYR",70.02,72.47,51.55],[33,"ASP",70.66,74.8,48.56],[34,"PRO",70.03,78.51,49.23],[35,"THR",72.28,79.25,46.2],[36,"ILE",73.17,75.83,44.7],[37,"GLU",72.2,74.81,41.14],[38,"ASP",72.81,71.03,41.07],[39,"SER",70.5,68.3,39.72],[40,"TYR",69.1,65.74,42.2],[41,"ARG",68.67,62.07,41.22],[42,"LYS",66.62,59.31,42.85],[43,"GLN",65.53,56.11,41.03],[44,"VAL",62.47,54.12,42.17],[45,"VAL",59.67,51.91,40.78],[46,"ILE",56.42,53.88,40.35],[47,"ASP",54.38,50.8,39.31],[48,"GLY",56.29,50.91,35.99],[49,"GLU",59.85,49.68,35.29],[50,"THR",62.13,51.48,37.8],[51,"CYS",61.78,54.86,36.03],[52,"LEU",64.78,57.02,37.03],[53,"LEU",63.51,60.35,38.43],[54,"ASP",66.05,63.14,37.81],[55,"ILE",64.61,66.13,39.73],[56,"LEU",65.7,69.63,38.67],[57,"ASP",65.67,72.64,41.02],[58,"THR",66.68,76.31,40.6],[59,"ALA",68.51,78.76,42.9],[60,"GLY",68.2,82.5,42.12],[61,"GLN",71.88,83.64,42.26],[62,"GLU",72.89,86.06,39.46],[63,"GLU",70.27,87.07,36.87],[64,"TYR",71.48,86.44,33.28],[65,"SER",69.41,83.32,32.44],[66,"ALA",70.89,80.58,30.21],[67,"MET",70.36,76.99,31.43],[68,"ARG",66.78,77.86,32.5],[69,"ASP",65.85,78.42,28.83],[70,"GLN",67.47,75.12,27.79],[71,"TYR",65.77,73.48,30.82],[72,"MET",62.27,74.25,29.53],[73,"ARG",63.29,72.81,26.12],[74,"THR",64.97,69.7,27.65],[75,"GLY",62.91,68.67,30.72],[76,"GLU",59.16,67.96,30.32],[77,"GLY",57.44,67.6,33.73],[78,"PHE",56.51,70.95,35.32],[79,"LEU",55.98,70.86,39.09],[80,"CYS",54.76,74.47,39.41],[81,"VAL",55.15,74.89,43.2],[82,"PHE",53.37,77.85,44.81],[83,"ALA",53.3,78.62,48.55],[84,"ILE",49.71,79.34,49.68],[85,"ASN",50.8,81.76,52.45],[86,"ASN",52.67,84.65,50.76],[87,"THR",50.4,84.63,47.61],[88,"LYS",53.26,85.93,45.39],[89,"SER",53.74,82.29,44.33],[90,"PHE",50.24,82.2,42.79],[91,"GLU",50.96,85.36,40.76],[92,"ASP",54.31,83.71,39.88],[93,"ILE",52.53,80.65,38.37],[94,"HIS",50.49,82.92,36.06],[95,"GLN",53.79,83.94,34.31],[96,"TYR",56.01,80.84,34.65],[97,"ARG",53.36,78.98,32.59],[98,"GLU",53.98,81.27,29.59],[99,"GLN",57.71,80.89,29.15],[100,"ILE",57.26,77.1,29.16],[101,"LYS",54.81,77.57,26.29],[102,"ARG",57.51,79.79,24.72],[103,"VAL",60.2,77.14,24.67],[104,"LYS",58.08,74.17,23.53],[105,"ASP",56.07,76.78,21.55],[106,"SER",52.8,75.02,22.45],[107,"ASP",50.06,74.96,25.12],[108,"ASP",50.03,71.3,26.25],[109,"VAL",52.74,70.54,28.83],[110,"PRO",52.36,68.03,31.69],[111,"MET",52.03,71.04,34.03],[112,"VAL",51.29,70.42,37.75],[113,"LEU",50.18,73.35,39.96],[114,"VAL",51.09,72.16,43.45],[115,"GLY",50.54,74.39,46.52],[116,"ASN",53.26,73.92,49.17],[117,"LYS",53.48,75.17,52.8],[118,"CYS",49.81,74.32,53.5],[119,"ASP",50.78,73.11,57.04],[120,"LEU",50.66,76.7,58.44],[121,"ALA",50.13,80.39,57.61],[122,"ALA",46.3,80.89,57.32],[123,"ARG",45.01,79.56,53.96],[124,"THR",45.5,82.73,51.88],[125,"VAL",44.8,80.75,48.69],[126,"GLU",41.66,78.6,49.17],[127,"SER",41.27,75.49,46.96],[128,"ARG",38.24,77.04,45.18],[129,"GLN",39.82,79.96,43.3],[130,"ALA",42.92,77.78,42.83],[131,"GLN",40.68,75.03,41.4],[132,"ASP",39.43,77.5,38.76],[133,"LEU",43.02,78.63,37.98],[134,"ALA",44.41,75.2,37.01],[135,"ARG",41.05,73.93,35.66],[136,"SER",41.32,76.63,32.98],[137,"TYR",44.74,75.35,31.82],[138,"GLY",43.67,71.67,32.14],[139,"ILE",46.46,71.0,34.67],[140,"PRO",46.17,68.88,37.86],[141,"TYR",45.97,70.7,41.22],[142,"ILE",47.28,69.32,44.55],[143,"GLU",48.44,70.35,48.05],[144,"THR",51.82,69.72,49.77],[145,"SER",53.9,70.36,52.9],[146,"ALA",57.35,68.74,53.32],[147,"LYS",57.1,69.65,57.05],[148,"THR",55.07,66.42,57.42],[149,"ARG",55.44,64.69,53.99],[150,"GLN",51.73,65.45,53.37],[151,"GLY",50.76,65.59,49.66],[152,"VAL",54.4,65.12,48.51],[153,"GLU",53.34,61.67,47.23],[154,"ASP",50.36,62.86,45.13],[155,"ALA",52.63,65.54,43.59],[156,"PHE",55.65,63.53,42.32],[157,"TYR",53.54,60.43,41.46],[158,"THR",50.84,62.37,39.54],[159,"LEU",53.72,64.12,37.7],[160,"VAL",55.16,60.91,36.17],[161,"ARG",51.56,59.73,35.55],[162,"GLU",50.87,62.71,33.23],[163,"ILE",54.17,62.43,31.3],[164,"ARG",53.72,58.66,30.84],[165,"GLN",50.12,58.66,29.53],[166,"HIS",51.16,61.56,27.25]]},"fe":[]},"hb":{"chains":{"A":[[1,"VAL",20.14,30.47,42.41],[2,"LEU",23.77,29.98,41.87],[3,"SER",25.91,31.9,44.39],[4,"PRO",28.91,33.37,43.17],[5,"ALA",31.12,30.85,44.61],[6,"ASP",28.88,28.23,42.5],[7,"LYS",30.06,30.17,39.52],[8,"THR",33.58,29.91,40.4],[9,"ASN",33.27,26.38,40.94],[10,"VAL",31.49,25.56,37.56],[11,"LYS",33.94,27.96,35.59],[12,"ALA",36.83,26.25,36.89],[13,"ALA",35.71,22.68,36.62],[14,"TRP",34.47,23.22,33.03],[15,"GLY",37.58,25.04,32.16],[16,"LYS",39.26,21.59,33.15],[17,"VAL",36.92,20.0,30.84],[18,"GLY",38.44,22.19,28.19],[19,"ALA",38.68,20.71,24.77],[20,"HIS",37.29,17.02,25.89],[21,"ALA",33.83,18.86,26.21],[22,"GLY",32.46,16.81,23.3],[23,"GLU",33.76,13.41,23.99],[24,"TYR",32.42,13.79,27.54],[25,"GLY",28.99,15.02,25.96],[26,"ALA",28.96,11.96,24.05],[27,"GLU",29.74,9.51,27.0],[28,"ALA",27.11,11.21,29.1],[29,"LEU",24.52,10.33,26.45],[30,"GLU",25.68,6.74,26.19],[31,"ARG",25.49,6.48,29.93],[32,"MET",21.97,7.78,29.85],[33,"PHE",20.8,5.33,27.14],[34,"LEU",22.11,2.38,28.86],[35,"SER",21.17,3.29,32.39],[36,"PHE",17.7,4.83,31.55],[37,"PRO",16.35,3.25,28.49],[38,"THR",13.16,5.14,28.34],[39,"THR",15.24,8.15,27.1],[40,"LYS",15.88,6.42,24.0],[41,"THR",12.18,7.07,22.98],[42,"TYR",13.21,10.57,21.93],[43,"PHE",16.1,9.06,19.59],[44,"PRO",14.32,6.54,17.58],[45,"HIS",15.91,8.25,14.33],[46,"PHE",19.55,7.73,15.64],[47,"ASP",21.86,4.88,15.35],[48,"LEU",22.55,4.43,18.89],[49,"SER",25.54,1.86,18.56],[50,"HIS",28.22,3.1,20.53],[51,"GLY",30.52,5.41,18.9],[52,"SER",28.02,6.53,16.2],[53,"ALA",28.72,9.51,14.6],[54,"GLN",25.16,10.81,15.33],[55,"VAL",25.85,10.35,19.09],[56,"LYS",29.17,11.9,18.75],[57,"GLY",27.8,14.79,16.96],[58,"HIS",24.94,15.32,19.35],[59,"GLY",27.33,15.15,22.34],[60,"LYS",29.27,17.99,20.95],[61,"LYS",26.41,20.02,20.48],[62,"VAL",25.2,19.4,24.01],[63,"ALA",28.58,20.35,25.31],[64,"ASP",28.9,23.43,23.48],[65,"ALA",25.7,24.57,24.78],[66,"LEU",26.83,23.98,28.18],[67,"THR",29.99,25.72,27.32],[68,"ASN",27.9,28.77,26.28],[69,"ALA",25.79,28.76,29.51],[70,"VAL",29.13,28.64,31.7],[71,"ALA",30.26,31.82,29.61],[72,"HIS",27.12,33.43,30.39],[73,"VAL",26.15,32.11,33.89],[74,"ASP",24.8,35.39,34.9],[75,"ASP",22.13,35.47,31.99],[76,"MET",21.52,32.0,30.87],[77,"PRO",18.18,32.92,29.95],[78,"ASN",19.03,35.11,27.27],[79,"ALA",22.0,32.9,26.4],[80,"LEU",19.92,29.57,25.99],[81,"SER",16.73,31.3,24.54],[82,"ALA",17.14,29.61,21.12],[83,"LEU",17.37,26.15,22.57],[84,"SER",14.66,26.68,25.09],[85,"ASP",12.16,27.5,22.25],[86,"LEU",13.45,24.43,20.41],[87,"HIS",12.94,22.05,23.24],[88,"ALA",9.54,23.82,24.25],[89,"HIS",8.15,23.94,20.77],[90,"LYS",9.58,21.24,18.85],[91,"LEU",11.33,18.55,20.54],[92,"ARG",8.98,18.48,23.63],[93,"VAL",11.03,16.3,25.84],[94,"ASP",9.14,15.58,29.1],[95,"PRO",11.02,17.57,31.84],[96,"VAL",11.82,14.49,33.88],[97,"ASN",14.42,13.36,31.44],[98,"PHE",16.51,16.58,32.02],[99,"LYS",17.45,15.02,35.53],[100,"LEU",18.44,11.88,34.04],[101,"LEU",20.9,13.4,31.57],[102,"SER",22.13,15.86,34.36],[103,"HIS",22.8,12.7,36.56],[104,"CYS",24.95,11.07,33.69],[105,"LEU",26.93,14.18,33.01],[106,"LEU",27.78,14.39,36.68],[107,"VAL",28.87,10.9,36.58],[108,"THR",30.98,11.52,33.51],[109,"LEU",32.65,14.55,35.1],[110,"ALA",33.32,12.57,38.21],[111,"ALA",34.85,9.71,36.22],[112,"HIS",37.27,12.08,34.37],[113,"LEU",38.13,14.9,36.93],[114,"PRO",39.28,12.81,40.11],[115,"ALA",41.34,16.0,41.42],[116,"GLU",38.61,18.71,40.89],[117,"PHE",35.47,16.7,41.84],[118,"THR",35.25,17.74,45.46],[119,"PRO",32.08,17.84,47.47],[120,"ALA",31.84,21.41,47.06],[121,"VAL",32.24,21.28,43.33],[122,"HIS",29.71,18.24,43.05],[123,"ALA",27.28,20.46,44.77],[124,"SER",27.87,23.45,42.52],[125,"LEU",27.74,21.45,39.34],[126,"ASP",24.5,19.68,40.41],[127,"LYS",23.07,23.15,40.95],[128,"PHE",24.28,24.44,37.67],[129,"LEU",22.72,21.54,35.73],[130,"ALA",19.45,21.98,37.53],[131,"SER",19.43,25.62,36.43],[132,"VAL",20.28,24.91,32.86],[133,"SER",17.36,22.29,33.0],[134,"THR",14.99,24.86,34.28],[135,"VAL",15.86,27.46,31.73],[136,"LEU",15.44,24.73,28.99],[137,"THR",11.87,23.76,30.28],[138,"SER",11.01,27.37,30.88],[139,"LYS",8.8,28.07,27.82],[140,"TYR",7.03,24.68,27.95],[141,"ARG",3.54,26.1,29.06]],"B":[[1,"VAL",15.77,-7.38,41.06],[2,"HIS",16.88,-9.2,38.1],[3,"LEU",20.29,-8.67,36.47],[4,"THR",22.1,-10.83,34.24],[5,"PRO",24.68,-13.1,34.97],[6,"GLU",27.15,-10.85,33.4],[7,"GLU",25.41,-7.64,35.38],[8,"LYS",25.78,-9.45,38.62],[9,"SER",29.17,-10.41,38.05],[10,"ALA",30.39,-6.97,37.15],[11,"VAL",28.71,-5.46,40.54],[12,"THR",30.41,-8.06,42.6],[13,"ALA",33.72,-7.49,41.11],[14,"LEU",34.03,-3.78,41.61],[15,"TRP",32.61,-4.05,45.05],[16,"GLY",35.6,-6.3,45.94],[17,"LYS",37.62,-3.34,45.41],[18,"VAL",35.59,-0.92,47.61],[19,"ASN",36.79,0.14,51.22],[20,"VAL",33.26,0.12,52.7],[21,"ASP",34.0,2.52,55.58],[22,"GLU",35.79,5.2,53.37],[23,"VAL",33.13,5.01,50.54],[24,"GLY",30.46,5.04,53.22],[25,"GLY",31.75,8.16,54.85],[26,"GLU",32.2,9.86,51.43],[27,"ALA",28.74,9.14,50.18],[28,"LEU",27.0,10.11,53.45],[29,"GLY",28.8,13.23,53.61],[30,"ARG",28.34,14.28,50.01],[31,"LEU",24.6,13.45,50.51],[32,"LEU",24.47,15.95,53.15],[33,"VAL",26.55,18.52,51.25],[34,"VAL",24.83,18.38,47.75],[35,"TYR",21.25,17.98,49.19],[36,"PRO",21.43,19.92,52.43],[37,"TRP",17.87,19.29,53.54],[38,"THR",18.98,15.63,54.14],[39,"GLN",20.65,17.35,57.3],[40,"ARG",17.21,17.31,58.99],[41,"PHE",17.69,13.75,60.6],[42,"PHE",21.24,14.53,61.78],[43,"GLU",21.43,17.55,63.95],[44,"SER",22.5,15.31,67.06],[45,"PHE",25.77,14.99,64.99],[46,"GLY",27.25,18.34,65.73],[47,"ASP",28.74,20.95,63.28],[48,"LEU",27.2,20.52,59.66],[49,"SER",27.65,24.09,58.53],[50,"THR",30.29,23.65,56.02],[51,"PRO",31.36,21.11,53.43],[52,"ASP",34.69,20.55,55.27],[53,"ALA",32.84,20.26,58.62],[54,"VAL",30.56,17.62,57.18],[55,"MET",33.05,15.61,55.54],[56,"GLY",35.3,15.46,58.52],[57,"ASN",32.55,14.95,61.14],[58,"PRO",32.95,11.62,62.95],[59,"LYS",29.32,10.91,63.48],[60,"VAL",28.79,11.4,59.84],[61,"LYS",31.44,8.99,58.92],[62,"ALA",30.22,6.34,61.46],[63,"HIS",26.73,6.65,60.19],[64,"GLY",28.03,6.15,56.69],[65,"LYS",29.62,3.11,57.65],[66,"LYS",26.98,1.65,59.06],[67,"VAL",24.57,2.4,56.07],[68,"LEU",27.06,1.15,53.61],[69,"GLY",27.76,-1.96,55.49],[70,"ALA",24.15,-2.84,55.37],[71,"PHE",24.1,-2.1,51.63],[72,"SER",27.26,-4.42,51.33],[73,"ASP",25.35,-7.25,52.85],[74,"GLY",22.56,-6.65,50.68],[75,"LEU",24.63,-7.21,47.55],[76,"ALA",24.81,-10.71,48.58],[77,"HIS",20.88,-11.22,48.47],[78,"LEU",20.36,-9.32,45.2],[79,"ASP",17.59,-12.32,44.08],[80,"ASN",15.65,-11.35,47.7],[81,"LEU",16.19,-7.36,48.63],[82,"LYS",12.75,-6.94,49.87],[83,"GLY",13.11,-9.67,52.37],[84,"THR",16.71,-8.66,53.04],[85,"PHE",15.39,-5.05,53.85],[86,"ALA",11.99,-5.68,55.34],[87,"THR",12.68,-4.99,58.75],[88,"LEU",14.86,-1.94,57.99],[89,"SER",12.01,-0.63,55.86],[90,"GLU",9.96,-0.81,58.78],[91,"LEU",12.18,0.9,61.01],[92,"HIS",12.82,3.64,58.85],[93,"CYS",9.11,4.38,58.29],[94,"ASP",7.6,3.89,61.68],[95,"LYS",10.36,5.17,63.86],[96,"LEU",12.77,7.09,61.92],[97,"HIS",10.42,8.93,59.72],[98,"VAL",12.81,9.04,56.72],[99,"ASP",10.84,10.1,53.45],[100,"PRO",12.17,7.24,50.98],[101,"GLU",13.15,10.03,48.47],[102,"ASN",16.37,10.15,50.49],[103,"PHE",17.12,6.53,49.62],[104,"ARG",17.16,7.49,45.91],[105,"LEU",19.19,10.63,46.49],[106,"LEU",21.76,8.43,48.38],[107,"GLY",21.82,5.87,45.56],[108,"ASN",22.61,8.52,42.96],[109,"VAL",25.41,10.1,45.11],[110,"LEU",26.76,6.51,45.67],[111,"VAL",26.94,6.1,41.85],[112,"CYS",28.85,9.56,41.59],[113,"VAL",31.17,8.32,44.25],[114,"LEU",32.0,5.04,42.53],[115,"ALA",32.63,6.93,39.38],[116,"HIS",35.04,9.37,41.12],[117,"HIS",36.73,6.45,42.8],[118,"PHE",37.01,4.04,39.86],[119,"GLY",37.48,6.6,36.97],[120,"LYS",37.44,4.79,33.79],[121,"GLU",36.84,1.46,35.18],[122,"PHE",33.21,2.6,36.05],[123,"THR",32.19,2.05,32.42],[124,"PRO",28.63,2.87,31.09],[125,"PRO",27.68,-0.86,31.33],[126,"VAL",28.84,-1.01,34.81],[127,"GLN",27.06,2.2,35.71],[128,"ALA",23.94,0.69,34.38],[129,"ALA",24.14,-2.4,36.52],[130,"TYR",24.7,-0.37,39.65],[131,"GLN",21.78,1.84,38.79],[132,"LYS",19.63,-1.16,38.69],[133,"VAL",21.08,-2.18,42.2],[134,"VAL",20.75,1.19,43.73],[135,"ALA",17.09,1.48,42.5],[136,"GLY",16.29,-2.14,43.93],[137,"VAL",17.71,-1.21,47.26],[138,"ALA",15.67,2.05,47.42],[139,"ASN",12.52,0.33,46.51],[140,"ALA",13.13,-2.49,48.9],[141,"LEU",13.73,0.1,51.7],[142,"ALA",10.62,1.84,50.7],[143,"HIS",8.44,-1.54,50.35],[144,"LYS",6.88,-1.45,53.99],[145,"TYR",6.09,2.28,54.0],[146,"HIS",2.23,2.92,55.19]],"C":[[1,"VAL",5.84,32.29,33.88],[2,"LEU",2.12,33.12,34.56],[3,"SER",0.27,34.94,31.51],[4,"PRO",-2.23,37.57,32.13],[5,"ALA",-4.73,35.03,31.24],[6,"ASP",-3.34,32.62,33.79],[7,"LYS",-3.75,35.48,36.55],[8,"THR",-7.11,35.94,35.71],[9,"ASN",-7.93,32.3,35.87],[10,"VAL",-6.33,31.91,39.01],[11,"LYS",-8.1,35.0,40.67],[12,"ALA",-11.03,33.86,39.53],[13,"ALA",-10.92,30.3,40.76],[14,"TRP",-9.42,31.15,44.18],[15,"GLY",-12.2,33.99,44.32],[16,"LYS",-14.92,31.38,43.83],[17,"VAL",-12.92,29.47,46.87],[18,"GLY",-13.57,32.15,49.23],[19,"ALA",-14.21,31.56,52.39],[20,"HIS",-14.08,27.58,52.2],[21,"ALA",-10.19,27.96,51.52],[22,"GLY",-9.4,26.44,54.9],[23,"GLU",-11.78,23.59,54.64],[24,"TYR",-10.34,22.88,51.19],[25,"GLY",-6.8,23.03,52.43],[26,"ALA",-7.53,20.34,55.11],[27,"GLU",-9.24,17.98,52.58],[28,"ALA",-6.09,18.41,50.17],[29,"LEU",-3.87,17.19,53.09],[30,"GLU",-6.1,14.37,53.85],[31,"ARG",-6.13,13.39,50.25],[32,"MET",-2.21,13.6,50.22],[33,"PHE",-1.76,11.45,53.38],[34,"LEU",-4.06,8.7,52.07],[35,"SER",-2.82,8.65,48.55],[36,"PHE",0.93,9.23,49.07],[37,"PRO",1.59,7.77,52.37],[38,"THR",5.32,8.92,52.41],[39,"THR",4.25,12.29,52.96],[40,"LYS",3.17,11.35,56.58],[41,"THR",6.92,10.92,57.46],[42,"TYR",7.01,14.84,57.84],[43,"PHE",4.07,14.82,60.48],[44,"PRO",4.82,12.08,63.07],[45,"HIS",3.67,14.66,65.75],[46,"PHE",0.31,15.06,64.36],[47,"ASP",-2.84,12.9,64.69],[48,"LEU",-3.69,12.32,61.01],[49,"SER",-7.21,10.68,61.79],[50,"HIS",-9.99,11.75,59.7],[51,"GLY",-11.27,14.9,61.21],[52,"SER",-8.07,15.85,63.07],[53,"ALA",-7.91,19.41,64.44],[54,"GLN",-4.34,19.38,63.94],[55,"VAL",-4.79,18.68,60.01],[56,"LYS",-7.66,21.23,59.94],[57,"GLY",-5.53,23.72,61.49],[58,"HIS",-2.58,23.11,59.26],[59,"GLY",-4.84,23.21,56.38],[60,"LYS",-5.96,26.68,57.22],[61,"LYS",-2.52,27.88,57.46],[62,"VAL",-1.71,26.4,53.89],[63,"ALA",-4.79,27.91,52.46],[64,"ASP",-4.06,31.3,53.74],[65,"ALA",-0.53,31.3,52.54],[66,"LEU",-2.06,30.44,48.93],[67,"THR",-4.59,33.3,49.33],[68,"ASN",-1.63,35.44,50.06],[69,"ALA",0.26,34.16,46.93],[70,"VAL",-2.96,34.97,44.74],[71,"ALA",-2.98,38.66,46.27],[72,"HIS",0.47,38.73,45.19],[73,"VAL",0.87,37.05,42.29],[74,"ASP",3.49,39.55,40.72],[75,"ASP",5.88,39.44,43.71],[76,"MET",5.59,35.94,45.13],[77,"PRO",9.0,35.73,46.19],[78,"ASN",8.61,38.42,48.61],[79,"ALA",5.53,37.7,49.88],[80,"LEU",6.36,33.99,50.61],[81,"SER",10.12,34.77,51.74],[82,"ALA",9.65,33.7,55.29],[83,"LEU",7.9,30.46,54.45],[84,"SER",10.63,29.8,51.85],[85,"ASP",13.1,30.21,54.75],[86,"LEU",11.06,28.08,56.83],[87,"HIS",10.75,25.17,54.65],[88,"ALA",14.42,25.54,53.42],[89,"HIS",16.11,25.83,56.94],[90,"LYS",13.83,24.34,59.28],[91,"LEU",11.2,21.74,57.92],[92,"ARG",13.51,20.62,55.12],[93,"VAL",10.71,18.74,53.16],[94,"ASP",11.94,17.1,50.16],[95,"PRO",11.0,19.02,46.89],[96,"VAL",9.25,15.97,45.36],[97,"ASN",6.48,16.38,47.91],[98,"PHE",5.46,19.71,46.67],[99,"LYS",4.09,18.04,43.54],[100,"LEU",2.12,15.61,45.59],[101,"LEU",0.3,18.21,47.58],[102,"SER",-0.25,20.47,44.44],[103,"HIS",-2.0,17.47,42.65],[104,"CYS",-4.18,16.94,45.85],[105,"LEU",-5.08,20.45,45.81],[106,"LEU",-6.19,20.22,42.2],[107,"VAL",-8.1,17.15,43.0],[108,"THR",-9.98,19.05,45.83],[109,"LEU",-10.72,22.19,43.59],[110,"ALA",-12.0,19.76,40.82],[111,"ALA",-14.3,18.1,43.46],[112,"HIS",-15.74,21.5,44.75],[113,"LEU",-15.75,23.68,41.56],[114,"PRO",-17.95,21.3,38.84],[115,"ALA",-18.26,24.8,36.98],[116,"GLU",-15.15,26.78,37.21],[117,"PHE",-12.67,23.87,36.69],[118,"THR",-12.56,23.96,32.99],[119,"PRO",-9.58,22.81,31.01],[120,"ALA",-8.06,26.18,30.73],[121,"VAL",-8.63,26.87,34.51],[122,"HIS",-6.94,23.45,35.26],[123,"ALA",-3.85,24.44,33.28],[124,"SER",-3.39,27.84,34.91],[125,"LEU",-3.97,26.41,38.38],[126,"ASP",-1.31,23.69,37.77],[127,"LYS",1.13,26.37,36.5],[128,"PHE",0.32,28.56,39.39],[129,"LEU",0.8,25.69,42.13],[130,"ALA",4.13,24.89,40.26],[131,"SER",5.43,28.45,40.57],[132,"VAL",4.29,28.49,44.33],[133,"SER",6.25,25.23,44.64],[134,"THR",9.37,26.77,43.0],[135,"VAL",9.37,29.8,45.21],[136,"LEU",8.93,27.61,48.49],[137,"THR",11.95,25.42,47.39],[138,"SER",14.21,28.36,45.99],[139,"LYS",16.48,28.79,49.12],[140,"TYR",17.14,25.04,49.74],[141,"ARG",20.6,25.09,48.42]],"D":[[1,"VAL",-1.37,-4.53,42.39],[2,"HIS",-2.49,-4.54,45.88],[3,"LEU",-5.94,-3.49,46.65],[4,"THR",-7.79,-3.98,50.06],[5,"PRO",-11.34,-5.22,49.12],[6,"GLU",-12.8,-2.25,50.72],[7,"GLU",-10.35,-0.22,47.92],[8,"LYS",-11.47,-2.89,45.12],[9,"SER",-14.9,-2.14,45.73],[10,"ALA",-14.74,1.51,46.02],[11,"VAL",-12.9,1.31,42.33],[12,"THR",-15.41,-1.15,40.82],[13,"ALA",-18.31,0.75,42.22],[14,"LEU",-17.42,4.0,40.74],[15,"TRP",-16.23,2.78,37.4],[16,"GLY",-19.79,1.19,36.73],[17,"LYS",-21.03,4.83,36.77],[18,"VAL",-18.15,6.13,34.1],[19,"ASN",-19.05,6.86,30.6],[20,"VAL",-15.92,5.67,28.95],[21,"ASP",-16.39,7.84,26.24],[22,"GLU",-17.18,10.88,27.54],[23,"VAL",-14.46,10.51,30.46],[24,"GLY",-11.88,9.12,28.03],[25,"GLY",-12.19,12.35,25.66],[26,"GLU",-12.15,14.52,28.56],[27,"ALA",-8.95,12.87,30.13],[28,"LEU",-7.02,12.87,26.89],[29,"GLY",-8.08,16.41,26.1],[30,"ARG",-6.95,17.71,29.33],[31,"LEU",-3.72,16.02,29.03],[32,"LEU",-3.07,17.79,25.89],[33,"VAL",-4.16,21.21,27.4],[34,"VAL",-2.46,21.06,30.67],[35,"TYR",0.84,19.42,29.57],[36,"PRO",1.1,20.56,25.82],[37,"TRP",4.29,18.88,25.15],[38,"THR",2.28,15.63,25.17],[39,"GLN",0.79,16.83,21.8],[40,"ARG",4.31,15.72,20.26],[41,"PHE",2.47,12.28,19.68],[42,"PHE",-0.59,13.54,18.06],[43,"GLU",0.52,15.76,15.31],[44,"SER",-1.75,13.79,12.6],[45,"PHE",-4.91,14.92,14.81],[46,"GLY",-5.66,18.11,13.67],[47,"ASP",-5.37,21.9,14.88],[48,"LEU",-4.61,21.24,19.01],[49,"SER",-3.69,24.94,19.11],[50,"THR",-5.85,26.08,22.01],[51,"PRO",-8.33,24.66,24.61],[52,"ASP",-11.86,24.48,22.84],[53,"ALA",-10.07,23.41,19.72],[54,"VAL",-8.33,20.25,21.68],[55,"MET",-11.63,19.46,23.59],[56,"GLY",-13.88,19.52,20.83],[57,"ASN",-11.36,17.71,18.25],[58,"PRO",-13.13,14.53,17.19],[59,"LYS",-9.84,12.64,16.76],[60,"VAL",-9.03,13.42,20.54],[61,"LYS",-12.39,12.12,21.52],[62,"ALA",-11.96,8.91,19.5],[63,"HIS",-8.61,8.09,20.86],[64,"GLY",-9.55,9.02,24.23],[65,"LYS",-12.26,6.27,24.13],[66,"LYS",-9.75,3.72,22.66],[67,"VAL",-7.41,4.23,25.74],[68,"LEU",-9.85,4.37,28.41],[69,"GLY",-11.41,1.28,26.94],[70,"ALA",-8.21,-0.64,27.27],[71,"PHE",-7.88,0.93,30.81],[72,"SER",-11.33,-0.46,31.26],[73,"ASP",-10.12,-3.74,30.55],[74,"GLY",-7.53,-3.85,33.01],[75,"LEU",-9.8,-3.23,35.79],[76,"ALA",-11.09,-7.02,34.99],[77,"HIS",-7.82,-7.92,35.84],[78,"LEU",-6.27,-6.39,38.73],[79,"ASP",-4.13,-8.57,40.07],[80,"ASN",-2.13,-9.09,36.83],[81,"LEU",-1.81,-5.88,35.18],[82,"LYS",1.63,-6.7,33.68],[83,"GLY",0.37,-9.91,31.79],[84,"THR",-2.76,-7.94,30.7],[85,"PHE",-0.96,-4.8,29.27],[86,"ALA",2.48,-6.62,27.99],[87,"THR",1.37,-6.43,24.32],[88,"LEU",0.35,-2.89,24.39],[89,"SER",3.51,-2.25,26.59],[90,"GLU",5.61,-3.43,23.57],[91,"LEU",3.8,-1.51,21.23],[92,"HIS",3.93,1.98,22.79],[93,"CYS",7.98,1.19,23.13],[94,"ASP",8.97,-0.31,19.77],[95,"LYS",6.32,1.25,17.39],[96,"LEU",5.06,4.38,19.14],[97,"HIS",8.13,5.56,20.97],[98,"VAL",6.04,7.01,23.86],[99,"ASP",8.02,8.05,27.11],[100,"PRO",6.39,6.16,29.96],[101,"GLU",6.36,9.34,31.9],[102,"ASN",3.23,10.27,29.74],[103,"PHE",1.41,7.14,31.36],[104,"ARG",1.86,8.84,34.86],[105,"LEU",0.62,12.23,33.61],[106,"LEU",-2.58,10.78,32.17],[107,"GLY",-3.13,8.77,35.38],[108,"ASN",-3.13,12.03,37.29],[109,"VAL",-5.28,13.8,34.87],[110,"LEU",-7.72,10.93,34.94],[111,"VAL",-7.97,11.39,38.83],[112,"CYS",-8.55,15.05,38.17],[113,"VAL",-11.41,14.21,35.77],[114,"LEU",-13.09,11.66,38.11],[115,"ALA",-13.08,14.29,40.93],[116,"HIS",-14.59,16.98,38.59],[117,"HIS",-17.2,14.58,37.26],[118,"PHE",-18.25,12.86,40.7],[119,"GLY",-17.8,15.8,43.12],[120,"LYS",-17.95,14.86,46.8],[121,"GLU",-18.44,11.31,46.02],[122,"PHE",-14.81,10.94,44.99],[123,"THR",-13.65,11.02,48.6],[124,"PRO",-10.16,10.79,49.88],[125,"PRO",-10.28,7.12,50.25],[126,"VAL",-11.62,6.49,46.82],[127,"GLN",-8.87,8.76,45.49],[128,"ALA",-6.28,6.71,47.26],[129,"ALA",-7.61,3.61,45.7],[130,"TYR",-7.69,5.11,42.16],[131,"GLN",-4.11,6.36,42.74],[132,"LYS",-2.81,2.89,43.39],[133,"VAL",-4.65,1.67,40.22],[134,"VAL",-3.34,4.29,37.86],[135,"ALA",0.22,4.02,39.25],[136,"GLY",-0.33,0.17,38.69],[137,"VAL",-1.34,0.66,35.18],[138,"ALA",1.45,3.05,34.23],[139,"ASN",3.96,0.73,35.74],[140,"ALA",2.27,-2.27,33.69],[141,"LEU",2.52,-0.24,30.46],[142,"ALA",6.21,0.62,31.09],[143,"HIS",7.21,-3.01,31.86],[144,"LYS",8.24,-3.89,28.18],[145,"TYR",10.46,-1.03,27.72],[146,"HIS",14.23,-1.5,26.68]]},"fe":[["A",18.36,18.49,23.75],["B",19.26,4.47,57.46],["C",4.45,23.46,54.55],["D",-1.73,4.7,23.94]]}};      // {hras|hb: {chains: {A: [[resnum, resname3, x, y, z], ...]}, fe: [[chain, x, y, z]]}}
+const REF = {"hras":{"pdb":"1CRR","chain":"A","first":1,"seq":"MTEYKLVVVGAGGVGKSALTIQLIQNHFVDEYDPTIEDSYRKQVVIDGETCLLDILDTAGQEEYSAMRDQYMRTGEGFLCVFAINNTKSFEDIHQYREQIKRVKDSDDVPMVLVGNKCDLAARTVESRQAQDLARSYGIPYIETSAKTRQGVEDAFYTLVREIRQH","dssp":"CCEEEEEEECCCCCCHHHHHHHHHCCCCCCCCCCCCCCEEEEECCCCCCCCEEEEECCCCCCCCCCHHHHHHHHCCEEEEEEECCCCHHHHHHHHHHHHHHHHCCCCCCEEEEEEECCCCCCCCCCHHHHHHHHHHHCCEEEEEECCCCECHHHHHHHHHHHHHHC"},"hba":{"pdb":"4HHB","chain":"A","first":1,"seq":"VLSPADKTNVKAAWGKVGAHAGEYGAEALERMFLSFPTTKTYFPHFDLSHGSAQVKGHGKKVADALTNAVAHVDDMPNALSALSDLHAHKLRVDPVNFKLLSHCLLVTLAAHLPAEFTPAVHASLDKFLASVSTVLTSKYR","dssp":"CCCHHHHHHHHHHHHHHCCCHHHHHHHHHHHHHHHCHHHHHHCCCCCCCCCCHHHHHHHHHHHHHHHHHHHCHHHHHHHCHHHHHHHHHCCCCCCHHHHHHHHHHHHHHHHHCCCCCCHHHHHHHHHHHHHHHHHHCCCCC"},"hbb":{"pdb":"4HHB","chain":"B","first":1,"seq":"VHLTPEEKSAVTALWGKVNVDEVGGEALGRLLVVYPWTQRFFESFGDLSTPDAVMGNPKVKAHGKKVLGAFSDGLAHLDNLKGTFATLSELHCDKLHVDPENFRLLGNVLVCVLAHHFGKEFTPPVQAAYQKVVAGVANALAHKYH","dssp":"CCCCHHHHHHHHHHHCCCCHHHHHHHHHHHHHHHCHHHHHHCHHHCCCCCHHHHHCCHHHHHHHHHHHHHHHHHHCCHHHHHHHHHHHHHHHHHCCCCCCHHHHHHHHHHHHHHHHHHHHHCCHHHHHHHHHHHHHHHHHHCCCCC"}};       // {hras|hba|hbb: {pdb, chain, first, seq, dssp}}
+const EXCLUDED = new Set([1, 370, 479, 867, 1089, 1291, 2265, 2445, 2482, 2559, 2571, 2579, 2681, 3001, 3050, 3463, 5372]);
 
-/* ---------------- genetic code ---------------- */
-const B = "TCAG", AA = "FFLLSSSSYY**CC*WLLLLPPPPHHQQRRRRIIIMTTTTNNKKSSRRVVVVAAAADDEEGGGG";
-const CODE = {};
-for (let i = 0; i < 4; i++) for (let j = 0; j < 4; j++) for (let k = 0; k < 4; k++) CODE[B[i] + B[j] + B[k]] = AA[16 * i + 4 * j + k];
-const translate = s => { let p = ""; for (let i = 0; i + 3 <= s.length; i += 3) p += CODE[s.slice(i, i + 3)] || "X"; return p; };
+/* ---------------- helpers ---------------- */
 const wrap = (s, w = 60) => s.match(new RegExp(`.{1,${w}}`, "g")) || [];
 const $ = id => document.getElementById(id);
 const esc = s => s.replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
 const store = {
-  get(k, d) { try { const v = localStorage.getItem("hras-tut:" + k); return v === null ? d : JSON.parse(v); } catch { return d; } },
-  set(k, v) { try { localStorage.setItem("hras-tut:" + k, JSON.stringify(v)); } catch {} }
+  get(k, d) { try { const v = localStorage.getItem("seq2struct:" + k); return v === null ? d : JSON.parse(v); } catch { return d; } },
+  set(k, v) { try { localStorage.setItem("seq2struct:" + k, JSON.stringify(v)); } catch {} }
 };
 async function copyText(text, msgEl, fallbackEl) {
   try { await navigator.clipboard.writeText(text); msgEl.textContent = "Copied"; }
@@ -6687,152 +6738,100 @@ async function copyText(text, msgEl, fallbackEl) {
   }
   setTimeout(() => (msgEl.textContent = ""), 2500);
 }
+function tile(v, lab) { return `<div class="tile"><b>${v}</b><span>${lab}</span></div>`; }
+const pct = v => (v * 100).toFixed(1) + "%";
+const pct0 = v => Math.round(v * 100) + "%";
+const css = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+function rgbOf(c) {
+  c = c.trim();
+  if (c[0] === "#") { const h = c.length === 4 ? [...c.slice(1)].map(x => x + x).join("") : c.slice(1); return [0, 2, 4].map(i => parseInt(h.slice(i, i + 2), 16)); }
+  const m = c.match(/[\d.]+/g); return m ? m.slice(0, 3).map(Number) : [128, 128, 128];
+}
+const THREE = { ALA: "A", ARG: "R", ASN: "N", ASP: "D", CYS: "C", GLN: "Q", GLU: "E", GLY: "G", HIS: "H", ILE: "I", LEU: "L", LYS: "K", MET: "M", PHE: "F", PRO: "P", SER: "S", THR: "T", TRP: "W", TYR: "Y", VAL: "V", MSE: "M" };
+const DSSP3 = { H: "H", G: "H", I: "H", E: "E", B: "E" };
+const toQ3 = s => [...s].map(c => DSSP3[c] || "C").join("");
+const SS_NAME = { H: "helix", E: "strand", C: "coil" };
 
-/* ---------------- constants ---------------- */
-const HRAS_REF = "MTEYKLVVVGAGGVGKSALTIQLIQNHFVDEYDPTIEDSYRKQVVIDGETCLLDILDTAGQEEYSAMRDQYMRTGEGFLCVFAINNTKSFEDIHQYREQIKRVKDSDDVPMVLVGNKCDLAARTVESRQAQDLARSYGIPYIETSAKTRQGVEDAFYTLVREIRQHKLRKLNPPDESGPGCMSCKCVLS";
-const EXONS_OK = [[6229, 6339], [6607, 6785], [6939, 7098], [7796, 7915]];
-const SS_5P21 = (() => {
-  const s = Array(166).fill("C");
-  [[2, 9], [37, 46], [49, 58], [77, 83], [111, 116], [141, 143]].forEach(([a, b]) => { for (let i = a - 1; i < b; i++) s[i] = "E"; });
-  [[16, 25], [66, 74], [87, 104], [127, 137], [152, 166]].forEach(([a, b]) => { for (let i = a - 1; i < b; i++) s[i] = "H"; });
-  return s.join("");
-})();
+/* ---------------- the example proteins ---------------- */
+const PROTEINS = {
+  hras: {
+    short: "H-Ras", name: "H-Ras (GTPase HRas), human", uniprot: "P01112", struct: "hras", chain: "A", chainLabel: "",
+    seq: "MTEYKLVVVGAGGVGKSALTIQLIQNHFVDEYDPTIEDSYRKQVVIDGETCLLDILDTAGQEEYSAMRDQYMRTGEGFLCVFAINNTKSFEDIHQYREQIKRVKDSDDVPMVLVGNKCDLAARTVESRQAQDLARSYGIPYIETSAKTRQGVEDAFYTLVREIRQHKLRKLNPPDESGPGCMSCKCVLS",
+    note: "189 residues. The experimental reference (PDB 1CRR) covers the G domain, residues 1–166; the C-terminal tail 167–189 is flexible and not part of it.",
+    tip: "For AlphaFold Server, add GDP (or GTP) and one Mg²⁺ ion as ligands. Residues 167–189 will come out with very low pLDDT."
+  },
+  hbb: {
+    short: "Haemoglobin β", name: "Haemoglobin subunit beta, human", uniprot: "P68871", struct: "hb", chain: "B", chainLabel: "β ",
+    seq: "VHLTPEEKSAVTALWGKVNVDEVGGEALGRLLVVYPWTQRFFESFGDLSTPDAVMGNPKVKAHGKKVLGAFSDGLAHLDNLKGTFATLSELHCDKLHVDPENFRLLGNVLVCVLAHHFGKEFTPPVQAAYQKVVAGVANALAHKYH",
+    note: "146 residues, the mature chain as it appears in PDB 4HHB chain B (the initiator Met of the 147-residue precursor is removed). Eight helices, A to H.",
+    tip: "To build the whole tetramer in AlphaFold Server, add 2 copies of α, 2 copies of β and 4 HEM ligands. In ColabFold, join the chains with ':'."
+  },
+  hba: {
+    short: "Haemoglobin α", name: "Haemoglobin subunit alpha, human", uniprot: "P69905", struct: "hb", chain: "A", chainLabel: "α ",
+    seq: "VLSPADKTNVKAAWGKVGAHAGEYGAEALERMFLSFPTTKTYFPHFDLSHGSAQVKGHGKKVADALTNAVAHVDDMPNALSALSDLHAHKLRVDPVNFKLLSHCLLVTLAAHLPAEFTPAVHASLDKFLASVSTVLTSKYR",
+    note: "141 residues, as in PDB 4HHB chain A. 43% identical to β; it lacks the short D helix.",
+    tip: "To build the whole tetramer in AlphaFold Server, add 2 copies of α, 2 copies of β and 4 HEM ligands. In ColabFold, join the chains with ':'."
+  }
+};
+for (const [k, p] of Object.entries(PROTEINS)) {
+  const r = REF[k];
+  if (p.seq.slice(r.first - 1, r.first - 1 + r.seq.length) !== r.seq) console.error("Reference does not match sequence for " + k);
+  p.ref = toQ3(r.dssp);           // 3-state DSSP of the experimental structure, residues first..first+len-1 (first = 1 here)
+  p.dssp8 = r.dssp;
+}
+let cur = store.get("protein", "hras");
+if (!PROTEINS[cur]) cur = "hras";
+
+/* ---------------- shared sequence methods ---------------- */
 const KD = { A: 1.8, R: -4.5, N: -3.5, D: -3.5, C: 2.5, Q: -3.5, E: -3.5, G: -0.4, H: -3.2, I: 4.5, L: 3.8, K: -3.9, M: 1.9, F: 2.8, P: -1.6, S: -0.8, T: -0.7, W: -0.9, Y: -1.3, V: 4.2 };
 const CF = { E: [1.51, .37], M: [1.45, 1.05], A: [1.42, .83], L: [1.21, 1.30], K: [1.16, .74], F: [1.13, 1.38], Q: [1.11, 1.10], W: [1.08, 1.37], I: [1.08, 1.60], V: [1.06, 1.70], D: [1.01, .54], H: [1.00, .87], R: [.98, .93], T: [.83, 1.19], S: [.77, .75], C: [.70, 1.19], Y: [.69, 1.47], N: [.67, .89], P: [.57, .55], G: [.57, .75] };
 const MASS = { A: 71.08, R: 156.19, N: 114.10, D: 115.09, C: 103.14, E: 129.12, Q: 128.13, G: 57.05, H: 137.14, I: 113.16, L: 113.16, K: 128.17, M: 131.19, F: 147.18, P: 97.12, S: 87.08, T: 101.10, W: 186.21, Y: 163.18, V: 99.13 };
-
-/* ---------------- step 1: ORFs ---------------- */
-const FRAMES = [1, 2, 3].map(f => translate(DNA.slice(f - 1)));
-const ALL_ORFS = [];
-FRAMES.forEach((p, fi) => {
-  const re = /M[^*]*\*/g; let m;
-  while ((m = re.exec(p))) {
-    const start = m.index + 1, seq = m[0].slice(0, -1);
-    ALL_ORFS.push({ frame: fi + 1, start, end: m.index + m[0].length - 1, seq, nt: fi + 3 * m.index + 1, ntEnd: fi + 3 * (m.index + m[0].length) });
-  }
-});
-let selectedOrf = null;
-function drawOrfs() {
-  const min = +$("minLen").value;
-  $("minLenOut").textContent = min + " aa";
-  const orfs = ALL_ORFS.filter(o => o.seq.length >= min).sort((a, b) => b.seq.length - a.seq.length);
-  $("orfCount").textContent = `${orfs.length} ORFs`;
-  const L = DNA.length, X = n => 60 + (n / L) * 930;
-  let s = "";
-  for (let kb = 0; kb <= L; kb += 1000) s += `<line x1="${X(kb)}" x2="${X(kb)}" y1="8" y2="128" stroke="var(--line)" stroke-width="1"/><text x="${X(kb)}" y="144" text-anchor="middle">${kb / 1000} kb</text>`;
-  [1, 2, 3].forEach(f => {
-    const y = 12 + (f - 1) * 30;
-    s += `<text x="0" y="${y + 13}">Frame ${f}</text><line x1="60" x2="990" y1="${y + 9}" y2="${y + 9}" stroke="var(--line)"/>`;
-  });
-  orfs.forEach(o => {
-    const y = 12 + (o.frame - 1) * 30, sel = selectedOrf === o;
-    s += `<rect data-i="${ALL_ORFS.indexOf(o)}" x="${X(o.nt)}" y="${y + 2}" width="${Math.max(2, X(o.ntEnd) - X(o.nt))}" height="14" rx="2"
-      fill="${sel ? "var(--helix)" : "var(--brand)"}" opacity="${sel ? 1 : 0.75}" style="cursor:pointer"><title>Frame ${o.frame}, codons ${o.start}-${o.end}, ${o.seq.length} aa</title></rect>`;
-  });
-  if ($("revealExons").getAttribute("aria-pressed") === "true") {
-    s += `<text x="0" y="115">Exons</text><line x1="60" x2="990" y1="111" y2="111" stroke="var(--line)"/>`;
-    EXONS_OK.forEach(([a, b], i) => {
-      s += `<rect x="${X(a)}" y="103" width="${Math.max(3, X(b) - X(a))}" height="16" fill="var(--strand)"/>`;
-      s += `<text x="${X(a)}" y="100">${i + 1}</text>`;
-      if (EXONS_OK[i + 1]) s += `<path d="M${X(b)} 111 L${(X(b) + X(EXONS_OK[i + 1][0])) / 2} 104 L${X(EXONS_OK[i + 1][0])} 111" fill="none" stroke="var(--strand)"/>`;
-    });
-  }
-  $("orfMap").innerHTML = s;
-  $("orfTable").tBodies[0].innerHTML = orfs.map(o => `<tr class="${selectedOrf === o ? "sel" : ""}"><td class="num">${o.frame}</td><td class="num">${o.start}–${o.end}</td><td class="num">${o.seq.length}</td>
-    <td class="seq">${o.seq.slice(0, 40)}</td><td><button class="chip" data-i="${ALL_ORFS.indexOf(o)}" type="button">Select</button></td></tr>`).join("");
-}
-function selectOrf(o) {
-  selectedOrf = o;
-  $("orfSeq").innerHTML = `<span class="label">Frame ${o.frame}, codons ${o.start}–${o.end}, ${o.seq.length} aa</span><br>` + wrap(o.seq).join("<br>");
-  drawOrfs();
-}
-$("minLen").addEventListener("input", drawOrfs);
-$("revealExons").addEventListener("click", e => { const b = e.currentTarget; b.setAttribute("aria-pressed", b.getAttribute("aria-pressed") === "true" ? "false" : "true"); drawOrfs(); });
-document.addEventListener("click", e => {
-  const t = e.target.closest("[data-i]");
-  if (t && (t.closest("#orfMap") || t.closest("#orfTable"))) selectOrf(ALL_ORFS[+t.dataset.i]);
-});
-$("copyOrf").addEventListener("click", () => selectedOrf && copyText(selectedOrf.seq, $("copyMsg"), $("orfSeq")));
-$("orfToAnalyzer").addEventListener("click", () => {
-  if (!selectedOrf) return;
-  $("seqIn").value = selectedOrf.seq; setPreset(null); analyze(); location.hash = "sequence";
-});
-
-/* ---------------- step 2: splicing ---------------- */
-let exons = EXONS_OK.map(e => e.slice());
-function buildExonTable() {
-  $("exonTable").tBodies[0].innerHTML = exons.map((e, i) => `<tr><td>Exon ${i + 1}</td>
-    <td><input type="number" id="ex${i}s" value="${e[0]}" aria-label="Exon ${i + 1} start"></td>
-    <td><input type="number" id="ex${i}e" value="${e[1]}" aria-label="Exon ${i + 1} end"></td>
-    <td class="num" id="ex${i}len"></td><td class="num" id="ex${i}fr"></td><td class="mono" id="ex${i}in"></td></tr>`).join("");
-  exons.forEach((_, i) => ["s", "e"].forEach(k => $(`ex${i}${k}`).addEventListener("input", ev => {
-    exons[i][k === "s" ? 0 : 1] = parseInt(ev.target.value, 10) || 0; splice();
-  })));
-}
-function splice() {
-  let cds = "", cum = 0;
-  exons.forEach(([a, b], i) => {
-    const len = Math.max(0, b - a + 1);
-    const firstCodon = a + ((3 - (cum % 3)) % 3);
-    $(`ex${i}len`).textContent = len + " nt";
-    $(`ex${i}fr`).textContent = "frame " + (((firstCodon - 1) % 3 + 3) % 3 + 1);
-    cds += DNA.slice(a - 1, b); cum += len;
-    const nx = exons[i + 1];
-    if (nx) {
-      const intr = DNA.slice(b, nx[0] - 1);
-      const d = intr.slice(0, 2), ac = intr.slice(-2);
-      $(`ex${i}in`).innerHTML = `${intr.length} nt · <span class="${d === "GT" ? "ok" : "no"}">${d}</span>…<span class="${ac === "AG" ? "ok" : "no"}">${ac}</span> · ${intr.length % 3 === 0 ? "keeps frame" : "shifts frame"}`;
-    } else $(`ex${i}in`).textContent = "—";
-  });
-  const prot = translate(cds);
-  const stopAt = prot.indexOf("*");
-  const core = stopAt >= 0 ? prot.slice(0, stopAt) : prot;
-  let same = 0, html = "";
-  for (let i = 0; i < prot.length; i++) {
-    const ok = prot[i] === (HRAS_REF[i] || "*");
-    if (ok && i < HRAS_REF.length) same++;
-    html += ok ? prot[i] : `<span class="mm">${prot[i]}</span>`;
-    if ((i + 1) % 60 === 0) html += "<br>";
-  }
-  $("splicedSeq").innerHTML = html;
-  const perfect = core === HRAS_REF && prot.endsWith("*") && stopAt === prot.length - 1;
-  $("spliceSummary").innerHTML = `CDS ${cds.length} nt (${cds.length % 3 === 0 ? '<span class="ok">multiple of 3</span>' : '<span class="no">not a multiple of 3</span>'}) · ` +
-    `${same}/${HRAS_REF.length} residues match H-Ras · ` +
-    (perfect ? '<span class="ok">complete protein ending in a stop codon</span>'
-      : stopAt >= 0 && stopAt < prot.length - 1 ? `<span class="no">premature stop at residue ${stopAt + 1}</span>` : '<span class="no">no clean stop at the end</span>');
-}
-$("exonReset").addEventListener("click", () => { exons = EXONS_OK.map(e => e.slice()); buildExonTable(); splice(); });
-
-/* ---------------- step 3: sequence analysis ---------------- */
-const PRESETS = {
-  hras: HRAS_REF,
-  repeat: ALL_ORFS.slice().sort((a, b) => b.seq.length - a.seq.length)[0].seq,
-  gcn4: "RMKQLEDKVEELLSKNYHLENEVARLKKLVGER"
-};
-function setPreset(name) { document.querySelectorAll("[data-preset]").forEach(b => b.setAttribute("aria-pressed", b.dataset.preset === name ? "true" : "false")); }
-document.querySelectorAll("[data-preset]").forEach(b => b.addEventListener("click", () => { $("seqIn").value = PRESETS[b.dataset.preset]; setPreset(b.dataset.preset); analyze(); }));
-const cleanSeq = () => $("seqIn").value.toUpperCase().replace(/[^ACDEFGHIKLMNPQRSTVWY]/g, "");
 function smooth(seq, scale, w) {
   const h = Math.floor(w / 2), v = [...seq].map(a => scale[a] ?? 0), out = Array(seq.length).fill(null);
   for (let i = h; i < seq.length - h; i++) { let s = 0; for (let j = i - h; j <= i + h; j++) s += v[j]; out[i] = s / w; }
   return out;
 }
-function chouFasman(seq, w, tA, tB) {
+function chouFasman(seq, w = 7, tA = 1.03, tB = 1.05) {
   const pa = {}, pb = {}; for (const k in CF) { pa[k] = CF[k][0]; pb[k] = CF[k][1]; }
   const A = smooth(seq, pa, w), Bv = smooth(seq, pb, w);
   let s = A.map((a, i) => a === null ? "C" : (a >= tA && a > Bv[i]) ? "H" : (Bv[i] >= tB && Bv[i] >= a) ? "E" : "C").join("");
   s = s.replace(/H+/g, m => m.length <= 3 ? "C".repeat(m.length) : m).replace(/E+/g, m => m.length <= 2 ? "C".repeat(m.length) : m);
   return s;
 }
-function period(seq) {
-  let best = [0, 0];
-  for (let p = 3; p <= Math.min(60, Math.floor(seq.length / 2)); p++) {
-    let same = 0; for (let i = 0; i + p < seq.length; i++) if (seq[i] === seq[i + p]) same++;
-    const f = same / (seq.length - p); if (f > best[0]) best = [f, p];
-  }
-  return best;
+function q3(pred, ref) { let ok = 0; const n = Math.min(pred.length, ref.length); for (let i = 0; i < n; i++) if (pred[i] === ref[i]) ok++; return ok / n; }
+// Coloured track rows: `ref` marks disagreements
+function trackRow(label, str, s0, ref) {
+  return `<span class="lab">     ${label} </span>` + [...str.slice(s0, s0 + 60)].map((c, j) =>
+    `<span class="${c}${ref && s0 + j < ref.length && c !== ref[s0 + j] ? " x" : ""}">${c}</span>`).join("") + "\n";
 }
-function tile(v, lab) { return `<div class="tile"><b>${v}</b><span>${lab}</span></div>`; }
+
+/* ---------------- protein selector ---------------- */
+function buildSelectors() {
+  document.querySelectorAll(".protsel").forEach(g => {
+    g.innerHTML = Object.entries(PROTEINS).map(([k, p]) => `<button type="button" class="chip" data-prot="${k}" aria-pressed="${k === cur}">${p.short}</button>`).join("");
+  });
+}
+document.addEventListener("click", e => { const b = e.target.closest("[data-prot]"); if (b) setProtein(b.dataset.prot); });
+function setProtein(k) {
+  cur = k; store.set("protein", k);
+  document.querySelectorAll("[data-prot]").forEach(b => b.setAttribute("aria-pressed", b.dataset.prot === k ? "true" : "false"));
+  const p = PROTEINS[k];
+  $("protSeq").innerHTML = `<span class="label">${esc(p.name)} · UniProt ${p.uniprot} · ${p.seq.length} residues</span><br>` + wrap(p.seq).join("<br>");
+  $("protNote").textContent = p.note;
+  $("seqIn").value = p.seq; analyze();
+  $("nnRes").max = p.ref.length; if (+$("nnRes").value > p.ref.length) $("nnRes").value = 21;
+  drawNNProtein(); drawV1();
+  $("fastaBox").innerHTML = esc(fasta(k)).replace(/\n/g, "<br>");
+  $("predictTip").textContent = p.tip;
+  compareModel();
+}
+const fasta = k => `>${k} ${PROTEINS[k].name} (UniProt ${PROTEINS[k].uniprot})\n` + wrap(PROTEINS[k].seq).join("\n");
+$("copyFasta").addEventListener("click", () => copyText(fasta(cur), $("fastaMsg"), $("fastaBox")));
+$("copyFasta1").addEventListener("click", () => copyText(fasta(cur), $("fastaMsg1"), $("protSeq")));
+
+/* ---------------- step 2: sequence analysis ---------------- */
+const cleanSeq = () => $("seqIn").value.toUpperCase().replace(/[^ACDEFGHIKLMNPQRSTVWY]/g, "");
+const refFor = seq => seq === PROTEINS[cur].seq ? PROTEINS[cur].ref : null;
 function analyze() {
   const seq = cleanSeq(), n = seq.length;
   if (n < 5) { $("stats").innerHTML = tile("—", "Enter at least 5 residues"); $("kdPlot").innerHTML = ""; $("cfTracks").textContent = ""; $("cfStats").innerHTML = ""; return; }
@@ -6841,13 +6840,8 @@ function analyze() {
   const gravy = [...seq].reduce((s, a) => s + KD[a], 0) / n;
   const charge = (c.K || 0) + (c.R || 0) - (c.D || 0) - (c.E || 0);
   const dis = [..."PESQKAG"].reduce((s, a) => s + (c[a] || 0), 0) / n;
-  const [pf, pp] = period(seq);
   $("stats").innerHTML = tile(n, "residues") + tile(mw.toFixed(1) + " kDa", "molecular weight") + tile((gravy >= 0 ? "+" : "") + gravy.toFixed(2), "GRAVY (<0 soluble)") +
-    tile((charge > 0 ? "+" : "") + charge, "net charge, pH 7") + tile(Math.round(dis * 100) + "%", "disorder-promoting (PESQKAG)") +
-    tile(Math.round(((c.P || 0) / n) * 100) + "%", "proline");
-  $("statsNote").innerHTML = pf > 0.4
-    ? `<span class="no">Strongly repetitive:</span> ${Math.round(pf * 100)}% of residues match the residue ${pp} positions later. Expect a disordered, low-confidence prediction.`
-    : `No strong internal repeat (best period ${pp} aa, ${Math.round(pf * 100)}% self-match).`;
+    tile((charge > 0 ? "+" : "") + charge, "net charge, pH 7") + tile(Math.round(dis * 100) + "%", "disorder-promoting (PESQKAG)");
   drawKD(seq); drawCF(seq);
 }
 function drawKD(seq) {
@@ -6857,7 +6851,7 @@ function drawKD(seq) {
   let s = "";
   [-4, -2, 0, 2, 4].forEach(k => s += `<line x1="${L}" x2="${W - R}" y1="${y(k)}" y2="${y(k)}" stroke="var(--line)" ${k === 0 ? "" : 'stroke-dasharray="2 4"'}/><text x="${L - 6}" y="${y(k) + 4}" text-anchor="end">${k > 0 ? "+" + k : k}</text>`);
   const tick = n > 150 ? 50 : n > 60 ? 20 : 10;
-  for (let i = 0; i <= n; i += tick) if (i > 0) s += `<text x="${x(i - 1)}" y="${H - 8}" text-anchor="middle">${i}</text>`;
+  for (let i = tick; i <= n; i += tick) s += `<text x="${x(i - 1)}" y="${H - 8}" text-anchor="middle">${i}</text>`;
   s += `<line x1="${L}" x2="${W - R}" y1="${y(1.6)}" y2="${y(1.6)}" stroke="var(--helix)" stroke-dasharray="6 4"/><text x="${W - R}" y="${y(1.6) - 5}" text-anchor="end" style="fill:var(--helix)">TM cutoff 1.6</text>`;
   const pts = v.map((k, i) => k === null ? null : `${x(i).toFixed(1)},${y(k).toFixed(1)}`).filter(Boolean);
   if (pts.length) {
@@ -6866,51 +6860,42 @@ function drawKD(seq) {
   }
   $("kdPlot").innerHTML = s;
   const vals = v.filter(k => k !== null), mx = vals.length ? Math.max(...vals) : NaN;
-  const tm = w === 19 && mx > 1.6;
-  $("tmNote").innerHTML = vals.length ? `Peak ${mx >= 0 ? "+" : ""}${mx.toFixed(2)} · ${w !== 19 ? "the 1.6 cutoff is calibrated for a 19-residue window" : tm ? '<span class="no">possible transmembrane helix</span>' : '<span class="ok">no transmembrane helix</span>'}` : "Sequence shorter than the window";
+  $("tmNote").innerHTML = vals.length ? `Peak ${mx >= 0 ? "+" : ""}${mx.toFixed(2)} · ${w !== 19 ? "the 1.6 cutoff is calibrated for a 19-residue window" : mx > 1.6 ? '<span class="no">possible transmembrane helix</span>' : '<span class="ok">no transmembrane helix</span>'}` : "Sequence shorter than the window";
 }
 function drawCF(seq) {
   const w = +$("cfWin").value, tA = +$("cfHa").value, tB = +$("cfHb").value;
   $("cfWinOut").textContent = w; $("cfHaOut").textContent = tA.toFixed(2); $("cfHbOut").textContent = tB.toFixed(2);
-  const ss = chouFasman(seq, w, tA, tB), n = seq.length;
-  const isRas = seq.startsWith(HRAS_REF.slice(0, 166));
-  const pct = ch => Math.round(([...ss].filter(c => c === ch).length / n) * 100) + "%";
-  let stats = tile(pct("H"), "helix") + tile(pct("E"), "strand") + tile(pct("C"), "coil");
-  if (isRas) {
-    let ok = 0; for (let i = 0; i < 166; i++) if (ss[i] === SS_5P21[i]) ok++;
-    stats += tile(Math.round((ok / 166) * 100) + "%", "Q3 vs 5P21 (1–166)");
-  }
+  const ss = chouFasman(seq, w, tA, tB), n = seq.length, ref = refFor(seq);
+  const share = (s, ch) => pct0([...s].filter(c => c === ch).length / s.length);
+  let stats = tile(share(ss, "H") + " / " + share(ss, "E"), "predicted helix / strand");
+  if (ref) stats += tile(share(ref, "H") + " / " + share(ref, "E"), "experiment: helix / strand") + tile(pct0(q3(ss, ref)), `Q3 vs experiment (1–${ref.length})`);
   $("cfStats").innerHTML = stats;
   let out = "";
   for (let s0 = 0; s0 < n; s0 += 60) {
-    const seg = seq.slice(s0, s0 + 60), ps = ss.slice(s0, s0 + 60);
-    out += `<span class="lab">${String(s0 + 1).padStart(4)} seq  </span>${seg}\n<span class="lab">     pred </span>` +
-      [...ps].map((c, j) => { const r = isRas && s0 + j < 166 ? SS_5P21[s0 + j] : null; return `<span class="${c}${r && r !== c ? " x" : ""}">${c}</span>`; }).join("") + "\n";
-    if (isRas && s0 < 166) out += `<span class="lab">     5P21 </span>` + [...SS_5P21.slice(s0, s0 + 60)].map(c => `<span class="${c}">${c}</span>`).join("") + "\n";
+    out += `<span class="lab">${String(s0 + 1).padStart(4)} seq  </span>${seq.slice(s0, s0 + 60)}\n` + trackRow("CF  ", ss, s0, ref);
+    if (ref && s0 < ref.length) out += trackRow("DSSP", ref, s0, null);
     out += "\n";
   }
   $("cfTracks").innerHTML = out;
 }
-$("seqIn").addEventListener("input", () => { setPreset(null); analyze(); });
-["kdWin"].forEach(id => $(id).addEventListener("input", () => drawKD(cleanSeq())));
+$("seqIn").addEventListener("input", analyze);
+$("kdWin").addEventListener("input", () => drawKD(cleanSeq()));
 ["cfWin", "cfHa", "cfHb"].forEach(id => $(id).addEventListener("input", () => drawCF(cleanSeq())));
 $("cfReset").addEventListener("click", () => { $("cfWin").value = 7; $("cfHa").value = 1.03; $("cfHb").value = 1.05; drawCF(cleanSeq()); });
 
-/* ---------------- step 4: neural network (Qian & Sejnowski style) ---------------- */
+/* ---------------- step 3: neural network (Qian & Sejnowski style) ---------------- */
 const NN_AA = "ACDEFGHIKLMNPQRSTVWY", NN_SS = "HEC", NN_NAMES = ["helix", "strand", "coil"];
-const DSSP3 = { H: 0, G: 0, I: 0, E: 1, B: 1 };             // everything else is coil (2)
+const DSSP_IDX = { H: 0, G: 0, I: 0, E: 1, B: 1 };
 const NN_SIZES = [50, 100, 200, 300, 500, 1000, 2000, Infinity];
 const toCodes = s => Uint8Array.from(s, c => { const k = NN_AA.indexOf(c); return k < 0 ? 20 : k; });
 function parseSS(id) {
-  return $(id).textContent.trim().split("\n").map(l => l.split("\t")).filter(x => x.length === 2)
-    .map(([s, d]) => ({ seq: s, codes: toCodes(s), y: Uint8Array.from(d, c => DSSP3[c] ?? 2) }));
+  return $(id).textContent.trim().split("\n").map(l => l.split("\t"))
+    .map(([s, d]) => ({ seq: s, codes: toCodes(s), y: Uint8Array.from(d, c => DSSP_IDX[c] ?? 2) }));
 }
 const SS_TEST = parseSS("ssTest");
-const SS_TRAIN_ALL = parseSS("ssTrain");
-// Remove small GTPases (P-loop GxxxxGK[ST] plus G3 DxxG[QH]) so H-Ras is a fair test.
-const SS_TRAIN = SS_TRAIN_ALL.filter(p => !(/G.{4}GK[ST]/.test(p.seq) && /D.{2}G[QH]/.test(p.seq)));
-// Full 189-residue protein (so windows near residue 166 see real neighbours); scored on residues 1-166 only.
-const HRAS166 = { seq: HRAS_REF, codes: toCodes(HRAS_REF), y: Uint8Array.from(HRAS_REF, (_, i) => i < 166 ? NN_SS.indexOf(SS_5P21[i]) : 2) };
+// Training set minus relatives of Ras and haemoglobin (data/excluded_training.txt)
+const SS_TRAIN = parseSS("ssTrain").filter((_, i) => !EXCLUDED.has(i));
+const PROT_NN = Object.fromEntries(Object.entries(PROTEINS).map(([k, p]) => [k, { seq: p.seq, codes: toCodes(p.seq) }]));
 
 function mulberry32(a) { return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
 function shuffle(arr, rnd) { for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); const t = arr[i]; arr[i] = arr[j]; arr[j] = t; } return arr; }
@@ -6988,10 +6973,10 @@ function evaluate(predict, set) {
   const n = tot[0] + tot[1] + tot[2];
   return { q3: (ok[0] + ok[1] + ok[2]) / n, rec: ok.map((v, c) => v / tot[c]) };
 }
-const cfPredict = prot => Uint8Array.from(chouFasman(prot.seq, 7, 1.03, 1.05), c => NN_SS.indexOf(c));
+const cfPredict = prot => Uint8Array.from(chouFasman(prot.seq), c => NN_SS.indexOf(c));
+const nnString = (net, k) => [...predictProt(net, PROT_NN[k])].map(c => NN_SS[c]).join("");
 
-let nnRun = 0, nnNet = null, nnHist = [], nnCF = null, nnRes = { l1: null, l2: null, desc: "" };
-const pct = v => (v * 100).toFixed(1) + "%";
+let nnRun = 0, nnNet = null, nnHist = [], nnCF = null, nnRes = { l1: null, l2: null, desc: "" }, nnPred = {};
 
 function nnControls() {
   $("nnWinOut").textContent = $("nnWin").value;
@@ -7049,10 +7034,13 @@ async function nnTrain() {
   }
   $("nnBar").style.width = "100%";
   nnNet = net;
+  nnPred = Object.fromEntries(Object.keys(PROTEINS).map(k => [k, nnString(net, k)]));
   const last = nnRes.l2 || nnRes.l1;
   status(`Done. Test Q3 ${pct(last.q3)}${nnRes.l2 ? " with the second level" : ""}, against ${pct(nnCF.q3)} for Chou–Fasman.`);
   $("nnTrain").disabled = false; $("nnStop").disabled = true;
   drawNNResults();
+  if (!v1ModeTouched) v1Mode = "nn";
+  drawV1();
 }
 $("nnTrain").addEventListener("click", nnTrain);
 $("nnStop").addEventListener("click", () => {
@@ -7069,8 +7057,9 @@ function drawChart(E) {
   if (nnCF) s += `<line x1="${L}" x2="${Wd - R}" y1="${y(nnCF.q3)}" y2="${y(nnCF.q3)}" stroke="var(--helix)" stroke-dasharray="6 4" stroke-width="1.5"/><text x="${L + 4}" y="${y(nnCF.q3) - 5}" style="fill:var(--helix)">Chou–Fasman ${pct(nnCF.q3)}</text>`;
   const line = (key, col) => {
     if (!nnHist.length) return "";
-    const pts = nnHist.map(h => `${x(h.ep).toFixed(1)},${y(Math.max(lo, Math.min(hi, h[key]))).toFixed(1)}`);
-    return `<polyline points="${pts.join(" ")}" fill="none" stroke="${col}" stroke-width="2.5"/>` + nnHist.map((h, i) => `<circle cx="${pts[i].split(",")[0]}" cy="${pts[i].split(",")[1]}" r="${i === nnHist.length - 1 ? 4.5 : 3}" fill="${col}"><title>Epoch ${h.ep}: ${pct(h[key])}</title></circle>`).join("");
+    const pts = nnHist.map(h => [x(h.ep), y(Math.max(lo, Math.min(hi, h[key])))]);
+    return `<polyline points="${pts.map(p => p.map(v => v.toFixed(1)).join(",")).join(" ")}" fill="none" stroke="${col}" stroke-width="2.5"/>` +
+      nnHist.map((h, i) => `<circle cx="${pts[i][0].toFixed(1)}" cy="${pts[i][1].toFixed(1)}" r="${i === nnHist.length - 1 ? 4.5 : 3}" fill="${col}"><title>Epoch ${h.ep}: ${pct(h[key])}</title></circle>`).join("");
   };
   s += line("train", "var(--coil)") + line("test", "var(--brand)");
   if (nnHist.length) { const h = nnHist[nnHist.length - 1]; s += `<text x="${Math.min(x(h.ep) + 6, Wd - R - 40)}" y="${y(h.test) - 8}" style="fill:var(--ink);font-weight:500">${pct(h.test)}</text>`; }
@@ -7085,66 +7074,59 @@ function drawNNResults() {
   if (nnRes.l2) rows += row("Neural network + second level", nnRes.l2);
   $("nnCmp").tBodies[0].innerHTML = rows;
   drawChart(Math.max(nnHist.length, +$("nnEp").value));
-
-  // H-Ras tracks
-  const cf = chouFasman(HRAS166.seq, 7, 1.03, 1.05);
-  let tiles = tile(Math.round(q3str(cf) * 100) + "%", "Chou–Fasman Q3 on H-Ras");
-  let nnS = null;
-  if (nnNet) { nnS = [...predictProt(nnNet, HRAS166)].map(c => NN_SS[c]).join(""); tiles += tile(Math.round(q3str(nnS) * 100) + "%", "neural network Q3 on H-Ras"); }
-  $("nnRasTiles").innerHTML = tiles;
-  const tr = (lab, str, s0) => `<span class="lab">     ${lab} </span>` + [...str.slice(s0, s0 + 60)].map((c, j) => `<span class="${c}${lab !== "5P21" && c !== SS_5P21[s0 + j] ? " x" : ""}">${c}</span>`).join("") + "\n";
+  $("nnProtTable").tBodies[0].innerHTML = Object.entries(PROTEINS).map(([k, p]) =>
+    `<tr><td>${p.name} <span class="note">(1–${p.ref.length})</span></td><td class="num"><b>${pct0(q3(chouFasman(p.seq), p.ref))}</b></td><td class="num"><b>${nnPred[k] ? pct0(q3(nnPred[k], p.ref)) : "—"}</b></td></tr>`).join("");
+  drawNNProtein(); drawLadder();
+}
+function drawNNProtein() {
+  const p = PROTEINS[cur], ref = p.ref, cf = chouFasman(p.seq), nn = nnPred[cur];
   let out = "";
-  for (let s0 = 0; s0 < 166; s0 += 60) {
-    out += `<span class="lab">${String(s0 + 1).padStart(4)} seq  </span>${HRAS166.seq.slice(s0, s0 + 60)}\n` + tr("CF  ", cf, s0) + (nnS ? tr("NN  ", nnS, s0) : "") + tr("5P21", SS_5P21, s0) + "\n";
+  for (let s0 = 0; s0 < ref.length; s0 += 60) {
+    out += `<span class="lab">${String(s0 + 1).padStart(4)} seq  </span>${p.seq.slice(s0, Math.min(s0 + 60, ref.length))}\n` +
+      trackRow("CF  ", cf.slice(0, ref.length), s0, ref) + (nn ? trackRow("NN  ", nn.slice(0, ref.length), s0, ref) : "") + trackRow("DSSP", ref, s0, null) + "\n";
   }
   $("nnTracks").innerHTML = out;
-  drawDiagram(); drawLadder();
+  drawDiagram();
 }
-const q3str = s => { let ok = 0; for (let i = 0; i < 166; i++) if (s[i] === SS_5P21[i]) ok++; return ok / 166; };
 
 function drawDiagram() {
-  const r = +$("nnRes").value, i = r - 1;
+  const p = PROTEINS[cur], prot = PROT_NN[cur], r = +$("nnRes").value, i = r - 1;
   $("nnResOut").textContent = r;
   const net = nnNet && nnNet.W === +$("nnWin").value && nnNet.H === +$("nnHid").value ? nnNet : null;
-  const W = +$("nnWin").value, H = +$("nnHid").value, half = W >> 1;
-  let p = null, act = null;
-  if (net) { p = Array.from(forward(net, HRAS166, i)); act = Array.from(net.a); if (net.l2) { const P = probsFor(net, HRAS166); p = l2Forward(net.l2, P, HRAS166.seq.length, i); forward(net, HRAS166, i); act = Array.from(net.a); } }
-  const truth = NN_NAMES[NN_SS.indexOf(SS_5P21[i])];
-  $("nnResNote").textContent = `${HRAS166.seq[i]}${r} · structure in 5P21: ${truth}` + (p ? ` · predicted: ${NN_NAMES[argmax3(p)]}` : " · train the network to see its prediction");
+  const W = +$("nnWin").value, H = +$("nnHid").value, half = W >> 1, n = prot.seq.length;
+  let pr = null, act = null;
+  if (net) { pr = Array.from(forward(net, prot, i)); act = Array.from(net.a); if (net.l2) { const P = probsFor(net, prot); pr = l2Forward(net.l2, P, n, i); forward(net, prot, i); act = Array.from(net.a); } }
+  const truth = SS_NAME[p.ref[i]];
+  $("nnResNote").textContent = `${p.seq[i]}${r} · experimental structure: ${truth}` + (pr ? ` · predicted: ${NN_NAMES[argmax3(pr)]}` : " · train the network to see its prediction");
   const cw = Math.min(24, 300 / W), x0 = 20 + (300 - W * cw) / 2, gy = 50, chh = 7;
   let s = "";
-  // edges first (behind)
-  const nh = Math.min(H, 10), hy = k => 40 + (nh > 1 ? k * (200 / (nh - 1)) : 100), oy = c => 90 + c * 55;
-  const gx = x0 + W * cw;
+  const nh = Math.min(H, 10), hy = k => 40 + (nh > 1 ? k * (200 / (nh - 1)) : 100), oy = c => 90 + c * 55, gx = x0 + W * cw;
   for (let e = 0; e < 8; e++) {
     const sy = gy + 10 + e * (chh * 22 - 20) / 7;
-    if (H) for (let k = 0; k < nh; k++) s += `<line x1="${gx}" y1="${sy}" x2="${460 - 11}" y2="${hy(k)}" stroke="var(--line)" stroke-width="0.7"/>`;
+    if (H) for (let k = 0; k < nh; k++) s += `<line x1="${gx}" y1="${sy}" x2="449" y2="${hy(k)}" stroke="var(--line)" stroke-width="0.7"/>`;
     else for (let c = 0; c < 3; c++) s += `<line x1="${gx}" y1="${sy}" x2="548" y2="${oy(c)}" stroke="var(--line)" stroke-width="0.7"/>`;
   }
-  if (H) for (let k = 0; k < nh; k++) for (let c = 0; c < 3; c++) s += `<line x1="${471}" y1="${hy(k)}" x2="548" y2="${oy(c)}" stroke="var(--line)" stroke-width="0.7"/>`;
-  // window letters + one-hot grid
+  if (H) for (let k = 0; k < nh; k++) for (let c = 0; c < 3; c++) s += `<line x1="471" y1="${hy(k)}" x2="548" y2="${oy(c)}" stroke="var(--line)" stroke-width="0.7"/>`;
   for (let w = 0; w < W; w++) {
-    const j = i - half + w, inside = j >= 0 && j < HRAS166.seq.length, code = inside ? HRAS166.codes[j] : 21, cx = x0 + w * cw;
+    const j = i - half + w, inside = j >= 0 && j < n, code = inside ? prot.codes[j] : 21, cx = x0 + w * cw;
     s += `<rect x="${cx + 1}" y="16" width="${cw - 2}" height="22" rx="3" fill="${w === half ? "var(--brand)" : "var(--sunk)"}"/>`;
-    s += `<text x="${cx + cw / 2}" y="32" text-anchor="middle" style="font:500 ${cw < 16 ? 10 : 13}px var(--mono);fill:${w === half ? "var(--brand-ink)" : "var(--ink)"}">${inside ? HRAS166.seq[j] : "·"}</text>`;
+    s += `<text x="${cx + cw / 2}" y="32" text-anchor="middle" style="font:500 ${cw < 16 ? 10 : 13}px var(--mono);fill:${w === half ? "var(--brand-ink)" : "var(--ink)"}">${inside ? prot.seq[j] : "·"}</text>`;
     for (let a = 0; a < 22; a++) s += `<rect x="${cx + 1.5}" y="${gy + a * chh}" width="${cw - 3}" height="${chh - 1}" fill="${a === code ? "var(--ink)" : "var(--sunk)"}"/>`;
   }
-  s += `<text x="${20 + 150}" y="${gy + 22 * chh + 18}" text-anchor="middle">${W} residues × 22 inputs, one on per column</text>`;
+  s += `<text x="170" y="${gy + 22 * chh + 18}" text-anchor="middle">${W} residues × 22 inputs, one on per column</text>`;
   s += `<text x="8" y="${gy + 4}" style="font-size:9px">A</text><text x="8" y="${gy + 19 * chh + 5}" style="font-size:9px">Y</text><text x="4" y="${gy + 21 * chh + 5}" style="font-size:9px">end</text>`;
-  // hidden layer
   if (H) {
     for (let k = 0; k < nh; k++) {
       const v = act ? act[k] : 0;
       s += `<circle cx="460" cy="${hy(k)}" r="10" fill="${v >= 0 ? "var(--brand)" : "var(--helix)"}" fill-opacity="${act ? Math.min(1, Math.abs(v)).toFixed(2) : 0}" stroke="var(--muted)" stroke-width="1"><title>${act ? `activation ${v.toFixed(2)}` : "hidden unit"}</title></circle>`;
     }
-    s += `<text x="460" y="275" text-anchor="middle">${H} hidden unit${H > 1 ? "s" : ""}${H > 10 ? ` (10 shown)` : ""}</text><text x="460" y="289" text-anchor="middle" style="font-size:10px">tanh</text>`;
+    s += `<text x="460" y="275" text-anchor="middle">${H} hidden unit${H > 1 ? "s" : ""}${H > 10 ? " (10 shown)" : ""}</text><text x="460" y="289" text-anchor="middle" style="font-size:10px">tanh</text>`;
   } else s += `<text x="460" y="150" text-anchor="middle">no hidden layer</text><text x="460" y="165" text-anchor="middle" style="font-size:10px">(linear network)</text>`;
-  // outputs
   ["H helix", "E strand", "C coil"].forEach((lab, c) => {
-    const col = ["var(--helix)", "var(--strand)", "var(--coil)"][c], v = p ? p[c] : 0;
+    const col = ["var(--helix)", "var(--strand)", "var(--coil)"][c], v = pr ? pr[c] : 0;
     s += `<text x="552" y="${oy(c) - 10}" style="fill:${col};font-weight:500">${lab}</text>`;
     s += `<rect x="552" y="${oy(c) - 4}" width="150" height="14" rx="2" fill="var(--sunk)"/><rect x="552" y="${oy(c) - 4}" width="${(v * 150).toFixed(1)}" height="14" rx="2" fill="${col}"/>`;
-    s += `<text x="708" y="${oy(c) + 7}" style="fill:var(--ink)">${p ? Math.round(v * 100) + "%" : "–"}</text>`;
+    s += `<text x="708" y="${oy(c) + 7}" style="fill:var(--ink)">${pr ? Math.round(v * 100) + "%" : "–"}</text>`;
   });
   s += `<text x="630" y="275" text-anchor="middle">output probabilities</text><text x="630" y="289" text-anchor="middle" style="font-size:10px">softmax</text>`;
   $("nnDiagram").innerHTML = s;
@@ -7165,150 +7147,309 @@ function drawLadder() {
   $("nnLadder").innerHTML = rows.map(([lab, v, txt, cls]) => `<div class="r ${cls}"><span>${lab}</span><span class="track"><span class="fill" style="width:${(v * 100).toFixed(1)}%"></span></span><span class="v">${txt}</span></div>`).join("");
 }
 
-function nnBoot() {
-  nnControls();
-  nnCF = evaluate(cfPredict, SS_TEST);
-  drawNNResults();
-  nnTrain();
+/* ---------------- 3D viewer (canvas, Cα trace) ---------------- */
+// layers: [{pts: [{x, y, z, col, res, info}], width, alpha, join}]; spheres: [{x, y, z, col, r}]
+function makeViewer(canvas, hoverEl, toolsEl) {
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const v = { layers: [], spheres: [], rotX: -0.3, rotY: 0.5, zoom: 1, spin: !reduce, center: [0, 0, 0], extent: 20, drag: false, proj: [], visible: true };
+  const ctx = canvas.getContext("2d");
+  const resolve = c => c.startsWith("--") ? css(c) : c;
+  v.set = (layers, spheres, fitPts) => {
+    v.layers = layers; v.spheres = spheres || [];
+    const pts = fitPts || layers.flatMap(l => l.pts);
+    if (pts.length) {
+      v.center = [0, 1, 2].map(k => pts.reduce((s, p) => s + [p.x, p.y, p.z][k], 0) / pts.length);
+      v.extent = Math.max(...pts.map(p => Math.hypot(p.x - v.center[0], p.y - v.center[1], p.z - v.center[2]))) || 20;
+    }
+    v.draw();
+  };
+  v.draw = () => {
+    const dpr = window.devicePixelRatio || 1, cw = canvas.clientWidth || 600, ch = Math.round(cw * 0.68);
+    if (canvas.width !== Math.round(cw * dpr) || canvas.height !== Math.round(ch * dpr)) { canvas.width = Math.round(cw * dpr); canvas.height = Math.round(ch * dpr); }
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, cw, ch);
+    const cX = Math.cos(v.rotX), sX = Math.sin(v.rotX), cY = Math.cos(v.rotY), sY = Math.sin(v.rotY);
+    const sc = (Math.min(cw, ch) / 2 - 14) / v.extent * v.zoom;
+    const P = p => { const x = p.x - v.center[0], y = p.y - v.center[1], z = p.z - v.center[2]; const x1 = cY * x + sY * z, z1 = -sY * x + cY * z; const y1 = cX * y - sX * z1, z2 = sX * y + cX * z1; return [cw / 2 + x1 * sc, ch / 2 - y1 * sc, z2]; };
+    const items = []; v.proj = [];
+    let zmin = Infinity, zmax = -Infinity;
+    v.layers.forEach(l => {
+      const q = l.pts.map(P);
+      q.forEach(([, , z]) => { zmin = Math.min(zmin, z); zmax = Math.max(zmax, z); });
+      for (let i = 0; i + 1 < q.length; i++) if (l.pts[i + 1].join !== false && l.pts[i].chain === l.pts[i + 1].chain && l.pts[i + 1].res - l.pts[i].res === 1)
+        items.push({ t: 0, a: q[i], b: q[i + 1], ca: l.pts[i].col, cb: l.pts[i + 1].col, w: l.width, al: l.alpha ?? 1 });
+      if (l.hover) l.pts.forEach((p, i) => v.proj.push([q[i][0], q[i][1], q[i][2], p]));
+    });
+    v.spheres.forEach(s => { const q = P(s); items.push({ t: 1, a: q, col: s.col, r: s.r * sc }); });
+    items.sort((m, n) => (m.t ? m.a[2] : (m.a[2] + m.b[2]) / 2) - (n.t ? n.a[2] : (n.a[2] + n.b[2]) / 2));
+    const span = zmax - zmin || 1, bg = rgbOf(css("--sunk")), cache = {};
+    // Depth cue: far segments are blended toward the background (opaque, so joints don't show)
+    const shade = (c, f) => { const k = c + f.toFixed(2); if (!cache[k]) { const a = rgbOf(resolve(c)); cache[k] = `rgb(${a.map((x, i) => Math.round(bg[i] + (x - bg[i]) * f)).join(",")})`; } return cache[k]; };
+    ctx.lineCap = "round"; ctx.globalAlpha = 1;
+    for (const it of items) {
+      if (it.t) { ctx.fillStyle = resolve(it.col); ctx.beginPath(); ctx.arc(it.a[0], it.a[1], Math.max(3, it.r), 0, 7); ctx.fill(); continue; }
+      const depth = ((it.a[2] + it.b[2]) / 2 - zmin) / span, f = it.al * (0.4 + 0.6 * depth);
+      ctx.lineWidth = it.w * (0.6 + 0.55 * depth) * Math.max(0.7, Math.min(1.6, v.zoom));
+      if (it.ca === it.cb) { ctx.strokeStyle = shade(it.ca, f); ctx.beginPath(); ctx.moveTo(it.a[0], it.a[1]); ctx.lineTo(it.b[0], it.b[1]); ctx.stroke(); continue; }
+      const mx = (it.a[0] + it.b[0]) / 2, my = (it.a[1] + it.b[1]) / 2;
+      ctx.strokeStyle = shade(it.ca, f); ctx.beginPath(); ctx.moveTo(it.a[0], it.a[1]); ctx.lineTo(mx, my); ctx.stroke();
+      ctx.strokeStyle = shade(it.cb, f); ctx.beginPath(); ctx.moveTo(mx, my); ctx.lineTo(it.b[0], it.b[1]); ctx.stroke();
+    }
+    if (v.hot) { const [x, y] = v.hot; ctx.strokeStyle = css("--ink"); ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(x, y, 7, 0, 7); ctx.stroke(); }
+  };
+  let lx = 0, ly = 0;
+  canvas.style.touchAction = "none"; canvas.style.cursor = "grab";
+  canvas.addEventListener("pointerdown", e => { v.drag = true; lx = e.clientX; ly = e.clientY; canvas.setPointerCapture(e.pointerId); canvas.style.cursor = "grabbing"; });
+  canvas.addEventListener("pointermove", e => {
+    if (v.drag) { v.rotY += (e.clientX - lx) * 0.01; v.rotX += (e.clientY - ly) * 0.01; lx = e.clientX; ly = e.clientY; v.draw(); return; }
+    const rect = canvas.getBoundingClientRect(), x = e.clientX - rect.left, y = e.clientY - rect.top;
+    let best = null, bd = 144;
+    for (const q of v.proj) { const d = (q[0] - x) ** 2 + (q[1] - y) ** 2; if (d < bd || (best && d < bd + 20 && q[2] > best[2])) { if (d < bd) bd = d; best = q; } }
+    v.hot = best ? [best[0], best[1]] : null;
+    hoverEl.textContent = best ? best[3].info : "Hover over the structure to identify a residue.";
+    if (!v.spin) v.draw();
+  });
+  const up = () => { v.drag = false; canvas.style.cursor = "grab"; };
+  canvas.addEventListener("pointerup", up); canvas.addEventListener("pointercancel", up);
+  canvas.addEventListener("pointerleave", () => { v.hot = null; if (!v.spin) v.draw(); });
+  toolsEl.addEventListener("click", e => {
+    const b = e.target.closest("[data-act]"); if (!b) return;
+    const a = b.dataset.act;
+    if (a === "spin") { v.spin = !v.spin; b.setAttribute("aria-pressed", v.spin); }
+    if (a === "in") v.zoom = Math.min(4, v.zoom * 1.25);
+    if (a === "out") v.zoom = Math.max(0.4, v.zoom / 1.25);
+    if (a === "reset") { v.rotX = -0.3; v.rotY = 0.5; v.zoom = 1; }
+    v.draw();
+  });
+  toolsEl.querySelector('[data-act="spin"]').setAttribute("aria-pressed", v.spin);
+  new IntersectionObserver(es => es.forEach(e => (v.visible = e.isIntersecting))).observe(canvas);
+  (function loop() { if (v.spin && !v.drag && v.visible) { v.rotY += 0.005; v.draw(); } requestAnimationFrame(loop); })();
+  addEventListener("resize", () => v.draw());
+  return v;
+}
+const residueLabel = (k, ch, res, aa3) => `${PROTEINS[k].chainLabel}${aa3[0] + aa3.slice(1).toLowerCase()}${res}`;
+function contextLayers(p, dim) {
+  // other chains of the same entry, drawn faint for context (haemoglobin tetramer)
+  const S = STRUCT[p.struct], layers = [];
+  for (const [ch, rows] of Object.entries(S.chains)) if (ch !== p.chain) layers.push({ pts: rows.map(r => ({ x: r[2], y: r[3], z: r[4], res: r[0], chain: ch, col: "--coil" })), width: 3, alpha: dim });
+  const spheres = S.fe.map(f => ({ x: f[1], y: f[2], z: f[3], col: "--bad", r: 1.6 }));
+  return { layers, spheres };
 }
 
-/* ---------------- step 5 ---------------- */
-const FASTA = ">sp|P01112|RASH_HUMAN GTPase HRas (spliced from triplets.txt)\n" + wrap(HRAS_REF).join("\n");
-$("fastaBox").innerHTML = esc(FASTA).replace(/\n/g, "<br>");
-$("copyFasta").addEventListener("click", () => copyText(FASTA, $("fastaMsg"), $("fastaBox")));
+/* ---------------- step 4: what was predicted correctly ---------------- */
+const v1 = makeViewer($("v1"), $("v1Hover"), document.querySelector("#correct .vtools"));
+let v1Mode = "cf", v1ModeTouched = false;
+$("v1Modes").addEventListener("click", e => { const b = e.target.closest("[data-mode]"); if (!b) return; v1Mode = b.dataset.mode; v1ModeTouched = true; drawV1(); });
+function drawV1() {
+  const p = PROTEINS[cur], rows = STRUCT[p.struct].chains[p.chain];
+  if (v1Mode === "nn" && !nnPred[cur]) v1Mode = "cf";
+  document.querySelectorAll("#v1Modes [data-mode]").forEach(b => { b.setAttribute("aria-pressed", b.dataset.mode === v1Mode); b.disabled = b.dataset.mode === "nn" && !nnPred[cur]; });
+  const pred = v1Mode === "cf" ? chouFasman(p.seq) : v1Mode === "nn" ? nnPred[cur] : null;
+  const method = v1Mode === "cf" ? "Chou–Fasman" : "neural network";
+  const SSCOL = { H: "--helix", E: "--strand", C: "--coil" };
+  const pts = rows.map(r => {
+    const i = r[0] - 1, truth = p.ref[i], guess = pred ? pred[i] : null, ok = guess === truth;
+    return {
+      x: r[2], y: r[3], z: r[4], res: r[0], chain: p.chain,
+      col: pred ? (ok ? "--good" : "--bad") : SSCOL[truth],
+      info: `${residueLabel(cur, p.chain, r[0], r[1])} · experiment: ${SS_NAME[truth]}` + (pred ? ` · ${method}: ${SS_NAME[guess]} ${ok ? "✓" : "✗"}` : "")
+    };
+  });
+  const ctxL = contextLayers(p, 0.28);
+  v1.set([...ctxL.layers, { pts, width: 7, hover: true }], ctxL.spheres, pts);
+  const n = pts.length;
+  if (pred) {
+    const ok = pts.filter((_, i) => pred[rows[i][0] - 1] === p.ref[rows[i][0] - 1]).length;
+    const byClass = (c, name) => { const idx = rows.map(r => r[0] - 1).filter(i => p.ref[i] === c); return idx.length ? tile(pct0(idx.filter(i => pred[i] === c).length / idx.length), `of ${name} residues right`) : tile("0", `${name} residues in the experiment`); };
+    const falseE = rows.map(r => r[0] - 1).filter(i => pred[i] === "E" && p.ref[i] !== "E").length;
+    $("v1Tiles").innerHTML = tile(pct0(ok / n), `of residues right (${method})`) + byClass("H", "helix") + byClass("E", "strand") + tile(falseE, "residues wrongly called strand");
+    $("v1Legend").innerHTML = `<span><i style="background:var(--good)"></i>predicted correctly</span><span><i style="background:var(--bad)"></i>predicted wrongly</span>` + (p.struct === "hb" ? `<span><i style="background:var(--coil)"></i>other subunits</span><span><i style="background:var(--bad);border-radius:50%"></i>haem iron</span>` : "");
+  } else {
+    const share = c => pct0([...p.ref].filter(x => x === c).length / p.ref.length);
+    $("v1Tiles").innerHTML = tile(share("H"), "helix") + tile(share("E"), "strand") + tile(share("C"), "coil");
+    $("v1Legend").innerHTML = `<span><i style="background:var(--helix)"></i>helix</span><span><i style="background:var(--strand)"></i>strand</span><span><i style="background:var(--coil)"></i>coil</span>` + (p.struct === "hb" ? `<span><i style="background:var(--coil);opacity:.4"></i>other subunits</span><span><i style="background:var(--bad);border-radius:50%"></i>haem iron</span>` : "");
+  }
+  $("v1Note").textContent = `${REF[cur].pdb} chain ${p.chain}, residues 1–${n}` + (cur === "hras" ? " (NMR model 1). Secondary structure from DSSP on these coordinates." : ". Secondary structure from DSSP on these coordinates.");
+  let out = "";
+  for (let s0 = 0; s0 < n; s0 += 60) {
+    out += `<span class="lab">${String(s0 + 1).padStart(4)} seq  </span>${p.seq.slice(s0, Math.min(s0 + 60, n))}\n`;
+    if (pred) out += `<span class="lab">     ${v1Mode === "cf" ? "CF  " : "NN  "} </span>` + [...pred.slice(s0, Math.min(s0 + 60, n))].map((c, j) => `<span class="${c === p.ref[s0 + j] ? "ok2" : "no2"}">${c}</span>`).join("") + "\n";
+    out += trackRow("DSSP", p.ref, s0, null) + "\n";
+  }
+  $("v1Strip").innerHTML = out;
+}
 
-/* ---------------- step 6: pLDDT, trace, RMSD ---------------- */
+/* ---------------- step 6: compare a 3D model with the experiment ---------------- */
 function parsePDB(text) {
-  const res = []; let chain = null;
+  const chains = {};
   for (const line of text.split(/\r?\n/)) {
     if (line.startsWith("ENDMDL")) break;
-    if (!line.startsWith("ATOM") || line.slice(12, 16).trim() !== "CA") continue;
-    const ch = line[21]; if (chain === null) chain = ch; if (ch !== chain) continue;
+    if (!(line.startsWith("ATOM") || line.startsWith("HETATM")) || line.slice(12, 16).trim() !== "CA") continue;
     const alt = line[16]; if (alt !== " " && alt !== "A") continue;
-    res.push({ n: parseInt(line.slice(22, 26), 10), x: +line.slice(30, 38), y: +line.slice(38, 46), z: +line.slice(46, 54), b: +line.slice(60, 66) });
+    const aa = THREE[line.slice(17, 20).trim()]; if (!aa) continue;
+    (chains[line[21]] ||= []).push({ n: parseInt(line.slice(22, 26), 10), aa, x: +line.slice(30, 38), y: +line.slice(38, 46), z: +line.slice(46, 54), b: +line.slice(60, 66) || 0 });
   }
-  if (res.length && Math.max(...res.map(r => r.b)) <= 1.0) res.forEach(r => (r.b *= 100));
-  return res;
+  for (const c of Object.values(chains)) if (c.length && Math.max(...c.map(r => r.b)) <= 1.0 && Math.max(...c.map(r => r.b)) > 0) c.forEach(r => (r.b *= 100));
+  return chains;
 }
-const bandColor = b => b >= 90 ? "var(--af-vh)" : b >= 70 ? "var(--af-c)" : b >= 50 ? "var(--af-l)" : "var(--af-vl)";
-const bandHex = b => b >= 90 ? "#0053D6" : b >= 70 ? "#65CBF3" : b >= 50 ? "#FFDB13" : "#FF7D45";
-let model = null, ref = null;
-function showModel(text, name) {
-  model = parsePDB(text);
-  if (!model.length) { $("modelOut").hidden = true; $("dropModel").querySelector("b").textContent = `No Cα atoms found in ${name}. Is it a PDB-format file?`; return; }
-  $("dropModel").querySelector("b").textContent = `Loaded ${name}. Drop another file to replace it.`;
-  $("modelOut").hidden = false;
-  const bs = model.map(r => r.b), n = bs.length, mean = bs.reduce((a, b) => a + b, 0) / n;
-  const frac = (lo, hi) => Math.round((bs.filter(b => b >= lo && b < hi).length / n) * 100) + "%";
-  $("plddtTiles").innerHTML = tile(n, "residues") + tile(mean.toFixed(1), "mean pLDDT") + tile(frac(90, 101), "very high (≥90)") + tile(frac(70, 90), "confident") + tile(frac(50, 70), "low") + tile(frac(0, 50), "very low (<50)");
-  const W = 800, H = 200, L = 34, R = 8, T = 10, Bm = 26, bw = (W - L - R) / n;
-  const y = v => T + (1 - v / 100) * (H - T - Bm);
-  let s = "";
-  [0, 50, 70, 90, 100].forEach(v => s += `<line x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)" ${v % 50 ? 'stroke-dasharray="3 3"' : ""}/><text x="${L - 5}" y="${y(v) + 4}" text-anchor="end">${v}</text>`);
-  model.forEach((r, i) => s += `<rect x="${(L + i * bw).toFixed(2)}" y="${y(r.b).toFixed(1)}" width="${Math.max(0.6, bw - 0.3).toFixed(2)}" height="${(y(0) - y(r.b)).toFixed(1)}" fill="${bandColor(r.b)}"><title>Residue ${r.n}: ${r.b.toFixed(1)}</title></rect>`);
-  const tick = n > 150 ? 50 : n > 60 ? 20 : 10;
-  model.forEach((r, i) => { if (r.n % tick === 0) s += `<text x="${L + (i + 0.5) * bw}" y="${H - 8}" text-anchor="middle">${r.n}</text>`; });
-  $("plddtPlot").innerHTML = s;
-  $("rTo").value = Math.min(166, model[model.length - 1].n);
-  $("rFrom").value = model[0].n;
-  rangeStat(); resetView(); drawTrace(); rmsd();
+// Needleman-Wunsch, same scoring as structure_tutorial.py: match +5, mismatch -2, gap -4
+function alignSeq(a, b, gap = -4) {
+  const n = a.length, m = b.length, S = Array.from({ length: n + 1 }, (_, i) => { const r = new Int32Array(m + 1); r[0] = i * gap; return r; });
+  for (let j = 1; j <= m; j++) S[0][j] = j * gap;
+  const sc = (i, j) => a[i] === b[j] ? 5 : -2;
+  for (let i = 1; i <= n; i++) for (let j = 1; j <= m; j++) S[i][j] = Math.max(S[i - 1][j - 1] + sc(i - 1, j - 1), S[i - 1][j] + gap, S[i][j - 1] + gap);
+  const pairs = []; let i = n, j = m;
+  while (i && j) {
+    if (S[i][j] === S[i - 1][j - 1] + sc(i - 1, j - 1)) { pairs.push([i - 1, j - 1]); i--; j--; }
+    else if (S[i][j] === S[i - 1][j] + gap) i--; else j--;
+  }
+  return pairs.reverse();
 }
-function inRange() { const a = +$("rFrom").value, b = +$("rTo").value; return r => r.n >= a && r.n <= b; }
-function rangeStat() {
-  if (!model) return;
-  const sel = model.filter(inRange());
-  $("rangeStat").textContent = sel.length ? `${sel.length} residues · mean pLDDT ${(sel.reduce((s, r) => s + r.b, 0) / sel.length).toFixed(1)}` : "no residues in range";
-}
-["rFrom", "rTo"].forEach(id => $(id).addEventListener("input", () => { rangeStat(); rmsd(); }));
-
-// Cα trace with simple rotation
-let rotX = -0.4, rotY = 0.6, auto = !matchMedia("(prefers-reduced-motion: reduce)").matches, dragging = false;
-function resetView() { rotX = -0.4; rotY = 0.6; }
-function drawTrace() {
-  const cv = $("trace"), ctx = cv.getContext("2d");
-  const dpr = window.devicePixelRatio || 1, cw = cv.clientWidth || 520, chh = Math.round(cw * 0.77);
-  if (cv.width !== Math.round(cw * dpr)) { cv.width = Math.round(cw * dpr); cv.height = Math.round(chh * dpr); }
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, cw, chh);
-  if (!model) return;
-  const cx = model.reduce((s, r) => s + r.x, 0) / model.length, cy = model.reduce((s, r) => s + r.y, 0) / model.length, cz = model.reduce((s, r) => s + r.z, 0) / model.length;
-  const cX = Math.cos(rotX), sX = Math.sin(rotX), cY = Math.cos(rotY), sY = Math.sin(rotY);
-  const P = model.map(r => { let x = r.x - cx, y = r.y - cy, z = r.z - cz; const x1 = cY * x + sY * z, z1 = -sY * x + cY * z; const y1 = cX * y - sX * z1, z2 = sX * y + cX * z1; return { x: x1, y: y1, z: z2, b: r.b, n: r.n }; });
-  const ext = Math.max(...P.map(p => Math.hypot(p.x, p.y))) || 1, sc = (Math.min(cw, chh) / 2 - 12) / ext;
-  const segs = []; for (let i = 0; i + 1 < P.length; i++) if (P[i + 1].n - P[i].n === 1) segs.push([P[i], P[i + 1]]);
-  segs.sort((a, b) => (a[0].z + a[1].z) - (b[0].z + b[1].z));
-  const zmin = Math.min(...P.map(p => p.z)), zmax = Math.max(...P.map(p => p.z)) || 1;
-  ctx.lineCap = "round";
-  segs.forEach(([a, b]) => {
-    const depth = ((a.z + b.z) / 2 - zmin) / (zmax - zmin || 1);
-    ctx.globalAlpha = 0.35 + 0.65 * depth; ctx.lineWidth = 2 + 3 * depth; ctx.strokeStyle = bandHex(Math.min(a.b, b.b));
-    ctx.beginPath(); ctx.moveTo(cw / 2 + a.x * sc, chh / 2 - a.y * sc); ctx.lineTo(cw / 2 + b.x * sc, chh / 2 - b.y * sc); ctx.stroke();
-  });
-  ctx.globalAlpha = 1;
-}
-(function loop() { if (auto && !dragging && model) { rotY += 0.006; drawTrace(); } requestAnimationFrame(loop); })();
-(() => {
-  const cv = $("trace"); let lx = 0, ly = 0;
-  cv.addEventListener("pointerdown", e => { dragging = true; auto = false; lx = e.clientX; ly = e.clientY; cv.setPointerCapture(e.pointerId); cv.style.cursor = "grabbing"; });
-  cv.addEventListener("pointermove", e => { if (!dragging) return; rotY += (e.clientX - lx) * 0.01; rotX += (e.clientY - ly) * 0.01; lx = e.clientX; ly = e.clientY; drawTrace(); });
-  const up = () => { dragging = false; cv.style.cursor = "grab"; };
-  cv.addEventListener("pointerup", up); cv.addEventListener("pointercancel", up);
-  addEventListener("resize", drawTrace);
-})();
-
-// RMSD after optimal superposition: Horn's quaternion method (largest eigenvalue of a 4x4 matrix via Jacobi)
-function maxEig4(A) {
-  const a = A.map(r => r.slice());
+function jacobi4(A) {
+  const a = A.map(r => r.slice()), V = [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]];
   for (let sweep = 0; sweep < 60; sweep++) {
-    let off = 0; for (let p = 0; p < 4; p++) for (let q = p + 1; q < 4; q++) off += a[p][q] * a[p][q];
-    if (off < 1e-18) break;
+    let off = 0; for (let p = 0; p < 4; p++) for (let q = p + 1; q < 4; q++) off += a[p][q] ** 2;
+    if (off < 1e-20) break;
     for (let p = 0; p < 4; p++) for (let q = p + 1; q < 4; q++) {
       if (Math.abs(a[p][q]) < 1e-15) continue;
-      const th = (a[q][q] - a[p][p]) / (2 * a[p][q]), t = Math.sign(th || 1) / (Math.abs(th) + Math.sqrt(th * th + 1));
-      const c = 1 / Math.sqrt(t * t + 1), s = t * c;
+      const th = (a[q][q] - a[p][p]) / (2 * a[p][q]), t = (th >= 0 ? 1 : -1) / (Math.abs(th) + Math.sqrt(th * th + 1)), c = 1 / Math.sqrt(t * t + 1), s = t * c;
       for (let k = 0; k < 4; k++) { const akp = a[k][p], akq = a[k][q]; a[k][p] = c * akp - s * akq; a[k][q] = s * akp + c * akq; }
       for (let k = 0; k < 4; k++) { const apk = a[p][k], aqk = a[q][k]; a[p][k] = c * apk - s * aqk; a[q][k] = s * apk + c * aqk; }
+      for (let k = 0; k < 4; k++) { const vkp = V[k][p], vkq = V[k][q]; V[k][p] = c * vkp - s * vkq; V[k][q] = s * vkp + c * vkq; }
     }
   }
-  return Math.max(a[0][0], a[1][1], a[2][2], a[3][3]);
+  return { vals: [0, 1, 2, 3].map(i => a[i][i]), V };
 }
-function rmsd() {
-  if (!model || !ref) { $("rmsdOut").innerHTML = ""; return; }
-  const keep = inRange(), refMap = new Map(ref.map(r => [r.n, r]));
-  const pairs = model.filter(keep).filter(r => refMap.has(r.n)).map(r => [r, refMap.get(r.n)]);
-  if (pairs.length < 3) { $("rmsdOut").innerHTML = tile("—", "fewer than 3 shared residues in range"); return; }
-  const n = pairs.length, ca = [0, 0, 0], cb = [0, 0, 0];
-  pairs.forEach(([a, b]) => { ca[0] += a.x; ca[1] += a.y; ca[2] += a.z; cb[0] += b.x; cb[1] += b.y; cb[2] += b.z; });
-  ca.forEach((_, i) => { ca[i] /= n; cb[i] /= n; });
-  const S = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]; let E = 0;
-  pairs.forEach(([a, b]) => {
-    const u = [a.x - ca[0], a.y - ca[1], a.z - ca[2]], v = [b.x - cb[0], b.y - cb[1], b.z - cb[2]];
-    E += u[0] ** 2 + u[1] ** 2 + u[2] ** 2 + v[0] ** 2 + v[1] ** 2 + v[2] ** 2;
-    for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) S[i][j] += u[i] * v[j];
-  });
+// Optimal rotation + translation moving X onto Y (Horn's quaternion method)
+function superpose(X, Y) {
+  const n = X.length, cx = [0, 0, 0], cy = [0, 0, 0];
+  X.forEach(p => { cx[0] += p[0] / n; cx[1] += p[1] / n; cx[2] += p[2] / n; });
+  Y.forEach(p => { cy[0] += p[0] / n; cy[1] += p[1] / n; cy[2] += p[2] / n; });
+  const S = [[0, 0, 0], [0, 0, 0], [0, 0, 0]];
+  for (let k = 0; k < n; k++) for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) S[i][j] += (X[k][i] - cx[i]) * (Y[k][j] - cy[j]);
   const [[xx, xy, xz], [yx, yy, yz], [zx, zy, zz]] = S;
-  const N = [[xx + yy + zz, yz - zy, zx - xz, xy - yx], [yz - zy, xx - yy - zz, xy + yx, zx + xz], [zx - xz, xy + yx, -xx + yy - zz, yz + zy], [xy - yx, zx + xz, yz + zy, -xx - yy + zz]];
-  const val = Math.sqrt(Math.max(0, (E - 2 * maxEig4(N)) / n));
-  $("rmsdOut").innerHTML = tile(val.toFixed(2) + " Å", "Cα RMSD") + tile(n, `residues compared (${$("rFrom").value}–${$("rTo").value})`);
+  const { vals, V } = jacobi4([[xx + yy + zz, yz - zy, zx - xz, xy - yx], [yz - zy, xx - yy - zz, xy + yx, zx + xz], [zx - xz, xy + yx, -xx + yy - zz, yz + zy], [xy - yx, zx + xz, yz + zy, -xx - yy + zz]]);
+  const k = vals.indexOf(Math.max(...vals)), [q0, q1, q2, q3] = [0, 1, 2, 3].map(i => V[i][k]);
+  const R = [[q0 * q0 + q1 * q1 - q2 * q2 - q3 * q3, 2 * (q1 * q2 - q0 * q3), 2 * (q1 * q3 + q0 * q2)],
+    [2 * (q1 * q2 + q0 * q3), q0 * q0 - q1 * q1 + q2 * q2 - q3 * q3, 2 * (q2 * q3 - q0 * q1)],
+    [2 * (q1 * q3 - q0 * q2), 2 * (q2 * q3 + q0 * q1), q0 * q0 - q1 * q1 - q2 * q2 + q3 * q3]];
+  return p => { const u = [p[0] - cx[0], p[1] - cx[1], p[2] - cx[2]]; return [0, 1, 2].map(i => R[i][0] * u[0] + R[i][1] * u[1] + R[i][2] * u[2] + cy[i]); };
+}
+// Superimpose on all aligned residues, then re-fit on residues within 4 Å (a few rounds), like structure_tutorial.py
+function compareChains(model, ref) {
+  const pairs = alignSeq(model.map(r => r.aa).join(""), ref.map(r => r.aa).join(""));
+  let use = pairs.map((_, k) => k), move = null, dist = [];
+  for (let round = 0; round < 5; round++) {
+    move = superpose(use.map(k => { const r = model[pairs[k][0]]; return [r.x, r.y, r.z]; }), use.map(k => { const r = ref[pairs[k][1]]; return [r.x, r.y, r.z]; }));
+    dist = pairs.map(([i, j]) => { const m = move([model[i].x, model[i].y, model[i].z]), r = ref[j]; return Math.hypot(m[0] - r.x, m[1] - r.y, m[2] - r.z); });
+    const nu = dist.map((d, k) => d < 4 ? k : -1).filter(k => k >= 0);
+    if (nu.length < 3 || (nu.length === use.length && nu.every((v, i) => v === use[i]))) break;
+    use = nu;
+  }
+  return { pairs, dist, move };
+}
+const v2 = makeViewer($("v2"), $("v2Hover"), document.querySelector("#confidence .vtools"));
+let modelChains = null, modelName = "", v2Mode = "dev";
+$("v2Modes").addEventListener("click", e => { const b = e.target.closest("[data-mode]"); if (!b) return; v2Mode = b.dataset.mode; compareModel(); });
+$("v2Overlay").addEventListener("change", compareModel);
+const bandVar = b => b >= 90 ? "--af-vh" : b >= 70 ? "--af-c" : b >= 50 ? "--af-l" : "--af-vl";
+const devVar = d => d <= 2 ? "--good" : d <= 4 ? "--warn" : "--bad";
+function compareModel() {
+  const p = PROTEINS[cur], refRows = STRUCT[p.struct].chains[p.chain];
+  const ref = refRows.map(r => ({ n: r[0], aa: THREE[r[1]], x: r[2], y: r[3], z: r[4], name: r[1] }));
+  document.querySelectorAll("#v2Modes [data-mode]").forEach(b => b.setAttribute("aria-pressed", b.dataset.mode === v2Mode));
+  const ctxL = contextLayers(p, 0.18);
+  if (!modelChains) {
+    const pts = ref.map(r => ({ x: r.x, y: r.y, z: r.z, res: r.n, chain: p.chain, col: "--muted", info: `${residueLabel(cur, p.chain, r.n, r.name)} · experimental structure` }));
+    v2.set([...ctxL.layers, { pts, width: 7, hover: true }], ctxL.spheres, pts);
+    $("v2Tiles").innerHTML = ""; $("v2Legend").innerHTML = ""; $("v2Strip").innerHTML = ""; $("plddtBox").hidden = true;
+    $("v2Note").textContent = `No model loaded yet. The thick chain is the experimental structure (${REF[cur].pdb} chain ${p.chain}).`;
+    return;
+  }
+  // choose the model chain that best matches the reference sequence
+  const refSeq = ref.map(r => r.aa).join("");
+  let bestCh = null, bestId = -1;
+  for (const [ch, rows] of Object.entries(modelChains)) {
+    const pr = alignSeq(rows.map(r => r.aa).join(""), refSeq), id = pr.filter(([i, j]) => rows[i].aa === refSeq[j]).length;
+    if (id > bestId) { bestId = id; bestCh = ch; }
+  }
+  const model = modelChains[bestCh], { pairs, dist, move } = compareChains(model, ref);
+  const byRef = new Map(pairs.map(([i, j], k) => [j, { i, d: dist[k] }]));
+  const hasB = model.some(r => r.b > 0);
+  const n = ref.length, within = t => dist.filter(d => d <= t).length / n;
+  const rmsd = Math.sqrt(dist.reduce((s, d) => s + d * d, 0) / dist.length);
+  const pts = ref.map((r, j) => {
+    const m = byRef.get(j), mr = m ? model[m.i] : null;
+    const col = !m ? "--line" : v2Mode === "plddt" ? (hasB ? bandVar(mr.b) : "--muted") : devVar(m.d);
+    const info = `${residueLabel(cur, p.chain, r.n, r.name)} · ` + (m ? `${m.d.toFixed(1)} Å from experiment (model ${mr.aa}${mr.n}${hasB ? `, pLDDT ${mr.b.toFixed(0)}` : ""})` : "not in the model");
+    return { x: r.x, y: r.y, z: r.z, res: r.n, chain: p.chain, col, info };
+  });
+  const layers = [...ctxL.layers, { pts, width: 7, hover: true }];
+  if ($("v2Overlay").checked) {
+    const mp = model.map(r => { const q = move([r.x, r.y, r.z]); return { x: q[0], y: q[1], z: q[2], res: r.n, chain: "model", col: v2Mode === "plddt" && hasB ? bandVar(r.b) : "--ink" }; });
+    layers.push({ pts: mp, width: 2, alpha: 0.9 });
+  }
+  v2.set(layers, ctxL.spheres, pts);
+  const ident = pairs.filter(([i, j]) => model[i].aa === refSeq[j]).length;
+  $("v2Tiles").innerHTML = tile(pct0(within(2)), "of residues within 2 Å (correct)") + tile(rmsd.toFixed(2) + " Å", "Cα RMSD, matched residues") +
+    tile(pct0(within(4)), "within 4 Å") + tile((100 * (within(1) + within(2) + within(4) + within(8)) / 4).toFixed(1), "GDT-style score (0–100)") +
+    tile(`${pairs.length}/${n}`, `residues matched, ${pct0(ident / pairs.length)} identical`);
+  $("v2Legend").innerHTML = v2Mode === "plddt"
+    ? (hasB ? `<span><i style="background:var(--af-vh)"></i>pLDDT ≥ 90</span><span><i style="background:var(--af-c)"></i>70–90</span><span><i style="background:var(--af-l)"></i>50–70</span><span><i style="background:var(--af-vl)"></i>&lt; 50</span>` : `<span>This file has no confidence values (the B-factor column is empty).</span>`)
+    : `<span><i style="background:var(--good)"></i>≤ 2 Å: correct</span><span><i style="background:var(--warn)"></i>2–4 Å</span><span><i style="background:var(--bad)"></i>&gt; 4 Å: wrong place</span><span><i style="background:var(--line)"></i>not in the model</span>`;
+  $("v2Note").textContent = `${modelName}, chain ${bestCh} (${model.length} residues), superimposed on ${REF[cur].pdb} chain ${p.chain}. The thick chain is the experiment, coloured by ${v2Mode === "plddt" ? "the model's pLDDT at each residue" : "the model's error"}; the thin line is the model.`;
+  let out = "";
+  for (let s0 = 0; s0 < n; s0 += 60) {
+    out += `<span class="lab">${String(ref[s0].n).padStart(4)} ref  </span>${refSeq.slice(s0, s0 + 60)}\n<span class="lab">     fit  </span>`;
+    for (let j = s0; j < Math.min(n, s0 + 60); j++) { const m = byRef.get(j); out += m ? `<span class="${m.d <= 2 ? "ok2" : m.d <= 4 ? "mid2" : "no2"}">${m.d <= 2 ? "#" : m.d <= 4 ? "+" : "."}</span>` : "-"; }
+    out += "\n\n";
+  }
+  $("v2Strip").innerHTML = `<span class="lab">  # within 2 Å   + 2–4 Å   . more than 4 Å   - not in the model</span>\n\n` + out;
+  drawPlddt(model, hasB);
+}
+function drawPlddt(model, hasB) {
+  $("plddtBox").hidden = !hasB;
+  if (!hasB) return;
+  const W = 800, H = 200, L = 34, R = 8, T = 10, Bm = 26, n = model.length, bw = (W - L - R) / n, y = v => T + (1 - v / 100) * (H - T - Bm);
+  let s = "";
+  [0, 50, 70, 90, 100].forEach(v => s += `<line x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)" ${v % 50 ? 'stroke-dasharray="3 3"' : ""}/><text x="${L - 5}" y="${y(v) + 4}" text-anchor="end">${v}</text>`);
+  model.forEach((r, i) => s += `<rect x="${(L + i * bw).toFixed(2)}" y="${y(r.b).toFixed(1)}" width="${Math.max(0.6, bw - 0.3).toFixed(2)}" height="${(y(0) - y(r.b)).toFixed(1)}" fill="var(${bandVar(r.b)})"><title>Residue ${r.n}: ${r.b.toFixed(1)}</title></rect>`);
+  const tk = n > 150 ? 50 : n > 60 ? 20 : 10;
+  model.forEach((r, i) => { if (r.n % tk === 0) s += `<text x="${L + (i + 0.5) * bw}" y="${H - 8}" text-anchor="middle">${r.n}</text>`; });
+  const mean = model.reduce((a, r) => a + r.b, 0) / n;
+  s += `<text x="${W - R}" y="${T + 12}" text-anchor="end" style="fill:var(--ink)">mean pLDDT ${mean.toFixed(1)}</text>`;
+  $("plddtPlot").innerHTML = s;
+}
+function loadModel(text, name) {
+  const chains = parsePDB(text);
+  if (!Object.keys(chains).length) { $("dropMsg").textContent = `No Cα atoms found in ${name}. Is it a PDB-format file?`; return; }
+  modelChains = chains; modelName = name;
+  $("dropMsg").textContent = `Loaded ${name}. Drop another file to replace it.`;
+  compareModel();
 }
 function readFile(file, cb) { const fr = new FileReader(); fr.onload = () => cb(String(fr.result), file.name); fr.readAsText(file); }
-$("fileModel").addEventListener("change", e => e.target.files[0] && readFile(e.target.files[0], showModel));
-$("fileRef").addEventListener("change", e => e.target.files[0] && readFile(e.target.files[0], t => { ref = parsePDB(t); rmsd(); }));
+$("fileModel").addEventListener("change", e => e.target.files[0] && readFile(e.target.files[0], loadModel));
 (() => {
   const d = $("dropModel");
   ["dragenter", "dragover"].forEach(ev => d.addEventListener(ev, e => { e.preventDefault(); d.classList.add("over"); }));
   ["dragleave", "drop"].forEach(ev => d.addEventListener(ev, e => { e.preventDefault(); d.classList.remove("over"); }));
-  d.addEventListener("drop", e => e.dataTransfer.files[0] && readFile(e.dataTransfer.files[0], showModel));
+  d.addEventListener("drop", e => e.dataTransfer.files[0] && readFile(e.dataTransfer.files[0], loadModel));
 })();
+$("demoAlpha").addEventListener("click", () => {
+  modelChains = { A: STRUCT.hb.chains.A.map(r => ({ n: r[0], aa: THREE[r[1]], x: r[2], y: r[3], z: r[4], b: 0 })) };
+  modelName = "Demo: experimental α chain (4HHB chain A) used as a model";
+  $("dropMsg").textContent = "Demo loaded: the α chain as a model of β. Drop your own file to replace it.";
+  if (cur !== "hbb") setProtein("hbb"); else compareModel();
+});
 
 /* ---------------- step 8: quiz ---------------- */
 const QUIZ = [
-  { q: "Why is \"longest ORF\" a poor gene finder in eukaryotic genomic DNA?", o: ["Eukaryotes don't use ATG as a start codon", "Introns split genes, and noncoding DNA can hold long ORFs by chance", "Stop codons are different in eukaryotes", "ORFs only exist in bacteria"], a: 1, why: "H-Ras's longest exon is 60 codons, while a chance ORF in repetitive DNA here is 330 codons long." },
-  { q: "Intron 3 of H-Ras is 697 nt long. What does that do to the reading frame of exon 4?", o: ["Nothing; introns never affect frames", "Shifts it, because 697 is not a multiple of 3", "Makes exon 4 noncoding", "Reverses its strand"], a: 1, why: "697 = 3 × 232 + 1, so exon 4 is read in frame 2 of the raw DNA." },
-  { q: "Chou–Fasman reaches Q3 ≈ 57% on H-Ras. What does it lack that modern predictors use?", o: ["A larger window", "Evolutionary information and long-range contacts", "The genetic code", "Hydrophobicity values"], a: 1, why: "β-strands pair with partners far apart in sequence; MSAs and learned pair representations capture this." },
+  { q: "Chou–Fasman calls about a quarter of haemoglobin β a β-strand. Why?", o: ["Haemoglobin really has short strands", "Its buried helix faces are rich in Val, Leu and Phe, which have high strand propensity", "The DSSP assignment is wrong", "Haemoglobin is a membrane protein"], a: 1, why: "A local window of propensities can't tell a hydrophobic helix face from a strand; haemoglobin has no strands at all." },
   { q: "A window neural network trained on single sequences levels off near 65% Q3. What pushed accuracy past 75%?", o: ["Many more hidden layers", "Training for more epochs", "Evolutionary profiles from multiple sequence alignments", "A larger window of 51 residues"], a: 2, why: "PHD (1993) and PSIPRED (1999) fed the network profiles of homologous sequences. On this page, extra hidden units add only a point or two." },
-  { q: "A region of your model has pLDDT around 35. The best interpretation is:", o: ["The structure there is accurate but flexible", "It is probably disordered; the drawn shape is not meaningful", "It is a transmembrane helix", "The file is corrupted"], a: 1, why: "pLDDT below 50 often marks intrinsically disordered regions, such as the H-Ras hypervariable tail." },
-  { q: "Two domains both have pLDDT above 90, but PAE between them is high. You can trust:", o: ["The distance between residues in different domains", "Each domain's fold, but not their relative orientation", "Nothing in the model", "Only the side chains"], a: 1, why: "PAE measures confidence in relative positions; pLDDT is local." },
-  { q: "The AlphaFold2 model of H-Ras G12V looks almost identical to wild type. Why?", o: ["AlphaFold ignores mutations", "G12V is oncogenic by blocking GTP hydrolysis, not by changing the fold", "G12V is a silent mutation", "The model failed"], a: 1, why: "Predictors are not reliable estimators of how a mutation affects function or stability." }
+  { q: "Why were relatives of Ras and haemoglobin removed from the network's training data?", o: ["They have errors", "So that the predictions for Ras and haemoglobin are a fair test on unseen proteins", "To make training faster", "Because they are membrane proteins"], a: 1, why: "A network that has seen a near-identical protein can simply recall it, which says nothing about how it does on a new protein." },
+  { q: "In step 6, a model has 95% of residues within 2 Å but a Cα RMSD of 3 Å. What is the most likely reason?", o: ["The model is wrong everywhere", "A few residues (for example a flexible loop or tail) are far off and dominate the RMSD", "The superposition failed", "The sequences don't match"], a: 1, why: "RMSD squares the distances, so a handful of outliers inflate it. The fraction within a cutoff is more robust." },
+  { q: "A region of your model has pLDDT around 35. The best interpretation is:", o: ["The structure there is accurate but flexible", "It is probably disordered; the drawn shape is not meaningful", "It is a transmembrane helix", "The file is corrupted"], a: 1, why: "pLDDT below 50 often marks disordered regions, such as the H-Ras C-terminal tail." },
+  { q: "An AlphaFold2 model of one haemoglobin β chain matches 4HHB closely. What does it still miss?", o: ["The helices", "The haem group and the α₂β₂ tetramer", "The amino-acid sequence", "Nothing; it is complete"], a: 1, why: "AlphaFold2 predicts protein chains only. AlphaFold3 can add haem and build the tetramer if you ask for it." },
+  { q: "The sickle-cell mutant (β E6V) predicted by AlphaFold looks almost identical to normal haemoglobin. Why?", o: ["AlphaFold ignores mutations", "E6V doesn't change the fold; the disease comes from deoxy HbS tetramers sticking together into fibres", "E6V is a silent mutation", "The model failed"], a: 1, why: "Predictors are not reliable estimators of how a mutation changes function, stability or aggregation." }
 ];
 let answers = store.get("quiz", {});
 function renderQuiz() {
@@ -7340,17 +7481,18 @@ function applyTheme(t) {
 }
 $("themeBtn").addEventListener("click", () => {
   const cur = document.documentElement.getAttribute("data-theme") || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
-  const next = cur === "dark" ? "light" : "dark"; store.set("theme", next); applyTheme(next); drawTrace();
+  const next = cur === "dark" ? "light" : "dark"; store.set("theme", next); applyTheme(next); v1.draw(); v2.draw();
 });
 
 /* ---------------- boot ---------------- */
 applyTheme(store.get("theme", null));
-drawOrfs();
-selectOrf(ALL_ORFS.find(o => o.frame === 1 && o.start === 2077));
-buildExonTable(); splice();
-$("seqIn").value = HRAS_REF; analyze();
-nnBoot();
+buildSelectors();
+nnControls();
+nnCF = evaluate(cfPredict, SS_TEST);
+setProtein(cur);
+drawNNResults();
 renderQuiz(); markProgress();
+nnTrain();
 </script>
 </body>
 </html>
