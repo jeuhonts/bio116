@@ -7,7 +7,7 @@
 | **Audience** | Undergraduate bioinformatics (BIO116). Assumes you know the genetic code and the basics of protein structure. |
 | **Time** | About 2–3 hours (Parts 1–4 offline, about 1 h; Part 5 needs a browser and about 30 min of compute) |
 | **You need** | Python 3.8+ (standard library only), a web browser, and optionally [ChimeraX](https://www.cgl.ucsf.edu/chimerax/) or the [Mol\* viewer](https://molstar.org/viewer/) |
-| **Files** | `protein-structure-tutorial.html` (interactive version: open it in any browser, works offline), `structure_tutorial.py` (companion script), `../../triplets.txt` (the DNA we start from) |
+| **Files** | `protein-structure-tutorial.html` (interactive version: open it in any browser, works offline), `structure_tutorial.py` (companion script), `data/` (secondary-structure training and test sets), `../../triplets.txt` (the DNA we start from) |
 
 By the end you will be able to:
 
@@ -52,7 +52,8 @@ while UniProt holds about 250 million sequences. Predicted structures help with:
 | Era | Approach | Idea | Typical accuracy |
 |---|---|---|---|
 | 1970s | **Statistical secondary structure** (Chou–Fasman, GOR) | Residue propensities for helix and strand | Q3 ≈ 50–65 % |
-| 1990s–2000s | **Profile / neural-net secondary structure** (PSIPRED) | Use evolutionary profiles from multiple alignments | Q3 ≈ 80 % |
+| 1988 | **Neural networks on single sequences** (Qian & Sejnowski) | Learn the rules from known structures instead of hand-made tables | Q3 ≈ 64 % |
+| 1990s–2000s | **Profile neural networks** (PHD, PSIPRED) | Feed the network evolutionary profiles from multiple alignments | Q3 ≈ 71–80 % |
 | 1990s– | **Homology (comparative) modelling** (MODELLER, SWISS-MODEL) | Copy the backbone of a related protein of known structure (>30 % identity) | Good when a template exists |
 | 2000s | **Threading / fold recognition** (Phyre2, I-TASSER) | Fit the sequence onto known folds even at low identity | Variable |
 | 2000s–2010s | **Ab initio / fragment assembly** (Rosetta) | Assemble 3–9-residue fragments while minimising an energy function | Small proteins only |
@@ -229,6 +230,76 @@ This ORF is 18 % proline and made of near-perfect 28-residue tandem repeats (`..
 almost certainly comes from a repetitive stretch of noncoding DNA in this region, not a real protein. Keep it: in
 Part 4 it shows what a predictor does with a sequence that has no real structure.
 
+### 2e. Neural networks: learning the rules from data
+
+Chou and Fasman tabulated their propensities by hand. In 1988, Qian and Sejnowski instead trained a **neural
+network** on known structures. The companion script builds the same kind of network:
+
+```
+ window of 13 residues        one-hot input           hidden layer      output (softmax)
+ ... L T I Q [L] I Q N ...  ->  13 x 22 units   ->   10 tanh units  ->   P(helix), P(strand), P(coil)
+```
+
+- Each residue in the window becomes 22 inputs (20 amino acids, unknown, "past the chain end"), exactly one of
+  them on. This is **one-hot encoding**.
+- The network is trained by **gradient descent**: for each residue it nudges every weight to make the true
+  state (from DSSP) a little more likely.
+- **Data:** 5,522 proteins from the CB6133-filtered set for training, with small GTPases removed so the network
+  never sees a Ras relative. The test set is the standard **CB513** benchmark (514 proteins, 84,765 residues),
+  which shares no proteins with the training set. See `data/README.md` for the source and licence.
+
+```bash
+python3 structure_tutorial.py nn        # 300 training proteins, about 15 seconds
+```
+
+```
+Training set: 300 proteins, 64285 residues (12 small-GTPase-like proteins excluded)
+Test set (CB513): 514 proteins, 84765 residues
+Network: window 13 x 22 inputs -> 10 hidden units -> 3 outputs
+
+epoch  train Q3  test Q3   time
+    1     59.8%    61.5%     4s
+    2     61.7%    61.8%     4s
+    3     62.1%    62.0%     4s
+
+Chou-Fasman on the same test set: 53.9%
+...
+Q3 vs 5P21: Chou-Fasman 57%, neural network 67%
+```
+
+On the same 84,765 test residues, the network beats Chou–Fasman by about 8 points, after training on only 300
+proteins. Try other settings:
+
+| Command | Test Q3 (CB513) |
+|---|---|
+| `nn --window 1 --hidden 0` (one residue, linear) | 48.5% |
+| `nn` (window 13, 10 hidden, 300 proteins, 3 epochs) | 62.0% |
+| `nn --window 17 --hidden 20 --proteins 2000 --epochs 4` (about 2 minutes) | 65.5% |
+| Chou–Fasman, for comparison | 53.9% |
+
+Three lessons:
+
+1. **Context matters.** A single residue gives 48.5%, barely better than always guessing coil (43% of CB513).
+   A window of 13–17 residues adds about 15 points.
+2. **Model size isn't the bottleneck.** A bigger network with 7 times more data gains only about 3 points.
+   Qian and Sejnowski saw the same thing: a single sequence doesn't carry much more information about local
+   structure, and single-sequence methods level off around 65%.
+3. **Evolution breaks the barrier.** In 1993, **PHD** (Rost and Sander) fed the network a *profile* from a
+   multiple sequence alignment instead of a single sequence and reached 70.8%. **PSIPRED** (1999) reached about
+   76.5% with PSI-BLAST profiles, and deep networks with profiles reach about 85% on CB513 today. The practical
+   ceiling is roughly 88–90%, because DSSP assigns slightly different states to different structures of the same
+   protein. (Published values come from different test sets, so compare them loosely.)
+
+The interactive page (`protein-structure-tutorial.html`, step 4) trains the same network in your browser in a few
+seconds. It has sliders for window size, hidden units, amount of training data and epochs, plus an optional
+second-level network that smooths the output, as PHD did.
+
+> **Question 2.3.** Train with `--proteins 50 --epochs 8`. Compare the training and test Q3. What is happening, and
+> why must a predictor always be tested on proteins it has never seen?
+
+> **Question 2.4.** A residue's position in a profile says "this column is hydrophobic in 95% of homologues". Why is
+> that more useful for predicting a buried β-strand than the single residue at that position?
+
 ---
 
 ## Part 3 — Predicting the 3D structure
@@ -374,7 +445,8 @@ misses.
 
 1. **Gene to protein.** Report the four exon coordinates and the splice-site dinucleotides you found with
    tBLASTn. Explain in two sentences why "longest ORF" failed to find this gene.
-2. **Classical versus modern.** Make a table of Q3 for Chou–Fasman (from the script), PSIPRED
+2. **Classical versus modern.** Make a table of Q3 on H-Ras for Chou–Fasman (from the script), your best neural
+   network from `nn` (give its settings), PSIPRED
    (<http://bioinf.cs.ucl.ac.uk/psipred/>) and the secondary structure from your AlphaFold/ESMFold model (in
    ChimeraX: `dssp` then `info residues attribute ss_type`). Explain the ranking.
 3. **Confidence.** Include a figure of your H-Ras model coloured by pLDDT. Mark the G domain, the switch
@@ -399,6 +471,13 @@ misses.
   (residues 151–189) moves to frame 2. Only splicing puts the pieces back in one frame.
 - **2.1** Evolutionary information (MSAs and profiles) and long-range contacts. β-sheets pair strands that
   can be far apart in sequence, which is exactly what a local window can't see.
+- **2.3** Training Q3 keeps climbing (to about 64% after 8 epochs) while test Q3 stalls around 61%, below what
+  300 proteins give. The growing gap is **overfitting**: the network starts memorising the 50 training proteins
+  instead of learning general rules. Only accuracy on unseen
+  proteins tells you how the method will do on a new protein.
+- **2.4** A single residue is a noisy signal: many amino acids occur in strands, helices and loops alike. A column
+  that stays hydrophobic across many homologues shows that the *position* is buried in all of them. The strand's
+  alternating buried/exposed pattern is also much clearer when averaged over many sequences.
 - **4.1** Expect mean pLDDT well below 50 and an extended, non-compact model. That points to a disordered or
   non-real protein.
 - **4.2** No: PAE says the relative placement of the domains is uncertain, even though each domain is
@@ -415,6 +494,17 @@ misses.
 - Anfinsen, C. B. (1973). Principles that govern the folding of protein chains. *Science* 181, 223–230.
 - Chou, P. Y. & Fasman, G. D. (1978). Prediction of the secondary structure of proteins from their amino acid
   sequence. *Adv. Enzymol.* 47, 45–148.
+- Qian, N. & Sejnowski, T. J. (1988). Predicting the secondary structure of globular proteins using neural
+  network models. *J. Mol. Biol.* 202, 865–884.
+- Rost, B. & Sander, C. (1993). Prediction of protein secondary structure at better than 70% accuracy.
+  *J. Mol. Biol.* 232, 584–599. *(PHD)*
+- Jones, D. T. (1999). Protein secondary structure prediction based on position-specific scoring matrices.
+  *J. Mol. Biol.* 292, 195–202. *(PSIPRED)*
+- Klausen, M. S. et al. (2019). NetSurfP-2.0: improved prediction of protein structural features by integrated
+  deep learning. *Proteins* 87, 520–527.
+- Zhou, J. & Troyanskaya, O. G. (2014). Deep supervised and convolutional generative stochastic network for
+  protein secondary structure prediction. *ICML*. *(CB6133 and CB513 data; cleaned version from Drori et al. 2018,
+  github.com/idrori/cu-ssp)*
 - Kyte, J. & Doolittle, R. F. (1982). A simple method for displaying the hydropathic character of a protein.
   *J. Mol. Biol.* 157, 105–132.
 - Pai, E. F. et al. (1990). Refined crystal structure of the triphosphate conformation of H-ras p21 at 1.35 Å

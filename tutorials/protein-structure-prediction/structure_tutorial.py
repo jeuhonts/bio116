@@ -11,6 +11,8 @@ Walks from the codons in ../../triplets.txt to a predicted protein structure:
                    - Kyte-Doolittle hydropathy (buried vs exposed, TM helices)
                    - Chou-Fasman secondary structure (helix / strand / coil)
                    - low-complexity and tandem-repeat detection (disorder hints)
+  3b. nn         train a small neural network (Qian & Sejnowski style) on
+                 real DSSP data and compare it with Chou-Fasman on CB513
   4. fold        (optional, needs internet) submit the ORF to the ESMFold API
                  and read per-residue confidence (pLDDT) from the returned PDB
   5. plddt       summarise pLDDT from any AlphaFold/ESMFold/ColabFold PDB file
@@ -24,6 +26,7 @@ Examples:
   python3 structure_tutorial.py splice             # join exons -> full protein
   python3 structure_tutorial.py analyze --spliced
   python3 structure_tutorial.py fasta --spliced > protein.fasta
+  python3 structure_tutorial.py nn                 # about 15 seconds
   python3 structure_tutorial.py fold --out orf.pdb
   python3 structure_tutorial.py plddt orf.pdb
 """
@@ -327,6 +330,164 @@ def analyze(seq, label, reference=None):
 
 
 # --------------------------------------------------------------------------
+# Step 3b: a neural network for secondary structure (Qian & Sejnowski 1988)
+# --------------------------------------------------------------------------
+
+DATA_DIR = os.path.join(HERE, "data")
+DSSP_TO_Q3 = {"H": "H", "G": "H", "I": "H", "E": "E", "B": "E"}  # rest -> C
+NN_AA = "ACDEFGHIKLMNPQRSTVWY"   # index 20 = unknown (X), 21 = past the chain end
+NN_SS = "HEC"
+GTPASE_PLOOP = re.compile(r"G.{4}GK[ST]")
+GTPASE_G3 = re.compile(r"D.{2}G[QH]")
+
+
+def load_ss_dataset(name):
+    """Return [(sequence, 3-state labels)] from data/<name>.tsv."""
+    out = []
+    with open(os.path.join(DATA_DIR, name + ".tsv")) as fh:
+        for line in fh:
+            if line.startswith("#") or not line.strip():
+                continue
+            seq, dssp = line.rstrip("\n").split("\t")
+            out.append((seq, "".join(DSSP_TO_Q3.get(c, "C") for c in dssp)))
+    return out
+
+
+def encode_windows(seq, window):
+    """
+    One-hot encoding, stored sparsely: for each residue, the list of active
+    input units (one per window position). Input unit = position * 22 + letter.
+    """
+    half = window // 2
+    idx = [NN_AA.find(a) if a in NN_AA else 20 for a in seq]
+    rows = []
+    for i in range(len(seq)):
+        row = []
+        for w in range(window):
+            j = i - half + w
+            row.append(w * 22 + (idx[j] if 0 <= j < len(seq) else 21))
+        rows.append(row)
+    return rows
+
+
+class WindowNet:
+    """
+    Sequence window -> one-hot -> tanh hidden layer -> softmax over H/E/C.
+    With hidden=0 it is a single-layer (linear) network.
+    Trained with plain stochastic gradient descent on cross-entropy.
+    """
+
+    def __init__(self, window=13, hidden=10, seed=1):
+        import random
+        self.window, self.hidden = window, hidden
+        self.rng = random.Random(seed)
+        n_in = 22 * window
+        r = self.rng.uniform
+        if hidden:
+            self.w1 = [[r(-0.1, 0.1) for _ in range(hidden)] for _ in range(n_in)]
+            self.b1 = [0.0] * hidden
+            self.w2 = [[r(-0.1, 0.1) for _ in range(3)] for _ in range(hidden)]
+        else:
+            self.w2 = [[0.0] * 3 for _ in range(n_in)]
+        self.b2 = [0.0] * 3
+
+    def _forward(self, row):
+        import math
+        if self.hidden:
+            a = self.b1[:]
+            for u in row:
+                wu = self.w1[u]
+                for k in range(self.hidden):
+                    a[k] += wu[k]
+            a = [math.tanh(v) for v in a]
+            z = [self.b2[c] + sum(a[k] * self.w2[k][c] for k in range(self.hidden)) for c in range(3)]
+        else:
+            a = None
+            z = [self.b2[c] + sum(self.w2[u][c] for u in row) for c in range(3)]
+        m = max(z)
+        e = [math.exp(v - m) for v in z]
+        t = sum(e)
+        return a, [v / t for v in e]
+
+    def predict(self, seq):
+        return "".join(NN_SS[max(range(3), key=p.__getitem__)]
+                       for _, p in map(self._forward, encode_windows(seq, self.window)))
+
+    def train_epoch(self, examples, lr):
+        self.rng.shuffle(examples)
+        correct = 0
+        for row, y in examples:
+            a, p = self._forward(row)
+            correct += max(range(3), key=p.__getitem__) == y
+            g = p[:]
+            g[y] -= 1.0                      # dLoss/dz for softmax + cross-entropy
+            if self.hidden:
+                da = [sum(self.w2[k][c] * g[c] for c in range(3)) * (1 - a[k] * a[k])
+                      for k in range(self.hidden)]
+                for k in range(self.hidden):
+                    for c in range(3):
+                        self.w2[k][c] -= lr * a[k] * g[c]
+                for u in row:
+                    wu = self.w1[u]
+                    for k in range(self.hidden):
+                        wu[k] -= lr * da[k]
+                for k in range(self.hidden):
+                    self.b1[k] -= lr * da[k]
+            else:
+                for u in row:
+                    for c in range(3):
+                        self.w2[u][c] -= lr * g[c]
+            for c in range(3):
+                self.b2[c] -= lr * g[c]
+        return correct / len(examples)
+
+
+def score_q3(predict, data):
+    ok = n = 0
+    for seq, ss in data:
+        pred = predict(seq)
+        ok += sum(a == b for a, b in zip(pred, ss))
+        n += len(ss)
+    return ok / n
+
+
+def run_nn(window, hidden, n_proteins, epochs, lr, seed, hras_seq):
+    import random
+    import time
+    train = load_ss_dataset("cb6133filtered")
+    test = load_ss_dataset("cb513")
+    kept = [t for t in train if not (GTPASE_PLOOP.search(t[0]) and GTPASE_G3.search(t[0]))]
+    random.Random(seed).shuffle(kept)
+    subset = kept[:n_proteins]
+    examples = [(row, NN_SS.index(y)) for seq, ss in subset
+                for row, y in zip(encode_windows(seq, window), ss)]
+    print(f"Training set: {len(subset)} proteins, {len(examples)} residues "
+          f"({len(train) - len(kept)} small-GTPase-like proteins excluded)")
+    print(f"Test set (CB513): {len(test)} proteins, {sum(len(s) for s, _ in test)} residues")
+    print(f"Network: window {window} x 22 inputs -> {hidden or 'no'} hidden units -> 3 outputs\n")
+
+    cf = score_q3(chou_fasman, test)
+    net = WindowNet(window, hidden, seed)
+    print(f"{'epoch':>5} {'train Q3':>9} {'test Q3':>8} {'time':>6}")
+    for ep in range(1, epochs + 1):
+        t0 = time.time()
+        tr = net.train_epoch(examples, lr / ep ** 0.5)
+        te = score_q3(net.predict, test)
+        print(f"{ep:>5} {tr:>9.1%} {te:>8.1%} {time.time() - t0:>5.0f}s")
+    print(f"\nChou-Fasman on the same test set: {cf:.1%}")
+
+    ref = reference_ss()
+    nn_ss, cf_ss = net.predict(hras_seq), chou_fasman(hras_seq)
+    print("\nH-Ras, residues 1-166 (not in the training set):")
+    for i in range(0, 166, 60):
+        print(f"{i + 1:>5} seq  {hras_seq[i:min(i + 60, 166)]}")
+        print(f"      CF   {cf_ss[i:min(i + 60, 166)]}")
+        print(f"      NN   {nn_ss[i:min(i + 60, 166)]}")
+        print(f"      5P21 {ref[i:i + 60]}")
+    print(f"Q3 vs 5P21: Chou-Fasman {q3(cf_ss, ref):.0%}, neural network {q3(nn_ss, ref):.0%}")
+
+
+# --------------------------------------------------------------------------
 # Step 4-5: 3D prediction with ESMFold and reading pLDDT
 # --------------------------------------------------------------------------
 
@@ -397,6 +558,14 @@ def main():
 
     sub.add_parser("splice", help="join the exons and translate the full protein")
 
+    p = sub.add_parser("nn", help="train a window neural network for secondary structure")
+    p.add_argument("--window", type=int, default=13)
+    p.add_argument("--hidden", type=int, default=10)
+    p.add_argument("--proteins", type=int, default=300, help="training proteins to use")
+    p.add_argument("--epochs", type=int, default=3)
+    p.add_argument("--lr", type=float, default=0.02)
+    p.add_argument("--seed", type=int, default=1)
+
     p = sub.add_parser("plddt", help="summarise confidence in a predicted PDB")
     p.add_argument("pdb")
 
@@ -413,6 +582,11 @@ def main():
     if args.cmd == "plddt":
         with open(args.pdb) as fh:
             summarise_plddt(plddt_from_pdb(fh.read()))
+        return
+
+    if args.cmd == "nn":
+        run_nn(args.window, args.hidden, args.proteins, args.epochs, args.lr, args.seed,
+               splice(args.triplets)[1].rstrip("*"))
         return
 
     if args.cmd == "splice":
