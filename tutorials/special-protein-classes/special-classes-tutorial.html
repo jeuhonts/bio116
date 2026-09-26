@@ -1,0 +1,954 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Membranes and Coiled Coils</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;1,7..72,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root {
+  color-scheme: light;
+  --bg: #F3F5F1;
+  --surface: #FFFFFF;
+  --sunk: #E9EDE8;
+  --ink: #17211C;
+  --muted: #56645C;
+  --line: #D5DCD6;
+  --brand: #1E5B43;
+  --brand-ink: #FFFFFF;
+  --brand-soft: #DFEBE4;
+  --helix: #B3306A;
+  --strand: #C98400;
+  --coil: #97A39C;
+  --good: #2E7D4F;
+  --bad: #B3261E;
+  --af-vh: #0053D6; --af-c: #65CBF3; --af-l: #FFDB13; --af-vl: #FF7D45;
+  --display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --body: "Literata", Georgia, "Times New Roman", serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #0F1512; --surface: #161E1A; --sunk: #1D2722; --ink: #E4EBE6; --muted: #98A69E;
+    --line: #2B3731; --brand: #74C49E; --brand-ink: #0F1512; --brand-soft: #1B2E24;
+    --helix: #E0739F; --strand: #EDB23E; --coil: #6C7871; --good: #6CCB8F; --bad: #F08A80;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0F1512; --surface: #161E1A; --sunk: #1D2722; --ink: #E4EBE6; --muted: #98A69E;
+  --line: #2B3731; --brand: #74C49E; --brand-ink: #0F1512; --brand-soft: #1B2E24;
+  --helix: #E0739F; --strand: #EDB23E; --coil: #6C7871; --good: #6CCB8F; --bad: #F08A80;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+body {
+  margin: 0; background: var(--bg); color: var(--ink);
+  font: 400 17px/1.6 var(--body);
+  padding-inline: 16px;
+}
+[hidden] { display: none !important; }
+a { color: var(--brand); text-underline-offset: 2px; }
+:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+h1, h2, h3 { font-family: var(--display); line-height: 1.15; text-wrap: balance; margin: 0; }
+h1 { font-size: clamp(2.2rem, 5vw, 3.4rem); font-weight: 700; letter-spacing: -0.02em; }
+h2 { font-size: clamp(1.6rem, 3.4vw, 2.1rem); font-weight: 700; letter-spacing: -0.01em; }
+h3 { font-size: 1.15rem; font-weight: 500; }
+p { margin: 0; max-width: 66ch; }
+code, .mono { font-family: var(--mono); font-size: 0.86em; }
+.label {
+  font: 500 0.72rem/1.2 var(--display); text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted);
+}
+
+/* ---------- layout ---------- */
+.shell { max-width: 1180px; margin: 0 auto; display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 48px; padding-block: 32px 80px; }
+nav.steps { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 24px); align-self: start; display: grid; gap: 4px; }
+nav.steps a {
+  display: grid; grid-template-columns: 26px 1fr; gap: 8px; align-items: center;
+  padding: 6px 8px; border-radius: 6px; text-decoration: none; color: var(--muted);
+  font: 500 0.92rem/1.25 var(--display);
+}
+nav.steps a .n {
+  width: 24px; height: 24px; border-radius: 50%; border: 1.5px solid var(--line);
+  display: grid; place-items: center; font-size: 0.75rem; font-variant-numeric: tabular-nums;
+}
+nav.steps a:hover { color: var(--ink); background: var(--sunk); }
+nav.steps a.done .n { background: var(--brand); border-color: var(--brand); color: var(--brand-ink); }
+nav.steps a.here { color: var(--ink); }
+nav.steps a.here .n { border-color: var(--brand); }
+.theme-btn { margin-top: 16px; justify-self: start; }
+main { display: grid; gap: 72px; min-width: 0; }
+section { display: grid; gap: 20px; min-width: 0; scroll-margin-top: 24px; }
+.sec-head { display: grid; gap: 8px; }
+.sec-head .label { color: var(--brand); }
+
+/* ---------- hero ---------- */
+.hero { display: grid; gap: 20px; }
+.hero .lede { font-size: 1.15rem; color: var(--muted); max-width: 60ch; }
+.ribbon { width: 100%; max-width: 100%; height: auto; display: block; }
+.meta { display: flex; flex-wrap: wrap; gap: 8px 24px; }
+.meta div { display: grid; gap: 2px; }
+.meta b { font: 500 0.95rem/1.3 var(--display); }
+
+/* ---------- widgets ---------- */
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 20px; display: grid; gap: 16px; min-width: 0; }
+.panel.sunk { background: var(--sunk); border-color: transparent; }
+.row { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center; }
+button, .btn {
+  font: 500 0.9rem/1 var(--display); padding: 9px 14px; border-radius: 6px; cursor: pointer;
+  border: 1px solid var(--line); background: var(--surface); color: var(--ink);
+}
+button:hover { border-color: var(--brand); }
+button.primary { background: var(--brand); color: var(--brand-ink); border-color: var(--brand); }
+button.chip { padding: 6px 10px; font-size: 0.82rem; }
+button.chip[aria-pressed="true"] { background: var(--brand-soft); border-color: var(--brand); }
+input[type="number"], textarea {
+  font: 400 0.9rem/1.4 var(--mono); color: var(--ink); background: var(--bg);
+  border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px;
+}
+input[type="number"] { width: 6.5em; }
+textarea { width: 100%; min-height: 96px; resize: vertical; }
+input[type="range"] { accent-color: var(--brand); width: 160px; max-width: 100%; }
+.ctl { display: grid; gap: 4px; font-size: 0.9rem; }
+.ctl output { font: 500 0.85rem var(--mono); }
+.scroll { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 0.9rem; }
+th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font: 500 0.75rem/1.2 var(--display); text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+td.num { font-variant-numeric: tabular-nums; font-family: var(--mono); font-size: 0.85rem; }
+tr.sel td { background: var(--brand-soft); }
+.seq { font: 400 0.85rem/1.55 var(--mono); word-break: break-all; letter-spacing: 0.02em; }
+.tracks { font: 400 0.82rem/1.35 var(--mono); white-space: pre; }
+.tracks .H { color: var(--helix); font-weight: 500; }
+.tracks .E { color: var(--strand); font-weight: 500; }
+.tracks .C { color: var(--coil); }
+.tracks .x { background: color-mix(in srgb, var(--bad) 22%, transparent); }
+.tracks .lab { color: var(--muted); }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; }
+.tile { display: grid; gap: 2px; padding: 12px 14px; background: var(--sunk); border-radius: 8px; }
+.tile b { font: 500 1.35rem/1.2 var(--display); font-variant-numeric: tabular-nums; }
+.tile span { font-size: 0.8rem; color: var(--muted); }
+.ok { color: var(--good); font-weight: 600; }
+.no { color: var(--bad); font-weight: 600; }
+.mm { background: color-mix(in srgb, var(--bad) 28%, transparent); border-radius: 2px; }
+.note { font-size: 0.92rem; color: var(--muted); }
+.callout { border-left: 3px solid var(--brand); padding: 4px 0 4px 16px; display: grid; gap: 8px; }
+details.hint { border: 1px dashed var(--line); border-radius: 8px; padding: 10px 14px; }
+details.hint summary { cursor: pointer; font: 500 0.92rem var(--display); color: var(--brand); }
+details.hint[open] summary { margin-bottom: 8px; }
+.q { display: grid; gap: 10px; }
+.q .opts { display: grid; gap: 6px; }
+.q .opts button { text-align: left; font: 400 0.95rem/1.35 var(--body); padding: 10px 12px; }
+.q .opts button.right { border-color: var(--good); background: color-mix(in srgb, var(--good) 12%, transparent); }
+.q .opts button.wrong { border-color: var(--bad); background: color-mix(in srgb, var(--bad) 10%, transparent); }
+.q .why { font-size: 0.92rem; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 0.82rem; color: var(--muted); }
+.legend i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; vertical-align: -1px; margin-right: 6px; }
+.timeline { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 0; border-top: 2px solid var(--brand); }
+.timeline div { padding: 12px 14px 4px 0; display: grid; gap: 4px; position: relative; }
+.timeline div::before { content: ""; position: absolute; top: -7px; left: 0; width: 12px; height: 12px; border-radius: 50%; background: var(--sunk); border: 2px solid var(--brand); }
+.timeline b { font: 700 1rem var(--display); }
+.timeline span { font-size: 0.88rem; color: var(--muted); }
+.tools { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; }
+.tools .panel { gap: 8px; }
+.drop { border: 2px dashed var(--line); border-radius: 10px; padding: 20px; text-align: center; display: grid; gap: 8px; justify-items: center; }
+.drop.over { border-color: var(--brand); background: var(--brand-soft); }
+canvas { max-width: 100%; display: block; }
+.two { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+svg text { fill: var(--muted); font: 11px var(--display); }
+
+
+/* ---------- neural network step ---------- */
+.progress { height: 6px; background: var(--sunk); border-radius: 3px; overflow: hidden; }
+.progress i { display: block; height: 100%; width: 0; background: var(--brand); transition: width .15s; }
+@media (prefers-reduced-motion: reduce) { .progress i { transition: none; } }
+.cmp td.num b { font-family: var(--display); font-size: 0.95rem; }
+.ladder { display: grid; gap: 8px; }
+.ladder .r { display: grid; grid-template-columns: minmax(0, 15rem) minmax(0, 1fr) 3.6rem; gap: 12px; align-items: center; font-size: 0.88rem; }
+.ladder .r > span:first-child { line-height: 1.3; }
+.ladder .track { position: relative; height: 18px; background: var(--sunk); border-radius: 3px; }
+.ladder .fill { position: absolute; inset: 0 auto 0 0; border-radius: 3px; background: var(--muted); opacity: .55; }
+.ladder .r.ours .fill { background: var(--brand); opacity: 1; }
+.ladder .r.ceiling .fill { background: repeating-linear-gradient(45deg, var(--line) 0 6px, transparent 6px 12px); opacity: 1; }
+.ladder .v { font: 500 0.88rem var(--mono); font-variant-numeric: tabular-nums; text-align: right; }
+@media (max-width: 560px) { .ladder .r { grid-template-columns: minmax(0, 1fr) 3.6rem; } .ladder .track { grid-column: 1 / -1; grid-row: 2; } }
+@media (max-width: 860px) {
+  .shell { grid-template-columns: minmax(0, 1fr); gap: 24px; padding-block: 0 64px; }
+  nav.steps {
+    top: env(safe-area-inset-top, 0px); z-index: 5; display: flex; overflow-x: auto; gap: 2px;
+    background: var(--bg); border-bottom: 1px solid var(--line); margin-inline: -16px; padding: 8px 16px;
+  }
+  nav.steps a { grid-template-columns: 24px auto; white-space: nowrap; }
+  .theme-btn { margin-top: 0; }
+  section { scroll-margin-top: 72px; }
+  .timeline { grid-template-columns: minmax(0, 1fr); border-top: 0; border-left: 2px solid var(--brand); padding-left: 18px; margin-left: 6px; }
+  .timeline div { padding: 6px 0; }
+  .timeline div::before { top: 12px; left: -26px; }
+}
+/* ---------- additions for this page ---------- */
+:root { --pos: #2F5FB3; --neg: #B3261E; --mem: #EFE6C8; --mem-edge: #C9B77A; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --pos: #86AEF0; --neg: #F08A80; --mem: #2F2A1C; --mem-edge: #6E6137; }
+}
+:root[data-theme="dark"] { --pos: #86AEF0; --neg: #F08A80; --mem: #2F2A1C; --mem-edge: #6E6137; }
+.tracks .M { color: var(--helix); font-weight: 500; }
+.tracks .B { color: var(--strand); font-weight: 500; }
+.tracks .S { color: var(--bad); }
+.tracks .io { color: var(--coil); }
+.tracks .core { background: color-mix(in srgb, var(--strand) 26%, transparent); color: var(--ink); font-weight: 500; }
+.tracks .edge { background: color-mix(in srgb, var(--pos) 16%, transparent); }
+.aa-h { color: var(--strand); font-weight: 600; }
+.aa-p { color: var(--pos); font-weight: 600; }
+.aa-n { color: var(--neg); font-weight: 600; }
+.wheel-grid { display: grid; grid-template-columns: minmax(0, 340px) minmax(0, 1fr); gap: 20px; align-items: start; }
+.wheel-grid svg { width: 100%; max-width: 340px; height: auto; display: block; }
+.heptab th { text-transform: none; font-size: 0.85rem; }
+.heptab td, .heptab th { text-align: center; padding: 4px 6px; font-family: var(--mono); font-size: 0.85rem; }
+.heptab th.core, .heptab td.core { background: color-mix(in srgb, var(--strand) 18%, transparent); }
+.kr-hi { font-weight: 700; color: var(--pos); }
+@media (max-width: 700px) { .wheel-grid { grid-template-columns: minmax(0, 1fr); } }
+</style>
+</head>
+<body>
+<div class="shell">
+  <nav class="steps" aria-label="Tutorial steps">
+    <a href="#why"><span class="n">1</span>Why special</a>
+    <a href="#tm"><span class="n">2</span>Find TM helices</a>
+    <a href="#topology"><span class="n">3</span>Topology</a>
+    <a href="#barrel"><span class="n">4</span>β-barrels</a>
+    <a href="#membrane3d"><span class="n">5</span>Membrane in 3D</a>
+    <a href="#wheel"><span class="n">6</span>Heptad wheel</a>
+    <a href="#scan"><span class="n">7</span>Coiled-coil scan</a>
+    <a href="#oligomer"><span class="n">8</span>Oligomer state</a>
+    <a href="#quiz"><span class="n">9</span>Check yourself</a>
+    <a href="#exercises"><span class="n">10</span>Exercises</a>
+    <button class="chip theme-btn" id="themeBtn" type="button">Dark theme</button>
+  </nav>
+
+  <main>
+    <header class="hero" id="top">
+      <span class="label">BIO116 · Interactive tutorial · Special protein classes</span>
+      <h1>Membrane proteins and coiled coils: where generic predictors need your help</h1>
+      <p class="lede">AlphaFold predicts one chain at a time, in a vacuum. It has no lipid bilayer and doesn't know how many copies of a chain
+        assemble. Membrane proteins and coiled coils are the two classes where that matters most. You'll find transmembrane helices,
+        predict which side of the membrane each loop is on, see why β-barrels escape hydropathy plots, and read the heptad code
+        that decides whether a leucine zipper forms a dimer, trimer or tetramer. Everything runs in your browser, even offline.</p>
+      <svg class="ribbon" viewBox="0 0 900 120" role="img" aria-label="A helix crossing a membrane next to two helices wound into a coiled coil">
+        <rect x="20" y="30" width="400" height="60" fill="var(--mem)" stroke="var(--mem-edge)"/>
+        <text x="30" y="22">outside</text><text x="30" y="112">inside</text>
+        <rect x="90" y="18" width="26" height="84" rx="12" fill="var(--helix)"/>
+        <rect x="190" y="18" width="26" height="84" rx="12" fill="var(--helix)"/>
+        <path d="M116 22 C 140 -2, 166 -2, 190 22" fill="none" stroke="var(--coil)" stroke-width="3"/>
+        <path d="M216 98 C 240 122, 266 122, 290 98" fill="none" stroke="var(--coil)" stroke-width="3"/>
+        <text x="253" y="116" style="fill:var(--pos);font-weight:600">K R</text>
+        <path d="M300 60 h60" stroke="var(--strand)" stroke-width="10"/><path d="M360 50 l18 10 l-18 10 z" fill="var(--strand)"/>
+        <g fill="none" stroke-width="7" stroke-linecap="round">
+          <path d="M520 20 C 560 40, 560 80, 600 100 S 680 60, 720 20 S 800 60, 860 100" stroke="var(--brand)"/>
+          <path d="M520 100 C 560 80, 560 40, 600 20 S 680 60, 720 100 S 800 60, 860 20" stroke="var(--helix)" opacity="0.8"/>
+        </g>
+        <text x="690" y="116" text-anchor="middle">coiled coil: two helices, 3.5 residues per turn</text>
+      </svg>
+      <div class="meta">
+        <div><span class="label">Audience</span><b>Undergraduates who did the H-Ras tutorial</b></div>
+        <div><span class="label">Time</span><b>2–3 hours</b></div>
+        <div><span class="label">You need</span><b>A browser; optionally ChimeraX</b></div>
+        <div><span class="label">Companion</span><b><code>special_classes.py</code></b></div>
+      </div>
+    </header>
+
+    <!-- ================= 1 ================= -->
+    <section id="why">
+      <div class="sec-head">
+        <span class="label">Step 1 of 10</span>
+        <h2>Why these proteins are special</h2>
+        <p>In the H-Ras tutorial a single soluble chain folded well and pLDDT told you where to trust it. Two things break that simple picture.</p>
+      </div>
+      <div class="two">
+        <div class="panel">
+          <h3>Membrane proteins</h3>
+          <p>Roughly a quarter of human genes encode them, and many drugs act on them. The model has <b>no membrane and no lipids</b>:
+            AlphaFold learned what membrane proteins look like from the PDB, but it never places a bilayer, so you must work out where the membrane is and which
+            side each loop faces. Membrane proteins are also under-represented in the PDB because they are hard to crystallise.</p>
+        </div>
+        <div class="panel">
+          <h3>Coiled coils</h3>
+          <p>Two to seven α-helices wind around each other. The sequence pattern is easy to spot, but the <b>register</b> (which residue sits in the core)
+            and the <b>number of helices</b> are hard. AlphaFold only models the copies you give it: submit one chain and you get one helix, submit three
+            and you get a trimer, whether or not it's the real state.</p>
+        </div>
+      </div>
+      <div class="callout">
+        <p><b>The theme of this page:</b> a predictor answers the question you ask it. For these classes you have to supply part of the answer yourself:
+          where the membrane is, which way the protein points, and how many chains there are.</p>
+      </div>
+    </section>
+
+    <!-- ================= 2 ================= -->
+    <section id="tm">
+      <div class="sec-head">
+        <span class="label">Step 2 of 10</span>
+        <h2>Find the transmembrane helices</h2>
+        <p>The hydrocarbon core of a bilayer is about 30&nbsp;Å thick. An α-helix rises 1.5&nbsp;Å per residue, so about 20 hydrophobic residues span it.
+          Averaging Kyte–Doolittle hydropathy over a <b>19-residue window</b> and calling windows above <b>1.6</b> finds many transmembrane (TM) helices.
+          The helices are called one at a time: take the highest window, mark its 19 residues, then take the next-highest window that doesn't overlap.</p>
+      </div>
+      <div class="panel">
+        <div class="row" id="tmPresets">
+          <span class="label">Load</span>
+          <button type="button" class="chip" data-tm="bR">Bacteriorhodopsin</button>
+          <button type="button" class="chip" data-tm="gpa">Glycophorin A</button>
+          <button type="button" class="chip" data-tm="lacy">LacY</button>
+          <button type="button" class="chip" data-tm="rho">Rhodopsin</button>
+          <button type="button" class="chip" data-tm="b2ar">β2-adrenergic receptor</button>
+          <button type="button" class="chip" data-tm="aqp1">Aquaporin-1</button>
+          <button type="button" class="chip" data-tm="ompa">OmpA</button>
+          <button type="button" class="chip" data-tm="hras">H-Ras</button>
+        </div>
+        <p class="note" id="tmSource"></p>
+        <label for="tmSeq" class="label">Protein sequence (edit freely or paste your own)</label>
+        <textarea id="tmSeq" spellcheck="false"></textarea>
+        <div class="row">
+          <label class="ctl" for="tmWin">Window <output id="tmWinOut">19</output>
+            <input type="range" id="tmWin" min="9" max="25" step="2" value="19"></label>
+          <label class="ctl" for="tmCut">Cutoff <output id="tmCutOut">1.6</output>
+            <input type="range" id="tmCut" min="0.8" max="2.4" step="0.1" value="1.6"></label>
+          <button type="button" class="chip" id="tmReset">Reset to 19 / 1.6</button>
+        </div>
+        <div class="tiles" id="tmTiles"></div>
+        <div class="legend"><span><i style="background:var(--helix)"></i>predicted TM helix</span><span><i style="background:var(--brand)"></i>reference helix</span><span><i style="background:var(--strand)"></i>reference β-strand</span><span><i style="background:var(--bad)"></i>reference signal peptide</span></div>
+        <div class="scroll"><svg id="tmPlot" viewBox="0 0 800 250" style="min-width:560px;width:100%" role="img" aria-label="Hydropathy plot with predicted and reference transmembrane segments"></svg></div>
+        <p class="note" id="tmWarn" aria-live="polite"></p>
+      </div>
+      <div class="callout">
+        <p><b>Try this.</b> Load bacteriorhodopsin. It has seven TM helices, but at 19 / 1.6 the plot finds five. Which two are missed, and what can you see in their
+          sequence? Then load glycophorin A: the reference has one TM helix, but the plot calls two.</p>
+        <details class="hint"><summary>Show the answer</summary>
+          <p>The missed bacteriorhodopsin helices are at 95–114 and 191–210 (precursor numbering). Helix C (95–114) carries Asp98 and Asp109, which are
+            Asp85 and Asp96 of the mature protein, the proton-pumping residues. Charged or polar residues that do a job inside the membrane pull the window average below 1.6.
+            In glycophorin A the extra "helix" at 5–23 is the <b>signal peptide</b>, a hydrophobic stretch that targets the protein to the membrane and is then cut off.
+            Hydropathy can't tell the two apart. Phobius and DeepTMHMM model signal peptides explicitly.</p>
+        </details>
+      </div>
+    </section>
+
+    <!-- ================= 3 ================= -->
+    <section id="topology">
+      <div class="sec-head">
+        <span class="label">Step 3 of 10</span>
+        <h2>Which way does it point? The positive-inside rule</h2>
+        <p>Knowing where the helices are isn't enough; you also need the <b>topology</b>, meaning which loops are inside the cell and which are outside. Von Heijne noticed
+          that the short loops on the cytoplasmic side are rich in <b>lysine and arginine</b> (the "positive-inside" rule). Loops alternate sides, so you add up K + R near the helix ends
+          on side A (the N-terminal side and every second loop after it) and on side B. The side with more positive charge is predicted to be inside.</p>
+      </div>
+      <div class="panel">
+        <div class="row">
+          <span class="note" id="topoProtein"></span>
+          <button type="button" class="chip" id="topoUseRef" aria-pressed="false">Use reference helices</button>
+          <label class="ctl" for="topoFlank">Flank <output id="topoFlankOut">15</output>
+            <input type="range" id="topoFlank" min="5" max="30" step="1" value="15"></label>
+        </div>
+        <div class="scroll"><svg id="topoSvg" viewBox="0 0 800 260" style="min-width:560px;width:100%" role="img" aria-label="Topology cartoon across the membrane"></svg></div>
+        <div class="scroll"><table id="topoTable"></table></div>
+        <p id="topoVerdict"></p>
+      </div>
+      <div class="callout">
+        <p><b>Try this.</b> For each protein, first predict with your own helices, then press <i>Use reference helices</i>. When does the rule fail because the helices
+          were wrong, and when does it fail on its own?</p>
+        <details class="hint"><summary>Show the answer</summary>
+          <p>With reference helices the rule gets bacteriorhodopsin (N-out), rhodopsin (N-out), LacY (N-in) and glycophorin A (N-out) right. With predicted helices
+            glycophorin A goes wrong, because the signal peptide counts as a helix and flips the alternation. Aquaporin-1 is predicted N-out with five helices; it really has six
+            TM helices with both ends in the cytoplasm, so one missing helix is enough to put the loops on the wrong sides. The β2-adrenergic receptor keeps its N-terminus outside
+            with six helices, but its C-terminus is then placed outside, which is wrong.</p>
+        </details>
+      </div>
+    </section>
+
+    <!-- ================= 4 ================= -->
+    <section id="barrel">
+      <div class="sec-head">
+        <span class="label">Step 4 of 10</span>
+        <h2>β-barrels hide from hydropathy plots</h2>
+        <p>Outer membrane proteins of bacteria, mitochondria and chloroplasts cross the membrane as <b>β-strands</b> that close into a barrel. A strand only needs
+          7–10 residues to cross, and its side chains point alternately out into the lipid and into the barrel's interior. So the sequence alternates hydrophobic and polar,
+          and a 19-residue average stays low. Instead, measure the <b>hydrophobic moment at 180°</b>: treat each residue's hydropathy as a vector pointing 180° from its neighbour's,
+          add them up over a short window, and divide by the window length. Strict alternation gives a large moment.</p>
+      </div>
+      <div class="panel">
+        <div class="row">
+          <span class="label">Load</span>
+          <button type="button" class="chip" data-br="ompa">OmpA</button>
+          <button type="button" class="chip" data-br="bR">Bacteriorhodopsin</button>
+          <button type="button" class="chip" data-br="hras">H-Ras</button>
+          <label class="ctl" for="brWin">Moment window <output id="brWinOut">9</output>
+            <input type="range" id="brWin" min="5" max="15" step="2" value="9"></label>
+          <label class="ctl" for="brThr">Threshold <output id="brThrOut">1.2</output>
+            <input type="range" id="brThr" min="0.6" max="2.0" step="0.1" value="1.2"></label>
+        </div>
+        <div class="tiles" id="brTiles"></div>
+        <div class="legend"><span><i style="background:var(--brand)"></i>19-window hydropathy</span><span><i style="background:var(--strand)"></i>hydrophobic moment, 180°</span><span><i style="background:var(--strand);opacity:.45"></i>reference β-strand</span><span><i style="background:var(--bad)"></i>signal peptide</span></div>
+        <div class="scroll"><svg id="brPlot" viewBox="0 0 800 250" style="min-width:560px;width:100%" role="img" aria-label="Hydropathy and hydrophobic moment for a beta-barrel protein"></svg></div>
+        <p class="note">OmpA reference: DeepTMHMM training set (structures). Residues 1–21 are the signal peptide and 191–346 the soluble periplasmic domain.</p>
+      </div>
+      <details class="hint"><summary>What does the plot show, and what doesn't it?</summary>
+        <p>For OmpA the 19-window hydropathy only rises above 1.6 over the signal peptide, so a TM helix scan would call OmpA a soluble protein with a signal peptide.
+          The moment is higher in the strands on average, but it isn't a clean detector: soluble β-sheets (look at H-Ras) and parts of the periplasmic domain also alternate.
+          Dedicated β-barrel predictors (DeepTMHMM, earlier PRED-TMBB and BOMP) combine many such signals with evolutionary information.</p>
+      </details>
+    </section>
+
+    <!-- ================= 5 ================= -->
+    <section id="membrane3d">
+      <div class="sec-head">
+        <span class="label">Step 5 of 10</span>
+        <h2>From sequence to a 3D model in a membrane</h2>
+        <p>AlphaFold models of membrane proteins are often good for the fold, because the PDB holds many membrane protein structures. What the model can't give you is the membrane.
+          Place it yourself and check that the result makes physical sense.</p>
+      </div>
+      <div class="panel sunk">
+        <h3>A workflow</h3>
+        <ol>
+          <li><b>Topology first.</b> Run DeepTMHMM (or Phobius if you suspect a signal peptide). Compare with the UniProt "Topology" section, which is often based on experiments.</li>
+          <li><b>Get a model.</b> Download it from the AlphaFold DB or run ColabFold / AlphaFold Server. Check pLDDT as usual. Loops on the membrane surface are often less confident.</li>
+          <li><b>Place the membrane.</b> Upload the model to the <b>PPM server</b>, which finds the orientation and hydrophobic thickness that minimise the transfer energy. For known
+            structures the <b>OPM</b> database already has the answer, and <b>MemProtMD</b> has coarse-grained simulations of PDB structures in a bilayer.</li>
+          <li><b>Check it.</b> The hydrophobic belt should be about 30&nbsp;Å thick. Aromatic residues (Trp, Tyr) should cluster at the interfaces and K/R on the cytoplasmic side.
+            The predicted TM segments should cross the slab and the loops should stay out.</li>
+          <li><b>Multimers.</b> Many membrane proteins are oligomers (aquaporins are tetramers). Submit the right number of copies, or you get a monomer with an exposed, hydrophobic interface.</li>
+        </ol>
+      </div>
+      <div class="tools">
+        <div class="panel"><h3>DeepTMHMM</h3><p class="note">Deep learning; α-helical and β-barrel topologies plus signal peptides (2022).</p><a href="https://dtu.biolib.com/DeepTMHMM" target="_blank" rel="noopener">dtu.biolib.com/DeepTMHMM ↗</a></div>
+        <div class="panel"><h3>Phobius</h3><p class="note">HMM that separates signal peptides from TM helices (2004).</p><a href="https://phobius.sbc.su.se/" target="_blank" rel="noopener">phobius.sbc.su.se ↗</a></div>
+        <div class="panel"><h3>TMHMM 2.0</h3><p class="note">The classic HMM (2001). No signal peptide model, so it can make exactly the glycophorin A mistake.</p><a href="https://services.healthtech.dtu.dk/services/TMHMM-2.0/" target="_blank" rel="noopener">DTU Health Tech ↗</a></div>
+        <div class="panel"><h3>TOPCONS</h3><p class="note">Consensus of several topology predictors.</p><a href="https://topcons.cbr.su.se/" target="_blank" rel="noopener">topcons.cbr.su.se ↗</a></div>
+        <div class="panel"><h3>PPM server</h3><p class="note">Positions a structure or model in a membrane; reports hydrophobic thickness and tilt.</p><a href="https://opm.phar.umich.edu/ppm_server" target="_blank" rel="noopener">opm.phar.umich.edu/ppm_server ↗</a></div>
+        <div class="panel"><h3>OPM database</h3><p class="note">Precomputed membrane positions for PDB structures.</p><a href="https://opm.phar.umich.edu" target="_blank" rel="noopener">opm.phar.umich.edu ↗</a></div>
+        <div class="panel"><h3>MemProtMD</h3><p class="note">PDB membrane proteins self-assembled into a lipid bilayer by simulation.</p><a href="https://memprotmd.bioch.ox.ac.uk/" target="_blank" rel="noopener">memprotmd.bioch.ox.ac.uk ↗</a></div>
+        <div class="panel"><h3>AlphaFold DB</h3><p class="note">Precomputed models, for example aquaporin-1 (P29972).</p><a href="https://alphafold.ebi.ac.uk/entry/P29972" target="_blank" rel="noopener">alphafold.ebi.ac.uk ↗</a></div>
+      </div>
+    </section>
+
+    <!-- ================= 6 ================= -->
+    <section id="wheel">
+      <div class="sec-head">
+        <span class="label">Step 6 of 10</span>
+        <h2>The heptad repeat on a helical wheel</h2>
+        <p>An α-helix has 3.6 residues per turn (100° per residue). In a coiled coil the helices wrap around each other, so the repeat becomes 3.5 residues per turn: seven residues
+          in two turns. The seven positions are called <b>a b c d e f g</b>. Positions <b>a</b> and <b>d</b> form a hydrophobic stripe that packs into the core,
+          <b>e</b> and <b>g</b> flank the core and often form salt bridges between helices, and <b>b, c, f</b> face the solvent. Pick the register that puts the hydrophobic residues on the a/d face.</p>
+      </div>
+      <div class="panel">
+        <div class="row">
+          <span class="label">Load</span>
+          <button type="button" class="chip" data-wh="gcn4-p1">GCN4-p1</button>
+          <button type="button" class="chip" data-wh="gcn4-pII">GCN4-pII</button>
+          <button type="button" class="chip" data-wh="gcn4-pLI">GCN4-pLI</button>
+          <button type="button" class="chip" data-wh="tpm1">Tropomyosin</button>
+          <label class="ctl" for="whStart">First residue <output id="whStartOut">1</output>
+            <input type="range" id="whStart" min="1" max="16" step="1" value="1"></label>
+        </div>
+        <div class="row" id="whReg" role="group" aria-label="Heptad letter of the first residue">
+          <span class="label">First residue is at</span>
+        </div>
+        <div class="wheel-grid">
+          <svg id="whSvg" viewBox="0 0 340 340" role="img" aria-label="Helical wheel"></svg>
+          <div style="display:grid;gap:12px;min-width:0">
+            <div class="tiles" id="whTiles"></div>
+            <div class="scroll"><table class="heptab" id="whTable"></table></div>
+            <div class="legend"><span class="aa-h">hydrophobic LIVMFYWA</span><span class="aa-p">basic KRH</span><span class="aa-n">acidic DE</span><span>other polar</span></div>
+            <p class="note">The wheel draws residues at 100° steps. The heptad letters assume 3.5 residues per turn, so the a and d residues drift by 20° per heptad on this wheel.
+              In the real supercoil that drift is taken up by the helices winding around each other.</p>
+            <button type="button" class="chip" id="whBest">Show the best register from the heptad scan</button>
+          </div>
+        </div>
+      </div>
+      <details class="hint"><summary>What's the register of GCN4-p1?</summary>
+        <p>Residue 1 (Arg) is at <b>g</b>. That puts M2, V9, N16, V23, V30 at <b>a</b> and L5, L12, L19, L26 (and R33) at <b>d</b>: the leucines every seven residues gave the "leucine zipper" its name.
+          The Asn at position 16 (an a position) is buried in the core and makes the parallel dimer the preferred state.</p>
+      </details>
+    </section>
+
+    <!-- ================= 7 ================= -->
+    <section id="scan">
+      <div class="sec-head">
+        <span class="label">Step 7 of 10</span>
+        <h2>Scan a sequence for coiled coils</h2>
+        <p>COILS (Lupas et al., 1991) slides a 28-residue window (four heptads) along the sequence, scores every register with a position-specific table, and keeps the best score per residue.
+          This page uses a <b>simplified, transparent version with made-up weights</b>, not the published matrices: a/d score 2 for L I V M F Y; e/g score 1 for E K R D (0.5 for Q N S T H A);
+          b/c/f score 1 for polar or small residues; Pro scores −1 anywhere. A perfect heptad scores 9, and the window score is scaled to 0–1.</p>
+      </div>
+      <div class="panel">
+        <div class="row">
+          <span class="label">Load</span>
+          <button type="button" class="chip" data-cc="gcn4-p1">GCN4-p1</button>
+          <button type="button" class="chip" data-cc="tpm1">Tropomyosin</button>
+          <button type="button" class="chip" data-cc="hras">H-Ras</button>
+          <button type="button" class="chip" data-cc="bR">Bacteriorhodopsin</button>
+          <button type="button" class="chip" data-cc="ompa">OmpA</button>
+        </div>
+        <label for="ccSeq" class="label">Protein sequence</label>
+        <textarea id="ccSeq" spellcheck="false"></textarea>
+        <div class="row">
+          <label class="ctl" for="ccThr">Threshold <output id="ccThrOut">0.75</output>
+            <input type="range" id="ccThr" min="0.50" max="0.95" step="0.01" value="0.75"></label>
+        </div>
+        <div class="tiles" id="ccTiles"></div>
+        <div class="scroll"><svg id="ccPlot" viewBox="0 0 800 200" style="min-width:560px;width:100%" role="img" aria-label="Heptad score per residue"></svg></div>
+        <span class="label">Sequence and best register (a and d shaded) where the score passes the threshold</span>
+        <div class="scroll"><div class="tracks" id="ccTracks"></div></div>
+      </div>
+      <details class="hint"><summary>How good is this toy method?</summary>
+        <p>It separates the examples here: GCN4 and most of tropomyosin score 0.8–0.9, while bacteriorhodopsin, OmpA and H-Ras stay below 0.75 (H-Ras comes closest, at 0.72).
+          It misses the first 29 and residues 120–154 of tropomyosin, which is a coiled coil along its whole length but has alanines and other small residues in its core.
+          Real tools use statistics from thousands of coiled coils (COILS, Marcoil) or deep learning on language-model embeddings (DeepCoil, CoCoNat).</p>
+      </details>
+    </section>
+
+    <!-- ================= 8 ================= -->
+    <section id="oligomer">
+      <div class="sec-head">
+        <span class="label">Step 8 of 10</span>
+        <h2>Dimer, trimer or tetramer? The core decides</h2>
+        <p>Harbury, Zhang, Kim and Alber (1993) changed only the core of GCN4-p1. They replaced the a residues (positions 9, 16, 23, 30) and the d residues (5, 12, 19, 26) and named each
+          peptide after its a and d residues. Changing eight core residues switched the oligomer state, because β-branched (Ile, Val) and unbranched (Leu) side chains pack differently at a and d.</p>
+      </div>
+      <div class="panel">
+        <div class="scroll"><table id="olTable"></table></div>
+        <svg id="olSvg" viewBox="0 0 600 150" style="width:100%;max-width:600px;height:auto" role="img" aria-label="Cross-sections of dimer, trimer and tetramer coiled coils"></svg>
+        <p class="note">Rules of thumb: β-branched a with Leu d → dimer; Ile at both a and d → trimer; Leu a with Ile d → tetramer; a buried Asn at a favours a dimer.
+          They work for short GCN4-like zippers. Longer, natural coiled coils also depend on the e/g residues, length and context.</p>
+      </div>
+      <div class="callout">
+        <p><b>Try this with AlphaFold.</b> Predict GCN4-pLI in AlphaFold Server or ColabFold (AlphaFold-Multimer) three times, with 2, 3 and 4 copies of the chain. Record ipTM and pTM for each run and
+          compare. Then do the same for GCN4-p1. Does the highest ipTM pick the experimental state? Note the problem: AlphaFold never refuses the number of copies you give it; it
+          builds a plausible bundle for each, and you have to compare.</p>
+        <details class="hint"><summary>What to look for</summary>
+          <p>There is no single right number to report here: record what you get. A helpful habit is to look at ipTM and at the PAE between chains. If all three runs look equally
+            confident, the model is not telling you the oligomer state, and you need experiments (size-exclusion chromatography with light scattering, analytical ultracentrifugation or crystallography).</p>
+        </details>
+      </div>
+      <div class="tools">
+        <div class="panel"><h3>DeepCoil</h3><p class="note">Deep-learning coiled-coil detection (2019); DeepCoil2 runs in the MPI Bioinformatics Toolkit.</p><a href="https://toolkit.tuebingen.mpg.de/tools/deepcoil" target="_blank" rel="noopener">MPI Toolkit ↗</a></div>
+        <div class="panel"><h3>CoCoNat</h3><p class="note">Predicts coiled-coil segments, register and oligomer state from language-model embeddings.</p><a href="https://coconat.biocomp.unibo.it" target="_blank" rel="noopener">coconat.biocomp.unibo.it ↗</a></div>
+        <div class="panel"><h3>Marcoil</h3><p class="note">HMM-based coiled-coil prediction.</p><a href="https://toolkit.tuebingen.mpg.de/tools/marcoil" target="_blank" rel="noopener">MPI Toolkit ↗</a></div>
+        <div class="panel"><h3>Waggawagga</h3><p class="note">Coiled coils and single α-helices, with helical wheels.</p><a href="https://waggawagga.motorprotein.de" target="_blank" rel="noopener">waggawagga.motorprotein.de ↗</a></div>
+        <div class="panel"><h3>CCBuilder 2.0</h3><p class="note">Builds ideal coiled coils from Crick parameters: radius, pitch, interface angle.</p><a href="http://coiledcoils.chm.bris.ac.uk/ccbuilder2" target="_blank" rel="noopener">coiledcoils.chm.bris.ac.uk ↗</a></div>
+        <div class="panel"><h3>ISAMBARD</h3><p class="note">Python library for parametric modelling and design of coiled coils.</p><a href="https://github.com/woolfson-group/isambard" target="_blank" rel="noopener">GitHub ↗</a></div>
+        <div class="panel"><h3>AlphaFold Server</h3><p class="note">AlphaFold 3; set the number of copies of each chain.</p><a href="https://alphafoldserver.com" target="_blank" rel="noopener">alphafoldserver.com ↗</a></div>
+        <div class="panel"><h3>ColabFold</h3><p class="note">AlphaFold2 / AlphaFold-Multimer; join copies with <code>:</code> in the sequence box.</p><a href="https://github.com/sokrypton/ColabFold" target="_blank" rel="noopener">github.com/sokrypton/ColabFold ↗</a></div>
+      </div>
+      <p class="note">Crick (1953) described coiled coils with a few parameters (supercoil radius, pitch, helix phase). Because the geometry is so regular, coiled coils can be built
+        from equations rather than predicted, which is why they are a favourite of protein designers.</p>
+    </section>
+
+    <!-- ================= 9 ================= -->
+    <section id="quiz">
+      <div class="sec-head">
+        <span class="label">Step 9 of 10</span>
+        <h2>Check yourself</h2>
+      </div>
+      <div class="panel" id="quizBox"></div>
+      <p class="note" id="quizScore"></p>
+    </section>
+
+    <!-- ================= 10 ================= -->
+    <section id="exercises">
+      <div class="sec-head">
+        <span class="label">Step 10 of 10</span>
+        <h2>Exercises</h2>
+      </div>
+      <div class="panel">
+        <ol>
+          <li><b>Hydropathy versus deep learning.</b> Run DeepTMHMM on bacteriorhodopsin, glycophorin A, aquaporin-1 and OmpA (use <code>special_classes.py fasta --preset …</code>).
+            Make a table: number of TM segments from the 19 / 1.6 scan, from DeepTMHMM, and from the reference. Explain each disagreement in one sentence.</li>
+          <li><b>Topology.</b> For aquaporin-1, take the six TM helices from UniProt P29972 (<i>Topology</i> section) and count K + R in each loop. Does the positive-inside rule
+            now give the right orientation? What happens to the two half-helices with the NPA motifs (residues 76–78 and 192–194)?</li>
+          <li><b>Membrane placement.</b> Download the AlphaFold DB model of aquaporin-1 and run it through the PPM server. Report the hydrophobic thickness and which residues lie at the
+            membrane boundaries. Is the whole protein in the membrane, or only part of it?</li>
+          <li><b>Coiled coils.</b> Paste a protein you are interested in (for example a SNARE or a myosin tail from UniProt) into step 7 and into DeepCoil or CoCoNat. Compare the segments.</li>
+          <li><b>Oligomer state.</b> Carry out the 2 / 3 / 4-copy AlphaFold experiment from step 8 for GCN4-p1, pII and pLI. Tabulate ipTM and discuss whether it recovers the
+            Harbury results.</li>
+        </ol>
+      </div>
+      <p class="note">Sequences on this page were downloaded from public GitHub repositories and cross-checked against each other; see the README for exact sources.
+        The reference topologies come from the TMHMM benchmark set (set160) and the DeepTMHMM training set.</p>
+    </section>
+  </main>
+</div>
+
+<script>
+"use strict";
+const PRESETS = {"bR":{"name":"Bacteriorhodopsin, Halobacterium salinarum (precursor; 7 TM helices)","acc":"P02945","seq":"MLELLPTAVEGVSQAQITGRPEWIWLALGTALMGLGTLYFLVKGMGVSDPDAKKFYAITTLVPAIAFTMYLSMLLGYGLTMVPFGGEQNPIYWARYADWLFTTPLLLLDLALLVDADQGTILALVGADGIMIGTGLVGALTKVYSYRFVWWAISTAAMLYILYVLFFGFTSKAESMRPEVASTFKVLRNVTVVLWSAYPVVWLIGSEGAGIVPLNIETLLFMVLDVSAKVGFGLILLRSRAIFGEAEAPEPSAGDGAAATSD","refs":[{"name":"set160","lab":"ooooooooooooooooooooooMMMMMMMMMMMMMMMMMMMMiiiiiiiiiiiiiiMMMMMMMMMMMMMMMMMMMMooooooooooooooooooMMMMMMMMMMMMMMMMMMMMiiiiiiMMMMMMMMMMMMMMMMMMMMoooooooMMMMMMMMMMMMMMMMMMMMiiiiiiiiiiiiiiiiiiiiiiiMMMMMMMMMMMMMMMMMMMMooooooMMMMMMMMMMMMMMMMMMMMiiiiiiiiiiiiiiiiiiiiiiiiii"}]},"gpa":{"name":"Glycophorin A, human (precursor with signal peptide; 1 TM helix)","acc":"P02724","seq":"MYGKIIFVLLLSAIVSISASSTTGVAMHTSTSSSVTKSYISSQTNDTHKRDTYAATPRAHEVSEISVRTVYPPEEETGERVQLAHHFSEPEITLIIFGVMAGVIGTILLISYGIRRLIKKSPSDVKPLPSPDTDVPLSSVEIENPETSDQ","refs":[{"name":"set160","lab":"oooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooMMMMMMMMMMMMMMMMMMMMMMMiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"}]},"rho":{"name":"Rhodopsin, bovine (GPCR; 7 TM helices)","acc":"P02699","seq":"MNGTEGPNFYVPFSNKTGVVRSPFEAPQYYLAEPWQFSMLAAYMFLLIMLGFPINFLTLYVTVQHKKLRTPLNYILLNLAVADLFMVFGGFTTTLYTSLHGYFVFGPTGCNLEGFFATLGGEIALWSLVVLAIERYVVVCKPMSNFRFGENHAIMGVAFTWVMALACAAPPLVGWSRYIPEGMQCSCGIDYYTPHEETNNESFVIYMFVVHFIIPLIVIFFCYGQLVFTVKEAAAQQQESATTQKAEKEVTRMVIIMVIAFLICWLPYAGVAFYIFTHQGSDFGPIFMTIPAFFAKTSAVYNPVIYIMMNKQFRNCMVTTLCCGKNPLGDDEASTTVSKTETSQVAPA","refs":[{"name":"set160","lab":"ooooooooooooooooooooooooooooooooooooMMMMMMMMMMMMMMMMMMMMMMMMMiiiiiiiiiiiiMMMMMMMMMMMMMMMMMMMMMMMMMMooooooooooooooMMMMMMMMMMMMMMMMMMMMiiiiiiiiiiiiiiiiiiiMMMMMMMMMMMMMMMMMMMMMMMMooooooooooooooooooooooooooMMMMMMMMMMMMMMMMMMMMMMMMMMMMiiiiiiiiiiiiiiiiiiiiiiMMMMMMMMMMMMMMMMMMMMMMMMooooooooMMMMMMMMMMMMMMMMMMMMMMMMMiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii"}]},"lacy":{"name":"Lactose permease LacY, E. coli (12 TM helices)","acc":"P02920","seq":"MYYLKNTNFWMFGLFFFFYFFIMGAYFPFFPIWLHDINHISKSDTGIIFAAISLFSLLFQPLFGLLSDKLGLRKYLLWIITGMLVMFAPFFIFIFGPLLQYNILVGSIVGGIYLGFCFNAGAPAVEAFIEKVSRRSNFEFGRARMFGCVGWALCASIVGIMFTINNQFVFWLGSGCALILAVLLFFAKTDAPSSATVANAVGANHSAFSLKLALELFRQPKLWFLSLYVIGVSCTYDVFDQQFANFFTSFFATGEQGTRVFGYVTTMGELLNASIMFFAPLIINRIGGKNALLLAGTIMSVRIIGSSFATSALEVVILKTLHMFEVPFLLVGCFKYITSQFEVRFSATIYLVCFCFFKQLAMIFMSVLAGNMYESIGFQGAYLVLGLVALGFTLISVFTLSGPGPLSLLRRQVNEVA","refs":[{"name":"set160","lab":"iiiiiiiiiiMMMMMMMMMMMMMMMMMMMMMMMoooooooooooooMMMMMMMMMMMMMMMMMMMMMiiiiiiiMMMMMMMMMMMMMMMMMMMMMMMMMoooMMMMMMMMMMMMMMMMMMMMMMMiiiiiiiiiiiiiiiiiiiMMMMMMMMMMMMMMMMMMMooooMMMMMMMMMMMMMMMMMMMMiiiiiiiiiiiiiiiiiiiiiiiiMMMMMMMMMMMMMMMMMMMMMMMoooooooooooooooooooooooooMMMMMMMMMMMMMMMMMMMMMMiiiiiiiiiMMMMMMMMMMMMMMMMMMMMooooMMMMMMMMMMMMMMMMMMMMiiiiiiiiiiiiMMMMMMMMMMMMMMMMMMMMoooooooooooooMMMMMMMMMMMMMMMMMMMMiiiiiiiiiiiiiiiiii"},{"name":"DeepTMHMM training set","lab":"IIIIIIIMMMMMMMMMMMMMMMMMMMMMMMMMOOOOOOOOOOOOOMMMMMMMMMMMMMMMMMMMMMMIIIIIIMMMMMMMMMMMMMMMMMMOOOOOOOOOOOOOOMMMMMMMMMMMMMMMMMMMMMMMMMIIIIIIIIIIMMMMMMMMMMMMMMMMMMMMMOOOOOOOMMMMMMMMMMMMMMMMMMMMIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIMMMMMMMMMMMMMMMMMMMMMMMOOOOOOOOOOOOOOMMMMMMMMMMMMMMMMMMMMIIIIIIIIIMMMMMMMMMMMMMMMMMMMMMOOOOMMMMMMMMMMMMMMMMMMMMMIIIIIIIIIIIIIIIMMMMMMMMMMMMMMMMMMMMMOOOOOOOOOOOMMMMMMMMMMMMMMMMMMMIIIIIIIIIIIIIIIII"}]},"aqp1":{"name":"Aquaporin-1, human (6 TM helices + 2 half-helices)","acc":"P29972","seq":"MASEFKKKLFWRAVVAEFLATTLFVFISIGSALGFKYPVGNNQTAVQDNVKVSLAFGLSIATLAQSVGHISGAHLNPAVTLGLLLSCQISIFRALMYIIAQCVGAIVATAILSGITSSLTGNSLGRNDLADGVNSGQGLGIEIIGTLQLVLCVLATTDRRRRDLGGSAPLAIGLSVALGHLLAIDYTGCGINPARSFGSAVITHNFSNHWIFWVGPFIGGALAVLIYDFILAPRSSDLTDRVKVWTSGQVEEYDLDADDINSRVEMKPK","refs":[]},"b2ar":{"name":"Beta-2 adrenergic receptor, human (GPCR; 7 TM helices)","acc":"P07550","seq":"MGQPGNGSAFLLAPNGSHAPDHDVTQERDEVWVVGMGIVMSLIVLAIVFGNVLVITAIAKFERLQTVTNYFITSLACADLVMGLAVVPFGAAHILMKMWTFGNFWCEFWTSIDVLCVTASIETLCVIAVDRYFAITSPFKYQSLLTKNKARVIILMVWIVSGLTSFLPIQMHWYRATHQEAINCYANETCCDFFTNQAYAIASSIVSFYVPLVIMVFVYSRVFQEAKRQLQKIDKSEGRFHVQNLSQVEQDGRTGHGLRRSSKFCLKEHKALKTLGIIMGTFTLCWLPFFIVNIVHVIQDNLIRKEVYILLNWIGYVNSGFNPLIYCRSPDFRIAFQELLCLRRSSLKAYGNGYSSNGNTGEQSGYHVEQEKENKLLCEDLPGTEDFVGHQGTVPSDNIDSQGRNCSTNDSLL","refs":[]},"ompa":{"name":"Outer membrane protein A, E. coli (precursor; 8-strand beta-barrel + periplasmic domain)","acc":"P0A910","seq":"MKKTAIAIAVALAGFATVAQAAPKDNTWYTGAKLGWSQYHDTGFINNNGPTHENQLGAGAFGGYQVNPYVGFEMGYDWLGRMPYKGSVENGAYKAQGVQLTAKLGYPITDDLDIYTRLGGMVWRADTKSNVYGKNHDTGVSPVFAGGVEYAITPEIATRLEYQWTNNIGDAHTIGTRPDNGMLSLGVSYRFGQGEAAPVVAPAPAPAPEVQTKHFTLKSDVLFNFNKATLKPEGQAALDQLYSQLSNLDPKDGSVVVLGYTDRIGSDAYNQGLSERRAQSVVDYLISKGIPADKISARGMGESNPVTGNTCDNVKQRAALIDCLAPDRRVEIEVKGIKDVVTQPQA","refs":[{"name":"DeepTMHMM training set","lab":"SSSSSSSSSSSSSSSSSSSSSPPPPPPBBBBBBBBOOOOOOOOOOOOOOOOOOOOOOBBBBBBBBPPPPBBBBBBBOOOOOOOOOOOOOOOOOOOOOOBBBBBBBBPPPPPPBBBBBBBBOOOOOOOOOOOOOOOOOOOOOOBBBBBBBBPPPPPBBBBBBBBOOOOOOOOOOOOOOOOOOOBBBBBBBBPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP"}]},"tpm1":{"name":"Tropomyosin alpha-1, human (continuous two-stranded coiled coil)","acc":"P09493","seq":"MDAIKKKMQMLKLDKENALDRAEQAEADKKAAEDRSKQLEDELVSLQKKLKGTEDELDKYSEALKDAQEKLELAEKKATDAEADVASLNRRIQLVEEELDRAQERLATALQKLEEAEKAADESERGMKVIESRAQKDEEKMEIQEIQLKEAKHIAEDADRKYEEVARKLVIIESDLERAEERAELSEGKCAELEEELKTVTNNLKSLEAQAEKYSQKEDRYEEEIKVLSDKLKEAETRAEFAERSVTKLEKSIDDLEDELYAQKLKYKAISEELDHALNDMTSI","refs":[]},"hras":{"name":"H-Ras, human (soluble negative control)","acc":"P01112","seq":"MTEYKLVVVGAGGVGKSALTIQLIQNHFVDEYDPTIEDSYRKQVVIDGETCLLDILDTAGQEEYSAMRDQYMRTGEGFLCVFAINNTKSFEDIHQYREQIKRVKDSDDVPMVLVGNKCDLAARTVESRQAQDLARSYGIPYIETSAKTRQGVEDAFYTLVREIRQHKLRKLNPPDESGPGCMSCKCVLS","refs":[]},"gcn4-p1":{"name":"GCN4-p1 leucine zipper (wild type, dimer, PDB 2ZTA)","acc":"P03069 res. 249-281","seq":"RMKQLEDKVEELLSKNYHLENEVARLKKLVGER","refs":[]},"gcn4-pIL":{"name":"GCN4-pIL (Ile at a, Leu at d; dimer)","acc":"variant","seq":"RMKQLEDKIEELLSKIYHLENEIARLKKLIGER","refs":[]},"gcn4-pII":{"name":"GCN4-pII (Ile at a, Ile at d; trimer, PDB 1GCM)","acc":"variant","seq":"RMKQIEDKIEEILSKIYHIENEIARIKKLIGER","refs":[]},"gcn4-pLI":{"name":"GCN4-pLI (Leu at a, Ile at d; tetramer, PDB 1GCL)","acc":"variant","seq":"RMKQIEDKLEEILSKLYHIENELARIKKLLGER","refs":[]}};
+
+/* ---------------- helpers ---------------- */
+const $ = id => document.getElementById(id);
+const wrap = (s, w = 60) => s.match(new RegExp(`.{1,${w}}`, "g")) || [];
+const esc = s => s.replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
+const clean = s => s.toUpperCase().replace(/[^A-Z]/g, "");
+const fmt = (v, d = 2) => (v >= 0 ? "+" : "") + v.toFixed(d);
+const store = {
+  get(k, d) { try { const v = localStorage.getItem("mcc-tut:" + k); return v === null ? d : JSON.parse(v); } catch { return d; } },
+  set(k, v) { try { localStorage.setItem("mcc-tut:" + k, JSON.stringify(v)); } catch {} }
+};
+const KD = { A: 1.8, R: -4.5, N: -3.5, D: -3.5, C: 2.5, Q: -3.5, E: -3.5, G: -0.4, H: -3.2, I: 4.5, L: 3.8, K: -3.9, M: 1.9, F: 2.8, P: -1.6, S: -0.8, T: -0.7, W: -0.9, Y: -1.3, V: 4.2 };
+const tile = (v, lab) => `<div class="tile"><b>${v}</b><span>${lab}</span></div>`;
+function runs(lab, chars) { const out = []; const re = new RegExp(`[${chars}]+`, "g"); let m; while ((m = re.exec(lab))) out.push([m.index + 1, m.index + m[0].length]); return out; }
+function aaClass(a) { return "LIVMFYWA".includes(a) ? "aa-h" : "KRH".includes(a) ? "aa-p" : "DE".includes(a) ? "aa-n" : ""; }
+function setPressed(sel, attr, val) { document.querySelectorAll(sel).forEach(b => b.setAttribute("aria-pressed", b.dataset[attr] === val ? "true" : "false")); }
+
+/* ---------------- algorithms (same as special_classes.py) ---------------- */
+function slidingMean(seq, w) {
+  const h = Math.floor(w / 2), out = Array(seq.length).fill(null);
+  for (let i = h; i < seq.length - h; i++) { let s = 0; for (let k = i - h; k <= i + h; k++) s += KD[seq[k]] ?? 0; out[i] = s / w; }
+  return out;
+}
+function tmSegments(seq, w = 19, cut = 1.6) {
+  const hyd = slidingMean(seq, w), h = Math.floor(w / 2), taken = Array(seq.length).fill(false), segs = [];
+  const centres = hyd.map((v, i) => [v, i]).filter(([v]) => v !== null && v > cut).sort((x, y) => y[0] - x[0] || x[1] - y[1]);
+  for (const [v, c] of centres) {
+    const a = c - h, b = c + h;
+    let free = true; for (let k = a; k <= b; k++) if (taken[k]) { free = false; break; }
+    if (!free) continue;
+    for (let k = a; k <= b; k++) taken[k] = true;
+    segs.push([a + 1, b + 1, v]);
+  }
+  segs.sort((x, y) => x[0] - y[0]);
+  return { segs, hyd };
+}
+function loopsBetween(n, segs) { const out = []; let prev = 0; for (const [a, b] of segs) { out.push([prev + 1, a - 1]); prev = b; } out.push([prev + 1, n]); return out; }
+function positiveInside(seq, segs, flank = 15) {
+  const loops = loopsBetween(seq.length, segs), counts = [];
+  loops.forEach(([a, b], j) => {
+    const idx = new Set();
+    if (j > 0) for (let i = a; i <= Math.min(b, a + flank - 1); i++) idx.add(i);
+    if (j < loops.length - 1) for (let i = Math.max(a, b - flank + 1); i <= b; i++) idx.add(i);
+    let c = 0; idx.forEach(i => { if ("KR".includes(seq[i - 1])) c++; }); counts.push(c);
+  });
+  const nSide = counts.filter((_, j) => j % 2 === 0).reduce((s, x) => s + x, 0), other = counts.filter((_, j) => j % 2 === 1).reduce((s, x) => s + x, 0);
+  return { loops, counts, nSide, other, guess: nSide > other ? "in" : other > nSide ? "out" : "undecided" };
+}
+function matchSegments(pred, ref, minOv = 5) {
+  const used = new Set(); let hits = 0;
+  for (const [a, b] of pred) for (let k = 0; k < ref.length; k++) { const [c, d] = ref[k]; if (!used.has(k) && Math.min(b, d) - Math.max(a, c) + 1 >= minOv) { used.add(k); hits++; break; } }
+  return { hits, extra: pred.length - hits, missed: ref.length - hits };
+}
+function refNSide(lab) { for (const c of lab) { if ("iIP".includes(c)) return "in"; if ("oO".includes(c)) return "out"; } return "?"; }
+function moment(seq, w, deg) {
+  const h = Math.floor(w / 2), d = deg * Math.PI / 180, out = Array(seq.length).fill(null);
+  for (let i = h; i < seq.length - h; i++) { let c = 0, s = 0; for (let k = i - h; k <= i + h; k++) { const v = KD[seq[k]] ?? 0; c += v * Math.cos(d * k); s += v * Math.sin(d * k); } out[i] = Math.hypot(c, s) / w; }
+  return out;
+}
+const HEP = "abcdefg";
+function heptadScore(aa, p) {
+  if (aa === "P") return -1;
+  if (p === "a" || p === "d") return "LIVMFY".includes(aa) ? 2 : 0;
+  if (p === "e" || p === "g") return "EKRD".includes(aa) ? 1 : "QNSTHA".includes(aa) ? 0.5 : 0;
+  return "EKRDQNSTHAG".includes(aa) ? 1 : 0;
+}
+function coilsScan(seq, window = 28) {
+  const n = seq.length, w = Math.min(window, n), best = Array.from({ length: n }, () => [0, "-"]);
+  for (let s = 0; s + w <= n; s++) for (let r = 0; r < 7; r++) {
+    let sc = 0; for (let k = 0; k < w; k++) sc += heptadScore(seq[s + k], HEP[(r + k) % 7]);
+    sc /= 9 * w / 7;
+    for (let k = 0; k < w; k++) if (sc > best[s + k][0]) best[s + k] = [sc, HEP[(r + k) % 7]];
+  }
+  return best;
+}
+function ccSegments(best, thr) { return runs(best.map(([s]) => s >= thr ? "C" : ".").join(""), "C").filter(([a, b]) => b - a + 1 >= 14); }
+function oligomerRule(seq, reg, segs) {
+  const a = [], d = [];
+  segs.forEach(([s, e]) => { for (let i = s - 1; i < e; i++) { if (reg[i] === "a") a.push(seq[i]); if (reg[i] === "d") d.push(seq[i]); } });
+  if (!a.length || !d.length) return { a, d, verdict: "no coiled-coil segment" };
+  const f = (arr, set) => arr.filter(x => set.includes(x)).length / arr.length;
+  const betaA = f(a, "IV"), leuA = f(a, "L"), betaD = f(d, "IV"), leuD = f(d, "L");
+  let verdict = betaA >= 0.5 && leuD >= 0.5 ? "dimer-like" : betaA >= 0.5 && betaD >= 0.5 ? "trimer-like" : leuA >= 0.5 && betaD >= 0.5 ? "tetramer-like" : "no clear rule";
+  if (a.includes("N")) verdict += "; Asn at a favours a dimer";
+  return { a, d, verdict };
+}
+window.__calc = { tmSegments, positiveInside, coilsScan, ccSegments, oligomerRule, moment, slidingMean, PRESETS };
+
+/* ---------------- shared plot frame ---------------- */
+function frame(n, W, H, L, R, T, Bm, yMin, yMax, yTicks) {
+  const x = i => L + (i / Math.max(1, n - 1)) * (W - L - R), y = v => T + ((yMax - v) / (yMax - yMin)) * (H - T - Bm);
+  let s = "";
+  yTicks.forEach(k => s += `<line x1="${L}" x2="${W - R}" y1="${y(k)}" y2="${y(k)}" stroke="var(--line)" ${k === 0 ? "" : 'stroke-dasharray="2 4"'}/><text x="${L - 6}" y="${y(k) + 4}" text-anchor="end">${k > 0 && yMin < 0 ? "+" + k : k}</text>`);
+  const tick = n > 300 ? 50 : n > 120 ? 25 : n > 50 ? 10 : 5;
+  for (let i = tick; i <= n; i += tick) s += `<text x="${x(i - 1)}" y="${H - 6}" text-anchor="middle">${i}</text>`;
+  return { x, y, s };
+}
+const line = (vals, x, y, color, width = 2) => {
+  const pts = vals.map((v, i) => v === null ? null : `${x(i).toFixed(1)},${y(v).toFixed(1)}`).filter(Boolean);
+  return pts.length ? `<polyline points="${pts.join(" ")}" fill="none" stroke="${color}" stroke-width="${width}"/>` : "";
+};
+function band(x, a, b, yTop, h, color, opacity = 1, title = "") {
+  return `<rect x="${x(a - 1) - 1}" y="${yTop}" width="${Math.max(2, x(b - 1) - x(a - 1) + 2)}" height="${h}" rx="2" fill="${color}" opacity="${opacity}">${title ? `<title>${title}</title>` : ""}</rect>`;
+}
+
+/* ---------------- step 2: TM helices ---------------- */
+let tmKey = "bR", tmState = null, useRef = false;
+function loadTm(key) {
+  tmKey = key; setPressed("[data-tm]", "tm", key);
+  useRef = false; $("topoUseRef").setAttribute("aria-pressed", "false");
+  const p = PRESETS[key];
+  $("tmSeq").value = wrap(p.seq).join("\n");
+  $("tmSource").innerHTML = `${esc(p.name)} · UniProt <a href="https://www.uniprot.org/uniprotkb/${p.acc}/entry" target="_blank" rel="noopener">${p.acc}</a> · ${p.seq.length} aa` +
+    (p.refs.length ? ` · reference: ${p.refs.map(r => esc(r.name)).join(" and ")}` : " · no reference topology on this page");
+  runTm();
+}
+function currentRef(seq) { const p = PRESETS[tmKey]; return p && p.seq === seq && p.refs.length ? p.refs[0] : null; }
+function runTm() {
+  const seq = clean($("tmSeq").value), w = +$("tmWin").value, cut = +$("tmCut").value;
+  $("tmWinOut").textContent = w; $("tmCutOut").textContent = cut.toFixed(1);
+  if (seq.length < w) { $("tmTiles").innerHTML = ""; $("tmPlot").innerHTML = ""; $("tmWarn").textContent = "Sequence shorter than the window."; tmState = null; drawTopo(); return; }
+  const { segs, hyd } = tmSegments(seq, w, cut), ref = currentRef(seq), n = seq.length;
+  const W = 800, H = 250, L = 40, R = 10, T = 44, Bm = 26;
+  const f = frame(n, W, H, L, R, T, Bm, -4.5, 4.5, [-4, -2, 0, 2, 4]);
+  let s = f.s;
+  s += `<text x="${L - 6}" y="14" text-anchor="end">pred</text><line x1="${L}" x2="${W - R}" y1="10" y2="10" stroke="var(--line)"/>`;
+  segs.forEach(([a, b, v], k) => s += band(f.x, a, b, 3, 14, "var(--helix)", 1, `Predicted TM helix ${k + 1}: ${a}-${b}, peak ${v.toFixed(2)}`));
+  if (ref) {
+    s += `<text x="${L - 6}" y="33" text-anchor="end">ref</text><line x1="${L}" x2="${W - R}" y1="29" y2="29" stroke="var(--line)"/>`;
+    runs(ref.lab, "M").forEach(([a, b]) => s += band(f.x, a, b, 23, 12, "var(--brand)", 1, `Reference helix ${a}-${b}`));
+    runs(ref.lab, "B").forEach(([a, b]) => s += band(f.x, a, b, 23, 12, "var(--strand)", 1, `Reference strand ${a}-${b}`));
+    runs(ref.lab, "S").forEach(([a, b]) => s += band(f.x, a, b, 23, 12, "var(--bad)", 1, `Signal peptide ${a}-${b}`));
+  }
+  s += `<line x1="${L}" x2="${W - R}" y1="${f.y(cut)}" y2="${f.y(cut)}" stroke="var(--helix)" stroke-dasharray="6 4"/><text x="${W - R}" y="${f.y(cut) - 5}" text-anchor="end" style="fill:var(--helix)">cutoff ${cut.toFixed(1)}</text>`;
+  s += line(hyd, f.x, f.y, "var(--brand)");
+  $("tmPlot").innerHTML = s;
+  const vals = hyd.filter(v => v !== null), mx = Math.max(...vals);
+  let tiles = tile(segs.length, "TM helices called") + tile(fmt(mx), `max ${w}-window hydropathy`);
+  if (ref) {
+    const rm = runs(ref.lab, "M"), rb = runs(ref.lab, "B");
+    if (rm.length) { const m = matchSegments(segs.map(([a, b]) => [a, b]), rm); tiles += tile(rm.length, "reference helices") + tile(m.hits, "matched") + tile(m.missed, "missed") + tile(m.extra, "extra"); }
+    if (rb.length) tiles += tile(rb.length, "reference β-strands") + tile(0, "reference helices");
+  }
+  $("tmTiles").innerHTML = tiles;
+  $("tmWarn").innerHTML = segs.length && segs[0][0] <= 20 ? `Helix 1 starts at residue ${segs[0][0]}. It could be a cleaved <b>signal peptide</b> rather than a TM helix; hydropathy alone can't tell.` :
+    (w !== 19 || cut !== 1.6) ? "The 1.6 cutoff was calibrated for a 19-residue window." : "";
+  tmState = { seq, segs: segs.map(([a, b]) => [a, b]), ref };
+  drawTopo();
+}
+
+/* ---------------- step 3: topology ---------------- */
+function drawTopo() {
+  const flank = +$("topoFlank").value; $("topoFlankOut").textContent = flank;
+  if (!tmState) { $("topoSvg").innerHTML = ""; $("topoTable").innerHTML = ""; $("topoVerdict").textContent = ""; return; }
+  const { seq, ref } = tmState;
+  const refM = ref ? runs(ref.lab, "M") : [];
+  $("topoUseRef").disabled = !refM.length;
+  const segs = useRef && refM.length ? refM : tmState.segs;
+  $("topoProtein").textContent = `${PRESETS[tmKey] && PRESETS[tmKey].seq === seq ? PRESETS[tmKey].name : "Your sequence"} · ${useRef && refM.length ? "reference" : "predicted"} helices`;
+  if (!segs.length) { $("topoSvg").innerHTML = `<text x="400" y="130" text-anchor="middle">No TM helices, so no membrane topology to predict.</text>`; $("topoTable").innerHTML = ""; $("topoVerdict").textContent = ""; return; }
+  const pi = positiveInside(seq, segs, flank), nIn = pi.guess !== "out";
+  const W = 800, H = 260, mTop = 95, mBot = 165, nH = segs.length, gap = (W - 120) / Math.max(nH, 1);
+  let s = `<rect x="0" y="${mTop}" width="${W}" height="${mBot - mTop}" fill="var(--mem)" stroke="var(--mem-edge)"/>`;
+  s += `<text x="8" y="20" style="font-weight:600">outside</text><text x="8" y="${H - 8}" style="font-weight:600">inside (cytoplasm)</text>`;
+  const hx = k => 60 + gap * (k + 0.5);
+  segs.forEach(([a, b], k) => {
+    s += `<rect x="${hx(k) - 13}" y="${mTop - 14}" width="26" height="${mBot - mTop + 28}" rx="12" fill="var(--helix)"><title>Helix ${k + 1}: ${a}-${b}</title></rect>`;
+    s += `<text x="${hx(k)}" y="${(mTop + mBot) / 2 + 4}" text-anchor="middle" style="fill:#fff;font-weight:600">${k + 1}</text>`;
+  });
+  const sideOf = j => (j % 2 === 0) === nIn ? "in" : "out";
+  const sideA = nIn ? "in" : "out";
+  pi.loops.forEach(([a, b], j) => {
+    const up = sideOf(j) === "out", yEdge = up ? mTop - 14 : mBot + 14, yPeak = up ? 50 : H - 50;
+    const c = pi.counts[j], txt = `K+R ${c}`, hi = (j % 2 === 0 ? pi.nSide : pi.other) > (j % 2 === 0 ? pi.other : pi.nSide);
+    if (j === 0) { s += `<path d="M${hx(0) - 40} ${yPeak} Q ${hx(0) - 20} ${yPeak} ${hx(0) - 8} ${yEdge}" fill="none" stroke="var(--coil)" stroke-width="3"/><text x="${hx(0) - 46}" y="${yPeak + 4}" text-anchor="end" style="font-weight:700">N</text>`; }
+    else if (j === pi.loops.length - 1) { const k = segs.length - 1; s += `<path d="M${hx(k) + 8} ${yEdge} Q ${hx(k) + 20} ${yPeak} ${hx(k) + 40} ${yPeak}" fill="none" stroke="var(--coil)" stroke-width="3"/><text x="${hx(k) + 46}" y="${yPeak + 4}" text-anchor="start" style="font-weight:700">C</text>`; }
+    else { s += `<path d="M${hx(j - 1) + 8} ${yEdge} C ${hx(j - 1) + 8} ${yPeak}, ${hx(j) - 8} ${yPeak}, ${hx(j) - 8} ${yEdge}" fill="none" stroke="var(--coil)" stroke-width="3"/>`; }
+    const lx = j === 0 ? hx(0) - 30 : j === pi.loops.length - 1 ? hx(segs.length - 1) + 30 : (hx(j - 1) + hx(j)) / 2;
+    s += `<text x="${lx}" y="${up ? yPeak - 10 : yPeak + 20}" text-anchor="middle" style="${hi ? "fill:var(--pos);font-weight:700" : ""}">${txt}</text>`;
+  });
+  $("topoSvg").innerHTML = s;
+  const lab = j => j === 0 ? "N" : j === pi.loops.length - 1 ? "C" : String(j);
+  $("topoTable").innerHTML = `<thead><tr><th>Loop</th>${pi.loops.map((_, j) => `<th>${lab(j)}</th>`).join("")}</tr></thead><tbody>
+    <tr><td>Residues</td>${pi.loops.map(([a, b]) => `<td class="num">${a}–${b}</td>`).join("")}</tr>
+    <tr><td>Side</td>${pi.loops.map((_, j) => `<td>${j % 2 === 0 ? "A" : "B"}</td>`).join("")}</tr>
+    <tr><td>K + R</td>${pi.counts.map((c, j) => `<td class="num">${c}</td>`).join("")}</tr></tbody>`;
+  const cSide = pi.guess === "undecided" ? "?" : ((pi.guess === "in") === (segs.length % 2 === 0) ? "in" : "out");
+  let v = `Side A (N-terminal side) has <b>${pi.nSide}</b> K + R, side B has <b>${pi.other}</b>. Prediction: N-terminus <b>${pi.guess}</b>` + (pi.guess === "undecided" ? " (the cartoon draws it inside)." : `, C-terminus <b>${cSide}</b>.`);
+  if (ref && refM.length) v += ` Reference: ${refM.length} ${refM.length === 1 ? "helix" : "helices"}, N-terminus <b>${refNSide(ref.lab)}</b> ` + (pi.guess === refNSide(ref.lab) ? '<span class="ok">agrees</span>' : '<span class="no">disagrees</span>') + ".";
+  $("topoVerdict").innerHTML = v;
+}
+
+/* ---------------- step 4: beta-barrels ---------------- */
+let brKey = "ompa";
+function drawBarrel() {
+  const p = PRESETS[brKey], seq = p.seq, w = +$("brWin").value, thr = +$("brThr").value;
+  $("brWinOut").textContent = w; $("brThrOut").textContent = thr.toFixed(1); setPressed("[data-br]", "br", brKey);
+  const mu = moment(seq, w, 180), hyd = slidingMean(seq, 19), n = seq.length;
+  const W = 800, H = 250, L = 40, R = 10, T = 26, Bm = 26;
+  const f = frame(n, W, H, L, R, T, Bm, -3, 3, [-2, 0, 2]);
+  let s = f.s;
+  const ref = p.refs.find(r => /B/.test(r.lab));
+  if (ref) {
+    runs(ref.lab, "B").forEach(([a, b]) => s += `<rect x="${f.x(a - 1)}" y="${T}" width="${Math.max(2, f.x(b - 1) - f.x(a - 1))}" height="${H - T - Bm}" fill="var(--strand)" opacity="0.18"/>` + band(f.x, a, b, 6, 12, "var(--strand)", 0.9, `Reference strand ${a}-${b}`));
+    runs(ref.lab, "S").forEach(([a, b]) => s += band(f.x, a, b, 6, 12, "var(--bad)", 0.9, `Signal peptide ${a}-${b}`));
+  }
+  s += `<line x1="${L}" x2="${W - R}" y1="${f.y(1.6)}" y2="${f.y(1.6)}" stroke="var(--brand)" stroke-dasharray="6 4"/><text x="${W - R}" y="${f.y(1.6) - 5}" text-anchor="end" style="fill:var(--brand)">helix cutoff 1.6</text>`;
+  s += `<line x1="${L}" x2="${W - R}" y1="${f.y(thr)}" y2="${f.y(thr)}" stroke="var(--strand)" stroke-dasharray="2 3"/>`;
+  s += line(hyd, f.x, f.y, "var(--brand)") + line(mu, f.x, f.y, "var(--strand)", 1.6);
+  $("brPlot").innerHTML = s;
+  const mv = mu.filter(v => v !== null), hv = hyd.filter(v => v !== null);
+  let t = tile(fmt(Math.max(...hv)), "max 19-window hydropathy") + tile(tmSegments(seq)[`segs`].length, "TM helices called") + tile(`${mv.filter(v => v >= thr).length}/${mv.length}`, `residues with moment ≥ ${thr.toFixed(1)}`);
+  if (ref) {
+    const inB = mu.filter((v, i) => v !== null && ref.lab[i] === "B"), outB = mu.filter((v, i) => v !== null && ref.lab[i] !== "B");
+    const strands = runs(ref.lab, "B"), found = strands.filter(([a, b]) => { let c = 0; for (let i = a - 1; i < b; i++) if (mu[i] !== null && mu[i] >= thr) c++; return c >= 3; }).length;
+    t += tile((inB.reduce((s, x) => s + x, 0) / inB.length).toFixed(2), "mean moment in strands") + tile((outB.reduce((s, x) => s + x, 0) / outB.length).toFixed(2), "mean moment elsewhere") + tile(`${found}/${strands.length}`, "strands with ≥ 3 residues above threshold");
+  }
+  $("brTiles").innerHTML = t;
+}
+
+/* ---------------- step 6: helical wheel ---------------- */
+let whKey = "gcn4-p1", whReg = "g";
+function drawWheel() {
+  const seq = PRESETS[whKey].seq, maxStart = Math.max(1, seq.length - 17);
+  $("whStart").max = maxStart; if (+$("whStart").value > maxStart) $("whStart").value = maxStart;
+  const start = +$("whStart").value, end = Math.min(seq.length, start + 17); $("whStartOut").textContent = start;
+  setPressed("[data-wh]", "wh", whKey); setPressed("[data-reg]", "reg", whReg);
+  const off = HEP.indexOf(whReg), cx = 170, cy = 170;
+  const sub = []; for (let i = start; i <= end; i++) sub.push({ i, aa: seq[i - 1], p: HEP[(off + i - start) % 7] });
+  const firstA = sub.findIndex(r => r.p === "a"), angOf = k => ((k - (firstA < 0 ? 0 : firstA)) * 100) % 360;
+  let s = "";
+  const polar = (deg, r) => [cx + r * Math.sin(deg * Math.PI / 180), cy - r * Math.cos(deg * Math.PI / 180)];
+  const arc = (a0, a1, r) => { const [x0, y0] = polar(a0, r), [x1, y1] = polar(a1, r); return `M${cx} ${cy} L${x0} ${y0} A ${r} ${r} 0 0 1 ${x1} ${y1} Z`; };
+  s += `<path d="${arc(-85, 25, 160)}" fill="var(--strand)" opacity="0.12"/><text x="${polar(-30, 150)[0]}" y="${polar(-30, 150)[1]}" text-anchor="middle" style="fill:var(--strand);font-weight:600">a/d face</text>`;
+  for (let k = sub.length - 1; k > 0; k--) { const [x0, y0] = polar(angOf(k - 1), 50 + (k - 1) * 5.5), [x1, y1] = polar(angOf(k), 50 + k * 5.5); s += `<line x1="${x0}" y1="${y0}" x2="${x1}" y2="${y1}" stroke="var(--line)"/>`; }
+  sub.forEach((r, k) => {
+    const [x, y] = polar(angOf(k), 50 + k * 5.5), cls = aaClass(r.aa);
+    const fill = cls === "aa-h" ? "var(--strand)" : cls === "aa-p" ? "var(--pos)" : cls === "aa-n" ? "var(--neg)" : "var(--surface)";
+    const core = r.p === "a" || r.p === "d";
+    s += `<circle cx="${x}" cy="${y}" r="13" fill="${fill}" stroke="${core ? "var(--ink)" : "var(--line)"}" stroke-width="${core ? 2 : 1}"><title>${r.aa}${r.i} at ${r.p}</title></circle>`;
+    s += `<text x="${x}" y="${y + 4}" text-anchor="middle" style="font:600 11px var(--mono);fill:${cls ? "#fff" : "var(--ink)"}">${r.aa}</text>`;
+    const [lx, ly] = polar(angOf(k), 50 + k * 5.5 + 20);
+    s += `<text x="${lx}" y="${ly + 4}" text-anchor="middle" style="font-size:10px">${r.p}${r.i}</text>`;
+  });
+  $("whSvg").innerHTML = s;
+  const core = sub.filter(r => "ad".includes(r.p)), eg = sub.filter(r => "eg".includes(r.p)), bcf = sub.filter(r => "bcf".includes(r.p));
+  $("whTiles").innerHTML = tile(`${core.filter(r => "LIVMFY".includes(r.aa)).length}/${core.length}`, "hydrophobic at a/d") + tile(`${eg.filter(r => "EKRD".includes(r.aa)).length}/${eg.length}`, "charged at e/g") + tile(`${bcf.filter(r => "LIVMFYW".includes(r.aa)).length}/${bcf.length}`, "hydrophobic at b/c/f");
+  const rows = []; let row = Array(7).fill("");
+  sub.forEach(r => { const k = HEP.indexOf(r.p); if (k === 0 && row.some(Boolean)) { rows.push(row); row = Array(7).fill(""); } row[k] = `<span class="${aaClass(r.aa)}">${r.aa}</span><sub>${r.i}</sub>`; });
+  rows.push(row);
+  $("whTable").innerHTML = `<thead><tr>${[...HEP].map(p => `<th class="${"ad".includes(p) ? "core" : ""}">${p}</th>`).join("")}</tr></thead><tbody>${rows.map(r => `<tr>${r.map((c, k) => `<td class="${k === 0 || k === 3 ? "core" : ""}">${c}</td>`).join("")}</tr>`).join("")}</tbody>`;
+}
+
+/* ---------------- step 7: coiled-coil scan ---------------- */
+let ccKey = "gcn4-p1";
+function runCC() {
+  const seq = clean($("ccSeq").value), thr = +$("ccThr").value; $("ccThrOut").textContent = thr.toFixed(2);
+  if (seq.length < 7) { $("ccTiles").innerHTML = ""; $("ccPlot").innerHTML = ""; $("ccTracks").innerHTML = ""; return; }
+  const best = coilsScan(seq), sc = best.map(b => b[0]), reg = best.map(b => b[1]).join(""), segs = ccSegments(best, thr), n = seq.length;
+  const W = 800, H = 200, L = 40, R = 10, T = 12, Bm = 26;
+  const f = frame(n, W, H, L, R, T, Bm, 0, 1, [0, 0.25, 0.5, 0.75, 1]);
+  let s = f.s;
+  segs.forEach(([a, b]) => s += `<rect x="${f.x(a - 1)}" y="${T}" width="${Math.max(2, f.x(b - 1) - f.x(a - 1))}" height="${H - T - Bm}" fill="var(--helix)" opacity="0.12"/>`);
+  s += `<line x1="${L}" x2="${W - R}" y1="${f.y(thr)}" y2="${f.y(thr)}" stroke="var(--helix)" stroke-dasharray="6 4"/><text x="${W - R}" y="${f.y(thr) - 5}" text-anchor="end" style="fill:var(--helix)">threshold ${thr.toFixed(2)}</text>`;
+  s += line(sc, f.x, f.y, "var(--brand)");
+  $("ccPlot").innerHTML = s;
+  const ol = oligomerRule(seq, reg, segs);
+  $("ccTiles").innerHTML = tile(Math.max(...sc).toFixed(2), "max score") + tile(`${sc.filter(v => v >= thr).length}/${n}`, "residues ≥ threshold") + tile(segs.length ? segs.map(([a, b]) => `${a}–${b}`).join(", ") : "none", "segments (≥ 14 residues)") + tile(ol.verdict, "oligomer rule of thumb");
+  const lines = [];
+  for (let st = 0; st < n; st += 60) {
+    const sq = seq.slice(st, st + 60), rg = reg.slice(st, st + 60);
+    lines.push(`<span class="lab">${String(st + 1).padStart(5)} seq </span>` + [...sq].map((a, k) => { const p = rg[k], on = sc[st + k] >= thr; return `<span class="${on ? ("ad".includes(p) ? "core" : "eg".includes(p) ? "edge" : "") : ""}">${a}</span>`; }).join(""));
+    lines.push(`<span class="lab">      reg </span>` + [...rg].map((p, k) => sc[st + k] >= thr ? p : `<span class="io">.</span>`).join(""));
+  }
+  $("ccTracks").innerHTML = lines.join("\n");
+}
+
+/* ---------------- step 8: oligomer state ---------------- */
+const GCN4 = [
+  ["gcn4-p1", "GCN4-p1", "Val (Asn16)", "Leu", "dimer", "2ZTA"],
+  ["gcn4-pIL", "pIL", "Ile", "Leu", "dimer", "—"],
+  ["gcn4-pII", "pII", "Ile", "Ile", "trimer", "1GCM"],
+  ["gcn4-pLI", "pLI", "Leu", "Ile", "tetramer", "1GCL"]
+];
+function drawOligo() {
+  $("olTable").innerHTML = `<thead><tr><th>Peptide</th><th>Sequence (a, d shaded)</th><th>a / d</th><th>Rule of thumb</th><th>Experiment (Harbury 1993)</th><th>PDB</th></tr></thead><tbody>` +
+    GCN4.map(([k, nm, a, d, st, pdb]) => {
+      const seq = PRESETS[k].seq, best = coilsScan(seq), reg = best.map(b => b[1]).join(""), ol = oligomerRule(seq, reg, ccSegments(best, 0.75));
+      const html = [...seq].map((c, i) => `<span class="${"ad".includes(reg[i]) ? "core" : ""}">${c}</span>`).join("");
+      return `<tr><td>${nm}</td><td class="tracks">${html}</td><td>${a} / ${d}</td><td>${ol.verdict}</td><td><b>${st}</b></td><td class="num">${pdb === "—" ? pdb : `<a href="https://www.rcsb.org/structure/${pdb}" target="_blank" rel="noopener">${pdb}</a>`}</td></tr>`;
+    }).join("") + "</tbody>";
+  let s = "";
+  [[2, "dimer"], [3, "trimer"], [4, "tetramer"]].forEach(([k, nm], j) => {
+    const cx = 100 + j * 200, cy = 66, R = k === 2 ? 22 : k === 3 ? 27 : 31;
+    for (let m = 0; m < k; m++) { const t = 2 * Math.PI * m / k + Math.PI / 2 / k; s += `<circle cx="${cx + R * Math.cos(t)}" cy="${cy + R * Math.sin(t)}" r="20" fill="var(--helix)" opacity="0.85"/>`; }
+    s += `<circle cx="${cx}" cy="${cy}" r="${k === 2 ? 5 : k === 3 ? 7 : 11}" fill="var(--strand)"/><text x="${cx}" y="140" text-anchor="middle">${nm}: ${k} helices around a core of a/d side chains</text>`;
+  });
+  $("olSvg").innerHTML = s;
+}
+
+/* ---------------- quiz ---------------- */
+const QUIZ = [
+  { q: "An AlphaFold model of a 7-TM receptor looks great, with pLDDT above 90 in all helices. What does it still not tell you?", o: ["Where the helices are", "Where the membrane is and how the protein sits in it", "The amino-acid sequence", "Anything at all"], a: 1, why: "The model has no bilayer. Tools such as PPM place the membrane from the model's surface hydrophobicity." },
+  { q: "A 19-residue hydropathy scan calls a TM helix at residues 4–22 of a secreted protein. The most likely explanation:", o: ["It's a real TM anchor", "It's a cleaved signal peptide", "The scale is wrong", "It's a coiled coil"], a: 1, why: "Signal peptides have a hydrophobic core that looks like a short TM helix. Phobius, SignalP and DeepTMHMM model them separately." },
+  { q: "Loops on one side of a multi-spanning protein have 17 K + R near the helix ends; the other side has 2. Which side is probably cytoplasmic?", o: ["The side with 17", "The side with 2", "Neither; charge is irrelevant", "Both"], a: 0, why: "The positive-inside rule (von Heijne): Lys and Arg are enriched in cytoplasmic loops." },
+  { q: "Why do hydropathy plots miss the strands of OmpA?", o: ["OmpA is not in the membrane", "Each strand is short and alternates hydrophobic and polar residues, so a 19-residue average stays low", "Strands are always charged", "OmpA has no hydrophobic residues"], a: 1, why: "One face of each strand points into the lipid and the other into the barrel. The hydrophobic moment at 180° picks up the alternation." },
+  { q: "In a heptad abcdefg, which positions form the hydrophobic core of a coiled coil?", o: ["b and f", "a and d", "c and g", "e and g"], a: 1, why: "a and d form the core; e and g flank it and often make interhelical salt bridges." },
+  { q: "GCN4-pLI (Leu at a, Ile at d) forms a tetramer. You submit ONE copy to AlphaFold. What do you get?", o: ["A tetramer", "A single helix; AlphaFold only models the chains you give it", "An error", "A dimer"], a: 1, why: "Oligomer state is an input, not an output. Compare runs with 2, 3 and 4 copies (for example by ipTM), and confirm by experiment." }
+];
+let answers = store.get("quiz", {});
+function renderQuiz() {
+  $("quizBox").innerHTML = QUIZ.map((x, i) => `<div class="q"><h3>${i + 1}. ${x.q}</h3><div class="opts">${x.o.map((o, j) => {
+    const picked = answers[i] === j, cls = answers[i] === undefined ? "" : j === x.a ? (picked || answers[i] !== x.a ? "right" : "") : picked ? "wrong" : "";
+    return `<button type="button" data-q="${i}" data-o="${j}" class="${cls}">${o}</button>`; }).join("")}</div>
+    ${answers[i] !== undefined ? `<p class="why"><span class="${answers[i] === x.a ? "ok" : "no"}">${answers[i] === x.a ? "Correct." : "Not quite."}</span> ${x.why}</p>` : ""}</div>`).join("");
+  const done = Object.keys(answers).length, right = QUIZ.filter((x, i) => answers[i] === x.a).length;
+  $("quizScore").innerHTML = done ? `${right} of ${QUIZ.length} correct · <button type="button" class="chip" id="quizReset">Reset quiz</button>` : "";
+  if (done) $("quizReset").addEventListener("click", () => { answers = {}; store.set("quiz", answers); renderQuiz(); });
+}
+$("quizBox").addEventListener("click", e => { const b = e.target.closest("[data-q]"); if (!b) return; answers[b.dataset.q] = +b.dataset.o; store.set("quiz", answers); renderQuiz(); markProgress(); });
+
+/* ---------------- events ---------------- */
+document.querySelectorAll("[data-tm]").forEach(b => b.addEventListener("click", () => loadTm(b.dataset.tm)));
+$("tmSeq").addEventListener("input", () => { setPressed("[data-tm]", "tm", ""); runTm(); });
+$("tmWin").addEventListener("input", runTm); $("tmCut").addEventListener("input", runTm);
+$("tmReset").addEventListener("click", () => { $("tmWin").value = 19; $("tmCut").value = 1.6; runTm(); });
+$("topoUseRef").addEventListener("click", () => { useRef = !useRef; $("topoUseRef").setAttribute("aria-pressed", String(useRef)); drawTopo(); });
+$("topoFlank").addEventListener("input", drawTopo);
+document.querySelectorAll("[data-br]").forEach(b => b.addEventListener("click", () => { brKey = b.dataset.br; drawBarrel(); }));
+$("brWin").addEventListener("input", drawBarrel); $("brThr").addEventListener("input", drawBarrel);
+[...HEP].forEach(p => { const b = document.createElement("button"); b.type = "button"; b.className = "chip"; b.dataset.reg = p; b.textContent = p; b.addEventListener("click", () => { whReg = p; drawWheel(); }); $("whReg").appendChild(b); });
+document.querySelectorAll("[data-wh]").forEach(b => b.addEventListener("click", () => { whKey = b.dataset.wh; $("whStart").value = whKey === "tpm1" ? 30 : 1; whReg = whKey === "tpm1" ? "b" : "g"; drawWheel(); }));
+$("whStart").addEventListener("input", () => { drawWheel(); });
+$("whBest").addEventListener("click", () => { const best = coilsScan(PRESETS[whKey].seq); whReg = best[+$("whStart").value - 1][1]; if (whReg === "-") whReg = "a"; drawWheel(); });
+document.querySelectorAll("[data-cc]").forEach(b => b.addEventListener("click", () => { ccKey = b.dataset.cc; setPressed("[data-cc]", "cc", ccKey); $("ccSeq").value = wrap(PRESETS[ccKey].seq).join("\n"); runCC(); }));
+$("ccSeq").addEventListener("input", () => { setPressed("[data-cc]", "cc", ""); runCC(); });
+$("ccThr").addEventListener("input", runCC);
+
+/* ---------------- nav progress + theme ---------------- */
+const links = [...document.querySelectorAll("nav.steps a")];
+let visited = store.get("visited", []);
+function markProgress() { links.forEach(a => a.classList.toggle("done", visited.includes(a.getAttribute("href").slice(1)))); }
+const io = new IntersectionObserver(es => es.forEach(e => {
+  if (!e.isIntersecting) return;
+  const id = e.target.id;
+  links.forEach(a => a.classList.toggle("here", a.getAttribute("href") === "#" + id));
+  if (!visited.includes(id)) { visited.push(id); store.set("visited", visited); markProgress(); }
+}), { rootMargin: "-30% 0px -60% 0px" });
+document.querySelectorAll("main section").forEach(s => io.observe(s));
+function applyTheme(t) {
+  if (t) document.documentElement.setAttribute("data-theme", t); else document.documentElement.removeAttribute("data-theme");
+  const dark = t ? t === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+  $("themeBtn").textContent = dark ? "Light theme" : "Dark theme";
+}
+$("themeBtn").addEventListener("click", () => {
+  const cur = document.documentElement.getAttribute("data-theme") || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+  const next = cur === "dark" ? "light" : "dark"; store.set("theme", next); applyTheme(next);
+});
+
+/* ---------------- boot ---------------- */
+applyTheme(store.get("theme", null));
+loadTm("bR");
+drawBarrel();
+drawWheel();
+setPressed("[data-cc]", "cc", ccKey); $("ccSeq").value = wrap(PRESETS[ccKey].seq).join("\n"); runCC();
+drawOligo();
+renderQuiz(); markProgress();
+</script>
+</body>
+</html>
