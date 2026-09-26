@@ -185,6 +185,8 @@ table.data tbody tr{cursor:pointer}
 .pill.fold{background:color-mix(in srgb,var(--good) 18%,var(--panel));color:var(--good)}
 .pill.no{background:var(--panel-2);color:var(--muted)}
 .muted{color:var(--muted)}
+.diagram{width:100%;height:auto;display:block;max-width:100%}
+.chartwrap{position:relative}
 .chips{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}
 .chips button{font-weight:400;border-radius:999px;padding:4px 12px}
 .chips button[aria-pressed="true"]{background:var(--plum);color:var(--bg);border-color:var(--plum)}
@@ -264,6 +266,15 @@ table.data tbody tr{cursor:pointer}
   <div class="prose">
   <h2 id="why-h">Why compare structures?</h2>
   <p>Chothia and Lesk (1986) superposed pairs of related proteins and found a smooth relationship: the less identical the sequences, the more their cores differ, but slowly. Proteins in the twilight zone of sequence identity still keep the same fold. Selection acts on function, and function depends on shape, so the shape changes more slowly than the sequence that encodes it.</p>
+  </div>
+  <div class="tool" id="chTool">
+    <div class="tool-title">Sequence identity vs structural difference <small>Chothia &amp; Lesk (1986) curve, with this page's globin pairs</small></div>
+    <div class="chartwrap"><svg class="diagram" id="chothia" viewBox="0 0 720 340" role="img" aria-label="Plot of core RMSD against percent sequence identity, with the Chothia and Lesk curve and the globin pairs measured on this page"></svg></div>
+    <p class="note" id="chNote" style="margin-bottom:0">Measuring the globin pairs…</p>
+  </div>
+  <div class="prose">
+  <p>The curve is Chothia and Lesk's fit to 32 pairs of homologous proteins from eight families: <b>Δ = 0.40 · e<sup>1.87 H</sup></b> Å, where Δ is the RMSD of the main-chain atoms in the common core and H is the fraction of core residues that differ (H = 1 − identity). Identical sequences still differ by about 0.4 Å, roughly the difference between two crystal structures of the same protein. At 50% identity the cores differ by about 1 Å, and even at 20% identity by less than 2 Å. Sequence changes much faster than the fold.</p>
+  <p>The points are real pairs of globin crystal structures, measured on this page from the Cα atoms of residues that superpose within 5 Å (the "core"). Identity here is counted only over that structural core, so it is lower than in a sequence alignment. All six pairs lie within about 0.5 Å of the curve. The leghemoglobin pairs share only 11–14% of their core residues with the animal globins, below the twilight zone, yet their cores differ by only 2.1–2.5 Å. The relationship holds only for homologs with the same fold; the lysozyme and cytochrome c controls have no common core with the globins, so they have no place on this plot.</p>
   <p>That makes structure the best evidence of homology when sequences have drifted far apart. It also gives a better reference alignment: residues that sit in the same place in 3D are the best guess for residues that descend from the same ancestral position. The benchmark alignments used to test MSA programs (BAliBASE, from the multiple alignment tutorial) are built this way.</p>
   </div>
 </section>
@@ -853,5 +864,43 @@ function tocWire() {
   const on = () => { let k = 0; secs.forEach((s, i) => { if (s.getBoundingClientRect().top < 140) k = i; }); links.forEach((a, i) => a.classList.toggle("on", i === k)); };
   addEventListener("scroll", on, {passive: true}); on();
 }
-viewerWire(); draw(); pdbTable(); cmpTable(); tocWire();
+/* ---------- Chothia & Lesk plot ---------- */
+const CH_PAIRS = [["MBw", "HBB", "Mb–β"], ["HBA", "HBB", "α–β"], ["HBA", "MBw", "α–Mb"], ["LBA", "HBB", "Lb–β"], ["LBA", "MBw", "Lb–Mb"], ["LBA", "HBA", "Lb–α"]];
+function drawChothia(pts) {
+  const svg = document.getElementById("chothia"); if (!svg) return;
+  const W = 720, H = 340, L = 56, R = 20, T = 20, B = 50, ymax = 3;
+  const X = id => L + id / 100 * (W - L - R), Y = v => H - B - v / ymax * (H - T - B);
+  const f = id => 0.40 * Math.exp(1.87 * (1 - id / 100));
+  let g = `<rect x="${X(20)}" y="${T}" width="${X(35) - X(20)}" height="${H - T - B}" fill="var(--heme-soft)" opacity=".55"/><text x="${(X(20) + X(35)) / 2}" y="${T + 14}" text-anchor="middle" font-size="11" fill="var(--heme)">twilight zone</text>`;
+  for (let v = 0; v <= ymax; v += 0.5) g += `<line x1="${L}" x2="${W - R}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)"/><text x="${L - 8}" y="${Y(v) + 4}" text-anchor="end" font-size="11" fill="var(--muted)">${v.toFixed(1)}</text>`;
+  for (let id = 0; id <= 100; id += 10) g += `<text x="${X(id)}" y="${H - B + 18}" text-anchor="middle" font-size="11" fill="var(--muted)">${id}</text>`;
+  g += `<text x="${(L + W - R) / 2}" y="${H - 10}" text-anchor="middle" font-size="12" fill="var(--muted)">sequence identity in the common core (%)</text>`;
+  g += `<text x="14" y="${(T + H - B) / 2}" text-anchor="middle" font-size="12" fill="var(--muted)" transform="rotate(-90 14 ${(T + H - B) / 2})">core RMSD (Å)</text>`;
+  let d = ""; for (let id = 0; id <= 100; id += 1) d += (d ? "L" : "M") + X(id).toFixed(1) + " " + Y(f(id)).toFixed(1);
+  g += `<path d="${d}" fill="none" stroke="var(--plum)" stroke-width="2.5"/>`;
+  g += `<text x="${X(58)}" y="${Y(f(58)) - 12}" font-size="12" font-weight="700" fill="var(--plum)">Δ = 0.40 · e^(1.87 H)</text>`;
+  pts.forEach(p => {
+    const x = X(p.id), y = Y(p.rmsd), right = p.t !== "Mb–β" && p.id < 60;
+    g += `<g><title>${p.t}: ${p.id.toFixed(0)}% identity over ${p.n} core residues, RMSD ${p.rmsd.toFixed(2)} Å (curve predicts ${f(p.id).toFixed(2)} Å)</title><circle cx="${x}" cy="${y}" r="6" fill="var(--heme)" stroke="var(--bg)" stroke-width="2"/><text x="${right ? x + 10 : x - 10}" y="${y + 4}" text-anchor="${right ? "start" : "end"}" font-size="12" font-weight="700" fill="var(--ink)">${p.t}</text></g>`;
+  });
+  g += `<g transform="translate(${W - R - 250} ${T + 6})"><line x1="0" x2="22" y1="6" y2="6" stroke="var(--plum)" stroke-width="2.5"/><text x="28" y="10" font-size="12" fill="var(--ink)">Chothia &amp; Lesk fit</text><circle cx="148" cy="6" r="5" fill="var(--heme)"/><text x="158" y="10" font-size="12" fill="var(--ink)">globin pairs here</text></g>`;
+  svg.innerHTML = g;
+}
+function chothiaRun() {
+  drawChothia([]);
+  const pts = []; let k = 0;
+  const step = () => {
+    if (k >= CH_PAIRS.length) {
+      const rows = pts.map(p => `${p.t} ${p.id.toFixed(0)}% / ${p.rmsd.toFixed(2)} Å (${p.n} residues)`).join(" · ");
+      document.getElementById("chNote").textContent = `Measured here (identity / RMSD / core size): ${rows}. Chothia and Lesk used all main-chain atoms; this page uses Cα only, so the comparison is approximate. Their original 32 data points are not reproduced.`;
+      return;
+    }
+    const [a, b, t] = CH_PAIRS[k++], r = compare(a, b), core = r.st.close;
+    const same = core.filter(([i, j]) => CA[a].seq[i] === CA[b].seq[j]).length;
+    pts.push({t, id: 100 * same / core.length, rmsd: r.st.rmsd, n: core.length});
+    drawChothia(pts); setTimeout(step, 0);
+  };
+  setTimeout(step, 60);
+}
+viewerWire(); draw(); pdbTable(); cmpTable(); tocWire(); chothiaRun();
 </script>
